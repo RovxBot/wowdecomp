@@ -31,12 +31,15 @@ def audit(targets, mode, target_os, cpu):
                                       or ('Win64' in parts and expected_platform != 'Win64')):
                 errors.append(f"{target['name']}: wrong Windows source: {source}")
         if mode == 'core':
-            forbidden = {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
-                         '_CRT_SECURE_NO_WARNINGS', '_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
+            forbidden = {'_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
+            if target_os != 'WINDOWS':
+                forbidden |= {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
+                              '_CRT_SECURE_NO_WARNINGS'}
             if {d.split('=')[0] for d in definitions} & forbidden:
                 errors.append(f"{target['name']}: Windows/client definitions leaked into core")
             for fragment in target.get('link', {}).get('commandFragments', []):
-                if '.lib' in fragment['fragment'] or '/ENTRY:' in fragment['fragment']:
+                if ((target_os != 'WINDOWS' and '.lib' in fragment['fragment'])
+                        or '/ENTRY:' in fragment['fragment']):
                     errors.append(f"{target['name']}: Windows link flags in core")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):

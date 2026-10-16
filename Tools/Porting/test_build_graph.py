@@ -38,6 +38,14 @@ class BuildGraphTests(unittest.TestCase):
         self.targets.append(dict(name='Wow', type='EXECUTABLE'))
         self.assertTrue(audit(self.targets, 'core', 'LINUX', 'X86_64'))
 
+    def test_windows_core_can_link_its_own_static_library(self):
+        for target in self.targets:
+            target['compileGroups'][0]['defines'][0]['define'] = 'WOWDECOMP_OS_WINDOWS=1'
+        self.targets[1]['link'] = {'commandFragments': [{'fragment': 'WowPortableCore.lib'}]}
+        self.assertEqual(audit(self.targets, 'core', 'WINDOWS', 'X86_64'), [])
+        self.targets[1]['link']['commandFragments'].append({'fragment': '/ENTRY:start'})
+        self.assertTrue(audit(self.targets, 'core', 'WINDOWS', 'X86_64'))
+
 
 @unittest.skipUnless(shutil.which('cmake'), 'CMake unavailable; source-selection checks run in Actions')
 class SourceSelectionTests(unittest.TestCase):
