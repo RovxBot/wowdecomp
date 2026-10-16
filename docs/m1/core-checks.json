@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "scope": "Initial M1 hash subset only; runtime services and client lifecycle remain unported",
+  "checks": [
+    {
+      "schema_version": 1,
+      "scope": "M1 hash core only; no native client startup/gameplay",
+      "source_commit": "e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38848848241",
+      "preset": "linux-core",
+      "target_os": "LINUX",
+      "target_cpu": "X86_64",
+      "runner_os": "Linux",
+      "runner_arch": "X64",
+      "runner_image": "20261012.334.1",
+      "host_machine": "x86_64",
+      "status": "core compilation and fixture checks passed; full client unported",
+      "toolchain_cache": [
+        "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+        "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+        "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+      ],
+      "check_executable_sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40",
+      "compiler": "Clang 18.1.3",
+      "cmake_version": "3.31.6",
+      "artifact": {
+        "id": 12024323087,
+        "name": "m1-linux-core-e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+        "digest": "sha256:45e68c207df24742998772f2681b53802b56d7656e70ed7336400a7ee30ef2e6",
+        "expires_at": "2026-10-30T04:06:33Z"
+      },
+      "generated_graph_errors": []
+    },
+    {
+      "schema_version": 1,
+      "scope": "M1 hash core only; no native client startup/gameplay",
+      "source_commit": "e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38848848241",
+      "preset": "macos-arm64-core",
+      "target_os": "MACOS",
+      "target_cpu": "ARM64",
+      "runner_os": "macOS",
+      "runner_arch": "ARM64",
+      "runner_image": "20260831.0302.1",
+      "host_machine": "arm64",
+      "status": "core compilation and fixture checks passed; full client unported",
+      "toolchain_cache": [
+        "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+        "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+        "CMAKE_MAKE_PROGRAM:FILEPATH=/opt/homebrew/bin/ninja",
+        "CMAKE_OSX_ARCHITECTURES:STRING=arm64"
+      ],
+      "binary_architectures": "arm64",
+      "check_executable_sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2",
+      "compiler": "AppleClang 15.0.0.15000309",
+      "cmake_version": "4.4.3",
+      "artifact": {
+        "id": 12024303223,
+        "name": "m1-macos-arm64-core-e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+        "digest": "sha256:98b323b05d8fbc3e18ea6a887a7a3c490f953ee51bf1ef500e0b74731c27414e",
+        "expires_at": "2026-10-30T04:06:20Z"
+      },
+      "generated_graph_errors": []
+    },
+    {
+      "schema_version": 1,
+      "scope": "M1 hash core only; no native client startup/gameplay",
+      "source_commit": "e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38848848241",
+      "preset": "windows-core",
+      "target_os": "WINDOWS",
+      "target_cpu": "X86_64",
+      "runner_os": "Windows",
+      "runner_arch": "X64",
+      "runner_image": "20261012.333.1",
+      "host_machine": "AMD64",
+      "status": "core compilation and fixture checks passed; full client unported",
+      "toolchain_cache": [],
+      "check_executable_sha256": "5c15569ad3362bb865378bb9786b51a8a6f7215f028dd08a3da7ab4b91261cf0",
+      "compiler": "MSVC 19.44.35229.0",
+      "cmake_version": "3.31.6",
+      "artifact": {
+        "id": 12024546558,
+        "name": "m1-windows-core-e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c",
+        "digest": "sha256:229a9c4f2832744adc064d9780d4cb9f5fef68670ee6980c2ecc13c8ff9eedfa",
+        "expires_at": "2026-10-30T04:06:38Z"
+      },
+      "generated_graph_errors": []
+    }
+  ]
+}

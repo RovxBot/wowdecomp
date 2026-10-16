@@ -50,19 +50,58 @@ source/run identity, runner/toolchain metadata and generated build graphs. Core
 artifacts contain test evidence, not a playable native client. Artifacts expire
 after 14 days; record exact run/commit identities below after validation.
 
-Initial implementation checks (before hosted runs):
+Local source/documentation checks:
 
-- `python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -v`: eight source
+- `python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -v`: nine source
   audit tests passed; the CMake source-selection fixture was skipped because local
   CMake is unavailable. The fixture uses `LANGUAGES NONE` and never compiles code.
 - `python3 Tools/Porting/run_core_checks.py --preset linux-core`: correctly rejected
   local execution before creating a build directory or invoking CMake.
 - `git diff --check`: passed.
-- Windows full-client regression and three hosted core checks: pending first run.
+- Documentation links, workflow YAML and preset JSON: parsed/checked locally.
 - Win32 compilation/layout verification: not run; no new Win32 support claim.
 - Game startup, rendering and gameplay: not run on any new target.
 
-Native commands will be documented after the corresponding hosted checks pass.
+The three core configurations passed in [run 38848848241](https://github.com/RovxBot/wowdecomp/actions/runs/38848848241)
+at `e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c`. Each ran all ten source-audit /
+selection fixtures and the CTest hash check, with no skips or failures. Generated
+graphs contain exactly the two allowlisted hash sources and the test executable.
+The [durable core manifests](core-checks.json) retain compiler/runner identities,
+artifact IDs/digests and test-executable hashes.
+
+| Core target | Observed hosted toolchain | Result |
+| --- | --- | --- |
+| Linux x86-64 | Ubuntu 24.04, Clang 18.1.3, CMake 3.31.6 | Compiled; hash checks passed; ELF x86-64 |
+| macOS ARM64 | macOS 14, Apple Clang 15.0.0.15000309, CMake 4.4.3 | Compiled and executed on ARM64; hash checks passed; Mach-O arm64 only |
+| Windows x64 | Windows Server 2022, MSVC 19.44.35229.0, CMake 3.31.6 | Compiled; hash checks passed |
+
+The Windows full-client regression passed in [run 38848848237](https://github.com/RovxBot/wowdecomp/actions/runs/38848848237)
+at the same `e24dceb` source commit: both `WowClient` and `Wow`, plus
+`XvidDecoder.dll`, built in Release/x64 with signature checks enabled. Downloaded
+binaries matched all three manifest hashes. The [durable regression manifest](windows-regression.json)
+retains run/artifact identities and hashes without replacing the original M0
+baseline. A source comparison of 42 module targets against the M0 source lists
+found only 60 omitted Win32 translation units, each wholly guarded by
+`WOWDECOMP_ARCH_32`; no common source was lost. The two selected Windows entries
+and resources also passed the generated-graph check. Runtime remains unverified.
+
+The source audit against the pinned donor passed at the initial implementation
+`2de9341f53268123702469dc2a55fd2d0e66dd07` in
+[run 38848659296](https://github.com/RovxBot/wowdecomp/actions/runs/38848659296).
+Subsequent source changes only corrected the Windows test/audit harness.
+
+The core workflow runs these guarded commands **on GitHub Actions runners only**:
+
+```bash
+python3 Tools/Porting/run_core_checks.py --preset linux-core
+python3 Tools/Porting/run_core_checks.py --preset macos-arm64-core
+# Windows runner uses python rather than python3:
+python Tools/Porting/run_core_checks.py --preset windows-core
+```
+
+Each invokes `cmake --preset <preset>`, builds `WowPortableCore` and
+`PortableCoreCheck`, then runs CTest in the preset's separate `build/` directory.
+Use the workflow dispatch UI for repeats; do not run compilation locally.
 The default full-client configuration still rejects Linux/macOS; core presets
 explicitly turn off `WOWDECOMP_BUILD_CLIENT` and enable only the audited subset.
 

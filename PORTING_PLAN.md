@@ -180,6 +180,11 @@ The first work package isolates Windows source/build selection and adds an
 asset-free hash core target with hosted checks. See [M1 foundations](docs/m1/FOUNDATIONS.md)
 for evidence and remaining runtime work. M1 exit criteria and M0 runtime sign-off
 remain open.
+The initial core checks passed on Linux x86-64, macOS ARM64 and Windows x64 in
+[run 38848848241](https://github.com/RovxBot/wowdecomp/actions/runs/38848848241);
+both Windows client executables built in
+[run 38848848237](https://github.com/RovxBot/wowdecomp/actions/runs/38848848237),
+at source commit `e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c`.
 
 1. Make compile definitions, linker flags, resource files and libraries conditional
    on OS. Replace recursive platform globs with explicit selection so Linux never
@@ -388,7 +393,7 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [x] Complete the initial dependency/platform inventory, including bundled audio codecs,
       archive I/O, CRT startup, optional peripherals and binary-only components.
 - [x] Build Windows x64 in GitHub Actions and verify artifact/binary identities.
-- [ ] Add OS/CPU-aware CMake selection and a portable core build target without
+- [x] Add OS/CPU-aware CMake selection and a portable core build target without
       claiming a native full-client build prematurely.
 - [ ] Implement core allocation, logging, time and synchronization adapters with
       focused behavior checks; preserve Windows baseline builds.
