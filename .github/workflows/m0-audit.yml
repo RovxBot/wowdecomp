@@ -1,0 +1,64 @@
+name: M0 source audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'native-port/**']
+    paths:
+      - '.github/workflows/m0-audit.yml'
+      - 'CMakeLists.txt'
+      - 'Tools/Porting/audit_sources.py'
+      - 'Tools/Porting/test_audit_sources.py'
+      - 'Engine/**'
+      - 'WoW/**'
+      - 'ThirdParty/**'
+  pull_request:
+    paths:
+      - '.github/workflows/m0-audit.yml'
+      - 'CMakeLists.txt'
+      - 'Tools/Porting/audit_sources.py'
+      - 'Tools/Porting/test_audit_sources.py'
+      - 'Engine/**'
+      - 'WoW/**'
+      - 'ThirdParty/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m0-audit-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out product source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: product
+          persist-credentials: false
+      - name: Check out the pinned 4.3.4 reference separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: SatyPardus/wowdecomp15595
+          ref: 959b0b85c5f55c565328d7c3ca33027a65e41327
+          path: reference-15595
+          persist-credentials: false
+      - name: Check the audit classifier
+        working-directory: product
+        run: python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -v
+      - name: Inventory dependencies and compare source tokens
+        run: >-
+          python3 product/Tools/Porting/audit_sources.py
+          --source product --reference reference-15595
+          --output artifacts/m0-source-audit.json
+      - name: Preserve the source audit
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m0-source-audit-${{ github.sha }}
+          path: artifacts/m0-source-audit.json
+          if-no-files-found: error
+          retention-days: 14

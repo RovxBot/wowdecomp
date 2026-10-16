@@ -1,0 +1,154 @@
+# Project instructions for coding agents
+
+## Mission and reading order
+
+Build a native 3.3.5a (12340) client for Linux x86-64 and macOS ARM64, retaining
+Windows x64 as the regression reference. Use 4.3.4 (15595) as a reference and source
+of selected improvements. Read [PORTING_PLAN.md](PORTING_PLAN.md) and the relevant
+module/build files before changing implementation. [README.md](README.md) describes
+the current Windows build; planned native commands are not implemented yet.
+
+Follow the user's current scope and instructions. The plan guides implementation;
+it does not turn a documentation request into authorization to start the whole port.
+
+## Current handoff and build policy
+
+- All client and dependency compilation must run in GitHub Actions, including
+  experimental build checks. Do not build the client locally. Source inspection,
+  documentation checks and source-audit Python tests may run locally.
+- Use [Windows baseline](.github/workflows/windows-baseline.yml) for the existing
+  x64 reference and [M0 source audit](.github/workflows/m0-audit.yml) for comparison
+  against the pinned donor. Add Linux/macOS Actions jobs as their targets become
+  buildable; do not claim unsupported native builds from the current workflows.
+- M0 source/dependency inventory and Windows x64 compilation are verified; runtime
+  sign-off is still pending. Read [docs/m0/BASELINE.md](docs/m0/BASELINE.md), the
+  [durable build manifest](docs/m0/windows-baseline.json), the
+  [runtime session record](docs/m0/RUNTIME_SESSION.md) and
+  [backport ledger](docs/BACKPORTS.md) before continuing.
+- The M0 product source is `cd29da38b9162419ee0fa29c6b16e07e10f6c4f0`, including the
+  upstream tutorial bounds fix after the original planning revision. Preserve it.
+- Treat `/mnt/games/ChromieCraft` as read-only. It is a modified 12340/enUS data
+  candidate with case-colliding MPQs and proxy/patch components; do not delete or
+  rename them to manufacture a stock baseline. Establish clean data separately.
+- GrimGuzzler is the target server. Local deployment sources identify AzerothCore
+  with playerbots and enabled Warden; desired manifests do not verify live image
+  identity, realm endpoints or gameplay compatibility. Do not change cluster/server
+  policy as part of the client port.
+- M1 can begin source/build isolation while M0 hardware observations remain open.
+  Keep M0 partial until native Windows D3D9/OpenGL sessions and clean-data/server
+  evidence are actually recorded. Hosted build success is not gameplay evidence.
+
+## Compatibility requirements
+
+- Preserve 12340 authentication, protocol, packet layouts, object fields, gameplay,
+  Lua APIs, addon loading and original asset compatibility by default.
+- Keep unchanged 3.3.5a data sufficient for the baseline client. Track any optional
+  enhancement assets separately and document their supported formats.
+- Keep existing file/signature verification defaults. Portability work is not a
+  reason to disable checks, suppress server requirements or hide failures.
+- Preserve working Windows x64 behavior while adding native targets. Retain Win32
+  comparison/layout support where practical; label unavailable checks explicitly.
+- Target actual ARM64 execution on Apple silicon. An Intel macOS build or translated
+  executable does not establish native ARM64 support.
+- Introduce visual upgrades separately from the portability baseline. Optional
+  effects start disabled and must leave original behavior intact when disabled.
+
+## How to use the two repositories
+
+The product baseline is this checkout. The initial donor is
+[`SatyPardus/wowdecomp15595` at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/SatyPardus/wowdecomp15595/tree/959b0b85c5f55c565328d7c3ca33027a65e41327).
+The audited local baseline and source findings are in the plan. Keep reference
+checkouts outside the product tree; reference commits explicitly.
+
+- Port individual fixes or cohesive features. Do not merge entire donor subsystems
+  merely because the source is newer or has higher address-tag coverage.
+- Before importing code, identify callers, data layouts, shader/material contracts,
+  dependencies and the exact benefit for the 3.3.5a client.
+- Record donor repository/commit, original build/address, paths/functions,
+  adaptation, asset needs, feature defaults and validation in a backport ledger
+  at [docs/BACKPORTS.md](docs/BACKPORTS.md). Preserve upstream attribution.
+- Preserve `OFFSET`, `STATIC` and `VERIFY` provenance accurately. Do not present a
+  donor address as a 12340 address or carry a verification claim onto changed code
+  without revalidation. Annotate substantive adaptations with their source build.
+- Remember that shader formats differ: local 3.3.5a uses version `0x10003`, while
+  the inspected donor uses `0x10004`. Handle conversion explicitly.
+- The donor is also Windows-only. Its D3D11 implementation and WGL OpenGL path are
+  references, not completed native Linux/macOS backends.
+- Keep Cataclysm JAM networking, gameplay schemas and object-field changes outside
+  the 12340 baseline unless the user explicitly expands the compatibility scope.
+
+## Implementation rules
+
+- Work through the plan's dependencies and keep changes small enough to review.
+  Keep platform refactors, bug fixes, donor imports and optional effects distinct.
+- Prefer the existing `Os`, Storm, BlizzardCore and Gx boundaries. Audit all of
+  them: porting only `Engine/Source/Os` will leave Windows dependencies elsewhere.
+- Use explicit platform source selection and target-scoped CMake definitions and
+  libraries. Do not define `WIN32` on other operating systems to force compilation.
+- Separate OS, CPU and pointer width. `WOWDECOMP_ARCH_64` must not imply Windows,
+  x86-64, SSE or the Windows ABI on ARM64/macOS/Linux targets.
+- Keep Windows headers and handles in platform implementations where possible;
+  expose opaque state or portable interfaces to common engine code.
+- Use fixed-width types and explicit serialization for disk/network formats. Audit
+  `long`, `wchar_t`, alignment, packing, varargs and member-pointer assumptions.
+  Do not globally force native runtime structures to the original 32-bit layout.
+- Preserve the M2 signed 32-bit relative-offset constraint. `M2Shared` uses
+  `OsAllocNear` on x64; replacing it with arbitrary allocations can invalidate model
+  data. Record the addressing/ownership design before changing that path.
+- Preserve startup dependencies, allocator/log availability during static
+  initialization, floating-point behavior and adequate stack capacity. Inspect
+  the custom Windows entry before introducing a native entry point.
+- Preserve synchronization semantics, callback ordering/thread affinity, partial
+  I/O, cancellation, timeouts and shutdown lifetime guarantees. Avoid replacing
+  SEH or Windows events with superficially similar behavior without checking callers.
+- Distinguish MPQ-internal paths from filesystem paths. Preserve patch/locale
+  precedence and account for case sensitivity and writable settings/cache paths.
+- Start ARM64 CPU work with correct scalar implementations. Add acceleration based
+  on profiling, with scalar parity checks and explicit architecture guards.
+- Treat SDL3 and a Gx/bgfx adapter as the plan's defaults to validate. Run the
+  representative graphics/shader prototype before committing to a full backend
+  migration; document a failed assumption and select an alternative with evidence.
+- Keep audio mixing/spatial behavior behind `SE2`. A working device API alone is
+  not a complete replacement for FMOD. Native targets cannot link Windows `.lib`
+  or depend on Windows DLL loading.
+- Keep third-party changes narrow, preserve notices, pin versions and document
+  dependency/platform limitations. Add no game data, credentials or build outputs
+  to source control.
+- Do not make optional peripheral integrations mandatory for native startup. Label
+  unavailable capabilities; do not substitute silent success stubs for required
+  gameplay, graphics, audio or network behavior.
+
+## Validation and reporting
+
+Use checks appropriate to the behavior changed. Core portability and asynchronous
+code need focused semantic tests; rendering needs scene comparisons on real
+backends; ARM64 claims need hardware execution. Small documentation changes need
+reference/whitespace checks and no client rebuild.
+
+The current Windows baseline commands are executed by the Actions build script,
+on its Windows runner only:
+
+```powershell
+cmake -S . -B build/x64 -G "Visual Studio 17 2022" -A x64
+cmake --build build/x64 --config Release --target WowClient Wow --parallel
+```
+
+The current root CMake rejects Linux and macOS. Do not report a successful native
+build, invent presets/tests, or claim support based on removing that guard. Add
+native build/run instructions when the corresponding Actions targets actually work.
+
+For implementation changes, record the commands and checks run, their results and
+any skipped platform checks. Update milestone status only with evidence. Distinguish
+source inspection, compilation, fixture tests, rendered output and observed
+gameplay; preserve honest gaps when hardware, data or a server is unavailable.
+
+Use synthetic or small redistributable fixtures in ordinary CI. Keep full game data,
+credentials and environment-specific paths external. Record the tested client/data
+build, locale, server revision/settings, platform, architecture and GPU/toolchain
+for gameplay and visual comparisons. The limited current x64 Warden handler means
+server compatibility must be observed, not assumed.
+
+Complete authorized, reversible work without routine confirmation requests. When an
+external prerequisite is missing, continue independent work and state the specific
+validation gap. Do not mark a milestone complete because its code compiles or its
+remaining checks need another machine.

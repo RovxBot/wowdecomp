@@ -86,6 +86,8 @@ try {
     }
     $manifest.status = 'build passed; runtime unverified'
 } catch {
+    $manifest['failed_phase'] = $manifest.status
+    $manifest.status = 'failed'
     $manifest['failure'] = $_.Exception.Message
     throw
 } finally {
