@@ -25,6 +25,9 @@ it does not turn a documentation request into authorization to start the whole p
   [durable build manifest](docs/m0/windows-baseline.json), the
   [runtime session record](docs/m0/RUNTIME_SESSION.md) and
   [backport ledger](docs/BACKPORTS.md) before continuing.
+- M0 work is on `native-port/m0-baseline` in
+  [draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1). It is not merged into
+  `main`. Use the reports' exact run/commit identities when comparing later work.
 - The M0 product source is `cd29da38b9162419ee0fa29c6b16e07e10f6c4f0`, including the
   upstream tutorial bounds fix after the original planning revision. Preserve it.
 - Treat `/mnt/games/ChromieCraft` as read-only. It is a modified 12340/enUS data

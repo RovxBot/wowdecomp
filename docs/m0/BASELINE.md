@@ -35,6 +35,12 @@ repeats the comparison against a pinned, separate donor checkout and uploads JSO
 The scratch checkout/report can be regenerated; neither is a required workstation
 installation or committed game asset.
 
+The same classifier/tests and comparison passed in
+[GitHub Actions source-audit run 38846763847](https://github.com/RovxBot/wowdecomp/actions/runs/38846763847)
+at `f77f50cc1b7a04ebb77adcef9e50d70ee8978189`. The work is reviewable in
+[draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1), branch
+`native-port/m0-baseline`; it has not been merged into `main`.
+
 ## Build and execution environment
 
 | Check | Observed result |
@@ -225,6 +231,11 @@ Interpretation from inspected code:
 - A concrete hardware initialization defect and the donor's corrected initialization
   were identified. See the [backport ledger](../BACKPORTS.md). No candidate was
   applied during M0.
+- A shared ownership issue also needs M1 review: `SIMD::AllocA16` obtains its base
+  allocation through `SMemAlloc` (malloc), while `SIMD::FreeA16` uses `delete[]` on
+  that base pointer. The inspected donor retains the same pairing, so newer source
+  is not a corrective reference for this case. This is a source finding, not a
+  demonstrated runtime crash.
 
 ## Outstanding runtime evidence and handoff
 

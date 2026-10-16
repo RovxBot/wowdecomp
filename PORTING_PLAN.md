@@ -10,6 +10,11 @@ Current evidence and handoff: [M0 baseline report](docs/m0/BASELINE.md),
 [backport ledger](docs/BACKPORTS.md). Repository agent instructions are in
 [AGENTS.md](AGENTS.md).
 
+Implementation branch: `native-port/m0-baseline`,
+[draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1). The source-audit workflow
+also passed in [run 38846763847](https://github.com/RovxBot/wowdecomp/actions/runs/38846763847).
+These changes have not been merged into `main`.
+
 ## Outcome and scope
 
 Build a native World of Warcraft 3.3.5a (12340) client for Linux x86-64 and macOS
