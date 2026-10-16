@@ -47,6 +47,8 @@ class SourceSelectionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / 'source'
             source.mkdir()
+            # CMake expands Windows 8.3 names such as RUNNER~1.
+            source = source.resolve()
             files = ['common.cpp', 'nested/common.cpp', 'Win32/os.cpp', 'Win64/os.cpp',
                      'nested/Win32/service.cpp', 'nested/Win64/service.cpp',
                      'nested/Windows/feature.cpp', 'nested/Linux/service.cpp',
@@ -66,7 +68,7 @@ class SourceSelectionTests(unittest.TestCase):
                                          f'-DWOWDECOMP_PLATFORM_SOURCE_DIRS={tree};Windows'],
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                selected = {Path(p).relative_to(source).as_posix()
+                selected = {Path(p).resolve().relative_to(source).as_posix()
                             for p in (build / 'selected.txt').read_text().split(';')}
                 self.assertEqual(selected, {'common.cpp', 'nested/common.cpp', f'{tree}/os.cpp',
                                             f'nested/{tree}/service.cpp', 'nested/Windows/feature.cpp'})
