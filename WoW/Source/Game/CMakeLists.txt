@@ -1,4 +1,4 @@
-file(GLOB_RECURSE PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
+wowdecomp_collect_sources(PRIVATE_SOURCES)
 
 add_library(Game STATIC
     ${PRIVATE_SOURCES}
@@ -14,3 +14,5 @@ target_link_libraries(Game
         pcreposix
         freetype
 )
+
+wowdecomp_configure_windows_target(Game)

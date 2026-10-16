@@ -16,10 +16,12 @@ original.
 ## Native client roadmap
 
 [PORTING_PLAN.md](PORTING_PLAN.md) describes the planned Linux x86-64 and macOS ARM64 ports,
-with selected engine improvements from the 4.3.4 decompilation. Native support is not implemented yet.
+with selected engine improvements from the 4.3.4 decompilation. A native playable client is not implemented yet.
 Coding agents should read [AGENTS.md](AGENTS.md). The [M0 report](docs/m0/BASELINE.md)
 records the dependency audit and verified Windows x64 Actions build; gameplay baseline validation is pending.
 Client and dependency builds for this porting effort run in GitHub Actions.
+The [M1 foundations](docs/m1/FOUNDATIONS.md) work isolates platform builds and starts
+an asset-free portable core; it does not yet provide native client startup.
 
 ## Progress
 
@@ -46,7 +48,7 @@ parts of FMOD Ex).
 
 - Windows 10 or 11
 - Visual Studio 2022 with the **Desktop development with C++** workload (MSVC v143 and a Windows SDK)
-- CMake 3.10 or newer (the one that ships with Visual Studio works)
+- CMake 3.21 or newer (the one that ships with Visual Studio works)
 - For Win32 builds only: [NASM](https://www.nasm.us/), on `PATH` or passed as `-DNASM_EXECUTABLE=<path>`, and
   `DivxDecoder.dll` from your 3.3.5a client copied to `ThirdParty/DivxDecoder/` (the build copies it next to the
   executables; the x64 build uses its own decoder instead)

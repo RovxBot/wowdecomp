@@ -11,3 +11,5 @@ target_include_directories(jpeg
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+wowdecomp_configure_windows_target(jpeg)

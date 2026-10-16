@@ -185,3 +185,19 @@ if (WIN32)
             ${CMAKE_SOURCE_DIR}
     )
 endif ()
+
+wowdecomp_configure_windows_target(zlib)
+
+wowdecomp_configure_windows_target(blast)
+
+wowdecomp_configure_windows_target(bzip2)
+
+wowdecomp_configure_windows_target(lzma)
+
+wowdecomp_configure_windows_target(freetype)
+
+wowdecomp_configure_windows_target(expat)
+
+wowdecomp_configure_windows_target(pcre)
+
+wowdecomp_configure_windows_target(lgLcd)

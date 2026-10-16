@@ -1,10 +1,6 @@
 file(GLOB PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
 
-if (WOWDECOMP_ARCH_64)
-    file(GLOB PLATFORM_SOURCES CONFIGURE_DEPENDS "Win64/*.cpp")
-else ()
-    file(GLOB PLATFORM_SOURCES CONFIGURE_DEPENDS "Win32/*.cpp")
-endif ()
+file(GLOB PLATFORM_SOURCES CONFIGURE_DEPENDS "${WOWDECOMP_WINDOWS_SOURCE_DIR}/*.cpp")
 
 add_executable(Wow WIN32 ${PRIVATE_SOURCES} ${PLATFORM_SOURCES})
 
@@ -77,3 +73,5 @@ target_link_libraries(Wow
         WowServices
         WowSvcs
 )
+
+wowdecomp_configure_windows_target(Wow)

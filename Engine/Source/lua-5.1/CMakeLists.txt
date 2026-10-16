@@ -11,3 +11,5 @@ target_include_directories(lua
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+wowdecomp_configure_windows_target(lua)

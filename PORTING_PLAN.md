@@ -175,6 +175,12 @@ passing.
 
 Depends on: M0 source/dependency inventory. Windows regression checks start here.
 
+Status: started on `native-port/m1-foundations` from M0 handoff `8846d9b`.
+The first work package isolates Windows source/build selection and adds an
+asset-free hash core target with hosted checks. See [M1 foundations](docs/m1/FOUNDATIONS.md)
+for evidence and remaining runtime work. M1 exit criteria and M0 runtime sign-off
+remain open.
+
 1. Make compile definitions, linker flags, resource files and libraries conditional
    on OS. Replace recursive platform globs with explicit selection so Linux never
    compiles Win32/Win64 implementations. Address both `Wow` and `WowClient` targets.
