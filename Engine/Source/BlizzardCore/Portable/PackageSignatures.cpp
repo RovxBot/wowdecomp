@@ -94,7 +94,11 @@ void ReadSignatureRecords(const Bytes& file, const std::string& locale, bool exp
         if (line.size() < 41 || line[4] != ';' || line[6] != ';' || line[39] != ';' ||
             (line[5] != 'c' && line[5] != 'e')) throw Error("Invalid signaturefile record");
         std::array<uint8_t, 16> digest{};
-        for (size_t i = 0; i < 16; ++i) digest[i] = static_cast<uint8_t>(Hex(line[7 + i * 2]) * 16 + Hex(line[8 + i * 2]));
+        // Client.cpp constructs MD5 from four printed uint32 words, then
+        // MD5::ToArray copies those words in little-endian order. The manifest
+        // is NOT the conventional byte-ordered hexadecimal digest.
+        for (size_t i = 0; i < 16; ++i)
+            digest[(i & ~size_t(3)) + 3 - i % 4] = static_cast<uint8_t>(Hex(line[7 + i * 2]) * 16 + Hex(line[8 + i * 2]));
         auto name = Name(line.substr(40));
         if ((line.compare(0, 4, "base") == 0 || line.compare(0, 4, locale) == 0) && (line[5] == 'c' || expansion)) {
             auto previous = parsed.find(name);
