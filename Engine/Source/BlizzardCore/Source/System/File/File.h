@@ -1,6 +1,10 @@
 #ifndef ENGINE_SOURCE_BLIZZARDCORE_SOURCE_SYSTEM_FILE_FILE_H
 #define ENGINE_SOURCE_BLIZZARDCORE_SOURCE_SYSTEM_FILE_FILE_H
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/BlizzardCore/Portable/File.h"
+#else
+
 #include "Engine/Source/BlizzardCore/Source/System/Using/Using.h"
 #include <cstdint>
 #include <windows.h>
@@ -200,4 +204,5 @@ bool null_writep(Blizzard::File::Filesystem* fs, FileParms* parms);
 }
 }
 
+#endif // WOWDECOMP_PORTABLE_RUNTIME
 #endif

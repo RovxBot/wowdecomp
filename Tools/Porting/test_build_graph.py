@@ -49,6 +49,37 @@ class BuildGraphTests(unittest.TestCase):
         self.targets[1]['link']['commandFragments'].append({'fragment': '/ENTRY:start'})
         self.assertTrue(audit(self.targets, 'core', 'WINDOWS', 'X86_64'))
 
+    def file_targets(self):
+        targets = copy.deepcopy(self.targets)
+        for name, sources in [
+            ('WowNativeFiles', ['Engine/Source/BlizzardCore/Portable/File.cpp',
+                                'Engine/Source/BlizzardCore/Portable/FilePaths.cpp',
+                                'Engine/Source/BlizzardCore/Portable/FilePosix.cpp',
+                                'Engine/Source/Os/Portable/File.cpp']),
+            ('FileServicesCheck', ['Tools/PortableFiles/files.cpp', 'Tools/PortableFiles/interrupted.cpp'])]:
+            target = copy.deepcopy(targets[0])
+            target['name'] = name
+            target['sources'] = [{'path': path} for path in sources]
+            target['compileGroups'][0]['defines'].append({'define': 'WOWDECOMP_PORTABLE_RUNTIME=1'})
+            targets.append(target)
+        return targets
+
+    def test_native_files_allowlisted(self):
+        self.assertEqual(audit(self.file_targets(), 'files', 'LINUX', 'X86_64'), [])
+        self.assertTrue(audit(self.file_targets(), 'core', 'LINUX', 'X86_64'))
+
+    def test_native_files_reject_wrong_or_extra_provider(self):
+        for path in ['Engine/Source/BlizzardCore/Portable/FileWindows.cpp',
+                     'Engine/Source/BlizzardCore/Source/System/File/Win64/Filestack.cpp']:
+            targets = self.file_targets()
+            targets[-2]['sources'].append({'path': path})
+            self.assertTrue(audit(targets, 'files', 'LINUX', 'X86_64'))
+
+    def test_native_files_require_native_abi(self):
+        targets = self.file_targets()
+        targets[-2]['compileGroups'][0]['defines'].pop()
+        self.assertTrue(audit(targets, 'files', 'LINUX', 'X86_64'))
+
 
 @unittest.skipUnless(shutil.which('cmake'), 'CMake unavailable; source-selection checks run in Actions')
 class SourceSelectionTests(unittest.TestCase):

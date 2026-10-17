@@ -17,7 +17,11 @@ typedef HOSFILE__* HOSFILE;
 #define OS_INVALID_FILE reinterpret_cast<HOSFILE>(static_cast<intptr_t>(-1))
 
 struct OS_FILE_DATA {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    uint64_t size;
+#else
     /* 0000 */ uint32_t size;
+#endif
     /* 0004 */ uint32_t flags;
     /* 0008 */ char fileName[260];
 };

@@ -4,6 +4,27 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-001 — Native filesystem contract references (12340 forks)
+
+- Status: independent native file/path implementation started; hosted checks pending.
+- References: RosemyneH/wowdecomp `d91c854bc9c6af8d27e6e4093d76985671893bc5`,
+  Arlyon/wowdecomp `24778cd77a6a217bbfdffccb88d9556a06b8b21d` (`macos`), both
+  3.3.5a/12340 forks. Full source links and findings are in the
+  [M2 reference review](m2/REFERENCE_REVIEW.md).
+- Inspected contracts: File/Filestack open/read/write/metadata/move operations,
+  `OsFile` adapters and Darwin alignment/no-replace filesystem leaves. Their
+  POSIX/OS separation informed this design; implementation bodies are newly
+  written, not imported, and have no donor binary-address/verification claim.
+- Destination: `BlizzardCore/Portable/File*`, `Os/Portable/File.cpp`, explicit
+  `WowNativeFiles` target and synthetic `Tools/PortableFiles` fixtures.
+- Adaptation: M1 native-runtime ABI, opaque per-stream state, checked 64-bit I/O,
+  deterministic case-ambiguity failure and explicit separate host roots. Existing
+  Windows implementations remain selected for the full client.
+- Assets/defaults: no game assets, network/schema changes, signature-check changes,
+  addon redirects, renderer changes or optional effects. Native files are opt-in.
+- Validation/limits: [filesystem design and evidence](m2/FILESYSTEM.md). No source
+  inspection or native file fixture establishes gameplay or completes M2.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.
