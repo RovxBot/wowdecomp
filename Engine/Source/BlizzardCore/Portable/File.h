@@ -46,6 +46,10 @@ enum class Disposition { CreateNew, CreateAlways, OpenExisting, OpenAlways, Trun
 // access/share use the File API's low bits: read=1, write=2, share read=4,
 // share write=8. POSIX share bits are hints, not mandatory Windows share locks.
 bool Open(const char* path, int32_t accessAndShare, Disposition disposition, StreamRecord*& file);
+// Atomic rename with replacement on the same filesystem. Source data should be
+// flushed/closed first. Directory-entry persistence across power loss is not
+// promised by this API; the no-replace File::Move contract is unchanged.
+bool AtomicReplace(const char* source, const char* destination);
 
 struct Paths { std::string data; std::string settings; std::string cache; };
 enum class UserRoot { Settings, Cache };

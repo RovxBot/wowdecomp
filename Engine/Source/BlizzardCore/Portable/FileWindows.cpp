@@ -82,6 +82,9 @@ bool Info(const std::filesystem::path& path, Blizzard::File::FileInfo& info) {
 bool Move(const std::filesystem::path& from, const std::filesystem::path& to) {
     return MoveFileExW(from.c_str(), to.c_str(), 0) || Error();
 }
+bool Replace(const std::filesystem::path& from, const std::filesystem::path& to) {
+    return MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) || Error();
+}
 bool Attributes(const std::filesystem::path& path, int32_t attributes) {
     if (attributes & ~0x61) return Fail(ENOTSUP);
     DWORD value = GetFileAttributesW(path.c_str());

@@ -8,6 +8,7 @@ extern "C" {
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include <mutex>
 
 namespace Blizzard { namespace Mopaq { namespace Native {
 namespace {
@@ -27,6 +28,12 @@ int BlastWrite(void* cookie, unsigned char* data, unsigned size) {
 }
 Bytes Stage(const Bytes& input, size_t capacity, unsigned codec) {
     if (codec == 8) {
+        // Bundled blast 1.1 initializes mutable static Huffman tables on its
+        // first call (blast.c's `virgin` flag). Multiple native file queues may
+        // reach this path concurrently. Keep the dependency unchanged and
+        // serialize its calls at this boundary, including initialization.
+        static std::mutex blastMutex;
+        std::lock_guard<std::mutex> lock(blastMutex);
         Bytes output;
         BlastBuffer buffer{input, output, capacity};
         if (blast(BlastRead, &buffer, BlastWrite, &buffer)) throw Error("MPQ PKWARE decoding failed");
@@ -85,10 +92,14 @@ Bytes Stage(const Bytes& input, size_t capacity, unsigned codec) {
 }
 }
 Bytes Decompress(const Bytes& input, size_t capacity, bool implode) {
-    if (capacity > 256 * 1024 * 1024 || input.size() > capacity) throw Error("Invalid MPQ decompression extent");
+    if (capacity > 256 * 1024 * 1024 || input.size() > 256 * 1024 * 1024) throw Error("Invalid MPQ decompression extent");
+    // IOMpqReadUnit's MPQ_FILE_IMPLODE path always invokes blast, including
+    // equal/larger encoded sectors. Only the multi-compression path uses the
+    // equal-size raw-sector convention from System_SComp::Decompress.
+    if (implode) return Stage(input, capacity, 8);
+    if (input.size() > capacity) throw Error("Invalid MPQ multi-compression extent");
     if (input.size() == capacity) return input;
     if (input.empty()) throw Error("Empty compressed MPQ sector");
-    if (implode) return Stage(input, capacity, 8);
     unsigned method = input[0];
     Bytes payload(input.begin() + 1, input.end());
     if (method == 0x22 || method == 0x30)

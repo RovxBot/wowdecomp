@@ -3,6 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <functional>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 using namespace Blizzard::Mopaq::Native;
 namespace fs = std::filesystem;
@@ -40,7 +44,23 @@ int main(int argc, char** argv) {
             Check(Decompress(Load(root / (std::string("codec-") + method + ".bin")), expected.size()) == expected, "Codec vector failed");
         for (auto method : {"sparse", "zlib-sparse", "bzip2-sparse"})
             Check(Decompress(Load(root / (std::string("codec-") + method + ".bin")), 100) == Bytes(100), "Sparse pipeline failed");
-        Check(Decompress(Load(root / "codec-pkware.bin"), Load(root / "pkware-expected.bin").size(), true) == Load(root / "pkware-expected.bin"), "Bundled blast vector failed");
+        // Concurrent first use, before any serial blast call in this process.
+        auto pkware = Load(root / "codec-pkware.bin"), plain = Load(root / "pkware-expected.bin");
+        std::mutex gate; std::condition_variable changed; size_t waiting = 0; bool start = false;
+        std::atomic<bool> correct{true}; std::vector<std::thread> readers;
+        for (size_t i = 0; i < 4; ++i) readers.emplace_back([&] {
+            { std::unique_lock<std::mutex> lock(gate); ++waiting; changed.notify_all(); changed.wait(lock, [&] { return start; }); }
+            try { for (size_t j = 0; j < 16; ++j) if (Decompress(pkware, plain.size(), true) != plain) correct = false; }
+            catch (...) { correct = false; }
+        });
+        { std::unique_lock<std::mutex> lock(gate); changed.wait(lock, [&] { return waiting == 4; }); start = true; changed.notify_all(); }
+        for (auto& reader : readers) reader.join();
+        Check(correct.load(), "Concurrent first-use blast vector failed");
+        auto padded = pkware; padded.resize(plain.size());
+        Check(Decompress(padded, plain.size(), true) == plain, "Equal-size implode stream was mistaken for raw data");
+        padded.resize(plain.size() + 1);
+        Check(Decompress(padded, plain.size(), true) == plain, "Implode extent convention changed");
+        Fails([&] { Decompress(pkware, plain.size() - 1, true); });
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0xff}, 100); });
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0}, 99); });
         Fails([] { Decompress(Bytes{1, 2, 3}, 100); });

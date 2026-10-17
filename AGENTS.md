@@ -6,7 +6,7 @@ Build a native 3.3.5a (12340) client for Linux x86-64 and macOS ARM64, retaining
 Windows x64 as the regression reference. Use 4.3.4 (15595) as a reference and source
 of selected improvements. Read [PORTING_PLAN.md](PORTING_PLAN.md) and the relevant
 module/build files before changing implementation. [README.md](README.md) describes
-the Windows client and hosted native core checks; the full native game is still gated.
+the Windows client and hosted native targets; the full native game is still gated.
 
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
@@ -34,6 +34,14 @@ it does not turn a documentation request into authorization to start the whole p
 - Treat `/mnt/games/ChromieCraft` as read-only. It is a modified 12340/enUS data
   candidate with case-colliding MPQs and proxy/patch components; do not delete or
   rename them to manufacture a stock baseline. Establish clean data separately.
+- The user supplied `/mnt/games/3.3.5aClean` as a separate clean reference. Treat it
+  as read-only too. Its 12340 executable and 18 enUS MPQs are identified in
+  [the clean-data inventory](docs/m2/clean-data-inventory.json). Native Linux
+  inspection authenticated the original signaturefile and decoded representative
+  original assets with ASan/UBSan and leak detection enabled; see
+  [asset evidence](docs/m2/ASSETS.md). This does not verify every archive as stock
+  or establish server/gameplay compatibility. Keep settings/cache outside both
+  installations and keep game data out of Git and ordinary hosted CI.
 - GrimGuzzler is the target server. Local deployment sources identify AzerothCore
   with playerbots and enabled Warden; desired manifests do not verify live image
   identity, realm endpoints or gameplay compatibility. Do not change cluster/server
@@ -41,17 +49,28 @@ it does not turn a documentation request into authorization to start the whole p
 - M1 runtime foundations were merged into main via
   [PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core,
   native lifecycle, sanitizer and Windows client checks. M1 core exit criteria
-  are met; M2 asset/filesystem/SDL work is next. Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md),
+  are met. Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md),
   [runtime design](docs/m1/RUNTIME_DESIGN.md) and the
   [upstream review](docs/m1/UPSTREAM_REVIEW.md) before continuing.
-- M0 remains partial until clean-data/server evidence and the required Windows
+- M0 remains partial until complete data/server evidence and the required Windows
   observations/captures are recorded. M1 core success does not establish gameplay.
-- M2 host-file/path services and synthetic fixtures are in
-  [PR #5](https://github.com/RovxBot/wowdecomp/pull/5), not yet merged. Read the
-  [filesystem work package](docs/m2/FILESYSTEM.md) and
-  [native-reference review](docs/m2/REFERENCE_REVIEW.md) before continuing.
-  Archive/async integration, original-data decoding, nearby model allocations and
-  the SDL3 shell remain outstanding; file-service checks do not complete M2.
+- M2 host files [PR #5](https://github.com/RovxBot/wowdecomp/pull/5), authenticated
+  archives/asset inspection [PR #6](https://github.com/RovxBot/wowdecomp/pull/6)
+  and native async files [PR #7](https://github.com/RovxBot/wowdecomp/pull/7) are
+  merged. Read the [filesystem work package](docs/m2/FILESYSTEM.md),
+  [asset contracts/evidence](docs/m2/ASSETS.md), [async contracts](docs/m2/ASYNC.md)
+  and [native-reference review](docs/m2/REFERENCE_REVIEW.md) before continuing.
+  SDL3 shell integration and desktop validation are in progress on
+  `native-port/m2-shell`; M2 is not yet signed off. Preserve the distinction
+  between scalar inspection geometry and full animation/material/world rendering.
+- Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
+  authentication and registered file MD5s enabled; the signaturefile prints four
+  uint32 MD5 words in the original little-endian conversion convention. The
+  synthetic fixture key must never replace the application factory's 12340 key.
+- Native file requests retain ownership through exactly one owner-thread callback.
+  Cancellation of a current read is cooperative. Do not destroy a queue from its
+  callback or another thread, free its buffers early, or substitute its native
+  ticket API for legacy CAsyncObject without adapting that caller's contract.
 - Preserve upstream `4119c4b` / `5b41f72` cursor anchoring in both Windows Input.cpp
   files, in addition to the original tutorial bounds fix. The user's sessions
   predate that upstream input change; do not claim it was runtime-validated.
@@ -113,6 +132,8 @@ checkouts outside the product tree; reference commits explicitly.
 - Preserve the M2 signed 32-bit relative-offset constraint. `M2Shared` uses
   `OsAllocNear` on x64; replacing it with arbitrary allocations can invalidate model
   data. Record the addressing/ownership design before changing that path.
+  The native inspection model uses a separate bounded owner arena containing both
+  relative-array anchors and payloads; it does not replace legacy M2Shared.
 - Preserve startup dependencies, allocator/log availability during static
   initialization, floating-point behavior and adequate stack capacity. Inspect
   the custom Windows entry before introducing a native entry point.
@@ -158,6 +179,16 @@ subset; its success establishes a minimal core lifecycle, not full client startu
 or gameplay. Do not
 invent presets/tests or claim full native support from core-only compilation. Add
 native client build/run instructions when the corresponding Actions targets work.
+
+M2 file, asset and async presets/workflows are separate allowlisted native ABI
+targets, with synthetic semantic checks on Linux x86-64, macOS ARM64 and Windows
+x64 plus Linux sanitizers. [M2 asset Actions](.github/workflows/m2-assets.yml)
+produces `NativeAssetCheck`; execute downloaded, hash-verified binaries against
+external data with [the runtime wrapper](Tools/Porting/run_asset_inspection.py).
+This local execution is permitted; local compilation remains prohibited. SDL3
+window presets are under development in [M2 shell Actions](.github/workflows/m2-shell.yml).
+Dummy-driver fixtures do not establish desktop input/IME, usable windows or GPU
+rendering. Record real driver/display execution separately before M2 sign-off.
 
 For implementation changes, record the commands and checks run, their results and
 any skipped platform checks. Update milestone status only with evidence. Distinguish

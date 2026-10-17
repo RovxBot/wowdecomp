@@ -6,7 +6,11 @@
 #include "Engine/Source/Tempest/C2Vector.h"
 
 enum KEY : uint32_t {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    KEY_NONE = UINT32_MAX,
+#else
     KEY_NONE = 0xFFFFFFFFFFFFFFFF,
+#endif
     KEY_LSHIFT = 0,
     KEY_RSHIFT = 1,
     KEY_LCONTROL = 2,
@@ -116,7 +120,13 @@ enum KEY : uint32_t {
     KEY_F17 = 0x310,
     KEY_F18 = 0x311,
     KEY_F19 = 0x312,
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    KEY_LSUPER = 0x313,
+    KEY_RSUPER = 0x314,
+    KEY_LAST = 0x315,
+#else
     KEY_LAST = 0x313,
+#endif
 };
 
 enum MOUSEBUTTON : uint32_t {
@@ -136,7 +146,11 @@ enum MOUSEBUTTON : uint32_t {
     MOUSE_BUTTON_XBUTTON10 = 0x1000,
     MOUSE_BUTTON_XBUTTON11 = 0x2000,
     MOUSE_BUTTON_XBUTTON12 = 0x4000,
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    MOUSE_BUTTON_ALL = UINT32_MAX,
+#else
     MOUSE_BUTTON_ALL = 0xFFFFFFFFFFFFFFFF,
+#endif
 };
 
 enum MOUSEMODE {
@@ -149,7 +163,11 @@ enum SCHEDSTATE : uint32_t {
     SCHEDSTATE_ACTIVE = 0,
     SCHEDSTATE_CLOSED = 1,
     SCHEDSTATE_DESTROYED = 2,
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    _UNIQUE_SYMBOL_SCHEDSTATE_96 = UINT32_MAX,
+#else
     _UNIQUE_SYMBOL_SCHEDSTATE_96 = 0xFFFFFFFFFFFFFFFF,
+#endif
 };
 
 struct MouseEventData {

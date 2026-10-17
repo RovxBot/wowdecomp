@@ -1,6 +1,7 @@
 #include "Engine/Source/BlizzardCore/Portable/FilePlatform.h"
 #include <cerrno>
 #include <climits>
+#include <cstdio>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -111,5 +112,8 @@ bool Attributes(const std::filesystem::path& path, int32_t attributes) {
     if (stat(path.c_str(), &status) != 0) return Fail(errno);
     mode_t mode = attributes & 1 ? status.st_mode & ~mode_t{0222} : status.st_mode | S_IWUSR;
     return chmod(path.c_str(), mode & 07777) == 0 || Fail(errno);
+}
+bool Replace(const std::filesystem::path& from, const std::filesystem::path& to) {
+    return rename(from.c_str(), to.c_str()) == 0 || Fail(errno);
 }
 }
