@@ -3,8 +3,10 @@
 Started 2026-10-16 on `native-port/m1-foundations`, based on M0 handoff
 `8846d9b4e9dc6684ca167a45e79f324df059b8b5`. The initial build-isolation work was merged via [PR #2](https://github.com/RovxBot/wowdecomp/pull/2)
 on 2026-10-17 after [M0 PR #1](https://github.com/RovxBot/wowdecomp/pull/1).
-M1 runtime foundations are implemented in [PR #3](https://github.com/RovxBot/wowdecomp/pull/3);
-M1 foundation exit criteria are met by the hosted evidence below. M0 remains partial: operator
+M1 runtime foundations were merged in [PR #3](https://github.com/RovxBot/wowdecomp/pull/3)
+on 2026-10-17 at `7137b7c` after the final allocation-contract correction and all
+hosted checks passed. M1 foundation exit criteria are met by the evidence below.
+M0 remains partial: operator
 Windows results are recorded, with a pre-existing OpenGL failure and incomplete
 clean-data/live-server evidence. See [the M1 runtime session](RUNTIME_SESSION.md).
 The [M0 manifest](../m0/windows-baseline.json) remains the regression reference:
@@ -174,3 +176,22 @@ later work. Legacy thread pools, process launching and SEH/crash UI are not nati
 core exports; their callers need explicit integration as those modules are ported.
 CPUID BP-001 remains a separate queued backport. Existing Windows implementations,
 verification defaults, protocol/assets and M2 relative addressing are preserved.
+
+## Final allocation-contract validation
+
+Final review corrected recoverable failure in native diagnostic/metadata new:
+SMem returns null when recovery is enabled, throwing C++ new overloads raise
+std::bad_alloc, and nothrow new returns null. The Windows legacy path retains its
+existing behavior. Focused overflow/failure fixtures exercise both Storm and
+BlizzardCore diagnostic operators.
+
+The final implementation is `b818951ac21c0cd8a21cb3cdb1032db2dbd03481`. It passed
+all four core configurations in [run 38990308909](https://github.com/RovxBot/wowdecomp/actions/runs/38990308909),
+the Windows full-client regression in
+[run 38990308848](https://github.com/RovxBot/wowdecomp/actions/runs/38990308848),
+and pinned donor/source audit in
+[run 38990308814](https://github.com/RovxBot/wowdecomp/actions/runs/38990308814).
+The PR checks also all passed before merge. The core results are appended to
+[runtime-validation.json](runtime-validation.json); the verified Windows binary
+hashes/PE identities are in [the final Windows manifest](allocation-windows-regression.json).
+Earlier phase evidence remains unchanged and labeled by its original source/run.

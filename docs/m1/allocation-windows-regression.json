@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "source_commit": "b818951ac21c0cd8a21cb3cdb1032db2dbd03481",
+  "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38990308848",
+  "runner_os": "Windows",
+  "runner_arch": "X64",
+  "runner_image": "20261012.333.1",
+  "configuration": "Release",
+  "generator": "Visual Studio 17 2022",
+  "architecture": "x64",
+  "signature_checks": "enabled",
+  "crash_logger": "enabled",
+  "status": "build passed; runtime unverified",
+  "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+  "dependencies": [
+    {
+      "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+      "bytes": 999686,
+      "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+    },
+    {
+      "path": "ThirdParty/nvapi/x86/nvapi.lib",
+      "bytes": 439838,
+      "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+    },
+    {
+      "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+      "bytes": 3494900,
+      "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "bin/WowClient64.exe",
+      "bytes": 9859584,
+      "sha256": "2c015fe82324b92a75c61e56b03c361d5c244368394cc0ad1e81bff86240651a"
+    },
+    {
+      "path": "bin/Wow64.exe",
+      "bytes": 9856512,
+      "sha256": "3ef58af79f6120fabed28c30858cd592e07280fa0c0b8e560e838446b6faaedf"
+    },
+    {
+      "path": "bin/XvidDecoder.dll",
+      "bytes": 456192,
+      "sha256": "c82853537cb793178e1a5374003dfbca5b0419c15bb7d22b513b68c4207532fe"
+    }
+  ],
+  "cmake_version": "cmake version 3.31.6",
+  "visual_studio": {
+    "instanceId": "754ae0a8",
+    "installDate": "2026-10-12T22:00:54Z",
+    "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+    "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+    "installationVersion": "17.14.37710.0",
+    "productId": "Microsoft.VisualStudio.Product.Enterprise",
+    "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+    "state": 4294967295,
+    "isComplete": true,
+    "isLaunchable": true,
+    "isPrerelease": false,
+    "isRebootRequired": false,
+    "displayName": "Visual Studio Enterprise 2022",
+    "description": "Scalable, end-to-end solution for teams of any size",
+    "channelId": "VisualStudio.17.Release",
+    "channelUri": "https://aka.ms/vs/17/release/channel",
+    "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+    "installChannelUri": "https://aka.ms/vs/17/release/channel",
+    "installedChannelId": "VisualStudio.17.Release",
+    "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+    "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+    "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+    "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+    "updateDate": "2026-10-12T22:00:54.346826Z",
+    "catalog": {
+      "buildBranch": "d17.14",
+      "buildVersion": "17.14.37710.0",
+      "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+      "localBuild": "build-lab",
+      "manifestName": "VisualStudio",
+      "manifestType": "installer",
+      "productDisplayVersion": "17.14.41 (September 2026)",
+      "productLine": "Dev17",
+      "productLineVersion": "2022",
+      "productMilestone": "RTW",
+      "productMilestoneIsPreRelease": "False",
+      "productName": "Visual Studio",
+      "productPatchVersion": "41",
+      "productPreReleaseMilestoneSuffix": "1.0",
+      "productReleaseNameSuffix": "(September 2026)",
+      "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+      "requiredEngineVersion": "3.14.2094.42856"
+    },
+    "properties": {
+      "campaignId": "",
+      "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+      "includeRecommended": "1",
+      "nickname": "",
+      "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+    }
+  },
+  "binary_hashes_verified": true,
+  "binary_machine": "PE AMD64 (0x8664)",
+  "artifact": {
+    "id": 12085191422,
+    "name": "windows-x64-baseline-b818951ac21c0cd8a21cb3cdb1032db2dbd03481",
+    "digest": "sha256:60efb979683ee006357ccb8cf73ce4158ea506b77718aa477d3eb2d929fbccea",
+    "expires_at": "2026-10-31T01:25:09Z"
+  },
+  "build_graph_errors": []
+}
