@@ -17,7 +17,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'async', 'window'}:
         expected |= {'WowNativeAsync', 'AsyncFileCheck'}
     if mode == 'window':
-        expected |= {'SDL3-static', 'SDL_uclibc', 'WowNativeWindow', 'NativeWindowCheck'}
+        expected |= {'SDL3-static', 'SDL_uclibc', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -99,10 +99,12 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: source outside pinned SDL dependency")
             if target_os != 'WINDOWS' and any('/windows/' in source.lower() for source in sources):
                 errors.append(f"{target['name']}: Windows SDL provider on POSIX")
-        if mode == 'window' and target['name'] in {'WowNativeWindow', 'NativeWindowCheck'}:
-            path = ('Engine/Source/Os/Portable/Window.cpp' if target['name'] == 'WowNativeWindow'
-                    else 'Tools/PortableWindow/window.cpp')
-            if len(sources) != 1 or not sources[0].endswith(path) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
+        if mode == 'window' and target['name'] in {'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}:
+            allowed = {'WowNativeWindow': ['Engine/Source/Os/Portable/Window.cpp', 'Engine/Source/Services/Portable/ShellSettings.cpp'],
+                       'NativeWindowCheck': ['Tools/PortableWindow/window.cpp'],
+                       'NativeShell': ['Tools/NativeShell/main.cpp'],
+                       'ShellSettingsCheck': ['Tools/PortableWindow/settings.cpp']}[target['name']]
+            if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):

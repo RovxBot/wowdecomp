@@ -18,6 +18,7 @@ bool Resize(Handle file, int64_t size);
 bool Info(Handle file, Blizzard::File::FileInfo& result);
 bool Info(const std::filesystem::path& path, Blizzard::File::FileInfo& result);
 bool Move(const std::filesystem::path& from, const std::filesystem::path& to);
+bool Replace(const std::filesystem::path& from, const std::filesystem::path& to);
 bool Attributes(const std::filesystem::path& path, int32_t attributes);
 }
 #endif

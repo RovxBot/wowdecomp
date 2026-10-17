@@ -4,6 +4,7 @@
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 #include <algorithm>
 #include <array>
 #include <cmath>

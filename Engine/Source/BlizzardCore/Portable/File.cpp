@@ -261,6 +261,10 @@ bool Move(const char* src, const char* dst) {
     fs::path from, to;
     return NativeFile::HostPath(src, from) && NativeFile::HostPath(dst, to) && NativeFile::Move(from, to);
 }
+bool Native::AtomicReplace(const char* src, const char* dst) {
+    fs::path from, to;
+    return NativeFile::HostPath(src, from) && NativeFile::HostPath(dst, to) && NativeFile::Replace(from, to);
+}
 bool Copy(const char* src, const char* dst, bool overwrite) {
     fs::path from, to;
     if (!NativeFile::HostPath(src, from) || !NativeFile::HostPath(dst, to)) return false;
