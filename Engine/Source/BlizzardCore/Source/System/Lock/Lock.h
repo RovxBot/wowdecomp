@@ -25,7 +25,7 @@ typedef CRITICAL_SECTION Mutex;
 
 class Atomic {
     public:
-    #if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
     std::atomic<int32_t> m_value{0};
 #else
     /* 0000 */ volatile int32_t m_value;
@@ -40,7 +40,7 @@ class ConstructOnce {
     public:
     static void Construct(void* param);
 
-    #if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
     std::once_flag m_once;
 #endif
     /* 0000 */ bool m_constructed;

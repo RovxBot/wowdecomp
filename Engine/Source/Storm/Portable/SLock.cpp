@@ -27,3 +27,6 @@ void* STORMAPI SCreateThread(uint32_t (STORMAPI* function)(void*), void* argumen
     return SCreateThread(stackSize, function, argument, 0, id, name);
 }
 uint32_t STORMAPI SGetCurrentThreadId() { return OsCurrentThreadId(); }
+int32_t STORMAPI SGetThreadName(uint32_t id, char* buffer, int32_t size) {
+    return size > 0 && OsLookupThreadName(id, buffer, static_cast<size_t>(size));
+}

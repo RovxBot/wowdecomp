@@ -25,6 +25,7 @@ using OsThreadProc = uint32_t (*)(void*);
 OsSyncHandle* OsCreateThread(OsThreadProc function, void* argument, uint32_t stackSize,
                              uint32_t* threadId, const char* name);
 uint32_t OsCurrentThreadId();
+bool OsLookupThreadName(uint32_t id, char* buffer, size_t size);
 void OsEnsureThreadExit();
 void OsAtThreadExit(void (*callback)(void*), void* argument);
 size_t OsCurrentThreadStackSize();

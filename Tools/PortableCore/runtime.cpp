@@ -31,6 +31,8 @@ struct Local { ~Local() { ++destroyed; } };
 Blizzard::Thread::LocalObject<Local> localObject{};
 uint32_t tlsKey;
 uint32_t ThreadTLS(void*) {
+    char name[16];
+    CHECK(SGetThreadName(SGetCurrentThreadId(), name, sizeof(name)) && name[0]);
     CHECK(!OsTlsGetValue(tlsKey));
     int value = 123;
     CHECK(OsTlsSetValue(tlsKey, &value));

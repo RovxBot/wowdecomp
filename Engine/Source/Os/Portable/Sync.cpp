@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstring>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -15,6 +16,8 @@ struct State {
     Kind kind;
     bool manual = false, signaled = false, closed = false, abandoned = false;
     uint32_t count = 0, maximum = 0, recursion = 0;
+    uint32_t id = 0;
+    char name[16] = {};
     std::thread::id owner;
     explicit State(Kind value) : kind(value) {}
 };
@@ -22,11 +25,13 @@ struct Registry {
     std::mutex mutex;
     std::condition_variable changed;
     std::vector<std::weak_ptr<State>> mutexes;
+    std::vector<std::weak_ptr<State>> threadNames;
     std::atomic<size_t> threads{0};
 };
 Registry& RegistryInstance() { static Registry value; return value; }
 std::atomic<uint32_t> nextThreadId{1};
 thread_local uint32_t currentThreadId = nextThreadId.fetch_add(1);
+thread_local const char* currentThreadName = "external";
 
 struct ExitGuard {
     std::shared_ptr<State> completion;
@@ -183,15 +188,25 @@ void ThreadStart(void* parameter) {
     std::unique_ptr<Start> start(static_cast<Start*>(parameter));
     ThreadExit().completion = start->state;
     currentThreadId = start->id;
+    currentThreadName = start->state->name;
     start->function(start->argument);
 }
 }
 OsSyncHandle* OsCreateThread(OsThreadProc function, void* argument, uint32_t stackSize,
-                             uint32_t* threadId, const char*) {
+                             uint32_t* threadId, const char* name) {
     if (!function) return nullptr;
     auto state = std::make_shared<State>(Kind::Thread);
     state->manual = true;
     const uint32_t id = nextThreadId.fetch_add(1);
+    state->id = id;
+    std::strncpy(state->name, name ? name : "worker", sizeof(state->name) - 1);
+    {
+        auto& registry = RegistryInstance();
+        std::lock_guard<std::mutex> lock(registry.mutex);
+        registry.threadNames.erase(std::remove_if(registry.threadNames.begin(), registry.threadNames.end(),
+            [](const auto& value) { return value.expired(); }), registry.threadNames.end());
+        registry.threadNames.emplace_back(state);
+    }
     auto start = std::make_unique<Start>(Start{function, argument, state, id});
     auto handle = std::make_unique<OsSyncHandle>(OsSyncHandle{state});
     RegistryInstance().threads.fetch_add(1);
@@ -205,6 +220,17 @@ OsSyncHandle* OsCreateThread(OsThreadProc function, void* argument, uint32_t sta
     return handle.release();
 }
 uint32_t OsCurrentThreadId() { return currentThreadId; }
+bool OsLookupThreadName(uint32_t id, char* buffer, size_t size) {
+    if (!buffer || !size) return false;
+    buffer[0] = 0;
+    auto copy = [&](const char* name) { std::strncpy(buffer, name, size - 1); buffer[size - 1] = 0; return true; };
+    if (id == currentThreadId) return copy(currentThreadName);
+    auto& registry = RegistryInstance();
+    std::lock_guard<std::mutex> lock(registry.mutex);
+    for (const auto& weak : registry.threadNames)
+        if (auto state = weak.lock(); state && state->id == id) return copy(state->name);
+    return false;
+}
 void OsEnsureThreadExit() { ThreadExit(); }
 void OsAtThreadExit(void (*callback)(void*), void* argument) {
     ThreadExit().callbacks.emplace_back(callback, argument);
