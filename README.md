@@ -13,6 +13,14 @@ of the original client (`Engine/Source/<Module>`, `WoW/Source/<Module>`, origina
 x64 is the main target. Win32 still builds and is used to check struct layouts against the 32-bit
 original.
 
+## Native client roadmap
+
+[PORTING_PLAN.md](PORTING_PLAN.md) describes the planned Linux x86-64 and macOS ARM64 ports,
+with selected engine improvements from the 4.3.4 decompilation. Native support is not implemented yet.
+Coding agents should read [AGENTS.md](AGENTS.md). The [M0 report](docs/m0/BASELINE.md)
+records the dependency audit and verified Windows x64 Actions build; gameplay baseline validation is pending.
+Client and dependency builds for this porting effort run in GitHub Actions.
+
 ## Progress
 
 The percentages below measure how much of the original binary has a counterpart in this source tree. They do
