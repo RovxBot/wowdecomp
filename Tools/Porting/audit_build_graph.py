@@ -54,7 +54,9 @@ def audit(targets, mode, target_os, cpu):
                  'Engine/Source/Os/Portable/File.cpp',
                  'Engine/Source/BlizzardCore/Portable/' + ('FileWindows.cpp' if target_os == 'WINDOWS' else 'FilePosix.cpp')}
                 if target['name'] == 'WowNativeFiles' else
-                {'Tools/PortableFiles/files.cpp'} | ({'Tools/PortableFiles/interrupted.cpp'} if target_os == 'LINUX' else set()))
+                {'Tools/PortableFiles/files.cpp'} | (
+                    {'Tools/PortableFiles/interrupted.cpp'} if target_os == 'LINUX' else
+                    {'Tools/PortableFiles/sparse_windows.cpp'} if target_os == 'WINDOWS' else set()))
             # CMake may return absolute paths or paths relative to the source root.
             if (len(sources) != len(expected_sources)
                     or any(not any(s.endswith(p) for s in sources) for p in expected_sources)):

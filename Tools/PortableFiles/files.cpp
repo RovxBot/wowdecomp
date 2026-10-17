@@ -23,6 +23,9 @@ namespace N = Blizzard::File::Native;
 void SetReadFault(int fault);
 void SetWriteFault(int fault);
 #endif
+#if defined(WOWDECOMP_OS_WINDOWS)
+bool PrepareSparseFixture(const fs::path& path);
+#endif
 namespace {
 void Check(bool value, const char* message) {
     if (!value) {
@@ -120,6 +123,9 @@ void Transfers(const fs::path& root) {
     F::FileInfo info{};
     Check(F::GetFileInfo(file.value, &info) && info.m_size == 4, "metadata refreshed after resize");
     const int64_t large = int64_t{5} << 30;
+#if defined(WOWDECOMP_OS_WINDOWS)
+    Check(PrepareSparseFixture(path), "prepare sparse NTFS fixture before extending");
+#endif
     Check(F::SetEOF(file.value, large, 0), "sparse size beyond 32 bits");
     Check(F::GetFileInfo(file.value, &info) && info.m_size == large, "64-bit file metadata");
     uint64_t listedSize = 0;
@@ -252,13 +258,20 @@ void Interrupted(const fs::path& root) {
 }
 }
 int main() {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
     StormRtlInitialize();
     Directory directory;
+    std::puts("Check: creation dispositions and unsupported flags");
     Creation(directory.path);
+    std::puts("Check: positioned/partial I/O and sparse 64-bit offsets");
     Transfers(directory.path);
+    std::puts("Check: concurrent reads, thread-local errors and no-replace moves");
     Concurrent(directory.path);
+    std::puts("Check: data/settings/cache roots and path aliases");
     Paths(directory.path);
+    std::puts("Check: file metadata, copy, enumeration and nonregular files");
     FileOperations(directory.path);
+    std::puts("Check: interrupted/short/hard I/O outcomes");
     Interrupted(directory.path);
     std::puts("PASS: native file, path-root and settings fixtures (synthetic data only)");
 }
