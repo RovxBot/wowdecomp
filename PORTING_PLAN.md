@@ -225,8 +225,11 @@ by that review. Keep graphics alternatives as separate prototypes.
 Implementation has started with the [native host-filesystem work package](docs/m2/FILESYSTEM.md)
 and synthetic hosted fixtures, passing on Linux x86-64, macOS ARM64 and Windows
 x64 with Linux sanitizers. [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
-contains this first work package. Archives, async I/O, original-data decoding and
-the SDL3 application shell remain outstanding; M2 is not complete.
+was merged, followed by [asset PR #6](https://github.com/RovxBot/wowdecomp/pull/6).
+The [asset report](docs/m2/ASSETS.md) records hosted archive/decoder fixtures and
+observed native Linux decoding from the separate clean 12340/enUS reference with
+signatures and sanitizers enabled. [Asynchronous file services](docs/m2/ASYNC.md)
+are in review; SDL3 shell/desktop validation remains outstanding. M2 is not complete.
 
 1. Port filesystem and async file services, including BlizzardCore package I/O.
    Preserve archive lookup, patch/locale precedence and file/signature checks.
@@ -409,7 +412,7 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
       claiming a native full-client build prematurely.
 - [x] Implement core allocation, logging, time and synchronization adapters with
       focused behavior checks; preserve Windows baseline builds.
-- [ ] Port file/archive access and add an asset inspection executable for 12340 data.
+- [x] Port read-only retail file/archive access and add a validated 12340 asset inspector.
 - [ ] Add the SDL shell and prove input/settings/startup/shutdown behavior.
 - [ ] Adapt Linux OpenGL context creation and display the original login UI.
 - [ ] Implement portable network I/O and enter the world against the M0 server.

@@ -1,6 +1,9 @@
 # M2 native asynchronous file service
 
-Implementation in progress, not yet compiled or runtime-validated. This is a
+Implementation `3b950a4` passed all four hosted async configurations in
+[run 38995387429](https://github.com/RovxBot/wowdecomp/actions/runs/38995387429),
+including Linux ASan/UBSan and actual macOS ARM64 execution. Full Windows
+regression and PR merge checks are being finalized before merge. This is a
 native Services boundary, not a binary-compatible replacement for CAsyncObject.
 Legacy callers remain unchanged until their modules enter the native build.
 
@@ -34,3 +37,8 @@ short EOF counts. No required networking, downloader or graphics service is stub
 Shutdown stops admission, cancels outstanding requests, joins the worker and drains
 callbacks before freeing state. A kernel-blocked filesystem read cannot be forcibly
 aborted by this API; there is no unsafe thread kill or close-while-reading shortcut.
+
+Fixtures exercise queued/current cancellation, priority/urgent/FIFO ordering,
+owner-thread callbacks, bounded waits, callback submissions/exceptions, short EOF
+reads, visible host errors, concurrent producers and repeated shutdown. Synthetic
+core/file/package/decoder checks also run; no game data enters Actions.
