@@ -119,6 +119,34 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_ASSETS": "ON"
       }
+    },
+    {
+      "name": "linux-async",
+      "inherits": "linux-assets",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_ASYNC": "ON"
+      }
+    },
+    {
+      "name": "linux-async-asan",
+      "inherits": "linux-assets-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_ASYNC": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-async",
+      "inherits": "macos-arm64-assets",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_ASYNC": "ON"
+      }
+    },
+    {
+      "name": "windows-async",
+      "inherits": "windows-assets",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_ASYNC": "ON"
+      }
     }
   ]
 }

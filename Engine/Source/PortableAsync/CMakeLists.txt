@@ -1,0 +1,8 @@
+add_library(WowNativeAsync STATIC ../Services/Portable/AsyncFile.cpp)
+target_link_libraries(WowNativeAsync PUBLIC WowNativeAssets)
+if(BUILD_TESTING)
+    add_executable(AsyncFileCheck ${PROJECT_SOURCE_DIR}/Tools/PortableAsync/async.cpp)
+    target_link_libraries(AsyncFileCheck PRIVATE WowNativeAsync)
+    add_test(NAME native-async-file COMMAND AsyncFileCheck)
+    set_tests_properties(native-async-file PROPERTIES TIMEOUT 45)
+endif()
