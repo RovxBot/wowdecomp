@@ -31,7 +31,9 @@ last-error state. Its lock remains valid through late static destructors. Native
 text output uses ordinary newline-terminated records; Windows crash/UI formatting
 and its SEH reporter remain separate. Fatal errors print a diagnostic and terminate
 rather than returning success. The process-lifetime logger lock is intentionally
-retained; individual files and log records are closed/freed at shutdown.
+retained; individual files and log records are closed/freed at shutdown. The
+synchronization registry likewise survives late static handle destruction, and
+expired tracking entries are pruned when new objects are registered.
 
 The native executable runs core work on an explicit 8 MiB OS thread stack and
 checks its actual size. It sets the platform default floating-point environment

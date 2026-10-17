@@ -5,6 +5,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstring>
+#include <cstdlib>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -28,7 +29,16 @@ struct Registry {
     std::vector<std::weak_ptr<State>> threadNames;
     std::atomic<size_t> threads{0};
 };
-Registry& RegistryInstance() { static Registry value; return value; }
+Registry& RegistryInstance() {
+    // Handles owned by static objects can be closed after main. Retain the
+    // registry lock for process lifetime, independently of CRT destruction order.
+    static Registry* value = [] {
+        void* memory = std::malloc(sizeof(Registry));
+        if (!memory) std::abort();
+        return new (memory) Registry;
+    }();
+    return *value;
+}
 std::atomic<uint32_t> nextThreadId{1};
 thread_local uint32_t currentThreadId = nextThreadId.fetch_add(1);
 thread_local const char* currentThreadName = "external";
@@ -95,6 +105,8 @@ OsSyncHandle* OsCreateMutex(bool initialOwner, const char* name) {
     if (initialOwner) { state->owner = std::this_thread::get_id(); state->recursion = 1; }
     auto& registry = RegistryInstance();
     std::lock_guard<std::mutex> lock(registry.mutex);
+    registry.mutexes.erase(std::remove_if(registry.mutexes.begin(), registry.mutexes.end(),
+        [](const auto& value) { return value.expired(); }), registry.mutexes.end());
     registry.mutexes.emplace_back(state);
     return new OsSyncHandle{std::move(state)};
 }

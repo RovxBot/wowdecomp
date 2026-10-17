@@ -10,6 +10,7 @@
 
 // Exercise allocator/log availability in both pre-main and late static lifetime.
 struct GlobalLifetime {
+    SEvent event{1, 0};
     void* memory = SMemAlloc(32, __FILE__, __LINE__, SMEM_FLAG_ZEROMEMORY);
     GlobalLifetime() {
         HSLOG log;
@@ -18,6 +19,9 @@ struct GlobalLifetime {
         SLogClose(log);
     }
     ~GlobalLifetime() {
+        // Close a global waitable object after main and core shutdown.
+        event.Set();
+        if (event.Wait(0) != 0) std::abort();
         HSLOG log;
         if (!SLogCreate("native-core-static.log", SLOG_FLAG_NOFILE, &log)) std::abort();
         SLogWrite(log, "global destructor");

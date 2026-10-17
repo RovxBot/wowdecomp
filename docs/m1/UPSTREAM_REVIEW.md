@@ -17,7 +17,7 @@ change is `5b41f72` plus its upstream merge `4119c4b` (PR #7).
 - The earlier tutorial reverse-search bounds fix from `ba9bea1`, included by
   `cd29da3`, is retained. It starts at the final valid tutorial index (59).
 
-Both Input.cpp files and CGTutorial.cpp are compared byte-for-byte against
+Both Input.cpp files and Ui/Tutorial.cpp are compared byte-for-byte against
 `4119c4b` after integration. No runtime-service change modifies them. Existing
 Win32 VERIFY comments on upstream-modified input functions predate that upstream
 adaptation; this review makes no new binary-verification claim for those bodies.

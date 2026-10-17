@@ -158,7 +158,35 @@ void LocksAndTLS() {
     CHECK(!Blizzard::Thread::IsRunning(record));
     CHECK(Blizzard::Thread::Close(record));
     CHECK(destroyed.load() == 9);
+    struct Detached { SEvent started{1, 0}; SEvent proceed{1, 0}; } detached;
+    auto detachedFunction = [](void* pointer) -> uint32_t {
+        auto& state = *static_cast<Detached*>(pointer);
+        Local& local = localObject; (void)local;
+        state.started.Set();
+        CHECK(state.proceed.Wait(5000) == 0);
+        return 0;
+    };
+    CHECK(Blizzard::Thread::Create(detachedFunction, &detached, &record, "detached", 0, 0));
+    CHECK(detached.started.Wait(5000) == 0);
+    CHECK(Blizzard::Thread::Close(record)); // Drop caller ownership before callback finishes.
+    detached.proceed.Set();
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (OsLiveThreadCount() && std::chrono::steady_clock::now() < deadline) OsSleep(1);
+    CHECK(!OsLiveThreadCount() && destroyed.load() == 10);
     OsTlsFree(replacement);
+    CSRWLock shared;
+    SEvent secondReader(1, 0);
+    shared.Enter(0);
+    std::thread reader([&] { shared.Enter(0); secondReader.Set(); shared.Leave(0); });
+    CHECK(secondReader.Wait(2000) == 0); // Shared readers can overlap.
+    reader.join();
+    std::atomic<bool> writerEntered{false};
+    std::thread writer([&] { shared.Enter(1); writerEntered.store(true); shared.Leave(1); });
+    OsSleep(5);
+    CHECK(!writerEntered.load());
+    shared.Leave(0);
+    writer.join();
+    CHECK(writerEntered.load());
     Blizzard::Lock::EventObject event;
     CHECK(!Blizzard::Lock::EventWait(0, event.m_event));
     Blizzard::Lock::EventSet(event.m_event);
