@@ -1,6 +1,10 @@
 #ifndef ENGINE_SOURCE_STORM_SOURCE_STHREAD_H
 #define ENGINE_SOURCE_STORM_SOURCE_STHREAD_H
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Storm/Portable/SThread.h"
+#else
+
 #include <cstddef>
 #include <cstdint>
 #include <windows.h>
@@ -41,5 +45,7 @@ namespace S_Thread {
 
     uint32_t STORMAPI s_SLaunchThread(void* threadParam);
 }
+
+#endif // WOWDECOMP_PORTABLE_RUNTIME
 
 #endif

@@ -13,6 +13,10 @@ on:
       - 'Engine/Source/Storm/Source/MD5.*'
       - 'Engine/Source/Storm/Source/Sha1.*'
       - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
       - 'Tools/Porting/**'
   pull_request:
     paths:
@@ -24,6 +28,10 @@ on:
       - 'Engine/Source/Storm/Source/MD5.*'
       - 'Engine/Source/Storm/Source/Sha1.*'
       - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
       - 'Tools/Porting/**'
 
 permissions:

@@ -1,6 +1,10 @@
 #ifndef ENGINE_SOURCE_STORM_SOURCE_SLOCK_H
 #define ENGINE_SOURCE_STORM_SOURCE_SLOCK_H
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Storm/Portable/SLock.h"
+#else
+
 #include <cstddef>
 #include <cstdint>
 #include <windows.h>
@@ -127,5 +131,7 @@ class CSRWLock {
     void Enter(int32_t forwriting);
     void Leave(int32_t fromwriting);
 };
+
+#endif // WOWDECOMP_PORTABLE_RUNTIME
 
 #endif

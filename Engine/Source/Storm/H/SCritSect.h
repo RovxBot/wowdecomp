@@ -1,6 +1,10 @@
 #ifndef ENGINE_SOURCE_STORM_H_SCRITSECT_H
 #define ENGINE_SOURCE_STORM_H_SCRITSECT_H
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Storm/Portable/SCritSect.h"
+#else
+
 #include <cstdint>
 #include <windows.h>
 
@@ -15,5 +19,7 @@ class CCritSect {
     void Leave();
     void Leave(int32_t fromwriting);
 };
+
+#endif // WOWDECOMP_PORTABLE_RUNTIME
 
 #endif

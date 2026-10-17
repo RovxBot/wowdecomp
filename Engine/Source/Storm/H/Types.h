@@ -3,7 +3,11 @@
 
 #include <cstdint>
 
+#if defined(_WIN32) && !defined(WOWDECOMP_PORTABLE_RUNTIME)
 #define STORMAPI __stdcall
+#else
+#define STORMAPI
+#endif
 
 struct _CMDPARAMS {
     /* 0000 */ uint32_t flags;

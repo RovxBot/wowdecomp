@@ -9,7 +9,7 @@ def audit(targets, mode, target_os, cpu):
     compiled = [t for t in targets if t['type'] in
                 ('STATIC_LIBRARY', 'SHARED_LIBRARY', 'EXECUTABLE', 'OBJECT_LIBRARY')]
     names = {t['name'] for t in compiled}
-    if mode == 'core' and names != {'WowPortableCore', 'PortableCoreCheck'}:
+    if mode == 'core' and names != {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}:
         errors.append(f'Unexpected core targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')

@@ -29,7 +29,7 @@ def main():
                       'macos-arm64-core': ('MACOS', 'ARM64'),
                       'windows-core': ('WINDOWS', 'X86_64')}[args.preset]
     manifest = {
-        'schema_version': 1, 'scope': 'M1 hash core only; no native client startup/gameplay',
+        'schema_version': 1, 'scope': 'M1 core services and native lifecycle; no game assets/window/network/gameplay',
         'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         'workflow_run': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         'preset': args.preset, 'target_os': target_os, 'target_cpu': cpu,
@@ -64,7 +64,7 @@ def main():
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
-                      'WowPortableCore', 'PortableCoreCheck', '--parallel', '2'])
+                      'WowPortableCore', 'PortableCoreCheck', 'CoreServicesCheck', 'NativeCore', '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
         executable = build / 'bin' / ('Release/PortableCoreCheck.exe' if target_os == 'WINDOWS' else 'PortableCoreCheck')
         if target_os == 'MACOS':
@@ -75,7 +75,7 @@ def main():
         if target_os != 'WINDOWS':
             run('binary-type', ['file', str(executable)])
         manifest['check_executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
-        manifest['status'] = 'core compilation and fixture checks passed; full client unported'
+        manifest['status'] = 'core services, semantic checks and minimal native lifecycle passed; full game client unported'
     except Exception as exc:
         manifest['failed_phase'] = manifest['status']
         manifest['status'] = 'failed'

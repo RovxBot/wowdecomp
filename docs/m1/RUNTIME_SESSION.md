@@ -14,7 +14,7 @@ client. Original scenario observations are preserved below.
 | GitHub Actions run and source commit | Run [38848848237](https://github.com/RovxBot/wowdecomp/actions/runs/38848848237), `e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c`; identified by the supplied artifact ZIP digest |
 | Artifact name and SHA-256 manifest | `windows-x64-baseline-e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c`; artifact ZIP SHA-256 `3e6391ec6d570ef9704bf1b0ac576fc4c450c2699fdf42e371cc68481abb6532`. Per-binary verification was not separately recorded by the operator. |
 | Windows edition/build, CPU, RAM | win11 Enterprise - 25H2, 16GB DDR3, i7-8750H, Nvidia RTX 2060  |
-| GPU and driver version | NVIDIA RTX 2060; driver reported as "latest", exact version not recorded |
+| GPU and driver version | NVIDIA RTX 2060; GeForce Game Ready driver 572.42 (operator follow-up) |
 | VC++ runtime/toolchain dependencies | Pending |
 | Data source, build, locale, archive hashes/provenance | Operator reports clean unmodified 3.3.5a data; locale, archive hashes and provenance not recorded |
 | Live GrimGuzzler core revision/image digest | Pending; deployment-source tag is recorded in BASELINE.md |
@@ -83,9 +83,10 @@ settings as if they were an isolated renderer-performance comparison.
   a pre-existing OpenGL failure; they do not establish a passing OpenGL baseline.
 - Artifact identity is resolved from the supplied ZIP digest. The runtime records
   do not cover the later upstream cursor fix at `4119c4b` or subsequent M1 work.
-- Remaining evidence: exact driver version, locale/archive hashes and clean-data
+- Remaining evidence: locale/archive hashes and clean-data
   provenance, actual live server revision/image/endpoints/settings, session
-  duration/Warden check logs, scene/settings captures and timing/log locations.
+  duration/Warden check logs, scene/settings captures and timing/log locations. The operator confirms no logs
+  or screenshots were collected.
   The Warden scenario's reported pass means no observed failure was reported;
   actual server checks and compatibility remain unverified without those records.
 - No game data or cluster/server policy was changed by this review.
