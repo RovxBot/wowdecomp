@@ -24,7 +24,7 @@ void Fails(const std::function<void()> &fn) {
 int main() {
     try {
         uint64_t random;
-        OsSecureRandom(&random, sizeof(random));
+        OsSecureRandom(reinterpret_cast<uint8_t*>(&random), sizeof(random));
         auto root = fs::temp_directory_path() / ("wowdecomp-shell-settings-" + std::to_string(random));
         fs::create_directories(root / "data");
         struct Cleanup {

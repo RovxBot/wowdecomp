@@ -583,6 +583,10 @@ void OsInputSetMouseMode(OS_MOUSE_MODE mode) {
     }
     state.relative = enabled;
     state.remainderX = state.remainderY = 0;
+    if (!enabled) {
+        state.mouseX = state.anchorX;
+        state.mouseY = state.anchorY;
+    }
 }
 void OsInputGetMousePosition(int32_t *x, int32_t *y) {
     auto &s = OsNative::State();
@@ -644,6 +648,7 @@ int CopyComposition(const std::string &text, char *output, uint32_t size) {
 } // namespace
 int32_t OsIMEGetLanguageMode() {
     OsNative::State();
+    SErrSetLastError(50); // SDL exposes composition, not an OS input-language selector.
     return 0;
 }
 int32_t OsIMEGetCompositionString(char *text, uint32_t size) {
