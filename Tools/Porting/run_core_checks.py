@@ -13,7 +13,7 @@ from audit_build_graph import audit, read_targets
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--preset', choices=['linux-core', 'macos-arm64-core', 'windows-core'], required=True)
+    parser.add_argument('--preset', choices=['linux-core', 'linux-core-asan', 'macos-arm64-core', 'windows-core'], required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
@@ -26,6 +26,7 @@ def main():
     query.parent.mkdir(parents=True, exist_ok=True)
     query.touch()
     target_os, cpu = {'linux-core': ('LINUX', 'X86_64'),
+                      'linux-core-asan': ('LINUX', 'X86_64'),
                       'macos-arm64-core': ('MACOS', 'ARM64'),
                       'windows-core': ('WINDOWS', 'X86_64')}[args.preset]
     manifest = {

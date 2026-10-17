@@ -6,6 +6,8 @@
 #include "Engine/Source/BlizzardCore/Source/System/Lock/Lock.h"
 #include "Engine/Source/BlizzardCore/Source/System/Memory/MemoryStorm.h"
 #include "Engine/Source/BlizzardCore/Source/System/Thread/ThreadLocalStorage.h"
+#include "Engine/Source/BlizzardCore/Source/System/Thread/Thread.h"
+#include "Engine/Source/BlizzardCore/Source/System/Time/Time.h"
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -23,6 +25,8 @@
 
 #define CHECK(condition) do { if (!(condition)) { std::fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, #condition); std::abort(); } } while (0)
 std::atomic<int> destroyed{0};
+struct OnceValue { static std::atomic<int> constructions; int value = 42; OnceValue() { ++constructions; } };
+std::atomic<int> OnceValue::constructions{0};
 struct Local { ~Local() { ++destroyed; } };
 Blizzard::Thread::LocalObject<Local> localObject{};
 uint32_t tlsKey;
@@ -125,7 +129,7 @@ void LocksAndTLS() {
     CHECK(!OsTlsSetValue(tlsKey, &mainValue));
     auto replacement = OsTlsAlloc();
     CHECK(replacement != tlsKey && !OsTlsGetValue(replacement));
-    OsTlsFree(replacement);
+    tlsKey = replacement;
     SCritSect critical;
     critical.Enter(); critical.Enter(); critical.Leave(); critical.Leave();
     Blizzard::Lock::RMutex recursive;
@@ -139,10 +143,19 @@ void LocksAndTLS() {
     CHECK(atomic.m_value.load() == 16000);
     atomic.m_value.store(INT32_MAX);
     CHECK(atomic.Increment() == INT32_MIN && atomic.Decrement() == INT32_MAX);
-    Blizzard::Lock::ConstructOnce<int> once{};
+    Blizzard::Lock::ConstructOnce<OnceValue> once{};
     workers.clear();
-    for (int i = 0; i < 8; ++i) workers.emplace_back([&] { CHECK(once.Get() == once.Get()); });
+    for (int i = 0; i < 8; ++i) workers.emplace_back([&] { CHECK(once.Get()->value == 42); });
     for (auto& thread : workers) thread.join();
+    CHECK(OnceValue::constructions.load() == 1);
+    once.Get()->~OnceValue();
+    Blizzard::Thread::ThreadRecord* record;
+    CHECK(Blizzard::Thread::Create(ThreadTLS, nullptr, &record, "core-test", 0, 0));
+    CHECK(Blizzard::Thread::WaitForever(record));
+    CHECK(!Blizzard::Thread::IsRunning(record));
+    CHECK(Blizzard::Thread::Close(record));
+    CHECK(destroyed.load() == 9);
+    OsTlsFree(replacement);
     Blizzard::Lock::EventObject event;
     CHECK(!Blizzard::Lock::EventWait(0, event.m_event));
     Blizzard::Lock::EventSet(event.m_event);
@@ -177,6 +190,17 @@ void LogsAndTime() {
         CHECK(frequency == (method == OsTimeManager::SystemMethod1 ? 1000 : 1000000000));
         OsTimeShutdown();
     }
+    for (int64_t value : {int64_t(0), int64_t(-1), int64_t(-86400000000000LL),
+                          int64_t(951827696123456789LL)}) {
+        Blizzard::Time::TimeRec rec;
+        Blizzard::Time::BreakTime(value, rec);
+        CHECK(Blizzard::Time::MakeTime(rec) == value);
+    }
+    CHECK(Blizzard::Time::FromFileTime(125911584000000000ULL) == 0);
+    auto tick = Blizzard::Time::Milliseconds();
+    auto utc = Blizzard::Time::GetTimestamp();
+    OsSleep(2);
+    CHECK(Blizzard::Time::Milliseconds() >= tick && Blizzard::Time::GetTimestamp() > utc);
     char timestamp[32]; OsGetTimeStamp(timestamp, sizeof(timestamp)); CHECK(std::strlen(timestamp) == 13);
     uint8_t random[1024]; OsSecureRandom(random, sizeof(random));
     // This checks delivery, bounds and repeated calls, not RNG quality.

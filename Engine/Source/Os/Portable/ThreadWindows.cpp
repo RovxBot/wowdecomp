@@ -24,5 +24,7 @@ bool OsLaunchThread(OsThreadEntry entry, void* argument, size_t stackSize) {
 size_t OsCurrentThreadStackSize() {
     ULONG_PTR low, high;
     GetCurrentThreadStackLimits(&low, &high);
-    return high - low;
+    MEMORY_BASIC_INFORMATION region;
+    if (!VirtualQuery(&low, &region, sizeof(region))) return 0;
+    return high - reinterpret_cast<ULONG_PTR>(region.AllocationBase);
 }

@@ -15,6 +15,8 @@ add_library(WowCoreServices STATIC
     ../Storm/Portable/SLock.cpp
     ../Storm/Source/StormRtl.cpp
     ../BlizzardCore/Portable/Core.cpp
+    ../BlizzardCore/Portable/Thread.cpp
+    ../BlizzardCore/Portable/Time.cpp
 )
 if(WOWDECOMP_OS STREQUAL "WINDOWS")
     target_sources(WowCoreServices PRIVATE ../Os/Portable/ThreadWindows.cpp ../Os/Portable/RandomWindows.cpp)

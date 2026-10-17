@@ -2,9 +2,7 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include <cerrno>
 #include <unistd.h>
-#if defined(__linux__)
 #include <sys/random.h>
-#endif
 
 void OsSecureRandom(uint8_t* buffer, uint32_t size) {
     if (!buffer && size) SErrDisplayAppFatalMessage("Null random buffer", __FILE__, __LINE__);

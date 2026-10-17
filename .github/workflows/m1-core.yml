@@ -50,6 +50,9 @@ jobs:
           - runner: ubuntu-24.04
             preset: linux-core
             python: python3
+          - runner: ubuntu-24.04
+            preset: linux-core-asan
+            python: python3
           - runner: macos-14
             preset: macos-arm64-core
             python: python3
