@@ -231,9 +231,11 @@ Status: implementation merged in [PR #5](https://github.com/RovxBot/wowdecomp/pu
 The [handoff](docs/m2/HANDOFF.md) records hosted checks on Linux x86-64, macOS
 ARM64 and Windows x64, Linux sanitizers and real X11/Wayland execution against
 the separate clean 12340/enUS reference. Native startup, original-data reads,
-settings reload and joined shutdown are observed. Physical input/IME acceptance
-and unsuppressed desktop leak reports remain open; final milestone sign-off awaits
-their recorded disposition. The shell is separate
+settings reload and joined shutdown are observed. The operator confirmed the
+requested physical-input checks passed on 2026-10-18, with matching final Wayland
+runtime telemetry in [the acceptance record](docs/m2/operator-acceptance.json).
+Unsuppressed desktop leak reports remain open; final sign-off awaits their
+recorded disposition. The shell is separate
 from the gated full game and does not establish rendered scene or gameplay parity.
 
 1. Port filesystem and async file services, including BlizzardCore package I/O.
@@ -419,7 +421,7 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
       focused behavior checks; preserve Windows baseline builds.
 - [x] Port read-only retail file/archive access and add a validated 12340 asset inspector.
 - [x] Add the SDL shell, original-data startup, settings reload and joined shutdown.
-- [ ] Record physical input/IME acceptance for final M2 sign-off.
+- [x] Record operator acceptance of the requested physical-input checklist; IME language/display coverage remains limited.
 - [ ] Resolve or explicitly disposition the recorded desktop-library leak findings.
 - [ ] Adapt Linux OpenGL context creation and display the original login UI.
 - [ ] Implement portable network I/O and enter the world against the M0 server.

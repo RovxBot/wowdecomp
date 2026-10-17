@@ -1,9 +1,10 @@
-# M2 handoff — 2026-10-17
+# M2 handoff — updated 2026-10-18
 
 M2 implementation is merged. Hosted checks pass, and the Linux shell loads the
 external 12340/enUS reference, shows decoded original terrain pixels, saves/reloads
-settings and shuts down its worker. Final sign-off remains pending physical input
-acceptance and desktop LeakSanitizer triage. No M3 full-game work has started.
+settings and shuts down its worker. Physical-input acceptance is now recorded;
+final sign-off remains pending desktop LeakSanitizer triage. No M3 full-game work
+has started.
 
 | Work package | Merged PR | Contract/evidence |
 | --- | --- | --- |
@@ -88,14 +89,16 @@ because CMake is unavailable. M2 JSON parsing, local Markdown file references an
 
 ## Remaining acceptance and next work
 
-Use the runtime command and five-step [desktop checklist](SHELL.md#desktop-acceptance).
-Record physical typing/backspace/repeat, copy/paste, IME composition/commit where
-available, relative mouse/cursor restoration, focus loss, fullscreen, resize and
-close/relaunch persistence. An opened test window or injected event count alone is
-not operator confirmation. Record unavailable IME/display configurations explicitly.
-The unattended interactive window timed out without a user report; it is not a
-passing physical-input or clean-shutdown observation. Keep the milestone open
-until both that acceptance and the desktop leak findings have a recorded disposition.
+On 2026-10-18 the operator confirmed that all requested physical-input checks
+passed without visible errors: typing/backspace, clipboard, IME if available,
+F2/Escape capture, F11, and close/relaunch settings. The
+[acceptance record](operator-acceptance.json) matches the final `2154bed` hosted
+binary on Wayland and records exit 0, 1,022 relative events, three clipboard actions,
+verified settings reload and zero workers after shutdown. The IME language/sample
+was not identified, so this does not establish any particular language or wider
+display/platform coverage. The earlier unattended timeout remains a historical
+failed attempt, separately from this successful operator session. Keep M2 open
+until the desktop leak findings also have a recorded disposition.
 
 The Linux desktop smoke tests do not establish macOS Cocoa desktop behavior,
 Windows physical input, fractional/Retina or multiple-display coverage. ARM64
