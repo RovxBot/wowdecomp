@@ -30,3 +30,11 @@ failure is recorded separately and is not attributed to this input change.
 PR #1 (M0) and PR #2 (initial M1 build isolation) were refreshed with this history,
 passed their Windows/source/core checks as applicable, and were merged into main
 before the separate runtime-services change.
+
+Merge validation identities: M0 Windows
+[38987713977](https://github.com/RovxBot/wowdecomp/actions/runs/38987713977) and source
+[38987713985](https://github.com/RovxBot/wowdecomp/actions/runs/38987713985); initial M1
+core [38987724455](https://github.com/RovxBot/wowdecomp/actions/runs/38987724455) and
+Windows [38987724463](https://github.com/RovxBot/wowdecomp/actions/runs/38987724463).
+The final runtime implementation's separate source/core/Windows results are recorded
+in [FOUNDATIONS.md](FOUNDATIONS.md).

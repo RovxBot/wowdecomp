@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "scope": "M1 core service and minimal native lifecycle validation only",
+  "checks": [
+    {
+      "schema_version": 1,
+      "scope": "M1 core services and native lifecycle; no game assets/window/network/gameplay",
+      "source_commit": "9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38989058328",
+      "preset": "linux-core",
+      "target_os": "LINUX",
+      "target_cpu": "X86_64",
+      "runner_os": "Linux",
+      "runner_arch": "X64",
+      "runner_image": "20261012.334.1",
+      "host_machine": "x86_64",
+      "status": "core services, semantic checks and minimal native lifecycle passed; full game client unported",
+      "toolchain_cache": [
+        "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+        "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+        "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+      ],
+      "binaries": [
+        {
+          "name": "PortableCoreCheck",
+          "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "sha256": "bca40b68e18f3c1954c69ccd67f53dab0e80edda226617542fbde9ecc9dc4a9c"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+        }
+      ],
+      "compiler": "Clang 18.1.3",
+      "cmake_version": "cmake version 3.31.6",
+      "artifact": {
+        "id": 12084610823,
+        "name": "m1-linux-core-9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+        "digest": "sha256:b45f5be0a91a3fe3e78b9e03906e62e352d0215093ab53b3f0e6209825178243",
+        "expires_at": "2026-10-31T01:02:12Z"
+      },
+      "native_core_binary_hash_verified": true,
+      "test_result": "Internal ctest changing into directory: /home/runner/work/wowdecomp/wowdecomp/build/linux-core\nTest project /home/runner/work/wowdecomp/wowdecomp/build/linux-core\n    Start 1: native-core-lifecycle\n1/4 Test #1: native-core-lifecycle ............   Passed    0.00 sec\n    Start 2: portable-core-hashes\n2/4 Test #2: portable-core-hashes .............   Passed    0.00 sec\n    Start 3: portable-core-services\n3/4 Test #3: portable-core-services ...........   Passed    0.06 sec\n    Start 4: portable-random-fails-closed\n4/4 Test #4: portable-random-fails-closed .....   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 4\n\nTotal Test time (real) =   0.21 sec"
+    },
+    {
+      "schema_version": 1,
+      "scope": "M1 core services and native lifecycle; no game assets/window/network/gameplay",
+      "source_commit": "9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38989058328",
+      "preset": "linux-core-asan",
+      "target_os": "LINUX",
+      "target_cpu": "X86_64",
+      "runner_os": "Linux",
+      "runner_arch": "X64",
+      "runner_image": "20261012.334.1",
+      "host_machine": "x86_64",
+      "status": "core services, semantic checks and minimal native lifecycle passed; full game client unported",
+      "toolchain_cache": [
+        "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+        "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+        "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+      ],
+      "binaries": [
+        {
+          "name": "PortableCoreCheck",
+          "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "sha256": "01b589aaf8fe3a9354aee4999cbe2a672f6448765cb145cdc0415b39718e9e35"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+        }
+      ],
+      "compiler": "Clang 18.1.3",
+      "cmake_version": "cmake version 3.31.6",
+      "artifact": {
+        "id": 12083419369,
+        "name": "m1-linux-core-asan-9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+        "digest": "sha256:6a1b37709757452354968442aea0eabb8ff20e0955958b79f8abc64fca1555d7",
+        "expires_at": "2026-10-31T01:01:56Z"
+      },
+      "native_core_binary_hash_verified": true,
+      "test_result": "Internal ctest changing into directory: /home/runner/work/wowdecomp/wowdecomp/build/linux-core-asan\nTest project /home/runner/work/wowdecomp/wowdecomp/build/linux-core-asan\n    Start 1: native-core-lifecycle\n1/4 Test #1: native-core-lifecycle ............   Passed    0.02 sec\n    Start 2: portable-core-hashes\n2/4 Test #2: portable-core-hashes .............   Passed    0.00 sec\n    Start 3: portable-core-services\n3/4 Test #3: portable-core-services ...........   Passed    0.08 sec\n    Start 4: portable-random-fails-closed\n4/4 Test #4: portable-random-fails-closed .....   Passed    0.01 sec\n\n100% tests passed, 0 tests failed out of 4\n\nTotal Test time (real) =   0.16 sec"
+    },
+    {
+      "schema_version": 1,
+      "scope": "M1 core services and native lifecycle; no game assets/window/network/gameplay",
+      "source_commit": "9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38989058328",
+      "preset": "macos-arm64-core",
+      "target_os": "MACOS",
+      "target_cpu": "ARM64",
+      "runner_os": "macOS",
+      "runner_arch": "ARM64",
+      "runner_image": "20260831.0302.1",
+      "host_machine": "arm64",
+      "status": "core services, semantic checks and minimal native lifecycle passed; full game client unported",
+      "toolchain_cache": [
+        "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+        "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+        "CMAKE_MAKE_PROGRAM:FILEPATH=/opt/homebrew/bin/ninja",
+        "CMAKE_OSX_ARCHITECTURES:STRING=arm64"
+      ],
+      "binaries": [
+        {
+          "name": "PortableCoreCheck",
+          "sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2",
+          "binary_architectures": "arm64"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "sha256": "644e12267655175a0b72d3c01baa6dd20c962389528db87021d2139bc72a94c0",
+          "binary_architectures": "arm64"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533",
+          "binary_architectures": "arm64"
+        }
+      ],
+      "compiler": "AppleClang 15.0.0.15000309",
+      "cmake_version": "cmake version 4.4.3",
+      "artifact": {
+        "id": 12084371944,
+        "name": "m1-macos-arm64-core-9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+        "digest": "sha256:b770eda55d9478eb54d2a3cdf103cbbcc1b3dd462211aa50ffec5c0f3d3391a6",
+        "expires_at": "2026-10-31T01:02:10Z"
+      },
+      "native_core_binary_hash_verified": true,
+      "test_result": "Test project /Users/runner/work/wowdecomp/wowdecomp/build/macos-arm64-core\n    Start 1: native-core-lifecycle\n1/4 Test #1: native-core-lifecycle ............   Passed    0.35 sec\n    Start 2: portable-core-hashes\n2/4 Test #2: portable-core-hashes .............   Passed    0.00 sec\n    Start 3: portable-core-services\n3/4 Test #3: portable-core-services ...........   Passed    0.22 sec\n    Start 4: portable-random-fails-closed\n4/4 Test #4: portable-random-fails-closed .....   Passed    0.01 sec\n\n100% tests passed out of 4\n\nTotal Test time (real) =   0.60 sec"
+    },
+    {
+      "schema_version": 1,
+      "scope": "M1 core services and native lifecycle; no game assets/window/network/gameplay",
+      "source_commit": "9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/38989058328",
+      "preset": "windows-core",
+      "target_os": "WINDOWS",
+      "target_cpu": "X86_64",
+      "runner_os": "Windows",
+      "runner_arch": "X64",
+      "runner_image": "20261012.333.1",
+      "host_machine": "AMD64",
+      "status": "core services, semantic checks and minimal native lifecycle passed; full game client unported",
+      "toolchain_cache": [],
+      "binaries": [
+        {
+          "name": "PortableCoreCheck",
+          "sha256": "8f96de6769a2cc1885153169a76a361aa0aac50a1797403304be0703a2544e25"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "sha256": "08b8255284ef1e177d312c5ef86fbc4817f8d9dbc9b607e7554caf6409433a68"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "b08cca30b05bbc5c15be6ceef7d5f3560f134d64cb27a993a5e89621976ceee0"
+        }
+      ],
+      "compiler": "MSVC 19.44.35229.0",
+      "cmake_version": "cmake version 3.31.6",
+      "artifact": {
+        "id": 12084312198,
+        "name": "m1-windows-core-9ee86a565a26dda463ea47eedb99d0fe79dc28ea",
+        "digest": "sha256:e877b644e50a9884a85c5f34051a5cf9edf6adda85dd5046a1ca1f64daf5e07d",
+        "expires_at": "2026-10-31T01:02:27Z"
+      },
+      "native_core_binary_hash_verified": true,
+      "test_result": "Internal ctest changing into directory: D:/a/wowdecomp/wowdecomp/build/windows-core\nTest project D:/a/wowdecomp/wowdecomp/build/windows-core\n    Start 1: native-core-lifecycle\n1/4 Test #1: native-core-lifecycle ............   Passed    0.01 sec\n    Start 2: portable-core-hashes\n2/4 Test #2: portable-core-hashes .............   Passed    0.01 sec\n    Start 3: portable-core-services\n3/4 Test #3: portable-core-services ...........   Passed    0.14 sec\n    Start 4: portable-random-fails-closed\n4/4 Test #4: portable-random-fails-closed .....   Passed    0.01 sec\n\n100% tests passed, 0 tests failed out of 4\n\nTotal Test time (real) =   0.20 sec"
+    }
+  ]
+}
