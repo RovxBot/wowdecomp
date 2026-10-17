@@ -13,7 +13,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'files', 'assets'}:
         expected |= {'WowNativeFiles', 'FileServicesCheck'}
     if mode == 'assets':
-        expected |= {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck'}
+        expected |= {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}
     if mode in {'core', 'files', 'assets'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -65,7 +65,7 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected native file sources: {sources}")
             if 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: native file runtime ABI missing")
-        if mode == 'assets' and target['name'] in {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck'}:
+        if mode == 'assets' and target['name'] in {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}:
             allowed = {
                 'WowAssetCodecs': ['ThirdParty/zlib/' + name + '.c' for name in
                     ['adler32', 'crc32', 'inffast', 'inflate', 'inftrees', 'zutil']] +
@@ -75,8 +75,11 @@ def audit(targets, mode, target_os, cpu):
                     ['ThirdParty/lzma/LzmaDecode.c'],
                 'WowNativeAssets': ['Engine/Source/BlizzardCore/Source/Packages/Mopaq/MPQEncrypt.cpp'] +
                     ['Engine/Source/BlizzardCore/Portable/' + name + '.cpp' for name in
-                     ['PackageArchive', 'PackageCodecs', 'PackageSignatures', 'Packages']],
+                     ['PackageArchive', 'PackageCodecs', 'PackageSignatures', 'Packages',
+                      'AssetTables', 'AssetTexture', 'AssetWorld']] + ['Engine/Source/Os/Portable/ModelArena.cpp'],
                 'PackageServicesCheck': ['Tools/PortableAssets/packages.cpp'],
+                'AssetDecodersCheck': ['Tools/PortableAssets/decoders.cpp'],
+                'NativeAssetCheck': ['Tools/NativeAssets/main.cpp'],
             }[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed):
                 errors.append(f"{target['name']}: unexpected asset sources: {sources}")

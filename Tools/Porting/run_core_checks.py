@@ -72,7 +72,7 @@ def main():
         cache = (build / 'CMakeCache.txt').read_text()
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck'] if assets else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -89,7 +89,7 @@ def main():
             if target_os != 'WINDOWS':
                 run(f'binary-type-{name}', ['file', str(executable)])
             manifest['binaries'].append(entry)
-            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck'}:
+            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck'}:
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)

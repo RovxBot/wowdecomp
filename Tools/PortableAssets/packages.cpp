@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
             Check(Decompress(Load(root / (std::string("codec-") + method + ".bin")), expected.size()) == expected, "Codec vector failed");
         for (auto method : {"sparse", "zlib-sparse", "bzip2-sparse"})
             Check(Decompress(Load(root / (std::string("codec-") + method + ".bin")), 100) == Bytes(100), "Sparse pipeline failed");
+        Check(Decompress(Load(root / "codec-pkware.bin"), Load(root / "pkware-expected.bin").size(), true) == Load(root / "pkware-expected.bin"), "Bundled blast vector failed");
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0xff}, 100); });
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0}, 99); });
         Fails([] { Decompress(Bytes{1, 2, 3}, 100); });

@@ -131,6 +131,9 @@ def main(directory):
     (directory/'codec-sparse.bin').write_bytes(b'\x20' + sparse)
     (directory/'codec-zlib-sparse.bin').write_bytes(b'\x22' + zlib.compress(sparse))
     (directory/'codec-bzip2-sparse.bin').write_bytes(b'\x30' + bz2.compress(sparse))
+    bundled = Path(__file__).resolve().parents[2] / 'ThirdParty/zlib/contrib/blast'
+    (directory/'codec-pkware.bin').write_bytes((bundled/'test.pk').read_bytes())
+    (directory/'pkware-expected.bin').write_bytes((bundled/'test.txt').read_bytes())
     # Mark Adler-0 conventions explicitly; this differs from zlib's default seed.
     (directory/'fixture-identity.json').write_text(json.dumps({
         'scope':'synthetic redistributable fixtures; no Blizzard data/signing key',

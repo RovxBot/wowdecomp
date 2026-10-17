@@ -40,3 +40,22 @@ A source-only Python probe authenticated its patch-3 signaturefile and read
 representative Map.dbc, BLP, HumanMale.m2 and Azeroth.wdt bytes. This is source-audit
 evidence, not native decoding or gameplay evidence. The native executable must
 repeat those checks. No files in either supplied game installation were changed.
+
+## Native model storage design (before enabling decoding)
+
+The inspection decoder will reserve a single owner-scoped virtual address arena
+before creating its model header. Both the native relative-array anchors and all
+decoded payloads live inside that reservation. This avoids searching near an
+already allocated external anchor: the maximum reservation is 1 GiB, so every
+valid in-arena displacement fits signed 32 bits. OS reservation uses unoccupied
+address space only (`mmap` without MAP_FIXED, or VirtualAlloc MEM_RESERVE), followed
+by page-granular commitment. No arbitrary heap fallback is allowed.
+
+Every suballocation checks alignment, addition overflow and full committed extent.
+Every relative-array encoding independently checks anchor ownership, target
+ownership, multiplication/extent and signed displacement before writing the
+original eight-byte count/int32-offset representation. Reservation ownership is
+separate from suballocations and lasts through the model owner's destruction.
+This native geometry-inspection owner does not transplant the legacy M2Shared
+allocator or claim full animation/material/render integration. Existing Windows
+OsAllocNear and M2Data relocation remain unchanged.
