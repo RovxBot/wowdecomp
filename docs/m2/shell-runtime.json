@@ -563,5 +563,114 @@
       ],
       "result": "failed desktop sanitizer check; retained without suppression"
     }
-  ]
+  ],
+  "launcher_followup": {
+    "scope": "Runtime wrapper fixes; executed existing hosted 2154bed binary, no local compilation.",
+    "x11": {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:32:08.719196+00:00",
+      "completed_at": "2026-10-17T10:32:10.313176+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "x11",
+      "process_environment": {
+        "EGL_PLATFORM": "x11",
+        "SDL_VIDEO_X11_XINPUT2": null,
+        "LIBDECOR_PLUGIN_DIR": null
+      },
+      "sanitizer_options": {
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "Original signaturefile authenticated: 28948 MD5 records",
+        "Database: Map.dbc, 135 rows",
+        "Textures: original UI and terrain BLPs decoded to RGBA",
+        "HumanMale: 5264 vertices, 6356 triangles",
+        "Farm WMO: 2 groups, 408 inspected triangles",
+        "Azeroth: 687 WDT tiles, 256 ADT cells decoded",
+        "native-shell M2",
+        "video=x11",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=2",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=5",
+        "characters=0",
+        "ime-events=0",
+        "relative-events=0",
+        "focus-events=3",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "stderr": [],
+      "session": [
+        "native-shell M2",
+        "video=x11",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=2",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=5",
+        "characters=0",
+        "ime-events=0",
+        "relative-events=0",
+        "focus-events=3",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ]
+    },
+    "intentional_timeout": {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:32:12.918794+00:00",
+      "completed_at": "2026-10-17T10:32:13.923219+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "wayland",
+      "process_environment": {
+        "EGL_PLATFORM": "wayland",
+        "SDL_VIDEO_X11_XINPUT2": null,
+        "LIBDECOR_PLUGIN_DIR": null
+      },
+      "sanitizer_options": {
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null
+      },
+      "exit_code": 124,
+      "timed_out": true,
+      "stdout": [],
+      "stderr": [
+        "",
+        "NativeShell exceeded 1s; terminated, not a clean shutdown/input pass."
+      ]
+    },
+    "stale_session_rejected": true,
+    "limits": "The timeout is an intentionally failed test and does not close physical input or leak acceptance."
+  }
 }

@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--sanitizers', action='store_true')
     parser.add_argument('--timeout', type=int, default=600)
     args = parser.parse_args()
+    if args.timeout < 1:
+        parser.error('--timeout must be positive')
     manifest = json.loads((args.artifact/'manifest.json').read_text())
     name = 'NativeShell.exe' if platform.system() == 'Windows' else 'NativeShell'
     binary = args.artifact/'bin'/name
@@ -32,9 +34,16 @@ def main():
     environment = os.environ.copy()
     if args.video:
         environment['SDL_VIDEODRIVER'] = args.video
+        # A Wayland EGL override inherited from the desktop can make Mesa treat
+        # SDL's X11 Display pointer as a wl_display. Match this explicit request
+        # in the child only; leave the desktop and automatic selection unchanged.
+        if platform.system() == 'Linux' and args.video in {'x11', 'wayland'}:
+            environment['EGL_PLATFORM'] = args.video
     if args.sanitizers:
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1')
     report = args.output.with_suffix('.session.txt')
+    # Never attach a previous successful session to a failed or timed-out launch.
+    report.unlink(missing_ok=True)
     command = [str(binary.resolve()), '--data', str(args.data), '--locale', args.locale,
                '--settings', str(args.settings), '--cache', str(args.cache), '--report', str(report)]
     if args.smoke_ms:
@@ -42,7 +51,17 @@ def main():
     if args.snapshot:
         command += ['--snapshot', str(args.snapshot)]
     started = datetime.now(timezone.utc).isoformat()
-    result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout, env=environment)
+    timed_out = False
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout, env=environment)
+    except subprocess.TimeoutExpired as error:
+        # subprocess.run kills and reaps the child before raising. Partial output
+        # can still be bytes even with text=True, including a partial UTF-8 scalar.
+        def partial(value):
+            return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value or ''
+        result = subprocess.CompletedProcess(command, 124, partial(error.stdout), partial(error.stderr))
+        result.stderr += f'\nNativeShell exceeded {args.timeout}s; terminated, not a clean shutdown/input pass.\n'
+        timed_out = True
     print(result.stdout, end='')
     print(result.stderr, end='')
     record = dict(scope='Native M2 diagnostic shell; external 12340 data; no Gx/gameplay',
@@ -52,8 +71,11 @@ def main():
                   os=platform.platform(), machine=platform.machine(), locale=args.locale,
                   data_root='external read-only reference',
                   requested_video=environment.get('SDL_VIDEODRIVER'),
+                  process_environment={key: environment.get(key) for key in
+                                       ['EGL_PLATFORM', 'SDL_VIDEO_X11_XINPUT2', 'LIBDECOR_PLUGIN_DIR']},
                   sanitizer_options={key: environment.get(key) for key in ['ASAN_OPTIONS', 'UBSAN_OPTIONS']},
-                  exit_code=result.returncode, stdout=result.stdout.splitlines(), stderr=result.stderr.splitlines())
+                  exit_code=result.returncode, timed_out=timed_out,
+                  stdout=result.stdout.splitlines(), stderr=result.stderr.splitlines())
     if report.exists():
         record['session'] = report.read_text().splitlines()
     args.output.write_text(json.dumps(record, indent=2)+'\n')

@@ -206,6 +206,8 @@ This local execution is permitted; local compilation remains prohibited.
 `linux-window`, `linux-window-asan`, `macos-arm64-window` and `windows-window`.
 Use [the shell runtime wrapper](Tools/Porting/run_native_shell.py) for hash-verified
 execution with external data and writable user roots; see SHELL.md for commands.
+An explicit Linux video-driver request also sets matching child EGL platform;
+timeouts are recorded failures, not physical-input or clean-shutdown evidence.
 Dummy-driver fixtures do not establish desktop input/IME, usable windows or Gx
 rendering. Actual ARM64 fixtures do not establish Cocoa desktop/gameplay support.
 Complete the recorded physical input acceptance and desktop leak triage before
