@@ -30,9 +30,11 @@ thread_local uint32_t currentThreadId = nextThreadId.fetch_add(1);
 
 struct ExitGuard {
     std::shared_ptr<State> completion;
+    std::vector<std::pair<void (*)(void*), void*>> callbacks;
     ~ExitGuard() {
         // Destroy runtime TLS while the thread is still alive and owns its locks.
         OsRunTLSDestructors();
+        for (auto it = callbacks.rbegin(); it != callbacks.rend(); ++it) it->first(it->second);
         auto& registry = RegistryInstance();
         std::lock_guard<std::mutex> lock(registry.mutex);
         for (auto it = registry.mutexes.begin(); it != registry.mutexes.end();) {
@@ -204,4 +206,7 @@ OsSyncHandle* OsCreateThread(OsThreadProc function, void* argument, uint32_t sta
 }
 uint32_t OsCurrentThreadId() { return currentThreadId; }
 void OsEnsureThreadExit() { ThreadExit(); }
+void OsAtThreadExit(void (*callback)(void*), void* argument) {
+    ThreadExit().callbacks.emplace_back(callback, argument);
+}
 size_t OsLiveThreadCount() { return RegistryInstance().threads.load(); }

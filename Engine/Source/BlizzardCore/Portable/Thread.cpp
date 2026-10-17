@@ -2,12 +2,15 @@
 #include "Engine/Source/Os/TimeManager.h"
 
 namespace {
-uint32_t Start(void* parameter) {
+void Finish(void* parameter) {
     auto thread = static_cast<Blizzard::Thread::ThreadRecord*>(parameter);
-    thread->m_result = thread->m_function(thread->m_param);
-    OsRunTLSDestructors();
     thread->m_state.store(-1);
     Blizzard::Thread::Close(thread);
+}
+uint32_t Start(void* parameter) {
+    auto thread = static_cast<Blizzard::Thread::ThreadRecord*>(parameter);
+    OsAtThreadExit(Finish, thread);
+    thread->m_result = thread->m_function(thread->m_param);
     return 0;
 }
 }

@@ -67,6 +67,9 @@ int32_t OsGetTimeZone() {
 #else
     if (!localtime_r(&now, &local)) return 0;
     // Windows Bias excludes daylight saving; preserve that contract.
-    return static_cast<int32_t>(local.tm_gmtoff / 60 - (local.tm_isdst > 0 ? 60 : 0));
+    const auto offset = local.tm_gmtoff;
+    local.tm_isdst = 0;
+    const auto standard = std::mktime(&local);
+    return static_cast<int32_t>((offset + std::difftime(now, standard)) / 60);
 #endif
 }

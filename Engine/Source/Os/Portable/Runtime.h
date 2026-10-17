@@ -26,6 +26,7 @@ OsSyncHandle* OsCreateThread(OsThreadProc function, void* argument, uint32_t sta
                              uint32_t* threadId, const char* name);
 uint32_t OsCurrentThreadId();
 void OsEnsureThreadExit();
+void OsAtThreadExit(void (*callback)(void*), void* argument);
 size_t OsCurrentThreadStackSize();
 // Used only by the platform thread launcher. Completion is published by a
 // thread-local exit guard after registered runtime TLS destructors have run.

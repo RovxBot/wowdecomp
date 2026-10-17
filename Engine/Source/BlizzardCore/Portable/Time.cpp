@@ -28,36 +28,50 @@ Blizzard::Time::Timestamp Blizzard::Time::FromFileTime(uint64_t fileTime) {
         return static_cast<int64_t>(fileTime * 100 + 0x5143382561530000ULL);
     return maximum;
 }
+namespace {
+bool Leap(int32_t year) { return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); }
+int64_t DaysBeforeYear(int32_t year) {
+    int64_t prior = year - 1;
+    return prior * 365 + prior / 4 - prior / 100 + prior / 400;
+}
+constexpr int32_t daysBeforeMonth[] = {0,31,59,90,120,151,181,212,243,273,304,334,365};
+}
 void Blizzard::Time::BreakTime(Timestamp value, TimeRec& output) {
     int64_t seconds = value / 1000000000;
     int32_t nanos = static_cast<int32_t>(value % 1000000000);
     if (nanos < 0) { nanos += 1000000000; --seconds; }
-    std::time_t unixTime = static_cast<std::time_t>(seconds + epoch);
-    std::tm utc{};
-#if defined(_WIN32)
-    if (gmtime_s(&utc, &unixTime)) { output = {}; return; }
-#else
-    if (!gmtime_r(&unixTime, &utc)) { output = {}; return; }
-#endif
-    output = {utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday, utc.tm_hour,
-              utc.tm_min, utc.tm_sec, nanos, utc.tm_wday, utc.tm_yday};
+    int64_t days = seconds / 86400;
+    int32_t daySeconds = static_cast<int32_t>(seconds % 86400);
+    if (daySeconds < 0) { daySeconds += 86400; --days; }
+    int32_t weekday = static_cast<int32_t>((days + 6) % 7);
+    if (weekday < 0) weekday += 7;
+    int32_t year = 2000;
+    while (days < 0) { --year; days += Leap(year) ? 366 : 365; }
+    while (days >= (Leap(year) ? 366 : 365)) { days -= Leap(year) ? 366 : 365; ++year; }
+    int32_t yearday = static_cast<int32_t>(days);
+    int32_t month = 1;
+    while (month < 12 && days >= daysBeforeMonth[month] + (month >= 2 && Leap(year) ? 1 : 0)) ++month;
+    int32_t day = static_cast<int32_t>(days) - daysBeforeMonth[month - 1] - (month > 2 && Leap(year) ? 1 : 0) + 1;
+    output = {year, month, day, daySeconds / 3600, daySeconds / 60 % 60,
+              daySeconds % 60, nanos, weekday, yearday};
 }
 Blizzard::Time::Timestamp Blizzard::Time::MakeTime(const TimeRec& value) {
     if (value.year < 1601 || value.year > 9999 || value.month < 1 || value.month > 12 ||
         value.day < 1 || value.day > 31 || value.hour < 0 || value.hour > 23 ||
         value.minute < 0 || value.minute > 59 || value.second < 0 || value.second > 59 ||
         value.nanosecond < 0 || value.nanosecond >= 1000000000) return invalid;
-    std::tm utc{};
-    utc.tm_year = value.year - 1900; utc.tm_mon = value.month - 1; utc.tm_mday = value.day;
-    utc.tm_hour = value.hour; utc.tm_min = value.minute; utc.tm_sec = value.second;
-#if defined(_WIN32)
-    auto seconds = static_cast<int64_t>(_mkgmtime64(&utc)) - epoch;
-#else
-    auto seconds = static_cast<int64_t>(timegm(&utc)) - epoch;
-#endif
-    if (utc.tm_year != value.year - 1900 || utc.tm_mon != value.month - 1 || utc.tm_mday != value.day)
-        return invalid;
-    if (seconds <= invalid / 1000000000) return invalid;
+    const int32_t monthDays = daysBeforeMonth[value.month] - daysBeforeMonth[value.month - 1]
+                            + (value.month == 2 && Leap(value.year) ? 1 : 0);
+    if (value.day > monthDays) return invalid;
+    const int64_t days = DaysBeforeYear(value.year) - DaysBeforeYear(2000)
+                       + daysBeforeMonth[value.month - 1] + value.day - 1
+                       + (value.month > 2 && Leap(value.year) ? 1 : 0);
+    const int64_t seconds = days * 86400 + value.hour * 3600 + value.minute * 60 + value.second;
+    if (seconds < 0) {
+        uint64_t magnitude = static_cast<uint64_t>(-seconds) * 1000000000 - value.nanosecond;
+        if (magnitude >= (uint64_t(1) << 63)) return invalid;
+        return -static_cast<int64_t>(magnitude);
+    }
     if (seconds > maximum / 1000000000) return maximum;
     int64_t nanoseconds = seconds * 1000000000;
     if (nanoseconds > maximum - value.nanosecond) return maximum;

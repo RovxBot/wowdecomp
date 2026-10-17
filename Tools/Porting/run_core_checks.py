@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -67,15 +68,23 @@ def main():
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', 'PortableCoreCheck', 'CoreServicesCheck', 'NativeCore', '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
-        executable = build / 'bin' / ('Release/PortableCoreCheck.exe' if target_os == 'WINDOWS' else 'PortableCoreCheck')
-        if target_os == 'MACOS':
-            architectures = subprocess.check_output(['lipo', '-archs', str(executable)], text=True).strip()
-            manifest['binary_architectures'] = architectures
-            if architectures != 'arm64':
-                raise RuntimeError(f'Expected an ARM64 executable, found {architectures}')
-        if target_os != 'WINDOWS':
-            run('binary-type', ['file', str(executable)])
-        manifest['check_executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
+        manifest['binaries'] = []
+        for name in ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore']:
+            relative = f'Release/{name}.exe' if target_os == 'WINDOWS' else name
+            executable = build / 'bin' / relative
+            entry = {'name': name, 'sha256': hashlib.sha256(executable.read_bytes()).hexdigest()}
+            if target_os == 'MACOS':
+                architectures = subprocess.check_output(['lipo', '-archs', str(executable)], text=True).strip()
+                entry['binary_architectures'] = architectures
+                if architectures != 'arm64':
+                    raise RuntimeError(f'Expected an ARM64 executable, found {architectures}')
+            if target_os != 'WINDOWS':
+                run(f'binary-type-{name}', ['file', str(executable)])
+            manifest['binaries'].append(entry)
+            if name == 'NativeCore':
+                binary_directory = evidence / 'bin'
+                binary_directory.mkdir(exist_ok=True)
+                shutil.copy2(executable, binary_directory / executable.name)
         manifest['status'] = 'core services, semantic checks and minimal native lifecycle passed; full game client unported'
     except Exception as exc:
         manifest['failed_phase'] = manifest['status']

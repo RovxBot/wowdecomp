@@ -55,6 +55,7 @@ void Allocation() {
     CHECK(!SMemReAlloc(grown, SIZE_MAX, __FILE__, __LINE__, 0));
     CHECK(grown[0] == 42);
     CHECK(!SMemAlloc(SIZE_MAX, __FILE__, __LINE__, 0));
+    CHECK(SErrGetLastError() == STORM_ERROR_NOT_ENOUGH_MEMORY);
     SMemSetDebugFlags(0, SMEM_DEBUG_NOEXITONFAILURE);
     CHECK(!SMemReAlloc(grown, 0, __FILE__, __LINE__, 0));
     struct alignas(256) Aligned { char data[513]; };
@@ -191,7 +192,8 @@ void LogsAndTime() {
         OsTimeShutdown();
     }
     for (int64_t value : {int64_t(0), int64_t(-1), int64_t(-86400000000000LL),
-                          int64_t(951827696123456789LL)}) {
+                          int64_t(951827696123456789LL), int64_t(-9000000000000000000LL),
+                          INT64_MIN + 1, INT64_MAX}) {
         Blizzard::Time::TimeRec rec;
         Blizzard::Time::BreakTime(value, rec);
         CHECK(Blizzard::Time::MakeTime(rec) == value);
@@ -202,14 +204,22 @@ void LogsAndTime() {
     OsSleep(2);
     CHECK(Blizzard::Time::Milliseconds() >= tick && Blizzard::Time::GetTimestamp() > utc);
     char timestamp[32]; OsGetTimeStamp(timestamp, sizeof(timestamp)); CHECK(std::strlen(timestamp) == 13);
-    uint8_t random[1024]; OsSecureRandom(random, sizeof(random));
+    uint8_t random[1024];
+    std::memset(random, 0xA5, sizeof(random));
+    OsSecureRandom(random, sizeof(random));
+    for (size_t offset = 0; offset < sizeof(random); offset += 256) {
+        bool changed = false;
+        for (size_t i = offset; i < offset + 256; ++i) changed |= random[i] != 0xA5;
+        CHECK(changed);
+    }
     // This checks delivery, bounds and repeated calls, not RNG quality.
     OsSecureRandom(nullptr, 0);
     struct Guard { uint8_t before = 17; uint8_t data[32]; uint8_t after = 23; } guard;
     OsSecureRandom(guard.data, sizeof(guard.data));
     CHECK(guard.before == 17 && guard.after == 23);
 }
-int main() {
+int main(int argc, char**) {
+    if (argc > 1) { OsSecureRandom(nullptr, 1); return 0; }
     StormRtlInitialize();
     Allocation(); WaitSemantics(); LocksAndTLS(); LogsAndTime();
     CHECK(!OsLiveThreadCount());
