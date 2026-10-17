@@ -1,9 +1,8 @@
 # M2 native packages and asset inspection
 
-Work in progress after merged [filesystem PR #5](https://github.com/RovxBot/wowdecomp/pull/5).
-M2 remains open: native asset compilation, real-data execution, asynchronous I/O,
-bounded asset decoding and SDL3 desktop validation are not established by source
-inspection. All compilation runs in Actions.
+Implemented in [asset PR #6](https://github.com/RovxBot/wowdecomp/pull/6), after merged
+[filesystem PR #5](https://github.com/RovxBot/wowdecomp/pull/5). All compilation runs
+in Actions. M2 remains open for asynchronous I/O and SDL3 shell/desktop validation.
 
 The native package boundary is read-only and separate from the legacy Windows
 streaming ABI. It mounts an explicit external Data directory, preserves the
@@ -40,6 +39,36 @@ A source-only Python probe authenticated its patch-3 signaturefile and read
 representative Map.dbc, BLP, HumanMale.m2 and Azeroth.wdt bytes. This is source-audit
 evidence, not native decoding or gameplay evidence. The native executable must
 repeat those checks. No files in either supplied game installation were changed.
+
+## Validation checkpoint
+
+Implementation `2ae79719930c233cc69b34d68f7177c3430a7072` passed all four asset
+configurations in [run 38994825630](https://github.com/RovxBot/wowdecomp/actions/runs/38994825630):
+Linux x86-64, Linux ASan/UBSan, macOS ARM64 and Windows x64 native ABI. Each ran
+eight CTest checks: core/hash/lifecycle, file services, fixture generation, package
+policy and scalar decoders. Native architecture checks run on the ARM64 host.
+
+The downloaded Linux release and ASan/UBSan inspectors matched their hosted binary
+hashes. Both executed against the external clean reference, authenticated 28,948
+registered file MD5s, and decoded Map.dbc (135 rows), a seven-mip BLP, HumanMale
+(5,264 vertices), a two-group WMO and its geometry (601 vertices/408 triangles),
+Azeroth's WDT (687 populated tiles), and one ADT (256 cells). Applicable registered
+file signatures passed; the loading-bar BLP has no manifest record, matching the
+original selective registration policy. [Runtime evidence](native-asset-runtime.json)
+retains exact build/source/binary identities and decoded output. This establishes
+native representative decoding, not rendered scene or gameplay parity.
+
+The first real-data run caught the original manifest's MD5 encoding: four printed
+uint32 words, each converted to little-endian bytes by `MD5::ToArray`. The parser
+and independent RSA/MD5 fixture now preserve that convention. No verification was
+disabled. The initial local LeakSanitizer attempt was blocked by the tool sandbox's
+ptrace environment; the checksum-verified hosted binary then ran outside that
+sandbox with leak detection and ASan/UBSan enabled, exit 0 and no stderr. No local
+client or dependency compilation occurred.
+
+Follow-up SKIN triangle decoding and a second original terrain-texture read are
+being validated after this checkpoint. Native inspection decodes geometry and
+pixels; complete animation/material/world-render integration remains M3 onward.
 
 ## Native model storage design (before enabling decoding)
 

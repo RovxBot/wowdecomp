@@ -59,4 +59,21 @@ Model::Model(const Bytes& file) {
 }
 const Vertex* Model::Vertices() const { return static_cast<const Vertex*>(arena->Resolve(vertices, sizeof(Vertex))); }
 uint32_t Model::VertexCount() const { return vertices->count; }
+std::vector<uint16_t> DecodeSkin(const Bytes& file, uint32_t modelVertexCount) {
+    View data(file);
+    if (data.size < 48 || data.U32(0) != 0x4e494b53) throw Error("Expected original SKIN profile");
+    uint32_t vertexCount = data.U32(4), indexCount = data.U32(12);
+    if (vertexCount > 65536 || indexCount > 4194304 || indexCount % 3) throw Error("Invalid SKIN profile counts");
+    auto vertices = data.Slice(data.U32(8), size_t(vertexCount) * 2);
+    auto indices = data.Slice(data.U32(16), size_t(indexCount) * 2);
+    for (size_t i = 0; i < vertexCount; ++i)
+        if (vertices.U16(i * 2) >= modelVertexCount) throw Error("SKIN vertex lookup out of range");
+    std::vector<uint16_t> triangles;
+    for (size_t i = 0; i < indexCount; ++i) {
+        uint16_t index = indices.U16(i * 2);
+        if (index >= vertexCount) throw Error("SKIN triangle index out of range");
+        triangles.push_back(vertices.U16(size_t(index) * 2));
+    }
+    return triangles;
+}
 }}

@@ -36,6 +36,7 @@ private:
     OsNative::RelativeArray* vertices = nullptr;
     std::string name;
 };
+std::vector<uint16_t> DecodeSkin(const Bytes& file, uint32_t modelVertexCount);
 struct Wmo {
     uint32_t groups = 0, materials = 0;
     std::vector<Vec3> vertices, normals;

@@ -50,7 +50,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  files:
+  assets:
     strategy:
       fail-fast: false
       matrix:
@@ -84,5 +84,5 @@ jobs:
         with:
           name: m2-${{ matrix.preset }}-${{ github.sha }}
           path: artifacts/${{ matrix.preset }}/
-          if-no-assets-found: error
+          if-no-files-found: error
           retention-days: 14

@@ -64,6 +64,11 @@ int main() {
         Check(decoded.VertexCount()==1 && decoded.Vertices()[0].position.z==3.25f && decoded.Vertices()[0].weights[0]==255 && decoded.Vertices()[0].uv[0]==0.5f, "M2 vertex decode failed");
         bad=model; U32(bad,0x40,0xfffffff0); Fail([&] { Model invalid(bad); });
         bad=model; U32(bad,0x130,0x7fc00000); Fail([&] { Model invalid(bad); });
+        Bytes skin(60); U32(skin,0,0x4e494b53); U32(skin,4,3); U32(skin,8,48); U32(skin,12,3); U32(skin,16,54);
+        skin[48]=2; skin[50]=0; skin[52]=1; skin[54]=0; skin[56]=1; skin[58]=2;
+        Check(DecodeSkin(skin,3)==std::vector<uint16_t>({2,0,1}), "SKIN profile vertex/triangle lookup failed");
+        bad=skin; bad[58]=3; Fail([&] { DecodeSkin(bad,3); });
+        Fail([&] { DecodeSkin(skin,2); });
         OsNative::ModelArena arena(65536);
         auto anchor = new (arena.Allocate(sizeof(OsNative::RelativeArray),4)) OsNative::RelativeArray{};
         auto payload = arena.Allocate(32,16); arena.Encode(anchor,payload,8,4);

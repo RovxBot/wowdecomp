@@ -33,10 +33,15 @@ int main(int argc, char** argv) {
         auto images = Assets::DecodeBlp(read("Interface\\Glues\\LoadingBar\\Loading-BarFill.blp"));
         std::cout << "BLP decoded mipmaps=" << images.size() << " first=" << images[0].width << 'x' << images[0].height
                   << " rgba-md5=" << Hex(Mopaq::Native::Digest(images[0].rgba)) << '\n';
+        auto terrainImages = Assets::DecodeBlp(read("Tileset\\Elwynn\\ElwynnDirtBase.blp"));
+        std::cout << "BLP terrain decoded mipmaps=" << terrainImages.size() << " first=" << terrainImages[0].width << 'x' << terrainImages[0].height
+                  << " rgba-md5=" << Hex(Mopaq::Native::Digest(terrainImages[0].rgba)) << '\n';
         Assets::Model model(read("Character\\Human\\Male\\HumanMale.m2"));
         auto vertex = model.Vertices()[0];
         std::cout << "M2 decoded name=" << model.Name() << " vertices=" << model.VertexCount() << " first="
                   << vertex.position.x << ',' << vertex.position.y << ',' << vertex.position.z << '\n';
+        auto triangles = Assets::DecodeSkin(read("Character\\Human\\Male\\HumanMale00.skin"), model.VertexCount());
+        std::cout << "M2 skin decoded triangles=" << triangles.size() / 3 << '\n';
         auto rootName = "World\\wmo\\Azeroth\\Buildings\\Duskwood_human_farm\\Duskwood_human_farm.wmo";
         auto wmo = Assets::DecodeWmo(read(rootName));
         std::cout << "WMO root decoded groups=" << wmo.groups << " materials=" << wmo.materials << '\n';
