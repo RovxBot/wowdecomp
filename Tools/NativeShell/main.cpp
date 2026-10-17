@@ -10,6 +10,7 @@
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cfenv>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -169,7 +170,6 @@ int Run(const Options &options) {
         throw std::runtime_error(SDL_GetError());
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(nullptr, SDL_DestroyTexture);
     OsIMEEnable(1);
-    window.TextArea(32, 480, 900, 30, 8);
     auto bundle = std::make_shared<Bundle>();
     bool ready = false, failed = false, running = true, fullscreen = false, snapshot = false, saved = false;
     std::string status = "Opening original archives on the file worker...",
@@ -281,6 +281,15 @@ int Run(const Options &options) {
         }
         int w, h;
         window.Size(w, h, pixelWidth, pixelHeight);
+        // SDL renders in a logical canvas; IME candidate placement takes window
+        // coordinates, including letterboxing and Retina/display scaling.
+        float areaX, areaY, areaEndX, areaEndY;
+        if (!SDL_RenderCoordinatesToWindow(renderer.get(), 40, 465, &areaX, &areaY) ||
+            !SDL_RenderCoordinatesToWindow(renderer.get(), 950, 520, &areaEndX, &areaEndY))
+            throw std::runtime_error(SDL_GetError());
+        window.TextArea(static_cast<int>(std::lround(areaX)), static_cast<int>(std::lround(areaY)),
+                        std::max(1, static_cast<int>(std::lround(areaEndX - areaX))),
+                        std::max(1, static_cast<int>(std::lround(areaEndY - areaY))), 8);
         SDL_SetRenderDrawColor(renderer.get(), 17, 23, 33, 255);
         SDL_RenderClear(renderer.get());
         auto text = [&](float x, float y, const std::string &value, uint8_t r = 213, uint8_t g = 222,
