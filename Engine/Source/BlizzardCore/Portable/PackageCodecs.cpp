@@ -8,6 +8,7 @@ extern "C" {
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include <mutex>
 
 namespace Blizzard { namespace Mopaq { namespace Native {
 namespace {
@@ -27,6 +28,12 @@ int BlastWrite(void* cookie, unsigned char* data, unsigned size) {
 }
 Bytes Stage(const Bytes& input, size_t capacity, unsigned codec) {
     if (codec == 8) {
+        // Bundled blast 1.1 initializes mutable static Huffman tables on its
+        // first call (blast.c's `virgin` flag). Multiple native file queues may
+        // reach this path concurrently. Keep the dependency unchanged and
+        // serialize its calls at this boundary, including initialization.
+        static std::mutex blastMutex;
+        std::lock_guard<std::mutex> lock(blastMutex);
         Bytes output;
         BlastBuffer buffer{input, output, capacity};
         if (blast(BlastRead, &buffer, BlastWrite, &buffer)) throw Error("MPQ PKWARE decoding failed");
