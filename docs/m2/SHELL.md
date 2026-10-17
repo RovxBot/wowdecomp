@@ -4,8 +4,10 @@ Implemented and merged in [PR #8](https://github.com/RovxBot/wowdecomp/pull/8),
 head `2154bed3917ab1322545a365a58c5d2e708906b3`. Hosted checks and actual Linux
 desktop startup, original-data reads, settings reload and joined shutdown are
 recorded in the [M2 handoff](HANDOFF.md), [build record](shell-builds.json) and
-[runtime record](shell-runtime.json). Final physical input acceptance and desktop
-LeakSanitizer triage remain open. The full native game remains gated.
+[runtime record](shell-runtime.json). The operator confirmed physical-input checks
+passed on 2026-10-18; [the acceptance record](operator-acceptance.json) retains the
+matching final Wayland session. Desktop LeakSanitizer triage remains open. The full
+native game remains gated.
 
 The shell uses BlizzardCore's authenticated packages and scalar asset decoders,
 the Services owner-thread file queue and Os input/clipboard/IME entry points.

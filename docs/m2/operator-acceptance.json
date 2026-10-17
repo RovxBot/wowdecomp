@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "reported_on": "2026-10-18",
+  "reporting_timezone": "Australia/Adelaide",
+  "operator_confirmation": "tests passed. I did everything you asked for and did not see anything that looked like an error",
+  "requested_checks": [
+    "typing/backspace",
+    "Ctrl+C/V",
+    "IME composition if available",
+    "F2/Escape mouse capture",
+    "F11",
+    "close/relaunch settings persistence"
+  ],
+  "result": "operator-reported pass",
+  "runtime_report": {
+    "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+    "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+    "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+    "started_at": "2026-10-17T14:43:36.971912+00:00",
+    "completed_at": "2026-10-17T14:45:42.756973+00:00",
+    "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+    "machine": "x86_64",
+    "locale": "enUS",
+    "requested_video": "wayland",
+    "exit_code": 0,
+    "timed_out": false
+  },
+  "binary_and_hosted_manifest_hash_verified": true,
+  "session": {
+    "video": "wayland",
+    "assets": "verified",
+    "settings-save-reload": "verified",
+    "launches": "1",
+    "window": "1000x700",
+    "pixels": "1000x700",
+    "events": "8320",
+    "characters": "7",
+    "ime-events": "6",
+    "relative-events": "1022",
+    "focus-events": "5",
+    "resize-events": "1",
+    "clipboard-actions": "3",
+    "workers-after-shutdown": "0"
+  },
+  "stderr": [],
+  "external_report_sha256": "f6920bd7e73aa1b3828776bb0d5c4286ce962e27dd84fd68a12427405760e1c6",
+  "limits": [
+    "IME language/sample was not specified; IME event counts alone do not establish composition coverage.",
+    "This records the tested Linux Wayland session; it does not extend operator acceptance to X11, macOS, Windows, multiple displays or other input layouts.",
+    "The report corroborates event activity and shutdown; individual shortcut outcomes are operator observations.",
+    "Entered text and clipboard contents are not retained.",
+    "Earlier failed sanitizer and timeout attempts retain their historical outcomes."
+  ]
+}

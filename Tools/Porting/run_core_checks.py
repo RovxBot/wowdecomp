@@ -19,7 +19,7 @@ def main():
                                            'linux-files', 'linux-files-asan', 'macos-arm64-files', 'windows-files',
                                            'linux-assets', 'linux-assets-asan', 'macos-arm64-assets', 'windows-assets',
                                            'linux-async', 'linux-async-asan', 'macos-arm64-async', 'windows-async',
-                                           'linux-window', 'linux-window-asan', 'macos-arm64-window', 'windows-window'], required=True)
+                                           'linux-window', 'linux-window-asan', 'linux-window-linked-asan', 'macos-arm64-window', 'windows-window'], required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
@@ -35,7 +35,7 @@ def main():
     asynchronous = '-async' in args.preset or window
     assets = '-assets' in args.preset or asynchronous
     files = '-files' in args.preset or assets
-    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core').replace('-async', '-core').replace('-window', '-core')
+    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core').replace('-async', '-core').replace('-window', '-core').replace('-linked', '')
     target_os, cpu = {'linux-core': ('LINUX', 'X86_64'),
                       'linux-core-asan': ('LINUX', 'X86_64'),
                       'macos-arm64-core': ('MACOS', 'ARM64'),
@@ -90,9 +90,15 @@ def main():
             raise RuntimeError('\n'.join(errors))
         # Preserve cache/toolchain identity; no game data or credentials enter this build.
         cache = (build / 'CMakeCache.txt').read_text()
+        if window:
+            manifest['sdl_display_dependency_options'] = [line for line in cache.splitlines()
+                if line.startswith(('SDL_X11_SHARED:', 'SDL_WAYLAND_SHARED:', 'SDL_WAYLAND_LIBDECOR_SHARED:'))]
+            if '-linked-' in args.preset and (len(manifest['sdl_display_dependency_options']) != 3 or
+                    any(not line.endswith('=OFF') for line in manifest['sdl_display_dependency_options'])):
+                raise RuntimeError('The linked dependency control did not disable dynamic display loading')
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell'] if window else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -109,7 +115,7 @@ def main():
             if target_os != 'WINDOWS':
                 run(f'binary-type-{name}', ['file', str(executable)])
             manifest['binaries'].append(entry)
-            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck'}:
+            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck', 'SDLDesktopControl'}:
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)
