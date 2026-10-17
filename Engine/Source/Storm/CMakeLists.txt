@@ -1,4 +1,4 @@
-file(GLOB_RECURSE PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
+wowdecomp_collect_sources(PRIVATE_SOURCES)
 
 add_library(Storm STATIC
     ${PRIVATE_SOURCES}
@@ -15,3 +15,5 @@ target_link_libraries(Storm
         bzip2
         zlib
 )
+
+wowdecomp_configure_windows_target(Storm)

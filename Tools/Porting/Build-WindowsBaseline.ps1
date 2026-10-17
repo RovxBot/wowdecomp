@@ -62,10 +62,19 @@ try {
     }
 
     $manifest.status = 'configuring'
+    $queryRoot = Join-Path $sourceRoot 'build/x64/.cmake/api/v1/query'
+    New-Item -ItemType Directory -Force $queryRoot | Out-Null
+    New-Item -ItemType File -Force (Join-Path $queryRoot 'codemodel-v2') | Out-Null
     Invoke-LoggedCommand -Command cmake -Arguments @(
         '-S', '.', '-B', 'build/x64', '-G', 'Visual Studio 17 2022', '-A', 'x64',
         '-DWOWDECOMP_DISABLE_SIGNATURE_CHECKS=OFF', '-DWOWCLIENT_CRASH_LOG=ON'
     ) -LogName 'configure.log'
+
+    Invoke-LoggedCommand -Command python -Arguments @(
+        'Tools/Porting/audit_build_graph.py', '--build-dir', 'build/x64',
+        '--mode', 'windows', '--os', 'WINDOWS', '--cpu', 'X86_64',
+        '--output', 'artifacts/windows-baseline/build-graph.json'
+    ) -LogName 'build-graph.log'
 
     $manifest.status = 'building'
     Invoke-LoggedCommand -Command cmake -Arguments @(

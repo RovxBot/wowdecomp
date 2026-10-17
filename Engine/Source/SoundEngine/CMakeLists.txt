@@ -1,7 +1,3 @@
-get_directory_property(SOUNDENGINE_DEFINITIONS COMPILE_DEFINITIONS)
-list(REMOVE_ITEM SOUNDENGINE_DEFINITIONS WIN32_LEAN_AND_MEAN NOMINMAX)
-set_directory_properties(PROPERTIES COMPILE_DEFINITIONS "${SOUNDENGINE_DEFINITIONS}")
-
 set(FMODEX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fmodex)
 set(FMODEX_FLAC_DIR ${FMODEX_DIR}/lib/flac-1.1.4)
 
@@ -116,3 +112,7 @@ target_link_libraries(SoundEngine
     PUBLIC
         fmodex
 )
+
+wowdecomp_configure_windows_target(fmodex)
+
+wowdecomp_configure_windows_target(SoundEngine)

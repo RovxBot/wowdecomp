@@ -1,4 +1,4 @@
-file(GLOB_RECURSE PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
+wowdecomp_collect_sources(PRIVATE_SOURCES)
 
 add_library(BlizzardCore STATIC
     ${PRIVATE_SOURCES}
@@ -28,3 +28,5 @@ target_include_directories(BlizzardCore
         ${CMAKE_SOURCE_DIR}/Engine/Source/SoundEngine/fmodex/lib/ogg_vorbis/ogg/include
         ${CMAKE_SOURCE_DIR}/Engine/Source/SoundEngine/fmodex/lib/ogg_vorbis/vorbis/include
 )
+
+wowdecomp_configure_windows_target(BlizzardCore)

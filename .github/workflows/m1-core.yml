@@ -1,0 +1,69 @@
+name: M1 portable core
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'native-port/**']
+    paths:
+      - '.github/workflows/m1-core.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/Storm/Source/MD5.*'
+      - 'Engine/Source/Storm/Source/Sha1.*'
+      - 'Tools/PortableCore/**'
+      - 'Tools/Porting/**'
+  pull_request:
+    paths:
+      - '.github/workflows/m1-core.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/Storm/Source/MD5.*'
+      - 'Engine/Source/Storm/Source/Sha1.*'
+      - 'Tools/PortableCore/**'
+      - 'Tools/Porting/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m1-core-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            preset: linux-core
+            python: python3
+          - runner: macos-14
+            preset: macos-arm64-core
+            python: python3
+          - runner: windows-2022
+            preset: windows-core
+            python: python
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Check out product source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check source-selection and graph-audit fixtures
+        run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
+      - name: Compile and check the asset-free core
+        run: ${{ matrix.python }} Tools/Porting/run_core_checks.py --preset ${{ matrix.preset }}
+      - name: Preserve core build and test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m1-${{ matrix.preset }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}/
+          if-no-files-found: error
+          retention-days: 14

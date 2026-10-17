@@ -28,3 +28,5 @@ target_compile_options(XvidDecoder
     PRIVATE
         $<$<CONFIG:Debug>:/MD>
 )
+
+wowdecomp_configure_windows_target(XvidDecoder)

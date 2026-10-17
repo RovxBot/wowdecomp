@@ -40,6 +40,9 @@ it does not turn a documentation request into authorization to start the whole p
 - M1 can begin source/build isolation while M0 hardware observations remain open.
   Keep M0 partial until native Windows D3D9/OpenGL sessions and clean-data/server
   evidence are actually recorded. Hosted build success is not gameplay evidence.
+- M1 build isolation is on `native-port/m1-foundations`, based on the M0 handoff.
+  Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md) for the exact hosted evidence,
+  audited portable-core scope and remaining runtime work before continuing M1.
 
 ## Compatibility requirements
 
@@ -136,9 +139,12 @@ cmake -S . -B build/x64 -G "Visual Studio 17 2022" -A x64
 cmake --build build/x64 --config Release --target WowClient Wow --parallel
 ```
 
-The current root CMake rejects Linux and macOS. Do not report a successful native
-build, invent presets/tests, or claim support based on removing that guard. Add
-native build/run instructions when the corresponding Actions targets actually work.
+The full-client CMake configuration still rejects Linux and macOS. The M1 core
+presets explicitly disable the client and build only the allowlisted hash routines
+and asset-free checks. Use [M1 core Actions](.github/workflows/m1-core.yml) for that
+subset; its success does not establish native client startup or gameplay. Do not
+invent presets/tests or claim full native support from core-only compilation. Add
+native client build/run instructions when the corresponding Actions targets work.
 
 For implementation changes, record the commands and checks run, their results and
 any skipped platform checks. Update milestone status only with evidence. Distinguish

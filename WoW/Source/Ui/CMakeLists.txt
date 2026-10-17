@@ -1,4 +1,4 @@
-file(GLOB_RECURSE PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
+wowdecomp_collect_sources(PRIVATE_SOURCES)
 
 if (NOT WIN32)
     list(FILTER PRIVATE_SOURCES EXCLUDE REGEX "/UILCD/Windows/")
@@ -19,3 +19,5 @@ if (WIN32)
             lgLcd
     )
 endif ()
+
+wowdecomp_configure_windows_target(Ui)

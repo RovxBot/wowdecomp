@@ -1,4 +1,4 @@
-file(GLOB_RECURSE PRIVATE_SOURCES CONFIGURE_DEPENDS "*.cpp")
+wowdecomp_collect_sources(PRIVATE_SOURCES)
 
 if (NOT WIN32)
     list(FILTER PRIVATE_SOURCES EXCLUDE REGEX "/CGxDevice(D3d|D3d9Ex|OpenGL)/")
@@ -25,3 +25,5 @@ if (WIN32)
             opengl32.lib
     )
 endif ()
+
+wowdecomp_configure_windows_target(Gx)

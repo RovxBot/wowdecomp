@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.21)
 
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR
@@ -13,46 +13,31 @@ project(wowdecomp CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
-    message(FATAL_ERROR "wowdecomp targets Windows only.")
-endif ()
+include(cmake/Platform.cmake)
+include(cmake/SelectSources.cmake)
 
-# x64 is the target. Win32 stays buildable: it is the configuration whose struct layouts can be
-# checked against Wow.exe 3.3.5a (12340).
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(WOWDECOMP_ARCH_64 1)
-    add_compile_definitions(WOWDECOMP_ARCH_64=1)
-elseif (CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(WOWDECOMP_ARCH_32 1)
-    add_compile_definitions(WOWDECOMP_ARCH_32=1)
-    # x87 floating point like the VS2005 original; keeps Win32 code comparable with the binary (re/tools/verify.py).
-    if (MSVC)
-        add_compile_options(/arch:IA32 /fp:fast)
-    endif ()
-    # 32-bit time_t like the original build: time/localtime/mktime resolve to _time32/_localtime32/_mktime32.
-    add_compile_definitions(_USE_32BIT_TIME_T)
-else ()
-    message(FATAL_ERROR "Unsupported pointer size.")
-endif ()
+option(WOWDECOMP_BUILD_CLIENT "Build the existing Windows client" ON)
+option(WOWDECOMP_BUILD_PORTABLE_CORE "Build the audited asset-free core subset" OFF)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_compile_definitions(
-    WIN32
-    _WINDOWS
-    NOMINMAX
-    WIN32_LEAN_AND_MEAN
-    _CRT_SECURE_NO_WARNINGS
-)
-
 # Off by default: the client checks MPQ file MD5s (signaturefile) and GlueXML/FrameXML/AddOn .toc.sig files like the
 # original. ON accepts unsigned or modified game data and interface files.
 option(WOWDECOMP_DISABLE_SIGNATURE_CHECKS "Skip MPQ file signature and .toc signature checks" OFF)
-if (WOWDECOMP_DISABLE_SIGNATURE_CHECKS)
-    add_compile_definitions(DISABLE_SIGNATURE_CHECKS=1)
-endif ()
+if(WOWDECOMP_BUILD_PORTABLE_CORE)
+    include(CTest)
+    add_subdirectory(Engine/Source/PortableCore)
+endif()
+
+if(NOT WOWDECOMP_BUILD_CLIENT)
+    if(NOT WOWDECOMP_BUILD_PORTABLE_CORE)
+        message(FATAL_ERROR "Select at least one build target.")
+    endif()
+    return()
+endif()
+include(cmake/WindowsClient.cmake)
 
 # Third-party code is linked, not decompiled, for now.
 if (EXISTS ${CMAKE_SOURCE_DIR}/ThirdParty/CMakeLists.txt)
@@ -108,7 +93,7 @@ add_subdirectory(WoW/Source)
 if (WIN32)
     add_subdirectory(Tools/WowClient)
 endif ()
-if (WOWDECOMP_ARCH_64)
+if (WOWDECOMP_CPU STREQUAL "X86_64")
     add_subdirectory(Tools/XvidDecoder)
 endif ()
 

@@ -1,10 +1,10 @@
 file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/WoW/Source/*.cpp")
 
-if (WOWDECOMP_ARCH_64)
-    file(GLOB CLIENT_PLATFORM_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/WoW/Source/Win64/*.cpp")
+file(GLOB CLIENT_PLATFORM_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/WoW/Source/${WOWDECOMP_WINDOWS_SOURCE_DIR}/*.cpp")
+if (WOWDECOMP_CPU STREQUAL "X86_64")
     set(WOWCLIENT_OUTPUT_NAME WowClient64)
 else ()
-    file(GLOB CLIENT_PLATFORM_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/WoW/Source/Win32/*.cpp")
     set(WOWCLIENT_OUTPUT_NAME WowClient32)
 endif ()
 
@@ -85,3 +85,5 @@ target_link_libraries(WowClient
         WowSvcs
         dbghelp
 )
+
+wowdecomp_configure_windows_target(WowClient)
