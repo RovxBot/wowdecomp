@@ -58,6 +58,12 @@ void Allocation() {
     CHECK(grown[0] == 42);
     CHECK(!SMemAlloc(SIZE_MAX, __FILE__, __LINE__, 0));
     CHECK(SErrGetLastError() == STORM_ERROR_NOT_ENOUGH_MEMORY);
+    bool stormThrew = false, blizzardThrew = false;
+    try { ::operator new(SIZE_MAX, __FILE__, __LINE__); }
+    catch (const std::bad_alloc&) { stormThrew = true; }
+    try { ::operator new(SIZE_MAX, uint32_t(0), __FILE__, __LINE__); }
+    catch (const std::bad_alloc&) { blizzardThrew = true; }
+    CHECK(stormThrew && blizzardThrew);
     SMemSetDebugFlags(0, SMEM_DEBUG_NOEXITONFAILURE);
     CHECK(!SMemReAlloc(grown, 0, __FILE__, __LINE__, 0));
     struct alignas(256) Aligned { char data[513]; };

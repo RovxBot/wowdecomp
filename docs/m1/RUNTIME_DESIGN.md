@@ -18,7 +18,9 @@ header. Zero-byte allocations return a freeable minimum block. Realloc preserves
 bytes up to the old rounded capacity, zeros newly exposed bytes when requested,
 keeps the old allocation on failure, honors NOREALLOC/REALLOC_NULL, and frees on a
 zero-size resize. Size overflow follows the same fatal/recoverable error policy
-as allocation failure. Standard, array, sized, aligned and nothrow new/delete all
+as allocation failure. In recovery mode SMem returns null; native throwing new
+(including diagnostic/metadata overloads) raises std::bad_alloc, and nothrow new
+returns null. Standard, array, sized, aligned and nothrow new/delete all
 use that allocator. BlizzardCore's metadata allocation operators retain native
 `size_t` rather than truncating it to 32 bits. No allocator switch occurs after
 static construction, and shutdown never invalidates a live caller-owned block.

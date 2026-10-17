@@ -14,7 +14,8 @@ void Blizzard::Memory::Free(void* pointer, uint32_t flags, const char* file, int
     SMemFree(pointer, file, line, flags);
 }
 void* operator new(size_t bytes, uint32_t flags, const char* file, int32_t line) {
-    return SMemAlloc(bytes, file, line, flags & 1 ? SMEM_FLAG_ZEROMEMORY : 0);
+    if (void* result = SMemAlloc(bytes, file, line, flags & 1 ? SMEM_FLAG_ZEROMEMORY : 0)) return result;
+    throw std::bad_alloc();
 }
 void operator delete(void* pointer, uint32_t flags, const char* file, int32_t line) {
     SMemFree(pointer, file, line, flags);
