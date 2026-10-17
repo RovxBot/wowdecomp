@@ -204,7 +204,10 @@ bool GetFileInfo(StreamRecord* file, FileInfo* info) {
     return Refresh(*state, *info);
 }
 FileInfo* GetFileInfo(StreamRecord* file) {
-    if (!GetFileInfo(file, file ? &file->m_info : nullptr)) return nullptr;
+    State* state = Get(file);
+    if (!state) return nullptr;
+    std::lock_guard<std::mutex> lock(state->mutex);
+    if (!Refresh(*state, file->m_info)) return nullptr;
     file->m_infoValid = true;
     return &file->m_info;
 }

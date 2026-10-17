@@ -18,6 +18,8 @@ bool Write(StreamRecord* file, const void* data, int64_t offset, int32_t* count)
 bool GetPos(StreamRecord* file, int64_t* offset);
 bool SetPos(StreamRecord* file, int64_t offset, int32_t whence);
 bool SetEOF(StreamRecord* file, int64_t offset, int32_t whence);
+// Borrowed snapshot, invalidated by the next metadata query. Use the copy form
+// when other threads can query the same stream.
 FileInfo* GetFileInfo(StreamRecord* file);
 bool GetFileInfo(StreamRecord* file, FileInfo* info);
 bool GetFileInfo(const char* path, FileInfo* info);

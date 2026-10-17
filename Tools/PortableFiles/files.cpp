@@ -88,6 +88,7 @@ void Creation(const fs::path& root) {
     const auto missing = Name(root / "unsupported.bin");
     Check(!F::Open(missing.c_str(), 3 | 0x40, unsupported) && !unsupported && !fs::exists(fs::u8path(missing)), "unsupported direct I/O fails before creation");
     Check(OsCreateFile(missing.c_str(), OS_GENERIC_WRITE, 3, 2, 0x20000000, 0) == OS_INVALID_FILE, "Os direct I/O is explicitly unavailable");
+    Check(!N::Open(missing.c_str(), 3, static_cast<N::Disposition>(999), unsupported) && !unsupported && !fs::exists(fs::u8path(missing)), "invalid disposition fails before file creation");
 }
 void Transfers(const fs::path& root) {
     const auto path = root / "transfers.bin";
@@ -117,6 +118,10 @@ void Transfers(const fs::path& root) {
     Check(F::GetFileInfo(file.value, &info) && info.m_size == 4, "metadata refreshed after resize");
     const int64_t large = int64_t{5} << 30;
     Check(F::SetEOF(file.value, large, 0), "sparse size beyond 32 bits");
+    Check(F::GetFileInfo(file.value, &info) && info.m_size == large, "64-bit file metadata");
+    uint64_t listedSize = 0;
+    auto listing = [](OS_FILE_DATA& entry, void* cookie) { *static_cast<uint64_t*>(cookie) = entry.size; return 0; };
+    Check(OsFileList(Name(root).c_str(), "transfers.bin", listing, &listedSize, 1) && listedSize == static_cast<uint64_t>(large), "Os enumeration retains file size beyond 4 GiB");
     count = 2;
     Check(F::Write(file.value, "64", large - 2, &count) && count == 2, "positioned write beyond 4 GiB");
     count = 2;
@@ -164,6 +169,7 @@ void Paths(const fs::path& root) {
     N::Paths paths;
     Check(!N::ConfigurePaths(Name(data).c_str(), Name(data / "WTF").c_str(), Name(root / "Cache").c_str(), paths) && !fs::exists(data / "WTF"), "reject writable root inside data before creation");
     Check(N::ConfigurePaths(Name(data).c_str(), Name(root / "Settings").c_str(), Name(root / "Cache").c_str(), paths), "configure separate data/settings/cache roots");
+    Check(F::SetAttributes(Name(data).c_str(), 1 | 0x40), "mark data root read-only");
     std::string resolved;
     Check(N::ResolveDataPath(paths, "dbfilesclient\\example.dbc", resolved) && Load(fs::u8path(resolved)) == "original fixture", "host separator conversion and component case lookup");
     F::StreamRecord* stream = nullptr;
@@ -177,6 +183,7 @@ void Paths(const fs::path& root) {
     Save(fs::u8path(resolved), "SET gxWindow \"1\"\n");
     Check(Load(fs::u8path(resolved)) == "SET gxWindow \"1\"\n", "settings save/reload outside data");
     Check(Load(data / "DBFilesClient" / "Example.DBC") == "original fixture" && !fs::exists(data / "Config.wtf"), "settings leave data unchanged");
+    Check(F::SetAttributes(Name(data).c_str(), 0x40), "restore synthetic data root permissions for fixture cleanup");
     Save(data / "Case", "upper");
     auto collision = OsCreateFile(Name(data / "case").c_str(), OS_GENERIC_WRITE, 3, 1, OS_FILE_ATTRIBUTE_NORMAL, 0);
     if (collision != OS_INVALID_FILE) {
