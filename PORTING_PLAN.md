@@ -223,8 +223,10 @@ evidence and proposed work packages; no code is imported or M2 exit criterion me
 by that review. Keep graphics alternatives as separate prototypes.
 
 Implementation has started with the [native host-filesystem work package](docs/m2/FILESYSTEM.md)
-and synthetic hosted fixtures. Compilation/fixture evidence is pending; archives,
-async I/O, original-data decoding and the SDL3 application shell remain outstanding.
+and synthetic hosted fixtures, passing on Linux x86-64, macOS ARM64 and Windows
+x64 with Linux sanitizers. [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
+contains this first work package. Archives, async I/O, original-data decoding and
+the SDL3 application shell remain outstanding; M2 is not complete.
 
 1. Port filesystem and async file services, including BlizzardCore package I/O.
    Preserve archive lookup, patch/locale precedence and file/signature checks.

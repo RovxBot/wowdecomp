@@ -1,8 +1,9 @@
 # M2 native host-filesystem work
 
 Started 2026-10-17 after the [reference review](REFERENCE_REVIEW.md). This is the
-first M2 work package, not the completed milestone. Hosted compilation/fixture
-results are pending. Archives, BlizzardCore's stacked/streaming filesystem,
+first M2 work package, not the completed milestone. Host-file compilation and
+fixtures passed on Linux x86-64, macOS ARM64 and Windows x64, including Linux
+ASan/UBSan. Archives, BlizzardCore's stacked/streaming filesystem,
 Services async I/O, asset decoders, nearby model allocations and SDL are not yet
 integrated. The full Linux/macOS client gate remains in place.
 
@@ -84,8 +85,50 @@ pread/pwrite outcomes into the actual production provider. Other platforms label
 that injection unavailable. Case-collision and symlink fixture availability is
 reported according to the runner/filesystem; absence does not establish coverage.
 
+Final file-service implementation/checkpoint:
+`95197b3842132c9547d3c415902ca8d8774cdac3`, in
+[PR #5](https://github.com/RovxBot/wowdecomp/pull/5).
+[Run 38992957309](https://github.com/RovxBot/wowdecomp/actions/runs/38992957309)
+passed the generated-graph audit, all 13 Python source/audit fixtures and all five
+CTest checks in each configuration. The
+[durable file evidence](file-services.json) retains exact source/run/artifact,
+toolchain, runner, executable architecture/hash and fixture-availability records.
+Downloaded `NativeCore` and `FileServicesCheck` binaries matched their manifest
+hashes and ELF x86-64/PE x64/Mach-O arm64 identities. They were inspected, not
+executed locally. The macOS job executed all four test/tools as ARM64 binaries.
+
+| Hosted configuration | Compiler | File fixture and core checks | Coverage limits |
+| --- | --- | --- | --- |
+| Linux x86-64 | Clang 18.1.3 | 5/5 CTest passed | All file fixture groups ran, including case collisions, symlinks, FIFO rejection and syscall fault injection |
+| Linux x86-64 ASan/UBSan | Clang 18.1.3 | 5/5 CTest passed | Same file fixtures; no reported sanitizer failure |
+| macOS ARM64 | Apple Clang 15.0.0.15000309 | 5/5 CTest passed on ARM64 | Case-colliding files unavailable on the runner filesystem; syscall injection is Linux-only; symlink/FIFO checks ran |
+| Windows x64 native ABI | MSVC 19.44.35229.0 | 5/5 CTest passed | Case-colliding files unavailable; syscall injection/FIFO fixture are POSIX/Linux-specific; symlink checks ran |
+
+The initial Windows fixture at `a6ee451` compiled but timed out in
+[run 38992737083](https://github.com/RovxBot/wowdecomp/actions/runs/38992737083).
+The final fixture explicitly marks its large Windows file sparse with
+[FSCTL_SET_SPARSE](https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_set_sparse)
+before exercising the production resize/read/write provider. It passed in
+0.10 seconds; the 45-second test timeout was not increased. No sparse-file policy
+was added to production file creation.
+
+The unchanged M1 subset also passed all four configurations in
+[run 38992957316](https://github.com/RovxBot/wowdecomp/actions/runs/38992957316).
+The final-code PR file matrix passed in
+[run 38992959489](https://github.com/RovxBot/wowdecomp/actions/runs/38992959489),
+and the pinned-15595 source audit passed in
+[run 38992959481](https://github.com/RovxBot/wowdecomp/actions/runs/38992959481).
+The full Windows `WowClient`/`Wow`/`XvidDecoder` build passed with signature checks
+enabled in [run 38992959499](https://github.com/RovxBot/wowdecomp/actions/runs/38992959499).
+[The durable Windows record](windows-regression.json) preserves the PR merge
+checkout's exact source identity separately from head `95197b3`; all three
+downloaded binary hashes and PE x64 identities were verified. This is compilation
+regression evidence, not a new Windows runtime session or native-game validation.
+
 Local checks are source-only: Python source/build-graph fixtures, workflow/preset
 parsing, link/whitespace checks and the runner's refusal to compile locally.
+Locally, 12 Python fixtures passed and the CMake selection fixture was skipped
+because CMake is unavailable. In Actions all 13 ran and passed.
 No game data is embedded or accessed by these fixtures.
 
 Next work remains package/MPQ and async integration, relocation-safe M2 model

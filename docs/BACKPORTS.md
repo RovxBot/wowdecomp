@@ -6,7 +6,9 @@ and source inspection are different evidence levels.
 
 ## NP-001 — Native filesystem contract references (12340 forks)
 
-- Status: independent native file/path implementation started; hosted checks pending.
+- Status: independent native file/path implementation and synthetic fixtures pass
+  on Linux x86-64, macOS ARM64 and Windows x64, including Linux sanitizers. M2
+  package/async/asset/SDL integration remains outstanding.
 - References: RosemyneH/wowdecomp `d91c854bc9c6af8d27e6e4093d76985671893bc5`,
   Arlyon/wowdecomp `24778cd77a6a217bbfdffccb88d9556a06b8b21d` (`macos`), both
   3.3.5a/12340 forks. Full source links and findings are in the
