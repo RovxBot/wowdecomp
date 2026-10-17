@@ -118,7 +118,7 @@ def main():
             notices.mkdir(exist_ok=True)
             shutil.copy2(root / 'ThirdParty/bzip2/LICENSE', notices / 'bzip2-LICENSE.txt')
             for source, name in [('ThirdParty/zlib/zlib.h', 'zlib-NOTICE.txt'),
-                                 ('ThirdParty/zlib/contrib/blast/blast.c', 'blast-NOTICE.txt'),
+                                 ('ThirdParty/zlib/contrib/blast/blast.h', 'blast-NOTICE.txt'),
                                  ('ThirdParty/lzma/LzmaDecode.c', 'LZMA-NOTICE.txt')]:
                 original = (root / source).read_text()
                 (notices / name).write_text(original[:original.index('*/') + 2] + '\n')
