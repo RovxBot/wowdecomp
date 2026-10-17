@@ -63,6 +63,26 @@
       "cacheVariables": {
         "WOWDECOMP_CORE_SANITIZERS": "ON"
       }
+    },
+    {
+      "name": "linux-files",
+      "inherits": "linux-core",
+      "cacheVariables": {"WOWDECOMP_BUILD_NATIVE_FILES": "ON"}
+    },
+    {
+      "name": "linux-files-asan",
+      "inherits": "linux-files",
+      "cacheVariables": {"WOWDECOMP_CORE_SANITIZERS": "ON"}
+    },
+    {
+      "name": "macos-arm64-files",
+      "inherits": "macos-arm64-core",
+      "cacheVariables": {"WOWDECOMP_BUILD_NATIVE_FILES": "ON"}
+    },
+    {
+      "name": "windows-files",
+      "inherits": "windows-core",
+      "cacheVariables": {"WOWDECOMP_BUILD_NATIVE_FILES": "ON"}
     }
   ]
 }

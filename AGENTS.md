@@ -46,6 +46,12 @@ it does not turn a documentation request into authorization to start the whole p
   [upstream review](docs/m1/UPSTREAM_REVIEW.md) before continuing.
 - M0 remains partial until clean-data/server evidence and the required Windows
   observations/captures are recorded. M1 core success does not establish gameplay.
+- M2 host-file/path services and synthetic fixtures are in
+  [PR #5](https://github.com/RovxBot/wowdecomp/pull/5), not yet merged. Read the
+  [filesystem work package](docs/m2/FILESYSTEM.md) and
+  [native-reference review](docs/m2/REFERENCE_REVIEW.md) before continuing.
+  Archive/async integration, original-data decoding, nearby model allocations and
+  the SDL3 shell remain outstanding; file-service checks do not complete M2.
 - Preserve upstream `4119c4b` / `5b41f72` cursor anchoring in both Windows Input.cpp
   files, in addition to the original tutorial bounds fix. The user's sessions
   predate that upstream input change; do not claim it was runtime-validated.

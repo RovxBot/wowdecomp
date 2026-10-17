@@ -18,6 +18,7 @@ include(cmake/SelectSources.cmake)
 
 option(WOWDECOMP_BUILD_CLIENT "Build the existing Windows client" ON)
 option(WOWDECOMP_BUILD_PORTABLE_CORE "Build the audited asset-free core subset" OFF)
+option(WOWDECOMP_BUILD_NATIVE_FILES "Build the native host-filesystem subset (no assets/window)" OFF)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -29,6 +30,12 @@ option(WOWDECOMP_DISABLE_SIGNATURE_CHECKS "Skip MPQ file signature and .toc sign
 if(WOWDECOMP_BUILD_PORTABLE_CORE)
     include(CTest)
     add_subdirectory(Engine/Source/PortableCore)
+endif()
+if(WOWDECOMP_BUILD_NATIVE_FILES)
+    if(NOT WOWDECOMP_BUILD_PORTABLE_CORE)
+        message(FATAL_ERROR "Native file services require the portable core runtime.")
+    endif()
+    add_subdirectory(Engine/Source/PortableFiles)
 endif()
 
 if(NOT WOWDECOMP_BUILD_CLIENT)

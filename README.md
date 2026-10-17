@@ -26,6 +26,9 @@ library and `NativeCore` initialization/shutdown executable, tested in hosted
 Linux x86-64, macOS ARM64 and Windows x64 jobs. The full native game remains gated.
 The [M1 core workflow](.github/workflows/m1-core.yml) also runs Linux ASan/UBSan
 and provides NativeCore binaries plus evidence; no game data is needed for that tool.
+M2 has started with [native host-file/path services](docs/m2/FILESYSTEM.md), tested
+with synthetic fixtures on the same three platforms, including Linux sanitizers.
+This subset does not yet load MPQs/original assets or create an SDL window.
 
 ## Progress
 

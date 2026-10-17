@@ -9,8 +9,11 @@ def audit(targets, mode, target_os, cpu):
     compiled = [t for t in targets if t['type'] in
                 ('STATIC_LIBRARY', 'SHARED_LIBRARY', 'EXECUTABLE', 'OBJECT_LIBRARY')]
     names = {t['name'] for t in compiled}
-    if mode == 'core' and names != {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}:
-        errors.append(f'Unexpected core targets: {sorted(names)}')
+    expected = {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}
+    if mode == 'files':
+        expected |= {'WowNativeFiles', 'FileServicesCheck'}
+    if mode in {'core', 'files'} and names != expected:
+        errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')
     expected_platform = 'Win64' if cpu == 'X86_64' else 'Win32'
@@ -27,13 +30,13 @@ def audit(targets, mode, target_os, cpu):
             errors.append(f"{target['name']}: portable runtime ABI leaked into the legacy client")
         for source in sources:
             parts = Path(source).parts
-            if mode == 'core' and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
+            if mode in {'core', 'files'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
                                    or source.endswith(('.rc', '.def', '.lib'))):
                 errors.append(f"{target['name']}: Windows source in core: {source}")
             if mode == 'windows' and (('Win32' in parts and expected_platform != 'Win32')
                                       or ('Win64' in parts and expected_platform != 'Win64')):
                 errors.append(f"{target['name']}: wrong Windows source: {source}")
-        if mode == 'core':
+        if mode in {'core', 'files'}:
             forbidden = {'_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
             if target_os != 'WINDOWS':
                 forbidden |= {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
@@ -44,6 +47,22 @@ def audit(targets, mode, target_os, cpu):
                 if ((target_os != 'WINDOWS' and '.lib' in fragment['fragment'])
                         or '/ENTRY:' in fragment['fragment']):
                     errors.append(f"{target['name']}: Windows link flags in core")
+        if mode == 'files' and target['name'] in {'WowNativeFiles', 'FileServicesCheck'}:
+            expected_sources = (
+                {'Engine/Source/BlizzardCore/Portable/File.cpp',
+                 'Engine/Source/BlizzardCore/Portable/FilePaths.cpp',
+                 'Engine/Source/Os/Portable/File.cpp',
+                 'Engine/Source/BlizzardCore/Portable/' + ('FileWindows.cpp' if target_os == 'WINDOWS' else 'FilePosix.cpp')}
+                if target['name'] == 'WowNativeFiles' else
+                {'Tools/PortableFiles/files.cpp'} | (
+                    {'Tools/PortableFiles/interrupted.cpp'} if target_os == 'LINUX' else
+                    {'Tools/PortableFiles/sparse_windows.cpp'} if target_os == 'WINDOWS' else set()))
+            # CMake may return absolute paths or paths relative to the source root.
+            if (len(sources) != len(expected_sources)
+                    or any(not any(s.endswith(p) for s in sources) for p in expected_sources)):
+                errors.append(f"{target['name']}: unexpected native file sources: {sources}")
+            if 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
+                errors.append(f"{target['name']}: native file runtime ABI missing")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):
                 errors.append(f"{target['name']}: selected Windows entry missing")
@@ -66,7 +85,7 @@ def read_targets(build_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, required=True)
-    parser.add_argument('--mode', choices=['core', 'windows'], required=True)
+    parser.add_argument('--mode', choices=['core', 'files', 'windows'], required=True)
     parser.add_argument('--os', required=True)
     parser.add_argument('--cpu', required=True)
     parser.add_argument('--output', type=Path, required=True)
