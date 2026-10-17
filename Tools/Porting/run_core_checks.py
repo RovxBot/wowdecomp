@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -69,6 +70,14 @@ def main():
             raise RuntimeError('The macOS core check requires an actual ARM64 runner.')
         run('cmake-version', ['cmake', '--version'])
         run('configure', ['cmake', '--preset', args.preset])
+        if window:
+            config = (build / '_deps/sdl3-build/include-config-release/build_config/SDL_build_config.h').read_text()
+            drivers = sorted(re.findall(r'^#define SDL_VIDEO_DRIVER_([A-Z0-9]+) 1$', config, re.MULTILINE))
+            required_drivers = {'LINUX': {'X11', 'WAYLAND', 'DUMMY'},
+                                'MACOS': {'COCOA', 'DUMMY'}, 'WINDOWS': {'WINDOWS', 'DUMMY'}}[target_os]
+            manifest['sdl_video_drivers'] = drivers
+            if not required_drivers <= set(drivers):
+                raise RuntimeError(f'SDL silently disabled a required video provider: {required_drivers - set(drivers)}')
         targets = read_targets(build)
         errors = audit(targets, 'window' if window else 'async' if asynchronous else 'assets' if assets else 'files' if files else 'core', target_os, cpu)
         (evidence / 'build-graph.json').write_text(json.dumps({'errors': errors, 'targets': targets}, indent=2) + '\n')
