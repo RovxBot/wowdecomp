@@ -1,0 +1,107 @@
+name: M2 native SDL3 shell
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'native-port/**']
+    paths:
+      - '.github/workflows/m2-shell.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'Engine/Source/PortableAsync/**'
+      - 'Engine/Source/PortableWindow/**'
+      - 'Engine/Source/Event/Types.h'
+      - 'Tools/PortableWindow/**'
+      - 'Tools/NativeShell/**'
+      - 'Engine/Source/Services/Portable/**'
+      - 'Tools/PortableAsync/**'
+      - 'ThirdParty/**'
+      - 'Tools/PortableAssets/**'
+      - 'Tools/NativeAssets/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Tools/PortableFiles/**'
+      - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Tools/Porting/**'
+  pull_request:
+    paths:
+      - '.github/workflows/m2-shell.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'Engine/Source/PortableAsync/**'
+      - 'Engine/Source/PortableWindow/**'
+      - 'Engine/Source/Event/Types.h'
+      - 'Tools/PortableWindow/**'
+      - 'Tools/NativeShell/**'
+      - 'Engine/Source/Services/Portable/**'
+      - 'Tools/PortableAsync/**'
+      - 'ThirdParty/**'
+      - 'Tools/PortableAssets/**'
+      - 'Tools/NativeAssets/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Tools/PortableFiles/**'
+      - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Tools/Porting/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m2-shell-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shell:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            preset: linux-window
+            python: python3
+          - runner: ubuntu-24.04
+            preset: linux-window-asan
+            python: python3
+          - runner: macos-14
+            preset: macos-arm64-window
+            python: python3
+          - runner: windows-2022
+            preset: windows-window
+            python: python
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    steps:
+      - name: Check out product source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install Linux window-system development packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwayland-dev libxkbcommon-dev libdecor-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev
+      - name: Check source-selection and graph-audit fixtures
+        run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
+      - name: Compile and test synthetic native window/input services
+        run: ${{ matrix.python }} Tools/Porting/run_core_checks.py --preset ${{ matrix.preset }}
+      - name: Preserve shell-service evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-${{ matrix.preset }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}/
+          if-no-files-found: error
+          retention-days: 14

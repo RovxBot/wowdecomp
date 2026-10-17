@@ -10,13 +10,15 @@ def audit(targets, mode, target_os, cpu):
                 ('STATIC_LIBRARY', 'SHARED_LIBRARY', 'EXECUTABLE', 'OBJECT_LIBRARY')]
     names = {t['name'] for t in compiled}
     expected = {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}
-    if mode in {'files', 'assets', 'async'}:
+    if mode in {'files', 'assets', 'async', 'window'}:
         expected |= {'WowNativeFiles', 'FileServicesCheck'}
-    if mode in {'assets', 'async'}:
+    if mode in {'assets', 'async', 'window'}:
         expected |= {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}
-    if mode == 'async':
+    if mode in {'async', 'window'}:
         expected |= {'WowNativeAsync', 'AsyncFileCheck'}
-    if mode in {'core', 'files', 'assets', 'async'} and names != expected:
+    if mode == 'window':
+        expected |= {'SDL3-static', 'SDL_uclibc', 'WowNativeWindow', 'NativeWindowCheck'}
+    if mode in {'core', 'files', 'assets', 'async', 'window'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')
@@ -34,13 +36,13 @@ def audit(targets, mode, target_os, cpu):
             errors.append(f"{target['name']}: portable runtime ABI leaked into the legacy client")
         for source in sources:
             parts = Path(source).parts
-            if mode in {'core', 'files', 'assets', 'async'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
+            if mode in {'core', 'files', 'assets', 'async', 'window'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
                                    or source.endswith(('.rc', '.def', '.lib'))):
                 errors.append(f"{target['name']}: Windows source in core: {source}")
             if mode == 'windows' and (('Win32' in parts and expected_platform != 'Win32')
                                       or ('Win64' in parts and expected_platform != 'Win64')):
                 errors.append(f"{target['name']}: wrong Windows source: {source}")
-        if mode in {'core', 'files', 'assets', 'async'}:
+        if mode in {'core', 'files', 'assets', 'async', 'window'}:
             forbidden = {'_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
             if target_os != 'WINDOWS':
                 forbidden |= {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
@@ -51,7 +53,7 @@ def audit(targets, mode, target_os, cpu):
                 if ((target_os != 'WINDOWS' and '.lib' in fragment['fragment'])
                         or '/ENTRY:' in fragment['fragment']):
                     errors.append(f"{target['name']}: Windows link flags in core")
-        if mode in {'files', 'assets', 'async'} and target['name'] in {'WowNativeFiles', 'FileServicesCheck'}:
+        if mode in {'files', 'assets', 'async', 'window'} and target['name'] in {'WowNativeFiles', 'FileServicesCheck'}:
             expected_sources = (
                 {'Engine/Source/BlizzardCore/Portable/File.cpp',
                  'Engine/Source/BlizzardCore/Portable/FilePaths.cpp',
@@ -67,7 +69,7 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected native file sources: {sources}")
             if 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: native file runtime ABI missing")
-        if mode in {'assets', 'async'} and target['name'] in {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}:
+        if mode in {'assets', 'async', 'window'} and target['name'] in {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}:
             allowed = {
                 'WowAssetCodecs': ['ThirdParty/zlib/' + name + '.c' for name in
                     ['adler32', 'crc32', 'inffast', 'inflate', 'inftrees', 'zutil']] +
@@ -87,11 +89,21 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected asset sources: {sources}")
             if 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: native asset runtime ABI missing")
-        if mode == 'async' and target['name'] in {'WowNativeAsync', 'AsyncFileCheck'}:
+        if mode in {'async', 'window'} and target['name'] in {'WowNativeAsync', 'AsyncFileCheck'}:
             path = ('Engine/Source/Services/Portable/AsyncFile.cpp' if target['name'] == 'WowNativeAsync'
                     else 'Tools/PortableAsync/async.cpp')
             if len(sources) != 1 or not sources[0].endswith(path) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected asynchronous file provider/ABI")
+        if mode == 'window' and target['name'] in {'SDL3-static', 'SDL_uclibc'}:
+            if any('/_deps/sdl3-src/' not in '/' + source and '/_deps/sdl3-build/' not in '/' + source for source in sources):
+                errors.append(f"{target['name']}: source outside pinned SDL dependency")
+            if target_os != 'WINDOWS' and any('/windows/' in source.lower() for source in sources):
+                errors.append(f"{target['name']}: Windows SDL provider on POSIX")
+        if mode == 'window' and target['name'] in {'WowNativeWindow', 'NativeWindowCheck'}:
+            path = ('Engine/Source/Os/Portable/Window.cpp' if target['name'] == 'WowNativeWindow'
+                    else 'Tools/PortableWindow/window.cpp')
+            if len(sources) != 1 or not sources[0].endswith(path) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
+                errors.append(f"{target['name']}: unexpected window provider/ABI")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):
                 errors.append(f"{target['name']}: selected Windows entry missing")
@@ -114,7 +126,7 @@ def read_targets(build_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, required=True)
-    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'windows'], required=True)
+    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'window', 'windows'], required=True)
     parser.add_argument('--os', required=True)
     parser.add_argument('--cpu', required=True)
     parser.add_argument('--output', type=Path, required=True)

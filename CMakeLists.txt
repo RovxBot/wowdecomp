@@ -21,6 +21,7 @@ option(WOWDECOMP_BUILD_PORTABLE_CORE "Build the audited asset-free core subset" 
 option(WOWDECOMP_BUILD_NATIVE_FILES "Build the native host-filesystem subset (no assets/window)" OFF)
 option(WOWDECOMP_BUILD_NATIVE_ASSETS "Build read-only native 12340 asset services" OFF)
 option(WOWDECOMP_BUILD_NATIVE_ASYNC "Build native owner-thread asynchronous file services" OFF)
+option(WOWDECOMP_BUILD_NATIVE_WINDOW "Build native SDL3 window/input services" OFF)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -51,6 +52,13 @@ if(WOWDECOMP_BUILD_NATIVE_ASYNC)
         message(FATAL_ERROR "Native asynchronous files require native assets/files/runtime.")
     endif()
     add_subdirectory(Engine/Source/PortableAsync)
+endif()
+
+if(WOWDECOMP_BUILD_NATIVE_WINDOW)
+    if(NOT WOWDECOMP_BUILD_NATIVE_ASYNC)
+        message(FATAL_ERROR "Native window/shell requires native asynchronous file services.")
+    endif()
+    add_subdirectory(Engine/Source/PortableWindow)
 endif()
 
 if(NOT WOWDECOMP_BUILD_CLIENT)

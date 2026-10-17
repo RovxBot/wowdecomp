@@ -147,6 +147,34 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_ASYNC": "ON"
       }
+    },
+    {
+      "name": "linux-window",
+      "inherits": "linux-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON"
+      }
+    },
+    {
+      "name": "linux-window-asan",
+      "inherits": "linux-async-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-window",
+      "inherits": "macos-arm64-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON"
+      }
+    },
+    {
+      "name": "windows-window",
+      "inherits": "windows-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON"
+      }
     }
   ]
 }
