@@ -78,6 +78,11 @@ def main():
             manifest['sdl_video_drivers'] = drivers
             if not required_drivers <= set(drivers):
                 raise RuntimeError(f'SDL silently disabled a required video provider: {required_drivers - set(drivers)}')
+            presenters = sorted(re.findall(r'^#define SDL_VIDEO_RENDER_([A-Z0-9_]+) 1$', config, re.MULTILINE))
+            manifest['sdl_render_presenters'] = presenters
+            required_presenter = {'LINUX': 'OGL_ES2', 'MACOS': 'METAL'}.get(target_os)
+            if required_presenter and required_presenter not in presenters:
+                raise RuntimeError(f'SDL omitted its required window framebuffer presenter: {required_presenter}')
         targets = read_targets(build)
         errors = audit(targets, 'window' if window else 'async' if asynchronous else 'assets' if assets else 'files' if files else 'core', target_os, cpu)
         (evidence / 'build-graph.json').write_text(json.dumps({'errors': errors, 'targets': targets}, indent=2) + '\n')
