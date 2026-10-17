@@ -16,8 +16,14 @@ FetchContent_Declare(SDL3
     URL_HASH SHA256=7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5
 )
 FetchContent_MakeAvailable(SDL3)
-target_link_libraries(SDL3-static PRIVATE wowdecomp_platform)
-target_link_libraries(SDL_uclibc PRIVATE wowdecomp_platform)
+# SDL exports its own static target. Give its compilation explicit identities
+# without adding a product-only interface target to SDL's export dependency set.
+foreach(target SDL3-static SDL_uclibc)
+    target_compile_definitions(${target} PRIVATE
+        WOWDECOMP_OS_${WOWDECOMP_OS}=1
+        WOWDECOMP_CPU_${WOWDECOMP_CPU}=1
+        WOWDECOMP_ARCH_${WOWDECOMP_POINTER_BITS}=1)
+endforeach()
 if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(SDL3-static PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
 endif()
