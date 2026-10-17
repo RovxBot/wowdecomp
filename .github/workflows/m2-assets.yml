@@ -1,0 +1,86 @@
+name: M2 native asset services
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'native-port/**']
+    paths:
+      - '.github/workflows/m2-assets.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'ThirdParty/**'
+      - 'Tools/PortableAssets/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Tools/PortableFiles/**'
+      - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Tools/Porting/**'
+  pull_request:
+    paths:
+      - '.github/workflows/m2-assets.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'ThirdParty/**'
+      - 'Tools/PortableAssets/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Tools/PortableFiles/**'
+      - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Tools/Porting/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m2-assets-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  files:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            preset: linux-assets
+            python: python3
+          - runner: ubuntu-24.04
+            preset: linux-assets-asan
+            python: python3
+          - runner: macos-14
+            preset: macos-arm64-assets
+            python: python3
+          - runner: windows-2022
+            preset: windows-assets
+            python: python
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Check out product source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check source-selection and graph-audit fixtures
+        run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
+      - name: Compile and test synthetic native asset services
+        run: ${{ matrix.python }} Tools/Porting/run_core_checks.py --preset ${{ matrix.preset }}
+      - name: Preserve asset-service evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-${{ matrix.preset }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}/
+          if-no-assets-found: error
+          retention-days: 14

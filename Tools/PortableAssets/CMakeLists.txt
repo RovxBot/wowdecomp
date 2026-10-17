@@ -1,0 +1,7 @@
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_executable(PackageServicesCheck packages.cpp)
+target_link_libraries(PackageServicesCheck PRIVATE WowNativeAssets)
+add_test(NAME native-asset-fixtures COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_fixtures.py ${CMAKE_CURRENT_BINARY_DIR}/fixtures)
+set_tests_properties(native-asset-fixtures PROPERTIES FIXTURES_SETUP native-assets TIMEOUT 30)
+add_test(NAME native-package-services COMMAND PackageServicesCheck ${CMAKE_CURRENT_BINARY_DIR}/fixtures)
+set_tests_properties(native-package-services PROPERTIES FIXTURES_REQUIRED native-assets TIMEOUT 60)

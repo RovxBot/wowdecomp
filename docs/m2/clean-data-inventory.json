@@ -1,0 +1,307 @@
+{
+  "source": "user-supplied clean reference",
+  "root": "external",
+  "locale": "enUS",
+  "files": [
+    {
+      "path": "Wow.exe",
+      "bytes": 7704216,
+      "sha256": "aa63a5750d60ef16746c686b3d5e26876d98953eab08b1c026cd0faf78e88cb8"
+    },
+    {
+      "path": "Data/common-2.MPQ",
+      "bytes": 1810430636,
+      "sha256": "9c605d95443172bdfd7c6936bc636684761241657935c22da25f955083809f43",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 1810430636,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 1808692700,
+        "block_table_offset": 1809741276,
+        "hash_count": 65536,
+        "block_count": 43085
+      }
+    },
+    {
+      "path": "Data/common.MPQ",
+      "bytes": 2881154862,
+      "sha256": "d850ffa5efd6a1ba845899a7d9f9ad27f6eea7ac606e95033506c72c86ee0236",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 2881154862,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 2877718958,
+        "block_table_offset": 2879816110,
+        "hash_count": 131072,
+        "block_count": 83672
+      }
+    },
+    {
+      "path": "Data/enUS/backup-enUS.MPQ",
+      "bytes": 167245856,
+      "sha256": "9f52f932db31c407a1fb043aed715ed29c20e9a6e7446db9e2fa9408c960f6a5",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 167245856,
+        "format_version": 1,
+        "sector_shift": 5,
+        "hash_table_offset": 167234560,
+        "block_table_offset": 167242752,
+        "hash_count": 512,
+        "block_count": 194
+      }
+    },
+    {
+      "path": "Data/enUS/base-enUS.MPQ",
+      "bytes": 29176975,
+      "sha256": "c02b13b4b85eb59b8a3557442e69b376fa5d491092ebaa2beeac979ddbd4514e",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 29176975,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 29169839,
+        "block_table_offset": 29173935,
+        "hash_count": 256,
+        "block_count": 190
+      }
+    },
+    {
+      "path": "Data/enUS/expansion-locale-enUS.MPQ",
+      "bytes": 17389181,
+      "sha256": "c9f27ce716b7195776929e8e3a7faeeaa15522215be47611c101dd5b1d8845c1",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 17389181,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 17366045,
+        "block_table_offset": 17382429,
+        "hash_count": 1024,
+        "block_count": 422
+      }
+    },
+    {
+      "path": "Data/enUS/expansion-speech-enUS.MPQ",
+      "bytes": 241033297,
+      "sha256": "b9d9d13fc46251248ac9a36893ef6e275de43aadff5b89871dfeca7165d92cf5",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 241033297,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 240976465,
+        "block_table_offset": 241009233,
+        "hash_count": 2048,
+        "block_count": 1504
+      }
+    },
+    {
+      "path": "Data/enUS/lichking-locale-enUS.MPQ",
+      "bytes": 12354378,
+      "sha256": "89b1eba015927e321683a3867be1b8a76e593c438527eb42f4934d03484f1b04",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 12354378,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 12351418,
+        "block_table_offset": 12353466,
+        "hash_count": 128,
+        "block_count": 57
+      }
+    },
+    {
+      "path": "Data/enUS/lichking-speech-enUS.MPQ",
+      "bytes": 354008839,
+      "sha256": "8fc28d2f26d4b00db1884577cfa82769c234a8177b3827b5fae59dc006e6705f",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 354008839,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 353913735,
+        "block_table_offset": 353979271,
+        "hash_count": 4096,
+        "block_count": 1848
+      }
+    },
+    {
+      "path": "Data/enUS/locale-enUS.MPQ",
+      "bytes": 204291376,
+      "sha256": "45f02a3bf3964b169f397cea58113cdce5fa7bdf58d4b63f68e46255bb3bd3ea",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 204291376,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 203852336,
+        "block_table_offset": 204114480,
+        "hash_count": 16384,
+        "block_count": 11056
+      }
+    },
+    {
+      "path": "Data/enUS/patch-enUS-2.MPQ",
+      "bytes": 225570171,
+      "sha256": "ab9af8457f0d7b99a562f26b7d1651bbf68ebc37ddb249d01ac860ccc8746ff4",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 225570171,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 225467211,
+        "block_table_offset": 225532747,
+        "hash_count": 4096,
+        "block_count": 2339
+      }
+    },
+    {
+      "path": "Data/enUS/patch-enUS-3.MPQ",
+      "bytes": 100373935,
+      "sha256": "d61a60297af9044d926754d997cd5aa630500cd003d41983a9ccb5b324d61299",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 100373935,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 100325951,
+        "block_table_offset": 100358719,
+        "hash_count": 2048,
+        "block_count": 951
+      }
+    },
+    {
+      "path": "Data/enUS/patch-enUS.MPQ",
+      "bytes": 296616080,
+      "sha256": "c1c06b0d0c34c331b21df7cdd25cc422a650efbd477e42b80849ba30b2e5fc99",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 296616080,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 296398608,
+        "block_table_offset": 296529680,
+        "hash_count": 8192,
+        "block_count": 5400
+      }
+    },
+    {
+      "path": "Data/enUS/speech-enUS.MPQ",
+      "bytes": 438430439,
+      "sha256": "bfd2c4bf07213736bae28e1c8f49bf60783e12545ac555016d6f22441f7c793d",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 438430439,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 438217639,
+        "block_table_offset": 438348711,
+        "hash_count": 8192,
+        "block_count": 5108
+      }
+    },
+    {
+      "path": "Data/expansion.MPQ",
+      "bytes": 1921219911,
+      "sha256": "34a19723d773997b31ec72a16361af8bdd8cc38d108274b9b8a96521ec2c4f4a",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 1921219911,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 1920767799,
+        "block_table_offset": 1921029943,
+        "hash_count": 16384,
+        "block_count": 11873
+      }
+    },
+    {
+      "path": "Data/lichking.MPQ",
+      "bytes": 2553948549,
+      "sha256": "8456e92d47f2bc71efba30fcabd4fea8c5ef0d93feef320ba51ffeeacf78de9d",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 2553948549,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 2553165365,
+        "block_table_offset": 2553689653,
+        "hash_count": 32768,
+        "block_count": 16181
+      }
+    },
+    {
+      "path": "Data/patch-2.MPQ",
+      "bytes": 1401729059,
+      "sha256": "c8b78bb75bcf5773e9ae99e11bdfcabc2a37aed3da947367d8af808d4d3c23c6",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 1401729059,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 1401277907,
+        "block_table_offset": 1401540051,
+        "hash_count": 16384,
+        "block_count": 11813
+      }
+    },
+    {
+      "path": "Data/patch-3.MPQ",
+      "bytes": 605089137,
+      "sha256": "56dbbfc8f9ce7182ca88538d75284e738020138a7ca4217d72d8168865510dd3",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 605089137,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 604975665,
+        "block_table_offset": 605041201,
+        "hash_count": 4096,
+        "block_count": 2996
+      }
+    },
+    {
+      "path": "Data/patch.MPQ",
+      "bytes": 4004713057,
+      "sha256": "92b4a94a6c7a23c0b9fd88c47823e41792879a7ee1f70c2349a255153ca25d54",
+      "mpq_header": {
+        "magic": "4d50511a",
+        "header_size": 44,
+        "archive_size_low": 4004713057,
+        "format_version": 1,
+        "sector_shift": 3,
+        "hash_table_offset": 4003005889,
+        "block_table_offset": 4004054465,
+        "hash_count": 65536,
+        "block_count": 41162
+      }
+    }
+  ],
+  "case_collisions": [],
+  "exe_version": [
+    3,
+    3,
+    5,
+    12340
+  ]
+}
