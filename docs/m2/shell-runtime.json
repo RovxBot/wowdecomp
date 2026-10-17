@@ -1,0 +1,567 @@
+{
+  "schema_version": 1,
+  "scope": "Observed M2 Linux desktop execution; no full Gx/gameplay claim",
+  "platform": {
+    "session": "GNOME Wayland; X11 through Xwayland",
+    "os": "Arch Linux; kernel 6.18.57-1-lts; glibc 2.44",
+    "architecture": "x86_64",
+    "graphics_stack_observed_with_glxinfo": "AMD Radeon RX 7900 XTX; radeonsi navi31 ACO; Mesa 26.2.4-arch1.1; direct rendering yes",
+    "graphics_limit": "GLX system query does not identify the Wayland EGL device or establish Gx scene rendering.",
+    "host_libraries": {
+      "libdecor": "0.2.5-1",
+      "gtk3": "1:3.24.52-2",
+      "fontconfig": "2:2.18.3-2"
+    },
+    "application_dependency": "Artifact-pinned static SDL 3.2.28, not installed SDL 3.4.18"
+  },
+  "data_inventory": "clean-data-inventory.json",
+  "settings_relaunch_verified": "Same external Wayland release roots: launches=1 then launches=2; settings-save-reload=verified both times.",
+  "desktop_leak_acceptance": "OPEN: unsuppressed desktop sanitizer reports remain; core/assets/async/dummy fixtures pass independently.",
+  "physical_input_acceptance": "OPEN: no operator report received; unattended interactive shell timed out after 600 seconds and is not counted as a shutdown/input pass.",
+  "source_interpretation": "Every runtime retains its hosted implementation head; later documentation changes do not rename that source identity.",
+  "records": [
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:27:27.665942+00:00",
+      "completed_at": "2026-10-17T10:27:29.342528+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "wayland",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null
+      },
+      "exit_code": 0,
+      "stdout": [
+        "Original signaturefile authenticated: 28948 MD5 records",
+        "Database: Map.dbc, 135 rows",
+        "Textures: original UI and terrain BLPs decoded to RGBA",
+        "HumanMale: 5264 vertices, 6356 triangles",
+        "Farm WMO: 2 groups, 408 inspected triangles",
+        "Azeroth: 687 WDT tiles, 256 ADT cells decoded",
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "stderr": [],
+      "session": [
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "wayland-release",
+      "process_environment_details": {
+        "EGL_PLATFORM": "wayland"
+      },
+      "result": "release desktop startup/assets/settings/joined shutdown passed; not a leak-check run",
+      "external_capture": {
+        "basename": "wowdecomp-m2-final-wayland-release.bmp",
+        "sha256": "945d9d1fdc5ba1047601be48ecd9091a68cefa8dd9c9fcc33fbad0cef07d5a2c",
+        "visual_inspection": "Legible text, original terrain preview, no visible layout overlap at 1000x700; does not show desktop decorations or prove input."
+      }
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:27:31.162097+00:00",
+      "completed_at": "2026-10-17T10:27:32.828124+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "wayland",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null
+      },
+      "exit_code": 0,
+      "stdout": [
+        "Original signaturefile authenticated: 28948 MD5 records",
+        "Database: Map.dbc, 135 rows",
+        "Textures: original UI and terrain BLPs decoded to RGBA",
+        "HumanMale: 5264 vertices, 6356 triangles",
+        "Farm WMO: 2 groups, 408 inspected triangles",
+        "Azeroth: 687 WDT tiles, 256 ADT cells decoded",
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=2",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "stderr": [],
+      "session": [
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=2",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "wayland-relaunch",
+      "process_environment_details": {
+        "EGL_PLATFORM": "wayland"
+      },
+      "result": "release desktop startup/assets/settings/joined shutdown passed; not a leak-check run",
+      "external_capture": {
+        "basename": "wowdecomp-m2-final-wayland-relaunch.bmp",
+        "sha256": "45a5c89967ba2cc19e22c6d5c34357d73adf3cc0239254b0ce1815c7a7530a92",
+        "visual_inspection": "Legible text, original terrain preview, no visible layout overlap at 1000x700; does not show desktop decorations or prove input."
+      }
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:27:34.680766+00:00",
+      "completed_at": "2026-10-17T10:27:36.277086+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "x11",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null
+      },
+      "exit_code": 0,
+      "stdout": [
+        "Original signaturefile authenticated: 28948 MD5 records",
+        "Database: Map.dbc, 135 rows",
+        "Textures: original UI and terrain BLPs decoded to RGBA",
+        "HumanMale: 5264 vertices, 6356 triangles",
+        "Farm WMO: 2 groups, 408 inspected triangles",
+        "Azeroth: 687 WDT tiles, 256 ADT cells decoded",
+        "native-shell M2",
+        "video=x11",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=5",
+        "characters=0",
+        "ime-events=0",
+        "relative-events=0",
+        "focus-events=3",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "stderr": [],
+      "session": [
+        "native-shell M2",
+        "video=x11",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=5",
+        "characters=0",
+        "ime-events=0",
+        "relative-events=0",
+        "focus-events=3",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "x11-release",
+      "process_environment_details": {
+        "EGL_PLATFORM": "x11"
+      },
+      "result": "release desktop startup/assets/settings/joined shutdown passed; not a leak-check run",
+      "external_capture": {
+        "basename": "wowdecomp-m2-final-x11-release.bmp",
+        "sha256": "8d0cd570d8a263133198d6a8e335d1050855bc0fb812bd9962ede7741f199a8c",
+        "visual_inspection": "Legible text, original terrain preview, no visible layout overlap at 1000x700; does not show desktop decorations or prove input."
+      }
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:24:49.470962+00:00",
+      "completed_at": "2026-10-17T10:24:51.499437+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "wayland",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "exit_code": 1,
+      "stdout": [],
+      "session": [
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "wayland",
+      "process_environment_details": {
+        "EGL_PLATFORM": "wayland",
+        "decorations": "system default libdecor GTK"
+      },
+      "stderr_summary": [
+        "==331393==WARNING: invalid path to external symbolizer!",
+        "==331393==WARNING: Failed to use and restart external symbolizer!",
+        "Direct leak of 46592 byte(s) in 182 object(s) allocated from:",
+        "Direct leak of 768 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 512 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 128 byte(s) in 1 object(s) allocated from:",
+        "SUMMARY: AddressSanitizer: 123338 byte(s) leaked in 3267 allocation(s)."
+      ],
+      "external_raw_report": {
+        "basename": "wowdecomp-m2-final-wayland.json",
+        "sha256": "2234b9a78c38a11ed2d74c858de11566428183f3af978087eae3bcdba7e74b60",
+        "stderr_lines": 3155
+      },
+      "representative_diagnostic_frames": [
+        "==331393==WARNING: invalid path to external symbolizer!",
+        "==331393==WARNING: Failed to use and restart external symbolizer!",
+        "",
+        "=================================================================",
+        "==331393==ERROR: LeakSanitizer: detected memory leaks",
+        "",
+        "Direct leak of 46592 byte(s) in 182 object(s) allocated from:",
+        "    #0 0x55a7f7ea7533  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x67e533) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #1 0x7f7f143bcbb7  (/usr/lib/libfontconfig.so.1+0x37bb7) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #2 0x7f7f143bd6cd  (/usr/lib/libfontconfig.so.1+0x386cd) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #3 0x7f7f143ab5a8  (/usr/lib/libfontconfig.so.1+0x265a8) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #4 0x7f7f14e4db11  (/usr/lib/libpangoft2-1.0.so.0+0xcb11) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #5 0x7f7f14e4dfb9  (/usr/lib/libpangoft2-1.0.so.0+0xcfb9) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #6 0x7f7f14e4e07e  (/usr/lib/libpangoft2-1.0.so.0+0xd07e) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #7 0x7f7f14e55a74  (/usr/lib/libpangoft2-1.0.so.0+0x14a74) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #8 0x7f7f14e5603c  (/usr/lib/libpangoft2-1.0.so.0+0x1503c) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #9 0x7f7f1472eecf  (/usr/lib/libpango-1.0.so.0+0x2becf) (BuildId: daf0462092b8965739adf024e3683b1651237689)",
+        "    #10 0x7f7f10be23ef  (/usr/lib/libgtk-3.so.0+0x1e23ef) (BuildId: a5e800bb591f91789e8352e380e88ab0781fb91a)"
+      ],
+      "result": "failed desktop sanitizer check; retained without suppression",
+      "external_capture": {
+        "basename": "wowdecomp-m2-final-wayland.bmp",
+        "sha256": "945d9d1fdc5ba1047601be48ecd9091a68cefa8dd9c9fcc33fbad0cef07d5a2c",
+        "visual_inspection": "Legible text, original terrain preview, no visible layout overlap at 1000x700; does not show desktop decorations or prove input."
+      }
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:25:14.516536+00:00",
+      "completed_at": "2026-10-17T10:25:14.554195+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "x11",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "exit_code": 1,
+      "stdout": [],
+      "test": "x11",
+      "process_environment_details": {
+        "EGL_PLATFORM": "wayland",
+        "diagnosis": "EGL platform mismatched requested X11; rerun explicitly with x11"
+      },
+      "stderr_summary": [
+        "==332000==WARNING: invalid path to external symbolizer!",
+        "==332000==WARNING: Failed to use and restart external symbolizer!",
+        "SUMMARY: AddressSanitizer: SEGV (/usr/lib/libc.so.6+0x9b8d4) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b) "
+      ],
+      "external_raw_report": {
+        "basename": "wowdecomp-m2-final-x11.json",
+        "sha256": "da6f7613d8ae973e2fff2a5898d7cf5895eaa9fa42d8e100bf7f6a2990dba6cd",
+        "stderr_lines": 32
+      },
+      "representative_diagnostic_frames": [
+        "AddressSanitizer:DEADLYSIGNAL",
+        "=================================================================",
+        "==332000==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000143 (pc 0x7f18af29b8d4 bp 0x7ffd20bd8a50 sp 0x7ffd20bd8a38 T0)",
+        "==332000==The signal is caused by a READ memory access.",
+        "==332000==Hint: address points to the zero page.",
+        "==332000==WARNING: invalid path to external symbolizer!",
+        "==332000==WARNING: Failed to use and restart external symbolizer!",
+        "    #0 0x7f18af29b8d4  (/usr/lib/libc.so.6+0x9b8d4) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)",
+        "    #1 0x7f18ae7f5447  (/usr/lib/libwayland-client.so.0+0x5447) (BuildId: 811f309c6b797aa9eaec17093b01cd525c6f4679)",
+        "    #2 0x7f18ae94848f  (/usr/lib/libEGL_mesa.so.0+0x2448f) (BuildId: a984b36f6c62737251311e68cb13ed909a457bae)",
+        "    #3 0x7f18ae93e9f8  (/usr/lib/libEGL_mesa.so.0+0x1a9f8) (BuildId: a984b36f6c62737251311e68cb13ed909a457bae)",
+        "    #4 0x7f18ae92d8b9  (/usr/lib/libEGL_mesa.so.0+0x98b9) (BuildId: a984b36f6c62737251311e68cb13ed909a457bae)",
+        "    #5 0x5607fb92179f  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x121079f) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #6 0x5607fb1f2492  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xae1492) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #7 0x5607fb1f661d  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xae561d) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #8 0x5607fb0d0e03  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x9bfe03) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #9 0x5607fb063c7e  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x952c7e) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #10 0x5607fb0638aa  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x9528aa) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)"
+      ],
+      "result": "failed desktop sanitizer check; retained without suppression",
+      "external_capture": {
+        "basename": "wowdecomp-m2-final-x11.bmp",
+        "sha256": "8d0cd570d8a263133198d6a8e335d1050855bc0fb812bd9962ede7741f199a8c",
+        "visual_inspection": "Legible text, original terrain preview, no visible layout overlap at 1000x700; does not show desktop decorations or prove input."
+      }
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:26:03.072328+00:00",
+      "completed_at": "2026-10-17T10:26:05.126224+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "x11",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "exit_code": 1,
+      "stdout": [],
+      "session": [
+        "native-shell M2",
+        "video=x11",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=5",
+        "characters=0",
+        "ime-events=0",
+        "relative-events=0",
+        "focus-events=3",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "x11-egl",
+      "process_environment_details": {
+        "EGL_PLATFORM": "x11"
+      },
+      "stderr_summary": [
+        "==332489==WARNING: invalid path to external symbolizer!",
+        "==332489==WARNING: Failed to use and restart external symbolizer!",
+        "Direct leak of 4096 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 2048 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 128 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 64 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 64 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 52 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 40 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 32 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 16 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 16 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 16 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 8 byte(s) in 1 object(s) allocated from:",
+        "SUMMARY: AddressSanitizer: 50184 byte(s) leaked in 914 allocation(s)."
+      ],
+      "external_raw_report": {
+        "basename": "wowdecomp-m2-final-x11-egl.json",
+        "sha256": "f281a8a401d35bdf6dda15ecd641549111313ca5e01f977b9daa5b35561044d6",
+        "stderr_lines": 2230
+      },
+      "representative_diagnostic_frames": [
+        "==332489==WARNING: invalid path to external symbolizer!",
+        "==332489==WARNING: Failed to use and restart external symbolizer!",
+        "",
+        "=================================================================",
+        "==332489==ERROR: LeakSanitizer: detected memory leaks",
+        "",
+        "Direct leak of 4096 byte(s) in 1 object(s) allocated from:",
+        "    #0 0x55c144d2371d  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x67e71d) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #1 0x7f07b91d84c4  (<unknown module>)",
+        "    #2 0x7f07b91f6074  (<unknown module>)",
+        "    #3 0x55c1452922d7  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xbed2d7) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #4 0x55c14529091d  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xbeb91d) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #5 0x55c145287f93  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xbe2f93) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #6 0x55c14529f860  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xbfa860) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #7 0x55c14516a8c8  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xac58c8) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #8 0x55c1453916ca  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0xcec6ca) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #9 0x55c144d7b418  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x6d6418) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #10 0x55c144d6a3d7  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x6c53d7) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)"
+      ],
+      "result": "failed desktop sanitizer check; retained without suppression"
+    },
+    {
+      "scope": "Native M2 diagnostic shell; external 12340 data; no Gx/gameplay",
+      "started_at": "2026-10-17T10:26:23.292766+00:00",
+      "completed_at": "2026-10-17T10:26:25.001087+00:00",
+      "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+      "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+      "binary_sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "locale": "enUS",
+      "data_root": "external read-only reference",
+      "requested_video": "wayland",
+      "sanitizer_options": {
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "exit_code": 1,
+      "stdout": [],
+      "session": [
+        "native-shell M2",
+        "video=wayland",
+        "assets=verified",
+        "settings-save-reload=verified",
+        "launches=1",
+        "window=1000x700",
+        "pixels=1000x700",
+        "events=4",
+        "characters=0",
+        "ime-events=2",
+        "relative-events=0",
+        "focus-events=1",
+        "resize-events=1",
+        "clipboard-actions=0",
+        "workers-after-shutdown=0"
+      ],
+      "test": "wayland-cairo",
+      "process_environment_details": {
+        "EGL_PLATFORM": "wayland",
+        "LIBDECOR_PLUGIN_DIR": "temporary directory containing only a symlink to the installed Cairo plugin"
+      },
+      "stderr_summary": [
+        "==332705==WARNING: invalid path to external symbolizer!",
+        "==332705==WARNING: Failed to use and restart external symbolizer!",
+        "Direct leak of 46592 byte(s) in 182 object(s) allocated from:",
+        "Direct leak of 1536 byte(s) in 2 object(s) allocated from:",
+        "Direct leak of 512 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 512 byte(s) in 1 object(s) allocated from:",
+        "Direct leak of 128 byte(s) in 1 object(s) allocated from:",
+        "SUMMARY: AddressSanitizer: 131629 byte(s) leaked in 3570 allocation(s)."
+      ],
+      "external_raw_report": {
+        "basename": "wowdecomp-m2-final-wayland-cairo.json",
+        "sha256": "395ae113356d1900daece99325fd8bf8431c5ac3f375600f010a3c1273af25db",
+        "stderr_lines": 4617
+      },
+      "representative_diagnostic_frames": [
+        "==332705==WARNING: invalid path to external symbolizer!",
+        "==332705==WARNING: Failed to use and restart external symbolizer!",
+        "",
+        "=================================================================",
+        "==332705==ERROR: LeakSanitizer: detected memory leaks",
+        "",
+        "Direct leak of 46592 byte(s) in 182 object(s) allocated from:",
+        "    #0 0x55ec6faa1533  (/tmp/wowdecomp-m2-shell-final-2154/m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3/bin/NativeShell+0x67e533) (BuildId: 0b951fdb90d7dab69eef1df72604c07748d3e32b)",
+        "    #1 0x7f71ffbbcbb7  (/usr/lib/libfontconfig.so.1+0x37bb7) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #2 0x7f71ffbbd6cd  (/usr/lib/libfontconfig.so.1+0x386cd) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #3 0x7f71ffbab5a8  (/usr/lib/libfontconfig.so.1+0x265a8) (BuildId: dd61456454324e2277971d6e0562ac65662afe56)",
+        "    #4 0x7f7200ae9b11  (/usr/lib/libpangoft2-1.0.so.0+0xcb11) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #5 0x7f7200ae9fb9  (/usr/lib/libpangoft2-1.0.so.0+0xcfb9) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #6 0x7f7200aea07e  (/usr/lib/libpangoft2-1.0.so.0+0xd07e) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #7 0x7f7200af1a74  (/usr/lib/libpangoft2-1.0.so.0+0x14a74) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #8 0x7f7200af203c  (/usr/lib/libpangoft2-1.0.so.0+0x1503c) (BuildId: 87392d444159d1499dbac60f402d36cf322b5e0a)",
+        "    #9 0x7f71fff29c0b  (/usr/lib/libpango-1.0.so.0+0x26c0b) (BuildId: daf0462092b8965739adf024e3683b1651237689)",
+        "    #10 0x7f71fff2dba2  (/usr/lib/libpango-1.0.so.0+0x2aba2) (BuildId: daf0462092b8965739adf024e3683b1651237689)"
+      ],
+      "result": "failed desktop sanitizer check; retained without suppression"
+    }
+  ]
+}

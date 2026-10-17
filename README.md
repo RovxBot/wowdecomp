@@ -26,9 +26,14 @@ library and `NativeCore` initialization/shutdown executable, tested in hosted
 Linux x86-64, macOS ARM64 and Windows x64 jobs. The full native game remains gated.
 The [M1 core workflow](.github/workflows/m1-core.yml) also runs Linux ASan/UBSan
 and provides NativeCore binaries plus evidence; no game data is needed for that tool.
-M2 has started with [native host-file/path services](docs/m2/FILESYSTEM.md), tested
-with synthetic fixtures on the same three platforms, including Linux sanitizers.
-This subset does not yet load MPQs/original assets or create an SDL window.
+M2 adds [host-file/path services](docs/m2/FILESYSTEM.md), authenticated retail MPQs
+and [original asset inspection](docs/m2/ASSETS.md), an [async file queue](docs/m2/ASYNC.md)
+and a [native SDL3 shell](docs/m2/SHELL.md). Hosted semantic fixtures pass on all
+three platforms, including Linux sanitizers and actual ARM64 execution. Downloaded
+Linux binaries load the supplied read-only 12340/enUS data and display decoded
+terrain pixels on X11 and Wayland. The [M2 handoff](docs/m2/HANDOFF.md) records exact
+evidence, outstanding physical input acceptance and desktop leak triage. These tools do not run the
+login screen, world, networking or audio.
 
 ## Progress
 
@@ -63,7 +68,12 @@ parts of FMOD Ex).
 
 ## Building
 
-From a Developer PowerShell or any shell with `cmake` on `PATH`:
+For this porting fork, all client/dependency compilation runs in GitHub Actions.
+Use the [Windows baseline workflow](.github/workflows/windows-baseline.yml) for
+the legacy client and the [M2 shell workflow](.github/workflows/m2-shell.yml) for
+the native diagnostic application. Download binaries from a passing run; native
+runtime instructions and hash verification are in [SHELL.md](docs/m2/SHELL.md).
+The following upstream Windows commands describe the runner build environment:
 
 ```powershell
 git clone https://github.com/SatyPardus/wowdecomp.git

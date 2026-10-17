@@ -2,7 +2,8 @@
 
 Implemented in [asset PR #6](https://github.com/RovxBot/wowdecomp/pull/6), after merged
 [filesystem PR #5](https://github.com/RovxBot/wowdecomp/pull/5). All compilation runs
-in Actions. M2 remains open for asynchronous I/O and SDL3 shell/desktop validation.
+in Actions. The subsequent [async service](ASYNC.md) and [SDL3 shell](SHELL.md)
+are merged; current acceptance and evidence are in the [M2 handoff](HANDOFF.md).
 
 The native package boundary is read-only and separate from the legacy Windows
 streaming ABI. It mounts an explicit external Data directory, preserves the
@@ -37,8 +38,8 @@ header metadata and absence of case-colliding MPQ names. These identify the
 supplied dataset; they do not independently certify every archive as stock.
 A source-only Python probe authenticated its patch-3 signaturefile and read
 representative Map.dbc, BLP, HumanMale.m2 and Azeroth.wdt bytes. This is source-audit
-evidence, not native decoding or gameplay evidence. The native executable must
-repeat those checks. No files in either supplied game installation were changed.
+evidence, distinct from the native execution recorded below. No files in either
+supplied game installation were changed.
 
 ## Validation checkpoint
 
@@ -78,7 +79,7 @@ pixels; complete animation/material/world-render integration remains M3 onward.
 
 ## Native model storage design (before enabling decoding)
 
-The inspection decoder will reserve a single owner-scoped virtual address arena
+The inspection decoder reserves a single owner-scoped virtual address arena
 before creating its model header. Both the native relative-array anchors and all
 decoded payloads live inside that reservation. This avoids searching near an
 already allocated external anchor: the maximum reservation is 1 GiB, so every

@@ -3,7 +3,9 @@
 Created: 2026-10-16. Updated: 2026-10-17. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
-clean-data identity, live server/Warden evidence and captures/timings are incomplete.
+complete data provenance, live server/Warden evidence and captures/timings remain
+incomplete. M2 now identifies a separate clean-data candidate and authenticates
+representative native reads; that does not retroactively verify M0 sessions.
 
 [M0 PR #1](https://github.com/RovxBot/wowdecomp/pull/1) and
 [initial M1 PR #2](https://github.com/RovxBot/wowdecomp/pull/2) are merged into main.
@@ -222,14 +224,17 @@ runtime and SDL3 default. The review records source defects, external build/runt
 evidence and proposed work packages; no code is imported or M2 exit criterion met
 by that review. Keep graphics alternatives as separate prototypes.
 
-Implementation has started with the [native host-filesystem work package](docs/m2/FILESYSTEM.md)
-and synthetic hosted fixtures, passing on Linux x86-64, macOS ARM64 and Windows
-x64 with Linux sanitizers. [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
-was merged, followed by [asset PR #6](https://github.com/RovxBot/wowdecomp/pull/6).
-The [asset report](docs/m2/ASSETS.md) records hosted archive/decoder fixtures and
-observed native Linux decoding from the separate clean 12340/enUS reference with
-signatures and sanitizers enabled. [Asynchronous file services](docs/m2/ASYNC.md)
-are in review; SDL3 shell/desktop validation remains outstanding. M2 is not complete.
+Status: implementation merged in [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
+(host files), [PR #6](https://github.com/RovxBot/wowdecomp/pull/6)
+(authenticated packages/assets), [PR #7](https://github.com/RovxBot/wowdecomp/pull/7)
+(async files) and [PR #8](https://github.com/RovxBot/wowdecomp/pull/8) (SDL3 shell).
+The [handoff](docs/m2/HANDOFF.md) records hosted checks on Linux x86-64, macOS
+ARM64 and Windows x64, Linux sanitizers and real X11/Wayland execution against
+the separate clean 12340/enUS reference. Native startup, original-data reads,
+settings reload and joined shutdown are observed. Physical input/IME acceptance
+and unsuppressed desktop leak reports remain open; final milestone sign-off awaits
+their recorded disposition. The shell is separate
+from the gated full game and does not establish rendered scene or gameplay parity.
 
 1. Port filesystem and async file services, including BlizzardCore package I/O.
    Preserve archive lookup, patch/locale precedence and file/signature checks.
@@ -413,7 +418,9 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [x] Implement core allocation, logging, time and synchronization adapters with
       focused behavior checks; preserve Windows baseline builds.
 - [x] Port read-only retail file/archive access and add a validated 12340 asset inspector.
-- [ ] Add the SDL shell and prove input/settings/startup/shutdown behavior.
+- [x] Add the SDL shell, original-data startup, settings reload and joined shutdown.
+- [ ] Record physical input/IME acceptance for final M2 sign-off.
+- [ ] Resolve or explicitly disposition the recorded desktop-library leak findings.
 - [ ] Adapt Linux OpenGL context creation and display the original login UI.
 - [ ] Implement portable network I/O and enter the world against the M0 server.
 - [ ] Complete sound/movie support and the Vulkan/Metal graphics decision prototype.
@@ -430,9 +437,13 @@ planning ranges, not commitments or estimates derived from measured port velocit
 The user supplied a modified 12340 client at `/mnt/games/ChromieCraft` and identified
 GrimGuzzler on Kubernetes. Its deployment-source revision/settings are recorded in
 M0, while live server identity and stock data provenance remain unverified. Windows
-compilation runs successfully in GitHub Actions. Before runtime sign-off we still
-need verified unchanged data, a native Windows session, usable Linux GPU access and
-an Apple silicon Mac for execution. Build toolchains run in Actions; runtime data
+compilation runs successfully in GitHub Actions. A separate read-only reference at
+`/mnt/games/3.3.5aClean` now has a hashed 12340/enUS inventory and authenticated
+native asset reads. Linux X11/Wayland shell execution is observed on the local
+desktop. Before full-game sign-off we still need complete data/server provenance,
+captured Windows scene evidence, native Linux game rendering and an Apple silicon
+desktop session. ARM64 core/asset/input fixtures execute in Actions, separately
+from that desktop requirement. Build toolchains run in Actions; runtime data
 and credentials remain external. Minimum Linux
 distribution, compiler, GPU and macOS versions are selected from dependency and
 hardware evidence during M0/M4, rather than promised before testing.

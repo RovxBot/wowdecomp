@@ -1,0 +1,602 @@
+{
+  "schema_version": 1,
+  "scope": "M2 native ABI shell and semantic fixtures, not the full game",
+  "implementation_head": "2154bed3917ab1322545a365a58c5d2e708906b3",
+  "merge": {
+    "mergeCommit": {
+      "oid": "6eecb78e99c889e6f97e55ce9fe5d5855d95ab89"
+    },
+    "mergedAt": "2026-10-17T10:20:34Z",
+    "state": "MERGED"
+  },
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/8",
+  "push_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+  "pr_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956052",
+  "final_pr_checks": {
+    "windows-full-client": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956082",
+      "result": "success"
+    },
+    "source-audit": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956064",
+      "result": "success"
+    },
+    "m1-core": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956075",
+      "result": "success"
+    },
+    "m2-files": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956060",
+      "result": "success"
+    },
+    "m2-assets": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956063",
+      "result": "success"
+    },
+    "m2-async": {
+      "run_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39023956111",
+      "result": "success"
+    }
+  },
+  "configurations": [
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M2 SDL3 window/input synthetic fixtures plus native async/assets/core; dummy driver, no game",
+        "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+        "preset": "linux-window",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "native SDL3 window/input fixtures passed on dummy video; desktop validation separate",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL_ES2"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "c2486a023f6e69b4b6b286ffa085c88e43fe7bd1f4ccf2a43b1a2f31c1fc4a6f"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "12dff84e8bb7c46b313b241b05b0cf251e54b477cf82cbba97be9dac57d9eca4"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "fb54240630f055ab0923c97e9e156a87c32fefc410116db92583688913d66957"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "c69c5f19733eea2cf87ef1c9c4affc175a997d197728c2ef94e309528f438ee9"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "228f184995cac785d2c0090489088b02dd275c44e40b7266c159590359821934"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "artifact": {
+        "id": 12097628625,
+        "name": "m2-linux-window-2154bed3917ab1322545a365a58c5d2e708906b3",
+        "size_in_bytes": 2601190,
+        "digest": "sha256:992375e353a033c8215793fdb25a701f9bfcc592198274b6f3e1420cff414168"
+      },
+      "compiler_identification": [
+        "Clang 18.1.3",
+        "Clang 18.1.3"
+      ],
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "video": "dummy",
+        "physical_desktop": false
+      },
+      "downloaded_binaries_verified": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7c621122bcfc27cf2a351ca1c4da54596d8b7c72, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=fe4bbdf7ebc5bdf79338988f1147d347755a35bc, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a5373af6fed27517bb5956db6affc1a34a26ac84, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "6699fd97352ee5effe6613a81fa2ec61bef0ed40002ca8f8a397f1dcd77af29d",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b89ffef41a28c3270cfb4611c8af87a01c2bfd43, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "c69c5f19733eea2cf87ef1c9c4affc175a997d197728c2ef94e309528f438ee9",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=343200e51355f6d085bb358e1a40de549e6b48ef, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=739d816b19366fd74c8082fc693eed88ed4b9031, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "notices_verified": true
+    },
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M2 SDL3 window/input synthetic fixtures plus native async/assets/core; dummy driver, no game",
+        "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+        "preset": "linux-window-asan",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "native SDL3 window/input fixtures passed on dummy video; desktop validation separate",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL_ES2"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "131d6f367df2d05b8653f52ec97b18436ded63269cdd0492f409233cee489b51"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "5253c0d4f7691761f144d9306b45f426084217fd36b529001c4d9f1d0a9918ba"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "a86508cd460214c31d74fad656a228b366053c59fe1823058bcd9dcfbea8c70f"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "2a4f76d4ca100cdba2beff3bb5704c63259aaf747c5806d48392038284669d63"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "4f6795e1178aee0d4656d49faf363d3b53b0a5766ce6f5d68a14786d2159fd68"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "artifact": {
+        "id": 12098160932,
+        "name": "m2-linux-window-asan-2154bed3917ab1322545a365a58c5d2e708906b3",
+        "size_in_bytes": 16193298,
+        "digest": "sha256:0068bbd11ec98f5d78911251fd16601717ec03d4e3c7dfff4955b05dd5a9f345"
+      },
+      "compiler_identification": [
+        "Clang 18.1.3",
+        "Clang 18.1.3"
+      ],
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "video": "dummy",
+        "physical_desktop": false
+      },
+      "downloaded_binaries_verified": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6731fbbaf424c44728b59bed187ddbc443217de6, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=48e4ea76f28e4cf931103425d626d9d3a8f5db59, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3db694adb3ea7ad2657ae590ea8f5e27973e6081, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "cda6bec973a03d68c0191e4141ae24bab3bfe1b828d6c42af7e074e468a2c1bf",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=0b951fdb90d7dab69eef1df72604c07748d3e32b, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "2a4f76d4ca100cdba2beff3bb5704c63259aaf747c5806d48392038284669d63",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=dfb1ccf4db88390d65b126f259f893adcdb2a7ff, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7",
+          "file_type": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2ed1e2da6821408e1e10aa97d276007720472114, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "notices_verified": true
+    },
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M2 SDL3 window/input synthetic fixtures plus native async/assets/core; dummy driver, no game",
+        "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+        "preset": "macos-arm64-window",
+        "target_os": "MACOS",
+        "target_cpu": "ARM64",
+        "runner_os": "macOS",
+        "runner_arch": "ARM64",
+        "runner_image": "20260831.0302.1",
+        "host_machine": "arm64",
+        "status": "native SDL3 window/input fixtures passed on dummy video; desktop validation separate",
+        "sdl_video_drivers": [
+          "COCOA",
+          "DUMMY",
+          "OFFSCREEN"
+        ],
+        "sdl_render_presenters": [
+          "METAL"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/opt/homebrew/bin/ninja",
+          "CMAKE_OSX_ARCHITECTURES:STRING=arm64"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "c5c9b6b7fd950c3fb83eb1493f28e3ed7dcb5ef7722ebcf13870f9dd30c72741",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "daf0ec4736fef8f084104706cdabed6c0604274c432c9e53126bd8a337f86c13",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "692998c401ac6414e050a7cacb4103d366e329906f5dac1037b894ae75f1e468",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "97361d661a923d2f18bf5440a18d36903c43a4be8a0539aab3d6a75c5a9801e2",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "b0e428bb1a828cccaaed910771f07e89fe6ac79115e17ae2d3c7a7166d40a630",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "49102b34292adf6356713b58bfa356cf5e4420e9bbfd63d8b0ab5576fd756673",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "ae713ef66b7ea95577e6dd90e08b7995ecbc1e92ecf7bb5edbcd649cb9f0dba8",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "6de7e820255e684f88893f00d6fd04f17483f7af5106aeb9a2dcc3086e29d99f",
+            "binary_architectures": "arm64"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "b18d91326bfde75834223377e89e951a754c7b1509f5adf6f1c68d0d50b9fbca",
+            "binary_architectures": "arm64"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "artifact": {
+        "id": 12097588769,
+        "name": "m2-macos-arm64-window-2154bed3917ab1322545a365a58c5d2e708906b3",
+        "size_in_bytes": 2036183,
+        "digest": "sha256:258c223fd512154206af869b5cada32f7c3f4b2ad75a5a93421882ad8fbfe301"
+      },
+      "compiler_identification": [
+        "AppleClang 15.0.0.15000309",
+        "AppleClang 15.0.0.15000309"
+      ],
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "video": "dummy",
+        "physical_desktop": false
+      },
+      "downloaded_binaries_verified": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "daf0ec4736fef8f084104706cdabed6c0604274c432c9e53126bd8a337f86c13",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "b0e428bb1a828cccaaed910771f07e89fe6ac79115e17ae2d3c7a7166d40a630",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "b18d91326bfde75834223377e89e951a754c7b1509f5adf6f1c68d0d50b9fbca",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "ae713ef66b7ea95577e6dd90e08b7995ecbc1e92ecf7bb5edbcd649cb9f0dba8",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "692998c401ac6414e050a7cacb4103d366e329906f5dac1037b894ae75f1e468",
+          "file_type": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        }
+      ],
+      "notices_verified": true
+    },
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M2 SDL3 window/input synthetic fixtures plus native async/assets/core; dummy driver, no game",
+        "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+        "preset": "windows-window",
+        "target_os": "WINDOWS",
+        "target_cpu": "X86_64",
+        "runner_os": "Windows",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "host_machine": "AMD64",
+        "status": "native SDL3 window/input fixtures passed on dummy video; desktop validation separate",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WINDOWS"
+        ],
+        "sdl_render_presenters": [],
+        "toolchain_cache": [],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "3a918bc012833e5caf74b756d2ca50ddc09315a8fc4a0b722edc18ec2db7ddb2"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "6edf8e962761e9ce0b4e8fe3131e5ef18425d2489275ab6c2ab32d7dee6c88b8"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "35208b7159fedc2a8e87111aef6cde3df8d7a136fb974de8e4debda599102838"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "90f2d9940a525afe58776c1b1a2e474da118233e44a186ca73afeac8bdfd1afd"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "a6c32b9e54f25fc5b6a21900bdf9784d592f7cb78ff9702d8bc0eca8bfeb2da9"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "fe35bd54126429d70f4d15e9b135be613de75c9eda27fd88dedc55a4948520e3"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "8e0bffcd5f72143c3eaeaffc91ce179e31c15750f276d4ef6ff0a9b815a68e11"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "f9cb0a434995598f18b8074c8c3ddc30a978672df1576782e2e867189f9a5863"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "05ca313ad8d48029eef38984dd2b545676313259b4b0000aa39c1f4d67ec732c"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "68dda51bc81d731c5dd336b7d5c26f48ba0f496021671074e44b492f7117c296"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "c1fa1016e8dddda19921f16e112beceee6f720635281a624f03a29cd02beba6c"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "blast-NOTICE.txt": "75cb092e4646c8147dbb3bdce8c786aa4662e278809f23da148aa5003ee4ee05",
+          "bzip2-LICENSE.txt": "9d12f712f25401a36379ba8bb7c76954584007b9e40744e2141af28f1915a289",
+          "LZMA-NOTICE.txt": "f09c7fc1db69f4f99e1ba15568df4a15768fc645d807d3ea3d18748424e680ed",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "zlib-NOTICE.txt": "c410afe2dcf3c70165dfad944e4e5ec7953c45f1c1b4066c8c77cca0173a3512"
+        }
+      },
+      "artifact": {
+        "id": 12097489594,
+        "name": "m2-windows-window-2154bed3917ab1322545a365a58c5d2e708906b3",
+        "size_in_bytes": 1727756,
+        "digest": "sha256:62cc8fd8c0f598576058e0e2a1f9bd1dcab449d4b72f3300e28af4e166a99f9c"
+      },
+      "compiler_identification": [
+        "MSVC 19.44.35229.0",
+        "MSVC 19.44.35229.0"
+      ],
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "video": "dummy",
+        "physical_desktop": false
+      },
+      "downloaded_binaries_verified": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "90f2d9940a525afe58776c1b1a2e474da118233e44a186ca73afeac8bdfd1afd",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "8e0bffcd5f72143c3eaeaffc91ce179e31c15750f276d4ef6ff0a9b815a68e11",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "35208b7159fedc2a8e87111aef6cde3df8d7a136fb974de8e4debda599102838",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "c1fa1016e8dddda19921f16e112beceee6f720635281a624f03a29cd02beba6c",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "05ca313ad8d48029eef38984dd2b545676313259b4b0000aa39c1f4d67ec732c",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "a6c32b9e54f25fc5b6a21900bdf9784d592f7cb78ff9702d8bc0eca8bfeb2da9",
+          "file_type": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        }
+      ],
+      "notices_verified": true
+    }
+  ],
+  "limits": [
+    "SDL dummy-driver fixture execution is distinct from desktop and physical input.",
+    "macOS ARM64 fixture execution is real; Cocoa desktop input and original-data execution were not observed.",
+    "Windows native ABI comparison is distinct from the full legacy Windows client.",
+    "Diagnostic SDL software texture presentation does not establish a Gx renderer or graphics prototype.",
+    "No game assets, credentials or build outputs are committed."
+  ]
+}
