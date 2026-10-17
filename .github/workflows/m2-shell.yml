@@ -92,7 +92,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libegl-dev libgbm-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev
+          sudo apt-get install -y libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libegl-dev libgles-dev libgbm-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev
       - name: Check source-selection and graph-audit fixtures
         run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
       - name: Compile and test synthetic native window/input services

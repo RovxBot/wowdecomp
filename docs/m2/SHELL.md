@@ -17,8 +17,9 @@ Native and legacy Windows runtime ABIs remain separate.
 to `7f3ae3d57459e59943a4ecfefc8f6277ec6bf540`, archive SHA256
 `7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5`.
 Actions builds the static library and retains its license with the artifacts.
-Audio, joystick/HID peripheral services and hardware rendering are disabled for
-this diagnostic target. The software texture preview establishes decoded pixels
+Audio and joystick/HID peripheral services are disabled for this diagnostic
+target. The software renderer uses SDL's GLES2/Metal texture-framebuffer
+presentation where Wayland/Cocoa require it. The texture preview establishes decoded pixels
 and a usable shell, not a Gx backend, world renderer or graphics prototype.
 NVAPI, SteelSeries and Logitech LCD are absent and explicitly reported optional.
 
