@@ -7,7 +7,7 @@ clean-data identity, live server/Warden evidence and captures/timings are incomp
 
 [M0 PR #1](https://github.com/RovxBot/wowdecomp/pull/1) and
 [initial M1 PR #2](https://github.com/RovxBot/wowdecomp/pull/2) are merged into main.
-M1 core services and the minimal native lifecycle meet their exit criteria in
+M1 core services and the minimal native lifecycle are complete and merged via
 [PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core, sanitizer
 and Windows client regression checks. See [M1 foundations](docs/m1/FOUNDATIONS.md),
 [runtime design](docs/m1/RUNTIME_DESIGN.md),
@@ -176,8 +176,9 @@ passing.
 Depends on: M0 source/dependency inventory. Windows regression checks start here.
 
 Status: **complete for portable core/build/minimal-lifecycle exit criteria**.
-Windows client regression also passed in
-[run 38989058307](https://github.com/RovxBot/wowdecomp/actions/runs/38989058307). [M1 foundations](docs/m1/FOUNDATIONS.md) records
+Final implementation `b818951` passed core/sanitizer
+[run 38990308909](https://github.com/RovxBot/wowdecomp/actions/runs/38990308909) and
+Windows client regression [run 38990308848](https://github.com/RovxBot/wowdecomp/actions/runs/38990308848). [M1 foundations](docs/m1/FOUNDATIONS.md) records
 contracts, scope and evidence. Core services and the native lifecycle passed on
 Linux x86-64, macOS ARM64 and Windows x64, including a Linux sanitizer configuration,
 in [run 38989058328](https://github.com/RovxBot/wowdecomp/actions/runs/38989058328) at

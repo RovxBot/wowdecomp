@@ -38,7 +38,7 @@ it does not turn a documentation request into authorization to start the whole p
   with playerbots and enabled Warden; desired manifests do not verify live image
   identity, realm endpoints or gameplay compatibility. Do not change cluster/server
   policy as part of the client port.
-- M1 runtime foundations are implemented in
+- M1 runtime foundations were merged into main via
   [PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core,
   native lifecycle, sanitizer and Windows client checks. M1 core exit criteria
   are met; M2 asset/filesystem/SDL work is next. Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md),
