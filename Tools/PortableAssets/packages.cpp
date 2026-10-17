@@ -56,6 +56,10 @@ int main(int argc, char** argv) {
         { std::unique_lock<std::mutex> lock(gate); changed.wait(lock, [&] { return waiting == 4; }); start = true; changed.notify_all(); }
         for (auto& reader : readers) reader.join();
         Check(correct.load(), "Concurrent first-use blast vector failed");
+        auto padded = pkware; padded.resize(plain.size());
+        Check(Decompress(padded, plain.size(), true) == plain, "Equal-size implode stream was mistaken for raw data");
+        padded.resize(plain.size() + 1);
+        Check(Decompress(padded, plain.size(), true) == plain, "Implode extent convention changed");
         Fails([&] { Decompress(pkware, plain.size() - 1, true); });
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0xff}, 100); });
         Fails([] { Decompress(Bytes{0x20, 0, 0, 0, 100, 0}, 99); });

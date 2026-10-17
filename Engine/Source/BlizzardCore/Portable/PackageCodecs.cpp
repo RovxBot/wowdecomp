@@ -92,10 +92,14 @@ Bytes Stage(const Bytes& input, size_t capacity, unsigned codec) {
 }
 }
 Bytes Decompress(const Bytes& input, size_t capacity, bool implode) {
-    if (capacity > 256 * 1024 * 1024 || input.size() > capacity) throw Error("Invalid MPQ decompression extent");
+    if (capacity > 256 * 1024 * 1024 || input.size() > 256 * 1024 * 1024) throw Error("Invalid MPQ decompression extent");
+    // IOMpqReadUnit's MPQ_FILE_IMPLODE path always invokes blast, including
+    // equal/larger encoded sectors. Only the multi-compression path uses the
+    // equal-size raw-sector convention from System_SComp::Decompress.
+    if (implode) return Stage(input, capacity, 8);
+    if (input.size() > capacity) throw Error("Invalid MPQ multi-compression extent");
     if (input.size() == capacity) return input;
     if (input.empty()) throw Error("Empty compressed MPQ sector");
-    if (implode) return Stage(input, capacity, 8);
     unsigned method = input[0];
     Bytes payload(input.begin() + 1, input.end());
     if (method == 0x22 || method == 0x30)
