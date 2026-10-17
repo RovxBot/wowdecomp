@@ -41,7 +41,9 @@ bool Fill(const struct stat& status, Blizzard::File::FileInfo& info) {
 bool Open(const std::filesystem::path& path, int32_t access, Blizzard::File::Native::Disposition disposition, Handle& result) {
     using D = Blizzard::File::Native::Disposition;
     result = Invalid;
-    int flags = O_CLOEXEC | ((access & 3) == 3 ? O_RDWR : (access & 2) ? O_WRONLY : O_RDONLY);
+    // Nonblocking open lets the regular-file check reject FIFOs without waiting
+    // for a peer. POSIX ignores this flag for subsequent regular-file I/O.
+    int flags = O_CLOEXEC | O_NONBLOCK | ((access & 3) == 3 ? O_RDWR : (access & 2) ? O_WRONLY : O_RDONLY);
     switch (disposition) {
         case D::CreateNew: flags |= O_CREAT | O_EXCL; break;
         case D::CreateAlways: flags |= O_CREAT | O_TRUNC; break;

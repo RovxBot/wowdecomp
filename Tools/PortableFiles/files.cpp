@@ -12,6 +12,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#if !defined(WOWDECOMP_OS_WINDOWS)
+#include <sys/stat.h>
+#endif
 
 namespace fs = std::filesystem;
 namespace F = Blizzard::File;
@@ -203,6 +206,12 @@ void Paths(const fs::path& root) {
     } else std::puts("SKIP: symlink fixture unavailable on this runner/filesystem");
 }
 void FileOperations(const fs::path& root) {
+#if !defined(WOWDECOMP_OS_WINDOWS)
+    const auto pipe = Name(root / "not-a-file");
+    Check(mkfifo(pipe.c_str(), 0600) == 0, "create nonregular-file fixture");
+    F::StreamRecord* special = nullptr;
+    Check(!F::Open(pipe.c_str(), 1 | 0x1000, special) && !special, "reject FIFO without blocking on open");
+#endif
     Save(root / "source", "source"); Save(root / "destination", "sentinel");
     Check(!F::Copy(Name(root / "source").c_str(), Name(root / "destination").c_str(), false) && Load(root / "destination") == "sentinel", "no-overwrite copy preserves destination");
     Check(!F::Move(Name(root / "source").c_str(), Name(root / "destination").c_str()) && Load(root / "destination") == "sentinel", "no-replace move preserves destination");
