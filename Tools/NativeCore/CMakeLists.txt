@@ -1,0 +1,6 @@
+add_executable(NativeCore main.cpp)
+target_link_libraries(NativeCore PRIVATE WowCoreServices)
+if(BUILD_TESTING)
+    add_test(NAME native-core-lifecycle COMMAND NativeCore)
+    set_tests_properties(native-core-lifecycle PROPERTIES TIMEOUT 30)
+endif()

@@ -18,10 +18,14 @@ original.
 [PORTING_PLAN.md](PORTING_PLAN.md) describes the planned Linux x86-64 and macOS ARM64 ports,
 with selected engine improvements from the 4.3.4 decompilation. A native playable client is not implemented yet.
 Coding agents should read [AGENTS.md](AGENTS.md). The [M0 report](docs/m0/BASELINE.md)
-records the dependency audit and verified Windows x64 Actions build; gameplay baseline validation is pending.
+records the dependency audit and Windows x64 Actions build. Operator runtime results
+report D3D9 passes and matching OpenGL failures; data/server evidence remains partial.
 Client and dependency builds for this porting effort run in GitHub Actions.
-The [M1 foundations](docs/m1/FOUNDATIONS.md) work isolates platform builds and starts
-an asset-free portable core; it does not yet provide native client startup.
+The [M1 foundations](docs/m1/FOUNDATIONS.md) provide an asset-free core-service
+library and `NativeCore` initialization/shutdown executable, tested in hosted
+Linux x86-64, macOS ARM64 and Windows x64 jobs. The full native game remains gated.
+The [M1 core workflow](.github/workflows/m1-core.yml) also runs Linux ASan/UBSan
+and provides NativeCore binaries plus evidence; no game data is needed for that tool.
 
 ## Progress
 

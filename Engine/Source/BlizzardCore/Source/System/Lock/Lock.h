@@ -3,18 +3,33 @@
 
 #include <cstdint>
 #include <new>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <atomic>
+#include <mutex>
+#include "Engine/Source/Os/Portable/Runtime.h"
+#else
 #include <windows.h>
+#endif
 #include "Engine/Source/BlizzardCore/Source/System/Process/Process.h"
 
 namespace Blizzard {
 namespace Lock {
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+using Event = OsSyncHandle*;
+struct Mutex { std::recursive_mutex* implementation = nullptr; };
+#else
 typedef HANDLE Event;
 typedef CRITICAL_SECTION Mutex;
+#endif
 
 class Atomic {
     public:
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::atomic<int32_t> m_value{0};
+#else
     /* 0000 */ volatile int32_t m_value;
+#endif
 
     int32_t Decrement();
     int32_t Increment();
@@ -25,6 +40,9 @@ class ConstructOnce {
     public:
     static void Construct(void* param);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::once_flag m_once;
+#endif
     /* 0000 */ bool m_constructed;
     /* 0001 */ uint8_t unused_0001[3];
     /* 0004 */ Atomic m_count;
@@ -80,6 +98,9 @@ void Blizzard::Lock::ConstructOnce<T>::Construct(void* param) {
 // INLINED
 template <class T>
 T* Blizzard::Lock::ConstructOnce<T>::Get() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::call_once(this->m_once, [this] { Construct(this); this->m_constructed = true; });
+#else
     if (!this->m_constructed) {
         if (this->m_count.Increment() == 1) {
             Construct(this);
@@ -91,6 +112,7 @@ T* Blizzard::Lock::ConstructOnce<T>::Get() {
         }
     }
 
+#endif
     return reinterpret_cast<T*>(this->m_storage);
 }
 

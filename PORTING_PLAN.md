@@ -1,19 +1,19 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-16 after the M0 audit. Source/dependency
-inventory and the Windows x64 GitHub Actions build are verified. M0 remains partial:
-native Windows gameplay/OpenGL observations and a verified stock dataset are pending.
+Created: 2026-10-16. Updated: 2026-10-17. M0 source inventory and Windows
+compilation are verified; operator Windows sessions report D3D9 passing and the
+same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
+clean-data identity, live server/Warden evidence and captures/timings are incomplete.
 
-Current evidence and handoff: [M0 baseline report](docs/m0/BASELINE.md),
-[build manifest](docs/m0/windows-baseline.json),
-[runtime session record](docs/m0/RUNTIME_SESSION.md) and
-[backport ledger](docs/BACKPORTS.md). Repository agent instructions are in
-[AGENTS.md](AGENTS.md).
-
-Implementation branch: `native-port/m0-baseline`,
-[draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1). The source-audit workflow
-also passed in [run 38846763847](https://github.com/RovxBot/wowdecomp/actions/runs/38846763847).
-These changes have not been merged into `main`.
+[M0 PR #1](https://github.com/RovxBot/wowdecomp/pull/1) and
+[initial M1 PR #2](https://github.com/RovxBot/wowdecomp/pull/2) are merged into main.
+M1 core services and the minimal native lifecycle meet their exit criteria in
+[PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core, sanitizer
+and Windows client regression checks. See [M1 foundations](docs/m1/FOUNDATIONS.md),
+[runtime design](docs/m1/RUNTIME_DESIGN.md),
+[upstream-fix review](docs/m1/UPSTREAM_REVIEW.md) and the
+[M0 baseline report](docs/m0/BASELINE.md). Historical source/build identities remain
+in the reports and manifests. Repository instructions are in [AGENTS.md](AGENTS.md).
 
 ## Outcome and scope
 
@@ -175,16 +175,14 @@ passing.
 
 Depends on: M0 source/dependency inventory. Windows regression checks start here.
 
-Status: started on `native-port/m1-foundations` from M0 handoff `8846d9b`.
-The first work package isolates Windows source/build selection and adds an
-asset-free hash core target with hosted checks. See [M1 foundations](docs/m1/FOUNDATIONS.md)
-for evidence and remaining runtime work. M1 exit criteria and M0 runtime sign-off
-remain open.
-The initial core checks passed on Linux x86-64, macOS ARM64 and Windows x64 in
-[run 38848848241](https://github.com/RovxBot/wowdecomp/actions/runs/38848848241);
-both Windows client executables built in
-[run 38848848237](https://github.com/RovxBot/wowdecomp/actions/runs/38848848237),
-at source commit `e24dcebfc6815646e0cd5d42e9ef916c8acbcc0c`.
+Status: **complete for portable core/build/minimal-lifecycle exit criteria**.
+Windows client regression also passed in
+[run 38989058307](https://github.com/RovxBot/wowdecomp/actions/runs/38989058307). [M1 foundations](docs/m1/FOUNDATIONS.md) records
+contracts, scope and evidence. Core services and the native lifecycle passed on
+Linux x86-64, macOS ARM64 and Windows x64, including a Linux sanitizer configuration,
+in [run 38989058328](https://github.com/RovxBot/wowdecomp/actions/runs/38989058328) at
+`9ee86a565a26dda463ea47eedb99d0fe79dc28ea`. The full native game remains in later
+milestones; M0 runtime/data/server sign-off remains partial.
 
 1. Make compile definitions, linker flags, resource files and libraries conditional
    on OS. Replace recursive platform globs with explicit selection so Linux never
@@ -395,7 +393,7 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [x] Build Windows x64 in GitHub Actions and verify artifact/binary identities.
 - [x] Add OS/CPU-aware CMake selection and a portable core build target without
       claiming a native full-client build prematurely.
-- [ ] Implement core allocation, logging, time and synchronization adapters with
+- [x] Implement core allocation, logging, time and synchronization adapters with
       focused behavior checks; preserve Windows baseline builds.
 - [ ] Port file/archive access and add an asset inspection executable for 12340 data.
 - [ ] Add the SDL shell and prove input/settings/startup/shutdown behavior.

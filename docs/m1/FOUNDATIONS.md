@@ -1,8 +1,12 @@
 # M1 build isolation and portable core
 
 Started 2026-10-16 on `native-port/m1-foundations`, based on M0 handoff
-`8846d9b4e9dc6684ca167a45e79f324df059b8b5`. M1 is in progress. M0 remains partial;
-its Windows runtime, clean-data and live-server observations are still required.
+`8846d9b4e9dc6684ca167a45e79f324df059b8b5`. The initial build-isolation work was merged via [PR #2](https://github.com/RovxBot/wowdecomp/pull/2)
+on 2026-10-17 after [M0 PR #1](https://github.com/RovxBot/wowdecomp/pull/1).
+M1 runtime foundations are implemented in [PR #3](https://github.com/RovxBot/wowdecomp/pull/3);
+M1 foundation exit criteria are met by the hosted evidence below. M0 remains partial: operator
+Windows results are recorded, with a pre-existing OpenGL failure and incomplete
+clean-data/live-server evidence. See [the M1 runtime session](RUNTIME_SESSION.md).
 The [M0 manifest](../m0/windows-baseline.json) remains the regression reference:
 run `38845726826`, harness `5fece2ca698c53680174a4b8c20948b5c484ab21`, product source
 `cd29da38b9162419ee0fa29c6b16e07e10f6c4f0`.
@@ -39,7 +43,7 @@ target commands. Initial compiler gates are MSVC from VS 2022 and Clang/Apple Cl
 14 or newer. These are build gates, not a tested game support matrix. No SDL3/bgfx,
 audio or decoder version is newly selected in this work package.
 
-## Hosted validation
+## Initial hosted validation (2026-10-16)
 
 All client/dependency compilation stays in GitHub Actions. The guarded entry points
 are [the core check script](../../Tools/Porting/run_core_checks.py) and
@@ -105,32 +109,68 @@ Use the workflow dispatch UI for repeats; do not run compilation locally.
 The default full-client configuration still rejects Linux/macOS; core presets
 explicitly turn off `WOWDECOMP_BUILD_CLIENT` and enable only the audited subset.
 
-## Runtime handoff and remaining M1 work
+## Runtime services and native lifecycle (2026-10-17)
 
-This work package does not satisfy M1's runtime exit criteria. In particular:
+`WowCoreServices` now supplies native implementations through the existing Os,
+Storm and BlizzardCore interfaces. [Runtime design](RUNTIME_DESIGN.md) records
+allocation ownership/alignment/realloc/failure semantics, log/error lifecycle,
+wait-all atomicity, event/semaphore/mutex behavior, thread/TLS shutdown ordering,
+calendar epochs, stack/FP startup and explicit unavailable capabilities. It also
+records the required M2 nearby-allocation design without changing M2 or OsAllocNear.
+The [upstream review](UPSTREAM_REVIEW.md) records the retained mouse and tutorial
+fixes. No donor backport or graphics change was included.
 
-1. Port allocation/alignment and error/log handling through existing Os, Storm and
-   BlizzardCore boundaries. `SMem` owns global new/delete, rounds allocations and
-   uses `_msize` for realloc/zero-fill behavior. Specify overflow, failure and
-   ownership semantics before replacing it. Track the existing `SIMD::AllocA16` /
-   `FreeA16` pairing separately; it is not changed here.
-2. Port time, secure randomness, TLS, threads, atomics and locks with focused
-   semantic checks. Storm supports recursive locks, events/semaphores, wait-all /
-   wait-any and explicit thread lifetimes; BlizzardCore has separate lock/thread
-   interfaces. Test timeout/notification/shutdown behavior before using them in I/O.
-3. Complete startup/global-constructor audit. The existing Windows `start()` calls
-   `StormRtlInitialize()` before CRT startup; that initializes logging then memory.
-   Windows `WinMain` switches main onto an 8 MiB fiber and sets floating-point/CRT
-   behavior. Storm logging/lock globals and process-wide allocation must remain
-   valid during constructors and teardown. The core test uses ordinary CRT `main`
-   with none of those client globals; it is not a replacement client entry.
-4. Design nearby allocation before loading M2: `M2Array` keeps signed 32-bit
-   relative offsets, and x64 `OsAllocNear` reserves/commits memory within a bounded
-   range of its owner. Preserve ownership, range and failure behavior; generic
-   malloc is not a substitute. No M2 representation or allocator changes here.
-5. Continue calling-convention, SEH, intrinsics, LP64/LLP64 and shared-header audit.
-   No global structure packing or Windows-on-POSIX compatibility macros are added.
+The core/service/native targets passed in [run 38989058328](https://github.com/RovxBot/wowdecomp/actions/runs/38989058328)
+at `9ee86a565a26dda463ea47eedb99d0fe79dc28ea` on Linux x86-64/Clang, macOS ARM64/Apple
+Clang and Windows x64/MSVC, plus Linux ASan/UBSan. Each configuration passed all
+ten source-audit/selection fixtures and four CTest checks:
 
-The queued CPUID fix remains a separate candidate in [the backport ledger](../BACKPORTS.md).
-M1 completes only after core services and a minimal native client lifecycle are
-implemented and checked, with a passing Windows regression build.
+- `native-core-lifecycle`: three initialization/shutdown cycles, an actual 8 MiB
+  stack, FP startup, early global allocation/logging and late global handle/log
+  teardown. This runs the minimal core executable, not CommonMain or gameplay.
+- `portable-core-hashes`: unchanged MD5/SHA-1 known-answer/streaming fixtures.
+- `portable-core-services`: allocation/realloc/zeroing/overflow/alignment, recursive
+  and abandoned mutexes, manual/auto-reset events, bounded semaphores, wait-any/all,
+  deadlines, shared-reader/excluded-writer behavior, atomics, concurrent once/TLS
+  publication, TLS destruction before completion, early caller-handle closure,
+  serialized/append logging and calendar/monotonic time boundaries.
+- `portable-random-fails-closed`: invalid random output fails with a fatal diagnostic
+  rather than silently returning or using a weak fallback. Ordinary random checks
+  exercise buffer delivery/bounds and repeated OS requests, not statistical quality.
+
+[Durable runtime evidence](runtime-validation.json) retains exact toolchain,
+runner, artifact, binary hash, architecture and CTest results. NativeCore binaries
+from the downloaded artifacts matched their hashes. The macOS job verifies all
+three executables as arm64 and runs them on an ARM64 runner. Linux sanitizer
+results apply to core services; they do not validate the full game or all legacy
+hash internals. No client/dependency compilation ran locally.
+
+The workflow runs `run_core_checks.py` with `linux-core`, `linux-core-asan`,
+`macos-arm64-core` and `windows-core`. It builds `WowPortableCore`, `WowCoreServices`,
+`PortableCoreCheck`, `CoreServicesCheck` and `NativeCore`, then executes CTest.
+Core artifacts now include `bin/NativeCore` (or `NativeCore.exe`) alongside logs
+and manifests. NativeCore runs in a writable directory and emits `native-core.log`;
+it needs no game data or server. Compilation remains exclusively in Actions.
+
+The final Windows full-client regression passed in
+[run 38989058307](https://github.com/RovxBot/wowdecomp/actions/runs/38989058307) at
+`9ee86a565a26dda463ea47eedb99d0fe79dc28ea`. Both client executables and XvidDecoder
+built with signature checks enabled; the generated graph rejected neither ABI nor
+platform selection. Downloaded binaries matched their hashes and PE x64 machine
+identity. [The durable Windows record](runtime-windows-regression.json) preserves
+that evidence. The pinned donor/source audit also passed in
+[run 38989058333](https://github.com/RovxBot/wowdecomp/actions/runs/38989058333).
+
+M1 is **complete for its portable core/build/minimal-lifecycle exit criteria**.
+This does not establish a native playable client or complete the M0 runtime/data /
+server sign-off. Win32 compilation/layout checks were not run. The 2026-10-17 operator sessions cover the
+older M0/M1 Windows artifacts, with D3D9 reported passing and OpenGL failures
+matching across both. They do not cover the later upstream cursor change or this
+runtime-services implementation.
+
+The complete native game remains gated. Files/MPQ/async I/O, data inspection and
+SDL application/input belong to M2; networking/rendering/audio and gameplay remain
+later work. Legacy thread pools, process launching and SEH/crash UI are not native
+core exports; their callers need explicit integration as those modules are ported.
+CPUID BP-001 remains a separate queued backport. Existing Windows implementations,
+verification defaults, protocol/assets and M2 relative addressing are preserved.

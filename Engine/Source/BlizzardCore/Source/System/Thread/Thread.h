@@ -1,6 +1,10 @@
 #ifndef ENGINE_SOURCE_BLIZZARDCORE_SOURCE_SYSTEM_THREAD_THREAD_H
 #define ENGINE_SOURCE_BLIZZARDCORE_SOURCE_SYSTEM_THREAD_THREAD_H
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/BlizzardCore/Portable/Thread.h"
+#else
+
 #include <cstdint>
 #include <functional>
 #include <set>
@@ -131,5 +135,7 @@ void ShutdownThreadSystem();
 uint32_t __stdcall ThreadStarter(void* param);
 
 }
+
+#endif // WOWDECOMP_PORTABLE_RUNTIME
 
 #endif

@@ -4,6 +4,14 @@ Audited on 2026-10-16. Source/dependency investigation is complete for the initi
 porting inventory. M0 runtime sign-off remains open. No client was built locally,
 no game data was changed, and no Kubernetes resource or server setting was changed.
 
+2026-10-17 follow-up: [PR #1](https://github.com/RovxBot/wowdecomp/pull/1) is merged
+into main at `9aecf4972fb360a70febdfb452cc1dc322492b6e`. The operator's
+[runtime record](RUNTIME_SESSION.md) reports D3D9 passes and pre-existing OpenGL
+scene/busy-cursor failures on both M0 and M1, on Windows 11 / RTX 2060 / NVIDIA
+572.42. No logs/screenshots were collected; data/server identity and session timing
+are incomplete. The original inventory/build observations below remain historical
+2026-10-16 evidence and do not change the recorded baseline identities.
+
 ## Revisions and reproducibility
 
 | Item | Revision/evidence |
@@ -38,8 +46,8 @@ installation or committed game asset.
 The same classifier/tests and comparison passed in
 [GitHub Actions source-audit run 38846763847](https://github.com/RovxBot/wowdecomp/actions/runs/38846763847)
 at `f77f50cc1b7a04ebb77adcef9e50d70ee8978189`. The work is reviewable in
-[draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1), branch
-`native-port/m0-baseline`; it has not been merged into `main`.
+[PR #1](https://github.com/RovxBot/wowdecomp/pull/1), branch
+`native-port/m0-baseline`; merged on 2026-10-17 as recorded above.
 
 ## Build and execution environment
 

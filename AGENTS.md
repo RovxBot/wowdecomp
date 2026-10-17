@@ -6,7 +6,7 @@ Build a native 3.3.5a (12340) client for Linux x86-64 and macOS ARM64, retaining
 Windows x64 as the regression reference. Use 4.3.4 (15595) as a reference and source
 of selected improvements. Read [PORTING_PLAN.md](PORTING_PLAN.md) and the relevant
 module/build files before changing implementation. [README.md](README.md) describes
-the current Windows build; planned native commands are not implemented yet.
+the Windows client and hosted native core checks; the full native game is still gated.
 
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
@@ -20,14 +20,15 @@ it does not turn a documentation request into authorization to start the whole p
   x64 reference and [M0 source audit](.github/workflows/m0-audit.yml) for comparison
   against the pinned donor. Add Linux/macOS Actions jobs as their targets become
   buildable; do not claim unsupported native builds from the current workflows.
-- M0 source/dependency inventory and Windows x64 compilation are verified; runtime
-  sign-off is still pending. Read [docs/m0/BASELINE.md](docs/m0/BASELINE.md), the
+- M0 source/dependency inventory and Windows x64 compilation are verified. Operator
+  Windows sessions report D3D9 passes and matching pre-existing OpenGL failures;
+  data/server identity and captured evidence remain partial. Read [docs/m0/BASELINE.md](docs/m0/BASELINE.md), the
   [durable build manifest](docs/m0/windows-baseline.json), the
   [runtime session record](docs/m0/RUNTIME_SESSION.md) and
   [backport ledger](docs/BACKPORTS.md) before continuing.
-- M0 work is on `native-port/m0-baseline` in
-  [draft PR #1](https://github.com/RovxBot/wowdecomp/pull/1). It is not merged into
-  `main`. Use the reports' exact run/commit identities when comparing later work.
+- M0 [PR #1](https://github.com/RovxBot/wowdecomp/pull/1) and initial M1
+  [PR #2](https://github.com/RovxBot/wowdecomp/pull/2) were merged into `main` on
+  2026-10-17. Preserve the reports' exact historical run/commit identities.
 - The M0 product source is `cd29da38b9162419ee0fa29c6b16e07e10f6c4f0`, including the
   upstream tutorial bounds fix after the original planning revision. Preserve it.
 - Treat `/mnt/games/ChromieCraft` as read-only. It is a modified 12340/enUS data
@@ -37,12 +38,17 @@ it does not turn a documentation request into authorization to start the whole p
   with playerbots and enabled Warden; desired manifests do not verify live image
   identity, realm endpoints or gameplay compatibility. Do not change cluster/server
   policy as part of the client port.
-- M1 can begin source/build isolation while M0 hardware observations remain open.
-  Keep M0 partial until native Windows D3D9/OpenGL sessions and clean-data/server
-  evidence are actually recorded. Hosted build success is not gameplay evidence.
-- M1 build isolation is on `native-port/m1-foundations`, based on the M0 handoff.
-  Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md) for the exact hosted evidence,
-  audited portable-core scope and remaining runtime work before continuing M1.
+- M1 runtime foundations are implemented in
+  [PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core,
+  native lifecycle, sanitizer and Windows client checks. M1 core exit criteria
+  are met; M2 asset/filesystem/SDL work is next. Read [docs/m1/FOUNDATIONS.md](docs/m1/FOUNDATIONS.md),
+  [runtime design](docs/m1/RUNTIME_DESIGN.md) and the
+  [upstream review](docs/m1/UPSTREAM_REVIEW.md) before continuing.
+- M0 remains partial until clean-data/server evidence and the required Windows
+  observations/captures are recorded. M1 core success does not establish gameplay.
+- Preserve upstream `4119c4b` / `5b41f72` cursor anchoring in both Windows Input.cpp
+  files, in addition to the original tutorial bounds fix. The user's sessions
+  predate that upstream input change; do not claim it was runtime-validated.
 
 ## Compatibility requirements
 
@@ -140,9 +146,10 @@ cmake --build build/x64 --config Release --target WowClient Wow --parallel
 ```
 
 The full-client CMake configuration still rejects Linux and macOS. The M1 core
-presets explicitly disable the client and build only the allowlisted hash routines
-and asset-free checks. Use [M1 core Actions](.github/workflows/m1-core.yml) for that
-subset; its success does not establish native client startup or gameplay. Do not
+presets explicitly disable the client and build only allowlisted hash/core-service
+sources and asset-free native lifecycle checks. Use [M1 core Actions](.github/workflows/m1-core.yml) for that
+subset; its success establishes a minimal core lifecycle, not full client startup
+or gameplay. Do not
 invent presets/tests or claim full native support from core-only compilation. Add
 native client build/run instructions when the corresponding Actions targets work.
 

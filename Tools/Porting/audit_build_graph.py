@@ -9,7 +9,7 @@ def audit(targets, mode, target_os, cpu):
     compiled = [t for t in targets if t['type'] in
                 ('STATIC_LIBRARY', 'SHARED_LIBRARY', 'EXECUTABLE', 'OBJECT_LIBRARY')]
     names = {t['name'] for t in compiled}
-    if mode == 'core' and names != {'WowPortableCore', 'PortableCoreCheck'}:
+    if mode == 'core' and names != {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}:
         errors.append(f'Unexpected core targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')
@@ -22,6 +22,9 @@ def audit(targets, mode, target_os, cpu):
                     'WOWDECOMP_ARCH_64=1' if cpu != 'X86' else 'WOWDECOMP_ARCH_32=1'}
         if not required <= definitions:
             errors.append(f"{target['name']}: missing target identity: {sorted(required - definitions)}")
+        if (mode == 'windows' and target['name'] in {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'}
+                and 'WOWDECOMP_PORTABLE_RUNTIME=1' in definitions):
+            errors.append(f"{target['name']}: portable runtime ABI leaked into the legacy client")
         for source in sources:
             parts = Path(source).parts
             if mode == 'core' and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}

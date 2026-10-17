@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -13,7 +14,7 @@ from audit_build_graph import audit, read_targets
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--preset', choices=['linux-core', 'macos-arm64-core', 'windows-core'], required=True)
+    parser.add_argument('--preset', choices=['linux-core', 'linux-core-asan', 'macos-arm64-core', 'windows-core'], required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
@@ -26,10 +27,11 @@ def main():
     query.parent.mkdir(parents=True, exist_ok=True)
     query.touch()
     target_os, cpu = {'linux-core': ('LINUX', 'X86_64'),
+                      'linux-core-asan': ('LINUX', 'X86_64'),
                       'macos-arm64-core': ('MACOS', 'ARM64'),
                       'windows-core': ('WINDOWS', 'X86_64')}[args.preset]
     manifest = {
-        'schema_version': 1, 'scope': 'M1 hash core only; no native client startup/gameplay',
+        'schema_version': 1, 'scope': 'M1 core services and native lifecycle; no game assets/window/network/gameplay',
         'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         'workflow_run': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         'preset': args.preset, 'target_os': target_os, 'target_cpu': cpu,
@@ -64,18 +66,26 @@ def main():
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
-                      'WowPortableCore', 'PortableCoreCheck', '--parallel', '2'])
+                      'WowPortableCore', 'PortableCoreCheck', 'CoreServicesCheck', 'NativeCore', '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
-        executable = build / 'bin' / ('Release/PortableCoreCheck.exe' if target_os == 'WINDOWS' else 'PortableCoreCheck')
-        if target_os == 'MACOS':
-            architectures = subprocess.check_output(['lipo', '-archs', str(executable)], text=True).strip()
-            manifest['binary_architectures'] = architectures
-            if architectures != 'arm64':
-                raise RuntimeError(f'Expected an ARM64 executable, found {architectures}')
-        if target_os != 'WINDOWS':
-            run('binary-type', ['file', str(executable)])
-        manifest['check_executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
-        manifest['status'] = 'core compilation and fixture checks passed; full client unported'
+        manifest['binaries'] = []
+        for name in ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore']:
+            relative = f'Release/{name}.exe' if target_os == 'WINDOWS' else name
+            executable = build / 'bin' / relative
+            entry = {'name': name, 'sha256': hashlib.sha256(executable.read_bytes()).hexdigest()}
+            if target_os == 'MACOS':
+                architectures = subprocess.check_output(['lipo', '-archs', str(executable)], text=True).strip()
+                entry['binary_architectures'] = architectures
+                if architectures != 'arm64':
+                    raise RuntimeError(f'Expected an ARM64 executable, found {architectures}')
+            if target_os != 'WINDOWS':
+                run(f'binary-type-{name}', ['file', str(executable)])
+            manifest['binaries'].append(entry)
+            if name == 'NativeCore':
+                binary_directory = evidence / 'bin'
+                binary_directory.mkdir(exist_ok=True)
+                shutil.copy2(executable, binary_directory / executable.name)
+        manifest['status'] = 'core services, semantic checks and minimal native lifecycle passed; full game client unported'
     except Exception as exc:
         manifest['failed_phase'] = manifest['status']
         manifest['status'] = 'failed'

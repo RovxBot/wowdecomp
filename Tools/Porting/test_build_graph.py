@@ -16,7 +16,10 @@ class BuildGraphTests(unittest.TestCase):
                                             ['WOWDECOMP_OS_LINUX=1', 'WOWDECOMP_CPU_X86_64=1',
                                              'WOWDECOMP_ARCH_64=1']]}]) for name, kind, source in
                         [('WowPortableCore', 'STATIC_LIBRARY', 'Engine/Source/Storm/Source/MD5.cpp'),
-                         ('PortableCoreCheck', 'EXECUTABLE', 'Tools/PortableCore/hashes.cpp')]]
+                         ('PortableCoreCheck', 'EXECUTABLE', 'Tools/PortableCore/hashes.cpp'),
+                         ('WowCoreServices', 'STATIC_LIBRARY', 'Engine/Source/Os/Portable/Sync.cpp'),
+                         ('CoreServicesCheck', 'EXECUTABLE', 'Tools/PortableCore/runtime.cpp'),
+                         ('NativeCore', 'EXECUTABLE', 'Tools/NativeCore/main.cpp')]]
 
     def test_clean_core(self):
         self.assertEqual(audit(self.targets, 'core', 'LINUX', 'X86_64'), [])

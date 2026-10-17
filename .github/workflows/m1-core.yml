@@ -13,6 +13,10 @@ on:
       - 'Engine/Source/Storm/Source/MD5.*'
       - 'Engine/Source/Storm/Source/Sha1.*'
       - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
       - 'Tools/Porting/**'
   pull_request:
     paths:
@@ -24,6 +28,10 @@ on:
       - 'Engine/Source/Storm/Source/MD5.*'
       - 'Engine/Source/Storm/Source/Sha1.*'
       - 'Tools/PortableCore/**'
+      - 'Tools/NativeCore/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/BlizzardCore/**'
       - 'Tools/Porting/**'
 
 permissions:
@@ -41,6 +49,9 @@ jobs:
         include:
           - runner: ubuntu-24.04
             preset: linux-core
+            python: python3
+          - runner: ubuntu-24.04
+            preset: linux-core-asan
             python: python3
           - runner: macos-14
             preset: macos-arm64-core

@@ -4,6 +4,9 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <new>
+#endif
 #include "Engine/Source/Storm/H/Types.h"
 
 #define STORM_MAX_STR 0x7FFFFFFF
@@ -294,7 +297,11 @@ void DebugValidate(const char* expression);
 
 // INLINED
 inline void* operator new(size_t bytes, const char* filename, int32_t linenumber) {
-    return SMemAlloc(bytes, filename, linenumber, 0);
+    void* result = SMemAlloc(bytes, filename, linenumber, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!result) throw std::bad_alloc();
+#endif
+    return result;
 }
 
 // INLINED
@@ -304,7 +311,11 @@ inline void operator delete(void* ptr, const char* filename, int32_t linenumber)
 
 // INLINED
 inline void* operator new[](size_t bytes, const char* filename, int32_t linenumber) {
-    return SMemAlloc(bytes, filename, linenumber, 0);
+    void* result = SMemAlloc(bytes, filename, linenumber, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!result) throw std::bad_alloc();
+#endif
+    return result;
 }
 
 // INLINED
