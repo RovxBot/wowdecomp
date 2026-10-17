@@ -16,7 +16,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--preset', choices=['linux-core', 'linux-core-asan', 'macos-arm64-core', 'windows-core',
                                            'linux-files', 'linux-files-asan', 'macos-arm64-files', 'windows-files',
-                                           'linux-assets', 'linux-assets-asan', 'macos-arm64-assets', 'windows-assets'], required=True)
+                                           'linux-assets', 'linux-assets-asan', 'macos-arm64-assets', 'windows-assets',
+                                           'linux-async', 'linux-async-asan', 'macos-arm64-async', 'windows-async'], required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
@@ -28,15 +29,17 @@ def main():
     query = build / '.cmake/api/v1/query/codemodel-v2'
     query.parent.mkdir(parents=True, exist_ok=True)
     query.touch()
-    assets = '-assets' in args.preset
+    asynchronous = '-async' in args.preset
+    assets = '-assets' in args.preset or asynchronous
     files = '-files' in args.preset or assets
-    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core')
+    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core').replace('-async', '-core')
     target_os, cpu = {'linux-core': ('LINUX', 'X86_64'),
                       'linux-core-asan': ('LINUX', 'X86_64'),
                       'macos-arm64-core': ('MACOS', 'ARM64'),
                       'windows-core': ('WINDOWS', 'X86_64')}[core_preset]
     manifest = {
-        'schema_version': 1, 'scope': ('M2 native read-only MPQ/signatures with synthetic fixtures; no game/window' if assets else
+        'schema_version': 1, 'scope': ('M2 native asynchronous file, package/asset and core fixtures; no window/gameplay' if asynchronous else
+                                    'M2 native read-only MPQ/signatures with synthetic fixtures; no game/window' if assets else
                                     'M2 native host files/paths plus M1 core; synthetic fixtures, no archives/async/window/gameplay' if files else
                                      'M1 core services and native lifecycle; no game assets/window/network/gameplay'),
         'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
@@ -64,7 +67,7 @@ def main():
         run('cmake-version', ['cmake', '--version'])
         run('configure', ['cmake', '--preset', args.preset])
         targets = read_targets(build)
-        errors = audit(targets, 'assets' if assets else 'files' if files else 'core', target_os, cpu)
+        errors = audit(targets, 'async' if asynchronous else 'assets' if assets else 'files' if files else 'core', target_os, cpu)
         (evidence / 'build-graph.json').write_text(json.dumps({'errors': errors, 'targets': targets}, indent=2) + '\n')
         if errors:
             raise RuntimeError('\n'.join(errors))
@@ -72,7 +75,7 @@ def main():
         cache = (build / 'CMakeCache.txt').read_text()
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -93,7 +96,8 @@ def main():
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)
-        manifest['status'] = ('native MPQ/signature fixtures passed; original-data runtime validation separate' if assets else
+        manifest['status'] = ('native asynchronous file and package/asset fixtures passed; no full game/window' if asynchronous else
+                              'native MPQ/signature fixtures passed; original-data runtime validation separate' if assets else
                               'native host-file/path fixtures and core lifecycle passed; M2 archives/async/SDL not yet integrated' if files else
                               'core services, semantic checks and minimal native lifecycle passed; full game client unported')
     except Exception as exc:

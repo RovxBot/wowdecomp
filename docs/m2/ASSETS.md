@@ -66,8 +66,14 @@ ptrace environment; the checksum-verified hosted binary then ran outside that
 sandbox with leak detection and ASan/UBSan enabled, exit 0 and no stderr. No local
 client or dependency compilation occurred.
 
-Follow-up SKIN triangle decoding and a second original terrain-texture read are
-being validated after this checkpoint. Native inspection decodes geometry and
+The final asset implementation `376e7aa68cf2a38d6b1ab369705b1e43c4d3d8a3` also
+passed original SKIN decoding (6,356 triangles) and a nine-mip terrain BLP
+(256x256), with leak detection/ASan/UBSan and no stderr.
+[Final runtime record](native-asset-runtime-final.json) preserves its identity.
+All four hosted configurations passed [run 38995126319](https://github.com/RovxBot/wowdecomp/actions/runs/38995126319)
+and the PR merge checks passed [run 38995128220](https://github.com/RovxBot/wowdecomp/actions/runs/38995128220).
+The full Windows reference passed [PR run 38995128256](https://github.com/RovxBot/wowdecomp/actions/runs/38995128256).
+PR #6 is merged; no native full-game claim follows from these checks. Native inspection decodes geometry and
 pixels; complete animation/material/world-render integration remains M3 onward.
 
 ## Native model storage design (before enabling decoding)
