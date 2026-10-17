@@ -68,6 +68,14 @@ override](https://docs.mesa3d.org/egl.html#environment-variables).
 The runtime record preserves both outcomes, and the release tests use matching
 process-local EGL settings. No system environment was changed.
 
+The launcher follow-up now matches child `EGL_PLATFORM` when Linux `--video` is
+explicit, records effective graphics/input environment and writes a failed JSON
+record for timeout (exit 124). It removes an earlier session report before launch
+so failure cannot inherit a previous pass. Actual hosted-binary execution verified
+X11 startup with the conflicting inherited override and an intentional one-second
+timeout with a stale session file; the latter correctly failed and discarded that
+stale file. [The runtime record](shell-runtime.json) preserves both checks.
+
 All compilation occurred in GitHub Actions. Local work used source inspection,
 Python source/document checks and execution of downloaded, hash-verified binaries.
 No game installation, server policy or original Windows input implementation was

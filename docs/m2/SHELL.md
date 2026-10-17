@@ -78,10 +78,13 @@ Use an explicit `--video x11` or `--video wayland` to test that driver. Add
 `--smoke-ms 1500 --snapshot /tmp/wowdecomp-m2-shell.bmp` for an automatic smoke run.
 For the ASan artifact, add `--sanitizers`; leak checking needs execution outside a
 ptrace debugger/sandbox. Real data and private session reports remain external.
-If the desktop sets `EGL_PLATFORM`, match it to the requested driver for that
-process (for example, prefix the X11 command with `EGL_PLATFORM=x11`). The final
-desktop leak reports and the initial mismatched-platform crash are retained in
-the handoff; a release smoke pass does not establish leak-free execution.
+On Linux, an explicit `--video x11` or `--video wayland` also matches
+`EGL_PLATFORM` in the child process, avoiding an inherited conflicting override.
+Direct binary execution must match these variables itself. The wrapper records
+the effective settings, removes stale session output and records timeout as exit
+124 with `timed_out=true`; that is a failed acceptance check. The desktop leak
+reports and initial mismatched-platform crash remain in the handoff; a release
+smoke pass does not establish leak-free execution.
 
 ## Desktop acceptance
 
