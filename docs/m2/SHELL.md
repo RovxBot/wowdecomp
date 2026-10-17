@@ -1,8 +1,11 @@
 # M2 native SDL3 shell
 
-Implementation and hosted validation in progress on `native-port/m2-shell`.
-M2 is not signed off until real desktop startup, original-data reads, settings
-reload and clean shutdown are recorded. The full native game remains gated.
+Implemented and merged in [PR #8](https://github.com/RovxBot/wowdecomp/pull/8),
+head `2154bed3917ab1322545a365a58c5d2e708906b3`. Hosted checks and actual Linux
+desktop startup, original-data reads, settings reload and joined shutdown are
+recorded in the [M2 handoff](HANDOFF.md), [build record](shell-builds.json) and
+[runtime record](shell-runtime.json). Final physical input acceptance and desktop
+LeakSanitizer triage remain open. The full native game remains gated.
 
 The shell uses BlizzardCore's authenticated packages and scalar asset decoders,
 the Services owner-thread file queue and Os input/clipboard/IME entry points.
@@ -75,6 +78,10 @@ Use an explicit `--video x11` or `--video wayland` to test that driver. Add
 `--smoke-ms 1500 --snapshot /tmp/wowdecomp-m2-shell.bmp` for an automatic smoke run.
 For the ASan artifact, add `--sanitizers`; leak checking needs execution outside a
 ptrace debugger/sandbox. Real data and private session reports remain external.
+If the desktop sets `EGL_PLATFORM`, match it to the requested driver for that
+process (for example, prefix the X11 command with `EGL_PLATFORM=x11`). The final
+desktop leak reports and the initial mismatched-platform crash are retained in
+the handoff; a release smoke pass does not establish leak-free execution.
 
 ## Desktop acceptance
 

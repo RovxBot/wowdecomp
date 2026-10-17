@@ -1,0 +1,39 @@
+{
+  "scope": "Native asset inspection of external original-data candidate; no rendering/gameplay",
+  "executed_at": "2026-10-17T10:20:05.395567+00:00",
+  "source_commit": "2154bed3917ab1322545a365a58c5d2e708906b3",
+  "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39023953930",
+  "binary_sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c",
+  "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+  "machine": "x86_64",
+  "locale": "enUS",
+  "data_root": "external read-only reference",
+  "sanitizer_options": {
+    "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1"
+  },
+  "exit_code": 0,
+  "stdout": [
+    "Authenticated original signaturefile: 28948 registered MD5 records",
+    "DBFilesClient\\Map.dbc | patch-enUS-3.MPQ :: DBFILESCLIENT\\MAP.DBC | bytes=43226 md5=2b824e66afaa43c017832ca0e87ed999 registered-signature=verified",
+    "DBC decoded rows=135 fields=66 first-id=0",
+    "Interface\\Glues\\LoadingBar\\Loading-BarFill.blp | locale-enUS.MPQ :: INTERFACE\\GLUES\\LOADINGBAR\\LOADING-BARFILL.BLP | bytes=12094 md5=cb4af7c3a37f3ab6f948829926e37900 registered-signature=absent",
+    "BLP decoded mipmaps=7 first=64x64 rgba-md5=e18030ce7a556caad56953b6b2c71774",
+    "Tileset\\Elwynn\\ElwynnDirtBase.blp | common.MPQ :: TILESET\\ELWYNN\\ELWYNNDIRTBASE.BLP | bytes=44876 md5=068251fa9e92b5261ddadadab394c776 registered-signature=absent",
+    "BLP terrain decoded mipmaps=9 first=256x256 rgba-md5=fd6edbe35984b86b39a5ee19c22d92ae",
+    "Character\\Human\\Male\\HumanMale.m2 | patch-3.MPQ :: CHARACTER\\HUMAN\\MALE\\HUMANMALE.M2 | bytes=1585376 md5=19ed16af590ce6235ace0cd088e16d7a registered-signature=verified",
+    "M2 decoded name=HumanMale vertices=5264 first=-0.101207,-1.1463e-07,1.29526",
+    "Character\\Human\\Male\\HumanMale00.skin | patch-2.MPQ :: CHARACTER\\HUMAN\\MALE\\HUMANMALE00.SKIN | bytes=74176 md5=094c7dac3543dd31916060a073030568 registered-signature=absent",
+    "M2 skin decoded triangles=6356",
+    "World\\wmo\\Azeroth\\Buildings\\Duskwood_human_farm\\Duskwood_human_farm.wmo | common-2.MPQ :: WORLD\\WMO\\AZEROTH\\BUILDINGS\\DUSKWOOD_HUMAN_FARM\\DUSKWOOD_HUMAN_FARM.WMO | bytes=12740 md5=8bb1d6c79ca56852a1934e02b74c326b registered-signature=verified",
+    "WMO root decoded groups=2 materials=13",
+    "World\\wmo\\Azeroth\\Buildings\\Duskwood_human_farm\\Duskwood_human_farm_000.wmo | common-2.MPQ :: WORLD\\WMO\\AZEROTH\\BUILDINGS\\DUSKWOOD_HUMAN_FARM\\DUSKWOOD_HUMAN_FARM_000.WMO | bytes=25860 md5=1292d8b37d578df8cd1807d61b1b206a registered-signature=verified",
+    "WMO group decoded vertices=601 triangles=408",
+    "World\\Maps\\Azeroth\\Azeroth.wdt | common-2.MPQ :: WORLD\\MAPS\\AZEROTH\\AZEROTH.WDT | bytes=32836 md5=bba3b686a1fe0396be23f05b343327d6 registered-signature=verified",
+    "WDT decoded tiles=687 flags=0",
+    "World\\Maps\\Azeroth\\Azeroth_32_48.adt | patch.MPQ :: WORLD\\MAPS\\AZEROTH\\AZEROTH_32_48.ADT | bytes=1824447 md5=cd771ab7c356d0dcb2baa9a1680bc822 registered-signature=verified",
+    "ADT decoded cells=256 first-area=12 first-height=236.704",
+    "Representative 12340 decoding passed; game renderer/network/audio are not started"
+  ],
+  "stderr": []
+}

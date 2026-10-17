@@ -1,0 +1,46 @@
+{
+  "scope": "Real local X11/Xwayland desktop with SDL core-input fallback (SDL_VIDEO_X11_XINPUT2=0); XSendEvent keyboard events and XTest motion target own PID/title window; physical XI2/IME and clipboard untested",
+  "source_commit": "a1380452c7563ad78860fddb0ff6320ac0a61be2",
+  "binary_sha256": "4263d5f1b61c90199bfc5e86eb02136055a21387845d51eccf9b99ffa89e5180",
+  "hosted_build_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39022848508",
+  "actions": [
+    "native XSendEvent ASCII key/text and backspace",
+    "native X11 resize request",
+    "Ctrl+S settings save/reload",
+    "F2 / relative native motion / Escape",
+    "focus loss with modifier held, then restore",
+    "F11 fullscreen and windowed",
+    "WM_DELETE_WINDOW close"
+  ],
+  "exit_code": 0,
+  "ascii_backspace_result": true,
+  "stdout": [
+    "Original signaturefile authenticated: 28948 MD5 records",
+    "Database: Map.dbc, 135 rows",
+    "Textures: original UI and terrain BLPs decoded to RGBA",
+    "HumanMale: 5264 vertices, 6356 triangles",
+    "Farm WMO: 2 groups, 408 inspected triangles",
+    "Azeroth: 687 WDT tiles, 256 ADT cells decoded",
+    "native-shell M2",
+    "video=x11",
+    "assets=verified",
+    "settings-save-reload=verified",
+    "launches=1",
+    "window=840x560",
+    "pixels=840x560",
+    "events=43",
+    "characters=4",
+    "ime-events=0",
+    "relative-events=0",
+    "focus-events=3",
+    "resize-events=7",
+    "clipboard-actions=0",
+    "workers-after-shutdown=0"
+  ],
+  "stderr": [],
+  "result_limits": [
+    "Injected key events used SDL_VIDEO_X11_XINPUT2=0, not physical XI2 input.",
+    "F2/Escape requests were injected, but relative-events=0: physical relative motion was not validated.",
+    "Clipboard and physical IME composition/commit were not validated."
+  ]
+}

@@ -2,8 +2,12 @@
 
 Implementation `3b950a4` passed all four hosted async configurations in
 [run 38995387429](https://github.com/RovxBot/wowdecomp/actions/runs/38995387429),
-including Linux ASan/UBSan and actual macOS ARM64 execution. Full Windows
-regression and PR merge checks are being finalized before merge. This is a
+including Linux ASan/UBSan and actual macOS ARM64 execution.
+[PR #7](https://github.com/RovxBot/wowdecomp/pull/7) merged as
+`b599a23b9d0f1acf07d39ebf88dd0ffd06dacd26`; the full Windows reference passed
+[run 38995692248](https://github.com/RovxBot/wowdecomp/actions/runs/38995692248).
+The queue is integrated into the [SDL3 shell](SHELL.md), with current evidence in
+the [M2 handoff](HANDOFF.md). This is a
 native Services boundary, not a binary-compatible replacement for CAsyncObject.
 Legacy callers remain unchanged until their modules enter the native build.
 

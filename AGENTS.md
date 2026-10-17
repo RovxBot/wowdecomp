@@ -60,9 +60,18 @@ it does not turn a documentation request into authorization to start the whole p
   merged. Read the [filesystem work package](docs/m2/FILESYSTEM.md),
   [asset contracts/evidence](docs/m2/ASSETS.md), [async contracts](docs/m2/ASYNC.md)
   and [native-reference review](docs/m2/REFERENCE_REVIEW.md) before continuing.
-  SDL3 shell integration and desktop validation are in progress on
-  `native-port/m2-shell`; M2 is not yet signed off. Preserve the distinction
-  between scalar inspection geometry and full animation/material/world rendering.
+  SDL3 shell [PR #8](https://github.com/RovxBot/wowdecomp/pull/8) is also merged
+  (implementation `2154bed3917ab1322545a365a58c5d2e708906b3`, merge
+  `6eecb78e99c889e6f97e55ce9fe5d5855d95ab89`). Read the current
+  [M2 handoff](docs/m2/HANDOFF.md), [shell contracts](docs/m2/SHELL.md),
+  [hosted identities](docs/m2/shell-builds.json) and
+  [desktop runtime evidence](docs/m2/shell-runtime.json). Original-data Linux
+  startup/settings/shutdown are observed on X11 and Wayland. Physical input/IME
+  acceptance and desktop LeakSanitizer triage remain open; unsuppressed host-library
+  reports are recorded in the handoff, not counted as passes. Do not infer physical
+  input acceptance from dummy-driver or injected events.
+  Preserve the distinction between scalar inspection geometry and full
+  animation/material/world rendering. M3 game integration has not started.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
@@ -71,6 +80,13 @@ it does not turn a documentation request into authorization to start the whole p
   Cancellation of a current read is cooperative. Do not destroy a queue from its
   callback or another thread, free its buffers early, or substitute its native
   ticket API for legacy CAsyncObject without adapting that caller's contract.
+- SDL3 3.2.28 is pinned in the native window target. All SDL operations and event
+  delivery belong to the main thread; asset reads belong to the retained worker.
+  Native IME events own composition/result snapshots. Keep logical window and
+  pixel sizes distinct and release held input/capture on focus loss. The shell
+  uses SDL software rendering with GLES2/Metal framebuffer presentation where
+  required; this is not the M3/M4 Gx or bgfx prototype. Optional vendor SDKs stay
+  excluded and visibly unavailable. Native settings remain separate from WTF.
 - Preserve upstream `4119c4b` / `5b41f72` cursor anchoring in both Windows Input.cpp
   files, in addition to the original tutorial bounds fix. The user's sessions
   predate that upstream input change; do not claim it was runtime-validated.
@@ -185,10 +201,15 @@ targets, with synthetic semantic checks on Linux x86-64, macOS ARM64 and Windows
 x64 plus Linux sanitizers. [M2 asset Actions](.github/workflows/m2-assets.yml)
 produces `NativeAssetCheck`; execute downloaded, hash-verified binaries against
 external data with [the runtime wrapper](Tools/Porting/run_asset_inspection.py).
-This local execution is permitted; local compilation remains prohibited. SDL3
-window presets are under development in [M2 shell Actions](.github/workflows/m2-shell.yml).
-Dummy-driver fixtures do not establish desktop input/IME, usable windows or GPU
-rendering. Record real driver/display execution separately before M2 sign-off.
+This local execution is permitted; local compilation remains prohibited.
+[M2 shell Actions](.github/workflows/m2-shell.yml) builds `NativeShell` with
+`linux-window`, `linux-window-asan`, `macos-arm64-window` and `windows-window`.
+Use [the shell runtime wrapper](Tools/Porting/run_native_shell.py) for hash-verified
+execution with external data and writable user roots; see SHELL.md for commands.
+Dummy-driver fixtures do not establish desktop input/IME, usable windows or Gx
+rendering. Actual ARM64 fixtures do not establish Cocoa desktop/gameplay support.
+Complete the recorded physical input acceptance and desktop leak triage before
+final M2 sign-off; report unavailable hardware/session coverage explicitly.
 
 For implementation changes, record the commands and checks run, their results and
 any skipped platform checks. Update milestone status only with evidence. Distinguish

@@ -1,11 +1,12 @@
 # M2 native host-filesystem work
 
 Started 2026-10-17 after the [reference review](REFERENCE_REVIEW.md). This is the
-first M2 work package, not the completed milestone. Host-file compilation and
+first M2 work package. Host-file compilation and
 fixtures passed on Linux x86-64, macOS ARM64 and Windows x64, including Linux
-ASan/UBSan. Archives, BlizzardCore's stacked/streaming filesystem,
-Services async I/O, asset decoders, nearby model allocations and SDL are not yet
-integrated. The full Linux/macOS client gate remains in place.
+ASan/UBSan. Subsequent [packages/asset inspection](ASSETS.md), [native async
+files](ASYNC.md) and the [SDL3 shell](SHELL.md) are merged. These native boundaries
+do not replace the legacy stacked/network-streaming ABI. The full Linux/macOS
+client gate remains in place; see the current [M2 handoff](HANDOFF.md).
 
 ## Interfaces and ownership
 
@@ -53,7 +54,8 @@ No MPQ-internal name, hash, archive priority or signature behavior changes here.
 `Blizzard::File::Native::ConfigurePaths` takes explicit data, settings and cache
 roots, resolves existing symlinks, rejects overlapping roots, verifies the data
 directory and creates only the writable roots. It does not discover or alter a
-game installation. Environment defaults and application-shell wiring come later.
+game installation. Environment defaults and application-shell wiring are provided
+by the subsequent SDL3 shell.
 `OpenData` returns a read-only stream. User-path resolution routes settings/cache
 separately and rejects absolute names, parent traversal and symlinks escaping the
 chosen root. Callers create any desired user subdirectories explicitly.
@@ -131,7 +133,8 @@ Locally, 12 Python fixtures passed and the CMake selection fixture was skipped
 because CMake is unavailable. In Actions all 13 ran and passed.
 No game data is embedded or accessed by these fixtures.
 
-Next work remains package/MPQ and async integration, relocation-safe M2 model
-storage, representative unchanged-12340 decoding, then SDL3 shell/input and user
-path integration. M0 data/server evidence remains partial. Do not mark M2 complete
-from this subset's compilation or fixture results.
+At this filesystem checkpoint, package/async/asset/SDL integration remained open.
+Their later implementation and runtime evidence are linked in the current
+[handoff](HANDOFF.md); the historical run identities above remain unchanged.
+M0 server/gameplay evidence remains partial. This subset's compilation and
+fixtures alone do not establish a usable native application.
