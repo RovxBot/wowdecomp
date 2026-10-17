@@ -113,12 +113,22 @@ def main():
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)
-        if window:
+        if assets:
             notices = evidence / 'notices'
             notices.mkdir(exist_ok=True)
+            shutil.copy2(root / 'ThirdParty/bzip2/LICENSE', notices / 'bzip2-LICENSE.txt')
+            for source, name in [('ThirdParty/zlib/zlib.h', 'zlib-NOTICE.txt'),
+                                 ('ThirdParty/zlib/contrib/blast/blast.c', 'blast-NOTICE.txt'),
+                                 ('ThirdParty/lzma/LzmaDecode.c', 'LZMA-NOTICE.txt')]:
+                original = (root / source).read_text()
+                (notices / name).write_text(original[:original.index('*/') + 2] + '\n')
+        if window:
             shutil.copy2(build / '_deps/sdl3-src/LICENSE.txt', notices / 'SDL3-LICENSE.txt')
             manifest['sdl3'] = {'version': '3.2.28', 'commit': '7f3ae3d57459e59943a4ecfefc8f6277ec6bf540',
                                 'archive_sha256': '7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5'}
+        if assets:
+            manifest['notices'] = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                                   for path in sorted(notices.iterdir())}
         manifest['status'] = ('native SDL3 window/input fixtures passed on dummy video; desktop validation separate' if window else
                               'native asynchronous file and package/asset fixtures passed; no full game/window' if asynchronous else
                               'native MPQ/signature fixtures passed; original-data runtime validation separate' if assets else
