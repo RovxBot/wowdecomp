@@ -37,6 +37,11 @@ evidence, passed operator input acceptance and the clean X11 sanitizer baseline.
 The separate Wayland Fontconfig qualification remains documented. These tools do not run the
 login screen, world, networking or audio.
 
+M3 begins with a separate [Linux SDL3/OpenGL context probe](docs/m3/HANDOFF.md),
+built by [M3 Actions](.github/workflows/m3-gl.yml). It checks desktop compatibility
+contexts and synthetic ARB shader/FBO rendering, with optional original glue
+texture display. It does not yet run the original login UI or connect to a server.
+
 ## Progress
 
 The percentages below measure how much of the original binary has a counterpart in this source tree. They do

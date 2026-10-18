@@ -13,6 +13,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <utility>
 #if defined(WOWDECOMP_OS_MACOS)
 #include <pthread.h>
 #elif defined(WOWDECOMP_OS_LINUX)

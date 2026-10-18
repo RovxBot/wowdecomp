@@ -4,9 +4,11 @@
 #include <memory>
 #include <string>
 
-// Native ABI host boundary for the 12340 compatibility renderer. It deliberately
-// exposes neither WGL handles nor a legacy CGxDevice layout/address claim.
-namespace Gx { namespace Native {
+// Native ABI host boundary for the 12340 compatibility renderer. It
+// deliberately exposes neither WGL handles nor a legacy CGxDevice
+// layout/address claim.
+namespace Gx {
+namespace Native {
 struct GlInfo {
     std::string vendor, renderer, version, video;
     int major = 0, minor = 0, profile = 0;
@@ -15,23 +17,25 @@ struct GlInfo {
 };
 using GlProc = void (*)();
 class GlContext {
-public:
-    GlContext(const char* title, int width, int height, bool hidden = false);
+  public:
+    GlContext(const char *title, int width, int height, bool hidden = false);
     ~GlContext();
-    GlContext(const GlContext&) = delete;
-    GlContext& operator=(const GlContext&) = delete;
-    OsNative::Window& Window();
-    const GlInfo& Info() const;
+    GlContext(const GlContext &) = delete;
+    GlContext &operator=(const GlContext &) = delete;
+    OsNative::Window &Window();
+    const GlInfo &Info() const;
     // All methods, procedure calls and destruction belong to the process main
     // thread. Procedures belong to this context and expire before its window.
-    GlProc Proc(const char* name) const;
+    GlProc Proc(const char *name) const;
     void MakeCurrent();
     void Present();
     // A rejected swap interval is an explicit failure; no silent fallback.
     void SwapInterval(int interval);
-private:
+
+  private:
     struct State;
     std::unique_ptr<State> state;
 };
-}}
+} // namespace Native
+} // namespace Gx
 #endif

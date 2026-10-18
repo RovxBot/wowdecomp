@@ -20,10 +20,12 @@ all SDL/context/render operations stay on the process main thread. A native
 worker loads optional original assets, then delivers one owner-thread callback.
 
 The synthetic probe uploads ARB assembly programs, draws a textured quad into
-an FBO, checks known pixels for texture coordinates, depth, blending and clipping,
+an FBO, checks known pixels for texture coordinates, depth, blending, clipping
+and compressed DXT1 upload,
 then presents into the window's pixel-sized drawable. It checks off-thread
 presentation rejection and repeated context/window teardown. A dummy driver
-negative fixture must report unavailable OpenGL. Hosted X11/Mesa software
+negative fixture must report unavailable OpenGL and then recover a software
+window after constructor failure. Hosted X11/Mesa software
 rendering establishes fixture behavior, separately from a real GPU/desktop.
 This is not a complete shader/material/model/terrain parity test.
 

@@ -98,6 +98,28 @@ and source inspection are different evidence levels.
 - Scope: library ownership for the diagnostic shell. It does not select a Gx,
   Vulkan/Metal renderer, establish Cocoa desktop support or alter game schemas.
 
+## NP-004 — Native SDL3/Gx OpenGL context boundary
+
+- Status: first M3 work package, [PR #13](https://github.com/RovxBot/wowdecomp/pull/13);
+  validation and remaining integration are recorded in [the M3 handoff](m3/HANDOFF.md).
+- References: this checkout's 12340 `CGxDeviceOpenGl` context attach/remove,
+  presentation, capability initialization and `GlExt.cpp` ARB entry points;
+  pinned SDL 3.2.28 at `7f3ae3d57459e59943a4ecfefc8f6277ec6bf540`.
+  No donor source body, binary address or verification annotation is imported.
+- Destination/adaptation: `Gx/Portable/GlContext*`, the native Os window owner,
+  explicit `WowNativeGl` allowlist and `NativeGlCheck`. SDL owns the window and
+  compatibility context on the main thread; GL objects/procedures expire before
+  context/window teardown. The original WGL/legacy Windows Gx implementation
+  remains separately selected. Native FBO support is required; WGL pbuffers and
+  NV/ATI optional extension paths are not emulated.
+- Assets/defaults: native probe is opt-in; unchanged 12340 external MPQs,
+  original-key signaturefile and registered-MD5 checks remain enabled. Optional
+  loading-bar texture display is not a GlueXML login screen. No enhancement
+  asset, shader-version conversion, protocol or server-policy change is made.
+- Validation scope: hosted X11/Mesa fixtures, exact-source desktop rendering and
+  sanitizers must be recorded separately. Full Gx integration, original fonts/UI,
+  native networking, authentication and observed world entry remain M3 work.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

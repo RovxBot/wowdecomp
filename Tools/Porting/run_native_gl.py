@@ -34,6 +34,7 @@ def main():
         for output in [args.output, args.snapshot, args.settings, args.cache]:
             if output and output.resolve().is_relative_to(installation):
                 parser.error('Outputs and user roots must be outside the game installation')
+    args.output.unlink(missing_ok=True)
     manifest = json.loads((args.artifact / 'manifest.json').read_text())
     if manifest['preset'] not in {'linux-gl', 'linux-gl-asan'} or manifest['target_os'] != 'LINUX':
         parser.error('Expected a Linux M3 OpenGL Actions artifact')
@@ -45,10 +46,11 @@ def main():
     binary.chmod(0o755)
     environment = os.environ.copy()
     environment.update(SDL_VIDEODRIVER='x11', EGL_PLATFORM='x11')
-    if args.sanitizers:
+    if args.sanitizers or manifest['preset'].endswith('-asan'):
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1')
     command = [str(binary.resolve()), '--frames', str(args.frames), '--cycles', str(args.cycles)]
     if args.snapshot:
+        args.snapshot.unlink(missing_ok=True)
         command += ['--snapshot', str(args.snapshot.resolve())]
     if args.data:
         command += ['--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
