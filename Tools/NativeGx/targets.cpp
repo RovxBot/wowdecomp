@@ -322,6 +322,9 @@ int main() {
     try {
         for (int cycle = 0; cycle < 3; ++cycle) {
             GlContext context("M3 native Gx target fixtures", 320, 240, true);
+            const auto &info = context.Info();
+            std::cout << "video=" << info.video << "\ngl-vendor=" << info.vendor
+                      << "\ngl-renderer=" << info.renderer << "\ngl-version=" << info.version << '\n';
             Checks checks(context);
             checks.Disable(GL_DITHER);
             checks.Disable(GL_SCISSOR_TEST);

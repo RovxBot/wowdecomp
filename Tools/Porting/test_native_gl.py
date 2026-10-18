@@ -64,6 +64,37 @@ class NativeGlLauncherTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(self.wrapper), '--artifact', str(self.artifact),
             '--output', str(self.output), *extra], capture_output=True, text=True)
 
+    def target_script(self, source):
+        binary = self.artifact / 'bin/GlRenderTargetsCheck'
+        binary.write_text('#!' + sys.executable + '\n' + source)
+        path = self.artifact / 'manifest.json'
+        manifest = json.loads(path.read_text())
+        manifest['binaries'].append(dict(name='GlRenderTargetsCheck',
+                                        sha256=hashlib.sha256(binary.read_bytes()).hexdigest()))
+        path.write_text(json.dumps(manifest))
+        return binary
+
+    def test_target_failure_is_recorded_separately_and_fails_combined_run(self):
+        self.script('print("probe-passed")\n')
+        self.target_script('print("target-failed")\nraise SystemExit(9)\n')
+        result = self.run_wrapper('--render-target-checks')
+        self.assertEqual(result.returncode, 9, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['exit_code'], 9)
+        self.assertEqual(record['probe_exit_code'], 0)
+        self.assertEqual(record['stdout'], ['probe-passed'])
+        self.assertEqual(record['render_target_checks']['exit_code'], 9)
+        self.assertEqual(record['render_target_checks']['stdout'], ['target-failed'])
+
+    def test_target_hash_checked_before_any_execution(self):
+        self.script('raise SystemExit("probe must not execute")\n')
+        binary = self.target_script('raise SystemExit("target must not execute")\n')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--render-target-checks')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('render-target binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_refuses_tampered_artifact_before_execution(self):
         self.script('raise SystemExit("Should not execute")\n')
         self.binary.write_text('tampered')

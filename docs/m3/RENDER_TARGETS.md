@@ -72,6 +72,8 @@ as validation of this implementation. No new physical-input acceptance is implie
 
 After downloading and hash-verifying a passing artifact, the existing
 [runtime wrapper](../../Tools/Porting/run_native_gl.py) runs the integrated probe.
-`GlRenderTargetsCheck` is also included in the artifact with its hash in the
-manifest, for target-specific execution on the actual desktop. Keep captures,
+Add `--render-target-checks` to hash-verify and run `GlRenderTargetsCheck` before
+the probe. Its separate result is retained in `render_target_checks`; a failure
+or timeout in either program fails the combined command. The fixture reports its
+actual GL vendor/renderer/version and requires no game data. Keep captures,
 settings and reports external to the repository and both game installations.

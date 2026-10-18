@@ -18,6 +18,8 @@ def main():
     parser.add_argument('--cycles', type=int, default=1)
     parser.add_argument('--timeout', type=int, default=120)
     parser.add_argument('--sanitizers', action='store_true')
+    parser.add_argument('--render-target-checks', action='store_true',
+                        help='Also hash-verify and run the three-cycle native Gx target fixture')
     for name in ['data', 'settings', 'cache']:
         parser.add_argument('--' + name, type=Path)
     parser.add_argument('--locale', default='enUS')
@@ -44,6 +46,16 @@ def main():
     if actual != expected:
         raise SystemExit('Hosted OpenGL binary hash does not match the manifest')
     binary.chmod(0o755)
+    target_binary = None
+    if args.render_target_checks:
+        target_binary = args.artifact / 'bin/GlRenderTargetsCheck'
+        entry = next((item for item in manifest['binaries'] if item['name'] == 'GlRenderTargetsCheck'), None)
+        if entry is None or not target_binary.is_file():
+            raise SystemExit('Hosted artifact does not contain native render-target checks')
+        target_hash = hashlib.sha256(target_binary.read_bytes()).hexdigest()
+        if target_hash != entry['sha256']:
+            raise SystemExit('Hosted render-target binary hash does not match the manifest')
+        target_binary.chmod(0o755)
     environment = os.environ.copy()
     environment.update(SDL_VIDEODRIVER='x11', EGL_PLATFORM='x11')
     if args.sanitizers or manifest['preset'].endswith('-asan'):
@@ -56,15 +68,24 @@ def main():
         command += ['--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
                     '--cache', str(args.cache.resolve()), '--locale', args.locale]
     started = datetime.now(timezone.utc).isoformat()
-    timed_out = False
-    try:
-        result = subprocess.run(command, env=environment, capture_output=True, text=True, timeout=args.timeout)
-    except subprocess.TimeoutExpired as error:
-        def partial(value):
-            return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value or ''
-        timed_out = True
-        result = subprocess.CompletedProcess(command, 124, partial(error.stdout),
-            partial(error.stderr) + '\nOpenGL probe timed out; terminated, not a clean shutdown.\n')
+    def execute(arguments):
+        try:
+            return subprocess.run(arguments, env=environment, capture_output=True,
+                                  text=True, timeout=args.timeout), False
+        except subprocess.TimeoutExpired as error:
+            def partial(value):
+                return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value or ''
+            return subprocess.CompletedProcess(arguments, 124, partial(error.stdout),
+                partial(error.stderr) + '\nOpenGL probe timed out; terminated, not a clean shutdown.\n'), True
+    target_record = None
+    if target_binary:
+        target_result, target_timeout = execute([str(target_binary.resolve())])
+        print(target_result.stdout, end='')
+        print(target_result.stderr, end='')
+        target_record = dict(binary_sha256=target_hash, exit_code=target_result.returncode,
+                             timed_out=target_timeout, stdout=target_result.stdout.splitlines(),
+                             stderr=target_result.stderr.splitlines())
+    result, timed_out = execute(command)
     print(result.stdout, end='')
     print(result.stderr, end='')
     record = dict(schema_version=1, scope='M3 SDL3/Gx context and asset probe; no original login UI or gameplay',
@@ -77,8 +98,13 @@ def main():
                       'LIBGL_ALWAYS_SOFTWARE', 'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'LSAN_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT']},
                   exit_code=result.returncode, timed_out=timed_out,
                   stdout=result.stdout.splitlines(), stderr=result.stderr.splitlines())
+    if target_record is not None:
+        record['render_target_checks'] = target_record
+        record['probe_exit_code'] = result.returncode
+        record['exit_code'] = target_record['exit_code'] or result.returncode
+        record['timed_out'] = target_record['timed_out'] or timed_out
     args.output.write_text(json.dumps(record, indent=2) + '\n')
-    raise SystemExit(result.returncode)
+    raise SystemExit(record['exit_code'])
 
 
 if __name__ == '__main__':
