@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--sanitizers', action='store_true')
     parser.add_argument('--render-target-checks', action='store_true',
                         help='Also hash-verify and run the three-cycle native Gx target fixture')
+    parser.add_argument('--transform-checks', action='store_true',
+                        help='Also hash-verify and run the three-cycle native Gx transform fixture')
     for name in ['data', 'settings', 'cache']:
         parser.add_argument('--' + name, type=Path)
     parser.add_argument('--locale', default='enUS')
@@ -46,16 +48,21 @@ def main():
     if actual != expected:
         raise SystemExit('Hosted OpenGL binary hash does not match the manifest')
     binary.chmod(0o755)
-    target_binary = None
-    if args.render_target_checks:
-        target_binary = args.artifact / 'bin/GlRenderTargetsCheck'
-        entry = next((item for item in manifest['binaries'] if item['name'] == 'GlRenderTargetsCheck'), None)
-        if entry is None or not target_binary.is_file():
-            raise SystemExit('Hosted artifact does not contain native render-target checks')
-        target_hash = hashlib.sha256(target_binary.read_bytes()).hexdigest()
-        if target_hash != entry['sha256']:
-            raise SystemExit('Hosted render-target binary hash does not match the manifest')
-        target_binary.chmod(0o755)
+    checks = []
+    for enabled, name, key, label in [
+            (args.render_target_checks, 'GlRenderTargetsCheck', 'render_target_checks', 'render-target'),
+            (args.transform_checks, 'GlTransformsCheck', 'transform_checks', 'transform')]:
+        if not enabled:
+            continue
+        check_binary = args.artifact / 'bin' / name
+        entry = next((item for item in manifest['binaries'] if item['name'] == name), None)
+        if entry is None or not check_binary.is_file():
+            raise SystemExit(f'Hosted artifact does not contain native {label} checks')
+        check_hash = hashlib.sha256(check_binary.read_bytes()).hexdigest()
+        if check_hash != entry['sha256']:
+            raise SystemExit(f'Hosted {label} binary hash does not match the manifest')
+        check_binary.chmod(0o755)
+        checks.append((key, check_binary, check_hash))
     environment = os.environ.copy()
     environment.update(SDL_VIDEODRIVER='x11', EGL_PLATFORM='x11')
     if args.sanitizers or manifest['preset'].endswith('-asan'):
@@ -77,14 +84,14 @@ def main():
                 return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value or ''
             return subprocess.CompletedProcess(arguments, 124, partial(error.stdout),
                 partial(error.stderr) + '\nOpenGL probe timed out; terminated, not a clean shutdown.\n'), True
-    target_record = None
-    if target_binary:
-        target_result, target_timeout = execute([str(target_binary.resolve())])
-        print(target_result.stdout, end='')
-        print(target_result.stderr, end='')
-        target_record = dict(binary_sha256=target_hash, exit_code=target_result.returncode,
-                             timed_out=target_timeout, stdout=target_result.stdout.splitlines(),
-                             stderr=target_result.stderr.splitlines())
+    check_records = {}
+    for key, check_binary, check_hash in checks:
+        check_result, check_timeout = execute([str(check_binary.resolve())])
+        print(check_result.stdout, end='')
+        print(check_result.stderr, end='')
+        check_records[key] = dict(binary_sha256=check_hash, exit_code=check_result.returncode,
+                                 timed_out=check_timeout, stdout=check_result.stdout.splitlines(),
+                                 stderr=check_result.stderr.splitlines())
     result, timed_out = execute(command)
     print(result.stdout, end='')
     print(result.stderr, end='')
@@ -98,11 +105,12 @@ def main():
                       'LIBGL_ALWAYS_SOFTWARE', 'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'LSAN_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT']},
                   exit_code=result.returncode, timed_out=timed_out,
                   stdout=result.stdout.splitlines(), stderr=result.stderr.splitlines())
-    if target_record is not None:
-        record['render_target_checks'] = target_record
+    if check_records:
+        record.update(check_records)
         record['probe_exit_code'] = result.returncode
-        record['exit_code'] = target_record['exit_code'] or result.returncode
-        record['timed_out'] = target_record['timed_out'] or timed_out
+        failures = [check['exit_code'] for check in check_records.values() if check['exit_code']]
+        record['exit_code'] = failures[0] if failures else result.returncode
+        record['timed_out'] = any(check['timed_out'] for check in check_records.values()) or timed_out
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     raise SystemExit(record['exit_code'])
 

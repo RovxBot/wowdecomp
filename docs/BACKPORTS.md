@@ -180,6 +180,36 @@ and source inspection are different evidence levels.
   physical-input or Windows runtime observation is claimed. Original login UI and
   observed world entry remain open.
 
+## NP-007 — Native Gx transforms and normalized raster state
+
+- Status: qualified in [PR #21](https://github.com/RovxBot/wowdecomp/pull/21),
+  selected implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415`; see
+  [transform contracts/caller audit](m3/TRANSFORMS.md). Stacked on qualified,
+  unmerged render-target PR #20; both remain unmerged and M3 remains open.
+- Source: product 12340 at `840dc0fbda9206573a167a55f9051d3d6e3bfd38`,
+  Gx transform/viewport entry points, OpenGL projection/model-view/scissor and
+  Gxu UI constant callers. No donor body, address or VERIFY claim is imported.
+- Destination/adaptation: `Gx/Portable/GlTransforms*`, unchanged scalar
+  `CGxMatrixStack.cpp`, Tempest `C44Matrix.cpp`/`C33Matrix.cpp`, explicit native
+  Gx allowlist, semantic GPU fixture and integrated original-UI shader probe.
+  Preserve row-vector order, stack saturation, Z conversion, target Y/cull flip,
+  normalized pixel viewport/scissor and the separate UI view/projection contract.
+  The literal perspective compression branch remains explicit and unqualified
+  against historical Windows scene failures.
+- Assets/defaults: unchanged authenticated external 12340 data and original
+  `0x10003` UI programs. No new asset/dependency, optional effect, signature bypass,
+  protocol or server-policy change. Full legacy device/cache/texture/async and
+  original fonts/login/network/world integration remain open.
+- Validation: [durable evidence](m3/transform-validation.json) records all eight
+  successful implementation PR workflows, 17 CTest checks in each Linux GL
+  configuration, distinct Windows merge-checkout compilation and verified binary
+  identities. Exact-source RX 7900 XTX release/ASan/UBSan/leak checks passed three
+  target/transform cycles each and one/three original-data shader cycles, with
+  empty stderr and zero probe workers. Initial enum and fresh matrix-mode failures
+  and their corrections remain recorded separately. Local Python checks: 25 pass,
+  one CMake selection check unavailable locally; all 26 ran in hosted Linux.
+  No local compilation or new physical-input/gameplay acceptance.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

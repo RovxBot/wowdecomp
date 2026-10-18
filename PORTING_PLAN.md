@@ -307,6 +307,16 @@ open. The [read-only live server snapshot](docs/m3/SERVER_IDENTITY.md) identifie
 runtime images/binaries externally while preserving the distinction between the
 package tag, embedded revision, mounted policy and unobserved session behavior.
 
+The [transform work package](docs/m3/TRANSFORMS.md) now connects scalar Gx/Tempest
+matrices and normalized viewport/scissor to the native targets and original UI
+shader constant path. [PR #21](https://github.com/RovxBot/wowdecomp/pull/21) is
+qualified at `a1c43f820448cbb0b0c0eb2fda2ab59216687415`, stacked on unmerged PR
+#20. Its [evidence](docs/m3/transform-validation.json) records all eight PR
+workflows, 17 CTest passes per Linux GL configuration, full Windows compilation
+and exact-source GPU release/sanitizer target/transform/original-shader cycles.
+It does not complete the legacy device/cache, original fonts/login UI, networking
+or observed world entry. M3 remains open.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

@@ -2,6 +2,7 @@
 #include "Engine/Source/Gx/Portable/GlContext.h"
 #include "Engine/Source/Gx/Portable/GlProgram.h"
 #include "Engine/Source/Gx/Portable/GlRenderTargets.h"
+#include "Engine/Source/Gx/Portable/GlTransforms.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
@@ -10,6 +11,7 @@
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_opengl_glext.h>
 #include <array>
+#include <algorithm>
 #include <cfenv>
 #include <chrono>
 #include <cmath>
@@ -120,9 +122,11 @@ struct Probe {
 #undef EXT
     std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
     Gx::Native::GlRenderTargets targets;
+    Gx::Native::GlTransforms transforms;
     Gx::Native::GlTarget target;
     GLuint texture = 0;
-    explicit Probe(GlContext &owner) : context(owner), targets(owner) {}
+    bool originalUi = false;
+    explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets) {}
     ~Probe() {
         targets.Bind();
         Disable(GL_VERTEX_PROGRAM_ARB);
@@ -194,9 +198,19 @@ struct Probe {
         End();
     }
     void Draw(int width, int height, bool synthetic) {
+        auto view = targets.View();
+        Require(view.width == width && view.height == height, "Draw extent differs from bound target");
+        transforms.Sync();
+        if (originalUi) {
+            auto constants = transforms.UiConstants();
+            for (uint32_t i = 0; i < 4; ++i) {
+                float value[4];
+                std::copy(constants[i].begin(), constants[i].end(), value);
+                vertex->Constant(i, value);
+            }
+        }
         vertex->Bind();
         fragment->Bind();
-        Viewport(0, 0, width, height);
         Disable(GL_DITHER);
         Disable(GL_MULTISAMPLE);
         Disable(GL_FRAMEBUFFER_SRGB);
@@ -248,7 +262,7 @@ struct Probe {
         std::cout << "synthetic-arb-texture-depth-blend-fbo=passed\n";
         std::cout << "synthetic-s3tc-dxt1=passed\n";
     }
-    void CheckPixels() {
+    void CheckPixels(bool flipY = false, bool scaled = false) {
         const std::array<std::array<int, 5>, 5> samples{{{{8, 8, 128, 0, 0}},
                                                          {{24, 8, 0, 128, 0}},
                                                          {{8, 24, 0, 0, 128}},
@@ -256,7 +270,12 @@ struct Probe {
                                                          {{1, 1, 0, 0, 0}}}};
         for (const auto &sample : samples) {
             std::array<uint8_t, 4> pixel{};
-            ReadPixels(sample[0], sample[1], 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
+            int x = sample[0], y = sample[1];
+            if (scaled) {
+                x = int(0.5f * x + 10.25f);
+                y = int(21.75f - 0.5f * y);
+            } else if (flipY) y = 31 - y;
+            ReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
             for (int channel = 0; channel < 3; ++channel)
                 Require(std::abs(int(pixel[channel]) - sample[channel + 2]) <= 1,
                         "Synthetic ARB/FBO pixel mismatch at " + std::to_string(sample[0]) + "," +
@@ -334,15 +353,20 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
                                                          vertexShaders.permutations.at(0));
     probe.fragment = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Fragment,
                                                            fragmentShaders.permutations.at(0));
-    const float identity[4][4] = {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1}};
-    for (uint32_t i = 0; i < 4; ++i) probe.vertex->Constant(i, identity[i]);
+    probe.originalUi = true;
     // Reuse known synthetic pixels with the original programs before displaying
     // the original texture. Shader upload alone is not rendered-output evidence.
     probe.targets.Bind({probe.target, 0});
     probe.Draw(32, 32, true);
     probe.ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    probe.CheckPixels();
+    probe.CheckPixels(true);
     probe.Check("Original UI shader readback");
+    probe.transforms.Scale(GxXform_View, {0.5f, 0.5f, 1});
+    probe.transforms.Translate(GxXform_View, {0.25f, 0.25f, 0});
+    probe.Draw(32, 32, true);
+    probe.CheckPixels(true, true);
+    probe.transforms.Set(GxXform_View, C44Matrix());
+    std::cout << "original-ui-shader-transformed-fbo-pixel=passed\n";
     probe.targets.Bind();
     probe.Image(probe.texture, image);
     std::cout << "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1"
