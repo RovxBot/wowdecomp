@@ -3,7 +3,11 @@ add_library(WowNativeGl STATIC
     ../Gx/Portable/GlContext.cpp
     ../Gx/Portable/GlProgram.cpp
     ../Gx/Portable/GlRenderTargets.cpp
+    ../Gx/Portable/GlTransforms.cpp
     ../Gx/Portable/ShaderPackage.cpp
+    ../Gx/CGxMatrixStack.cpp
+    ../Tempest/C44Matrix.cpp
+    ../Tempest/C33Matrix.cpp
 )
 target_link_libraries(WowNativeGl PUBLIC WowNativeWindow)
 add_executable(NativeGlCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/main.cpp)
@@ -13,6 +17,13 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeGlCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_executable(GlTransformsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/transforms.cpp)
+    target_link_libraries(GlTransformsCheck PRIVATE WowNativeGl)
+    if(WOWDECOMP_CORE_SANITIZERS)
+        target_compile_options(GlTransformsCheck PRIVATE -g1)
+    endif()
+    add_test(NAME native-gl-transforms COMMAND GlTransformsCheck)
+    set_tests_properties(native-gl-transforms PROPERTIES TIMEOUT 60 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_executable(GlRenderTargetsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/targets.cpp)
     target_link_libraries(GlRenderTargetsCheck PRIVATE WowNativeGl)
     if(WOWDECOMP_CORE_SANITIZERS)

@@ -157,6 +157,12 @@ the desired tag nor local checkout identifies an exact clean compiled source tre
 No native authentication, advertised realm-list endpoint or Warden session was
 qualified. Preserve this later snapshot separately from historical M0 observations.
 
+The next [transform work package](TRANSFORMS.md) adapts existing scalar Gx/Tempest
+matrices, normalized viewport/scissor, offscreen projection/culling and original
+UI shader constants to the context/target owner. It is stacked on PR #20 and
+awaits hosted/GPU validation. This remains a native boundary, not the full legacy
+CGxDevice/CGxTex/state-cache or original login UI. M3 remains open.
+
 Next dependencies, in order:
 
 1. Adapt the existing Gx device/shared services to the native ABI and the new

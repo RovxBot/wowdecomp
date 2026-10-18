@@ -23,7 +23,10 @@ class NativeGlGraphTests(unittest.TestCase):
         message = 'WowNativeGl: unexpected native Gx context provider/ABI'
         target = self.target('WowNativeGl', 'Engine/Source/Gx/Portable/GlContext.cpp')
         target['sources'] += [{'path': 'Engine/Source/Gx/Portable/' + name + '.cpp'}
-                              for name in ['GlProgram', 'GlRenderTargets', 'ShaderPackage']]
+                              for name in ['GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']]
+        target['sources'] += [{'path': path} for path in [
+            'Engine/Source/Gx/CGxMatrixStack.cpp', 'Engine/Source/Tempest/C44Matrix.cpp',
+            'Engine/Source/Tempest/C33Matrix.cpp']]
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         legacy = copy.deepcopy(target)
         legacy['sources'].append({'path': 'Engine/Source/Gx/CGxDeviceOpenGL/CGxDeviceOpenGl.cpp'})
@@ -64,12 +67,12 @@ class NativeGlLauncherTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(self.wrapper), '--artifact', str(self.artifact),
             '--output', str(self.output), *extra], capture_output=True, text=True)
 
-    def target_script(self, source):
-        binary = self.artifact / 'bin/GlRenderTargetsCheck'
+    def target_script(self, source, name="GlRenderTargetsCheck"):
+        binary = self.artifact / 'bin' / name
         binary.write_text('#!' + sys.executable + '\n' + source)
         path = self.artifact / 'manifest.json'
         manifest = json.loads(path.read_text())
-        manifest['binaries'].append(dict(name='GlRenderTargetsCheck',
+        manifest['binaries'].append(dict(name=name,
                                         sha256=hashlib.sha256(binary.read_bytes()).hexdigest()))
         path.write_text(json.dumps(manifest))
         return binary
@@ -93,6 +96,28 @@ class NativeGlLauncherTests(unittest.TestCase):
         result = self.run_wrapper('--render-target-checks')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('render-target binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_transform_failure_and_target_success_recorded_separately(self):
+        self.script('print("probe-passed")\n')
+        self.target_script('print("targets-passed")\n')
+        self.target_script('print("transform-failed")\nraise SystemExit(8)\n', 'GlTransformsCheck')
+        result = self.run_wrapper('--render-target-checks', '--transform-checks')
+        self.assertEqual(result.returncode, 8, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['probe_exit_code'], 0)
+        self.assertEqual(record['render_target_checks']['exit_code'], 0)
+        self.assertEqual(record['transform_checks']['exit_code'], 8)
+        self.assertEqual(record['transform_checks']['stdout'], ['transform-failed'])
+
+    def test_transform_hash_checked_before_any_execution(self):
+        self.script('raise SystemExit("probe must not execute")\n')
+        self.target_script('raise SystemExit("targets must not execute")\n')
+        binary = self.target_script('raise SystemExit("transforms must not execute")\n', 'GlTransformsCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--render-target-checks', '--transform-checks')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('transform binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
     def test_refuses_tampered_artifact_before_execution(self):

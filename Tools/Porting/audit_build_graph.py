@@ -20,7 +20,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck'}
+        expected |= {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -117,11 +117,15 @@ def audit(targets, mode, target_os, cpu):
                        'ShellSettingsCheck': ['Tools/PortableWindow/settings.cpp']}[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
-        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck'}:
+        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck'}:
             allowed = {'WowNativeGl': ['Engine/Source/Gx/Portable/' + name + '.cpp'
-                                      for name in ['GlContext', 'GlProgram', 'GlRenderTargets', 'ShaderPackage']],
+                                      for name in ['GlContext', 'GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']] +
+                                      ['Engine/Source/Gx/CGxMatrixStack.cpp',
+                                       'Engine/Source/Tempest/C44Matrix.cpp',
+                                       'Engine/Source/Tempest/C33Matrix.cpp'],
                        'NativeGlCheck': ['Tools/NativeGx/main.cpp'],
                        'GlRenderTargetsCheck': ['Tools/NativeGx/targets.cpp'],
+                       'GlTransformsCheck': ['Tools/NativeGx/transforms.cpp'],
                        'ShaderPackageCheck': ['Tools/NativeGx/shaders.cpp']}[target['name']]
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
