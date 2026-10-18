@@ -4,8 +4,10 @@ Implemented and merged in [PR #8](https://github.com/RovxBot/wowdecomp/pull/8),
 head `2154bed3917ab1322545a365a58c5d2e708906b3`. Hosted checks and actual Linux
 desktop startup, original-data reads, settings reload and joined shutdown are
 recorded in the [M2 handoff](HANDOFF.md), [build record](shell-builds.json) and
-[runtime record](shell-runtime.json). Final physical input acceptance and desktop
-LeakSanitizer triage remain open. The full native game remains gated.
+[runtime record](shell-runtime.json). The operator confirmed physical-input checks
+passed on 2026-10-18; [the acceptance record](operator-acceptance.json) retains the
+matching final Wayland session. Desktop LeakSanitizer triage remains open. The full
+native game remains gated.
 
 The shell uses BlizzardCore's authenticated packages and scalar asset decoders,
 the Services owner-thread file queue and Os input/clipboard/IME entry points.
@@ -60,6 +62,11 @@ The `linux-window`, `linux-window-asan`, `macos-arm64-window` and `windows-windo
 presets include core, file, package/decoder, async, SDL input and settings checks.
 The input fixture uses SDL's dummy driver; it cannot establish desktop/physical IME
 or GPU behavior. macOS checks require an ARM64 runner and ARM64 binaries.
+`SDLDesktopControl` provides a separate engine-free lifetime control. Linux
+display dependencies now use ordinary ELF linkage; the explicit
+`linux-window-dynamic-asan` preset retains dynamic loading for comparison. See
+[desktop library lifetimes](DESKTOP_LIFETIMES.md) for the required libraries,
+clean X11 sanitizer results and remaining external Wayland Fontconfig report.
 
 Download a passing `m2-linux-window-*` artifact from that workflow and extract it
 outside the product/data tree. The runtime wrapper verifies `NativeShell` against

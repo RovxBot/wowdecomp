@@ -17,7 +17,7 @@
   "data_inventory": "clean-data-inventory.json",
   "settings_relaunch_verified": "Same external Wayland release roots: launches=1 then launches=2; settings-save-reload=verified both times.",
   "desktop_leak_acceptance": "OPEN: unsuppressed desktop sanitizer reports remain; core/assets/async/dummy fixtures pass independently.",
-  "physical_input_acceptance": "OPEN: no operator report received; unattended interactive shell timed out after 600 seconds and is not counted as a shutdown/input pass.",
+  "physical_input_acceptance": "PASSED: operator confirmed requested checklist on 2026-10-18; final Wayland binary/session independently matched. See operator-acceptance.json. Earlier unattended timeout is historical, not this acceptance.",
   "source_interpretation": "Every runtime retains its hosted implementation head; later documentation changes do not rename that source identity.",
   "records": [
     {

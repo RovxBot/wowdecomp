@@ -66,10 +66,13 @@ it does not turn a documentation request into authorization to start the whole p
   [M2 handoff](docs/m2/HANDOFF.md), [shell contracts](docs/m2/SHELL.md),
   [hosted identities](docs/m2/shell-builds.json) and
   [desktop runtime evidence](docs/m2/shell-runtime.json). Original-data Linux
-  startup/settings/shutdown are observed on X11 and Wayland. Physical input/IME
-  acceptance and desktop LeakSanitizer triage remain open; unsuppressed host-library
-  reports are recorded in the handoff, not counted as passes. Do not infer physical
-  input acceptance from dummy-driver or injected events.
+  startup/settings/shutdown are observed on X11 and Wayland. The operator confirmed
+  the requested physical-input checklist passed on 2026-10-18; the saved final
+  Wayland report corroborates real mouse/clipboard activity and clean shutdown.
+  See [operator acceptance](docs/m2/operator-acceptance.json). IME language and
+  additional display/platform coverage were not identified. Desktop LeakSanitizer
+  triage remains open; unsuppressed reports are not counted as passes. Preserve
+  the distinction between operator observations, telemetry and injected fixtures.
   Preserve the distinction between scalar inspection geometry and full
   animation/material/world rendering. M3 game integration has not started.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
@@ -210,8 +213,14 @@ An explicit Linux video-driver request also sets matching child EGL platform;
 timeouts are recorded failures, not physical-input or clean-shutdown evidence.
 Dummy-driver fixtures do not establish desktop input/IME, usable windows or Gx
 rendering. Actual ARM64 fixtures do not establish Cocoa desktop/gameplay support.
-Complete the recorded physical input acceptance and desktop leak triage before
-final M2 sign-off; report unavailable hardware/session coverage explicitly.
+Physical input acceptance is recorded. Complete final baseline validation before
+M2 sign-off; report unavailable hardware/session coverage explicitly. The SDL-only
+desktop control must stay free of engine/data dependencies. Linux now links its
+required display libraries with normal ELF process lifetime ownership: both the
+SDL-only control and original-data shell passed X11 ASan/UBSan/leak checks. Keep
+`linux-window-dynamic-asan` as a diagnostic comparison. The remaining Wayland
+Fontconfig report reproduces without engine code and is retained, not suppressed;
+do not claim a clean Wayland LeakSanitizer run.
 
 For implementation changes, record the commands and checks run, their results and
 any skipped platform checks. Update milestone status only with evidence. Distinguish

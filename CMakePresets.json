@@ -175,6 +175,13 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON"
       }
+    },
+    {
+      "name": "linux-window-dynamic-asan",
+      "inherits": "linux-window-asan",
+      "cacheVariables": {
+        "WOWDECOMP_SDL_LINK_DISPLAY_DEPS": "OFF"
+      }
     }
   ]
 }

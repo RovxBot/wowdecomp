@@ -32,7 +32,7 @@ and a [native SDL3 shell](docs/m2/SHELL.md). Hosted semantic fixtures pass on al
 three platforms, including Linux sanitizers and actual ARM64 execution. Downloaded
 Linux binaries load the supplied read-only 12340/enUS data and display decoded
 terrain pixels on X11 and Wayland. The [M2 handoff](docs/m2/HANDOFF.md) records exact
-evidence, outstanding physical input acceptance and desktop leak triage. These tools do not run the
+evidence, passed operator input acceptance and remaining desktop leak triage. These tools do not run the
 login screen, world, networking or audio.
 
 ## Progress
