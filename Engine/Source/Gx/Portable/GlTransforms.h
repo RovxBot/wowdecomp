@@ -49,6 +49,8 @@ public:
     // suppresses perspective *0.2 compression (not the named bit-7 flag).
     // This does not establish that the historical warped-scene bug is fixed.
     void MasterEnables(uint32_t mask);
+    // Nonidentity texture stacks fail visibly: texture/texgen GPU delivery is
+    // not yet integrated. World/view/projection and raster state are supported.
     void Sync();
     // Original GxXformViewProjNativeTranspose contract; excludes world, and
     // undoes the native projection's Z row conversion before transposition.

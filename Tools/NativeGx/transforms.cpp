@@ -73,6 +73,10 @@ struct Checks {
         // GxXform_Projection is a stack slot, distinct from XformSetProjection.
         transforms.Set(GxXform_Projection, C44Matrix(7));
         Require(transforms.Projection() == identity, "Projection stack overwrote device projection");
+        transforms.Set(GxXform_Tex3, C44Matrix(2));
+        Reject<std::logic_error>([&] { transforms.Sync(); });
+        transforms.Set(GxXform_Tex3, identity);
+        Clean();
         std::cout << "gx-scalar-stacks-order-saturation-rejection=passed\n";
     }
     void State(GlRenderTargets& targets, GlTransforms& transforms) {

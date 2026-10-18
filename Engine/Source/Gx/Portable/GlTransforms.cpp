@@ -164,6 +164,13 @@ void GlTransforms::Sync() {
     auto target = s.targets.View();
     if (target.width <= 0 || target.height <= 0)
         throw std::logic_error("Gx transforms require a nonempty bound target/drawable");
+    // Keep the original texture stacks available to adapt callers, but do not
+    // silently draw as if an unimplemented texture/texgen path had consumed
+    // their matrices. UI programs here consume vertex texture coordinates.
+    const C44Matrix identity;
+    for (uint32_t unit = GxXform_Tex0; unit <= GxXform_Tex7; ++unit)
+        if (Get(unit) != identity)
+            throw std::logic_error("Native Gx texture-matrix delivery is not integrated");
     s.Check("Before Gx transform synchronization");
     // 12340 IXformSetProjection and IXformGLModelView: row-vector Tempest
     // storage is consumed as column-major by GL. Do not transpose these loads.
