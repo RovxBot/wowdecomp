@@ -107,9 +107,26 @@ driver qualification. GPU sanitizer runs used no `LSAN_OPTIONS`, `LD_PRELOAD` or
 `LD_AUDIT`; the existing M2 Wayland Fontconfig qualification is unchanged. Captures
 remain external; only their hash/dimensions and inspection results are recorded.
 
-The next [native shader work package](SHADERS.md) adds bounded original
-`0x10003` containers and owned ARB programs. Validation is in progress; it does
-not close the device, original login UI or gameplay requirements below.
+The [native shader work package](SHADERS.md) is merged in
+[PR #17](https://github.com/RovxBot/wowdecomp/pull/17), selected implementation
+`543243c676f16b1a2c32af38d8b0910c73eaadbd`, merge
+`7c5f5ec4feb59760a25aec07d30dbaa433826da5`. The [shader record](shader-validation.json)
+retains all eight passing PR workflows, separate Windows merge-checkout identity,
+15 CTest passes in each Linux GL configuration, and exact-source original-data
+GPU release and three clean ASan/UBSan/leak-enabled cycles. Both original vertex
+UI permutations uploaded; permutation zero and the original fragment UI shader
+passed five texture/depth/blend/FBO pixels and displayed the original loading-bar
+texture. Both UI shader files have no registered MD5 record; the original-key
+signaturefile and existing selective MD5 policy remain enabled. This adapts a
+native shader resource service, not the complete legacy device/native ABI.
+Original fonts/GlueXML/login, networking and gameplay remain open. The new
+artifact's operator window checks remain pending; prior operator acceptance above
+belongs to `2afd390` and is not relabeled.
+
+The prepared final artifact is `/tmp/wowdecomp-m3-shaders-release`; use it in the
+[shader operator command](SHADERS.md#validation-and-operator-use). The command
+checks the binary hash, uses the unchanged read-only clean reference and external
+settings/cache. No new server connection or credentials are needed.
 
 Next dependencies, in order:
 
@@ -117,8 +134,8 @@ Next dependencies, in order:
    context boundary; audit render-target transitions and legacy async callers.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
-2. Bring up unchanged 12340 shader version `0x10003`, original fonts, Lua,
-   GlueXML/FrameXML and addon verification. Render the actual original login UI.
+2. Extend unchanged 12340 `0x10003` shader coverage beyond UI; bring up original
+   fonts, Lua, GlueXML/FrameXML and addon verification. Render the actual original login UI.
    The Windows OpenGL warped-scene failure remains a known comparison failure;
    obtain fixed D3D9 and OpenGL captures before claiming visual parity.
 3. Replace IOCP beneath the original network interfaces, with framing, partial

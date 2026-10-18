@@ -99,12 +99,24 @@ it does not turn a documentation request into authorization to start the whole p
   minimize/restore, focus, F11 and close passed on the matching synthetic probe,
   without blank graphics or crashes. Boxes scaled with the window. Keep those
   operator observations separate from automatic GPU telemetry and game rendering.
-- M3 original shader service is in progress. Read the
-  [shader contracts](docs/m3/SHADERS.md) before continuing. It adapts bounded
-  `0x10003` arbvp1/arbfp1 containers and context-owned programs in the native ABI;
-  it does not expose legacy `CGxShader` objects or qualify the original login UI.
-  Keep context ownership, the existing 94-register range and unsupported shader
-  dialects explicit. All new C++ compilation/fixtures run in Actions.
+- M3 original shader service [PR #17](https://github.com/RovxBot/wowdecomp/pull/17)
+  selected head `543243c676f16b1a2c32af38d8b0910c73eaadbd`, merged as
+  `7c5f5ec4feb59760a25aec07d30dbaa433826da5`. Read the
+  [shader contracts](docs/m3/SHADERS.md) and
+  [durable validation](docs/m3/shader-validation.json). All eight PR workflows
+  passed, including full Windows x64 compilation; both Linux GL configurations
+  passed 15 CTest checks. Exact-source release and three ASan/UBSan/leak-enabled
+  cycles executed original `0x10003` UI shaders on RX 7900 XTX / Xwayland, checked
+  five FBO pixels and displayed the original loading-bar texture, with empty
+  stderr and zero workers. Both UI shader members lack registered MD5 entries;
+  original-key signaturefile authentication and selective MD5 policy remain
+  enabled. This native resource does not expose legacy `CGxShader` objects.
+  Keep its original 94-register range and unsupported dialects explicit.
+  Preserve its main-thread/current-context ownership and distinguish uploaded
+  stereo permutations from rendered stereo, original shaders from original
+  fonts/GlueXML, and rendered pixels from gameplay. Full native device/targets,
+  login UI/network/world remain open; M3 is not complete. New operator window
+  checks are pending; historical context-probe acceptance remains separate.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
