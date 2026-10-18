@@ -1,5 +1,6 @@
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
 #include "Engine/Source/Gx/Portable/GlContext.h"
+#include "Engine/Source/Gx/Portable/GlProgram.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
@@ -111,10 +112,9 @@ struct Probe {
     BASE(TexParameteri);
 #undef BASE
 #define EXT(type, name) type name = reinterpret_cast<type>(context.Proc("gl" #name))
-    EXT(PFNGLGENPROGRAMSARBPROC, GenProgramsARB);
-    EXT(PFNGLBINDPROGRAMARBPROC, BindProgramARB);
-    EXT(PFNGLPROGRAMSTRINGARBPROC, ProgramStringARB);
-    EXT(PFNGLDELETEPROGRAMSARBPROC, DeleteProgramsARB);
+    EXT(PFNGLGETPROGRAMIVARBPROC, GetProgramivARB);
+    EXT(PFNGLVERTEXATTRIB4FARBPROC, VertexAttrib4fARB);
+    EXT(PFNGLVERTEXATTRIB2FARBPROC, VertexAttrib2fARB);
     EXT(PFNGLCOMPRESSEDTEXIMAGE2DARBPROC, CompressedTexImage2DARB);
     EXT(PFNGLGENFRAMEBUFFERSEXTPROC, GenFramebuffersEXT);
     EXT(PFNGLBINDFRAMEBUFFEREXTPROC, BindFramebufferEXT);
@@ -127,13 +127,13 @@ struct Probe {
     EXT(PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC, FramebufferRenderbufferEXT);
     EXT(PFNGLDELETERENDERBUFFERSEXTPROC, DeleteRenderbuffersEXT);
 #undef EXT
-    GLuint programs[2]{}, texture = 0, target = 0, framebuffer = 0, depth = 0;
+    std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
+    GLuint texture = 0, target = 0, framebuffer = 0, depth = 0;
     explicit Probe(GlContext &owner) : context(owner) {}
     ~Probe() {
         BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
         Disable(GL_VERTEX_PROGRAM_ARB);
         Disable(GL_FRAGMENT_PROGRAM_ARB);
-        DeleteProgramsARB(2, programs);
         DeleteTextures(1, &texture);
         DeleteTextures(1, &target);
         DeleteRenderbuffersEXT(1, &depth);
@@ -143,18 +143,37 @@ struct Probe {
         GLenum error = GetError();
         Require(error == GL_NO_ERROR, std::string(operation) + " GL error=" + std::to_string(error));
     }
-    void Program(GLenum kind, GLuint name, const char *source) {
-        BindProgramARB(kind, name);
-        ProgramStringARB(kind, GL_PROGRAM_FORMAT_ASCII_ARB, static_cast<GLsizei>(std::strlen(source)),
-                         source);
-        GLint position = -1;
-        GetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &position);
-        if (position != -1) {
-            auto error = GetString(GL_PROGRAM_ERROR_STRING_ARB);
-            throw std::runtime_error("ARB program rejected at " + std::to_string(position) + ": " +
-                                     (error ? reinterpret_cast<const char *>(error) : "unknown error"));
-        }
-        Check("ARB program upload");
+    static Gx::Native::ShaderRecord Record(const char* source) {
+        Gx::Native::ShaderRecord record;
+        record.code.assign(source, source + std::strlen(source) + 1);
+        return record;
+    }
+    void ProgramFailures() {
+        vertex->Bind();
+        GLint previous = 0, after = 0;
+        GetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_BINDING_ARB, &previous);
+        bool rejected = false;
+        try {
+            Gx::Native::GlProgram invalid(context, Gx::Native::ShaderStage::Vertex,
+                Record("!!ARBvp1.0\nINVALID instruction;\nEND\n"));
+        } catch (const std::runtime_error&) { rejected = true; }
+        Require(rejected, "Malformed ARB program was accepted");
+        GetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_BINDING_ARB, &after);
+        Require(previous == after, "Failed program upload changed the binding");
+        const float value[4] = {1, 0, 0, 0};
+        rejected = false;
+        try { vertex->Constant(UINT32_MAX, value); }
+        catch (const std::out_of_range&) { rejected = true; }
+        Require(rejected, "Out-of-range ARB constant was accepted");
+        rejected = false;
+        std::thread wrongThread([&] {
+            try { vertex->Bind(); }
+            catch (const std::logic_error&) { rejected = true; }
+        });
+        wrongThread.join();
+        Require(rejected, "Off-thread shader bind was accepted");
+        Check("Rejected shader operations leave clean GL state");
+        std::cout << "native-program-failure-rollback-affinity=passed\n";
     }
     void Image(GLuint name, const Blizzard::Assets::Image &image) {
         BindTexture(GL_TEXTURE_2D, name);
@@ -168,18 +187,25 @@ struct Probe {
     }
     void Quad(float z, float alpha) {
         Color4f(1, 1, 1, alpha);
+        VertexAttrib4fARB(4, 1, 1, 1, alpha);
         Begin(GL_QUADS);
         TexCoord2f(0, 0);
+        VertexAttrib2fARB(6, 0, 0);
         Vertex3f(-0.75f, -0.75f, z);
         TexCoord2f(1, 0);
+        VertexAttrib2fARB(6, 1, 0);
         Vertex3f(0.75f, -0.75f, z);
         TexCoord2f(1, 1);
+        VertexAttrib2fARB(6, 1, 1);
         Vertex3f(0.75f, 0.75f, z);
         TexCoord2f(0, 1);
+        VertexAttrib2fARB(6, 0, 1);
         Vertex3f(-0.75f, 0.75f, z);
         End();
     }
     void Draw(int width, int height, bool synthetic) {
+        vertex->Bind();
+        fragment->Bind();
         Viewport(0, 0, width, height);
         Disable(GL_DITHER);
         Disable(GL_MULTISAMPLE);
@@ -201,15 +227,15 @@ struct Probe {
         Check("ARB textured depth/blend draw");
     }
     void Initialize() {
-        GenProgramsARB(2, programs);
-        Program(GL_VERTEX_PROGRAM_ARB, programs[0],
+        vertex = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Vertex, Record(
                 "!!ARBvp1.0\nMOV result.position, vertex.position;\n"
                 "MOV result.texcoord[0], vertex.texcoord[0];\nMOV result.color, "
-                "vertex.color;\nEND\n");
-        Program(GL_FRAGMENT_PROGRAM_ARB, programs[1],
+                "vertex.color;\nEND\n"));
+        fragment = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Fragment, Record(
                 "!!ARBfp1.0\nTEMP tex;\nTEX tex, fragment.texcoord[0], texture[0], "
                 "2D;\n"
-                "MUL result.color, tex, fragment.color;\nEND\n");
+                "MUL result.color, tex, fragment.color;\nEND\n"));
+        ProgramFailures();
         GenTextures(1, &texture);
         Image(texture, {2, 2, {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255}});
         GenTextures(1, &target);
@@ -226,21 +252,7 @@ struct Probe {
                 "Synthetic FBO is incomplete");
         Draw(32, 32, true);
         ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-        const std::array<std::array<int, 5>, 5> samples{{{{8, 8, 128, 0, 0}},
-                                                         {{24, 8, 0, 128, 0}},
-                                                         {{8, 24, 0, 0, 128}},
-                                                         {{24, 24, 128, 128, 0}},
-                                                         {{1, 1, 0, 0, 0}}}};
-        for (const auto &sample : samples) {
-            std::array<uint8_t, 4> pixel{};
-            ReadPixels(sample[0], sample[1], 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
-            for (int channel = 0; channel < 3; ++channel)
-                Require(std::abs(int(pixel[channel]) - sample[channel + 2]) <= 1,
-                        "Synthetic ARB/FBO pixel mismatch at " + std::to_string(sample[0]) + "," +
-                            std::to_string(sample[1]) + " channel=" + std::to_string(channel) +
-                            " actual=" + std::to_string(pixel[channel]));
-        }
-        Check("FBO readback");
+        CheckPixels();
         const uint8_t dxt1[] = {0, 248, 224, 7, 0, 0, 0, 0};
         BindTexture(GL_TEXTURE_2D, texture);
         CompressedTexImage2DARB(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 4, 4, 0, sizeof(dxt1),
@@ -256,6 +268,23 @@ struct Probe {
         ReadBuffer(GL_BACK);
         std::cout << "synthetic-arb-texture-depth-blend-fbo=passed\n";
         std::cout << "synthetic-s3tc-dxt1=passed\n";
+    }
+    void CheckPixels() {
+        const std::array<std::array<int, 5>, 5> samples{{{{8, 8, 128, 0, 0}},
+                                                         {{24, 8, 0, 128, 0}},
+                                                         {{8, 24, 0, 0, 128}},
+                                                         {{24, 24, 128, 128, 0}},
+                                                         {{1, 1, 0, 0, 0}}}};
+        for (const auto &sample : samples) {
+            std::array<uint8_t, 4> pixel{};
+            ReadPixels(sample[0], sample[1], 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
+            for (int channel = 0; channel < 3; ++channel)
+                Require(std::abs(int(pixel[channel]) - sample[channel + 2]) <= 1,
+                        "Synthetic ARB/FBO pixel mismatch at " + std::to_string(sample[0]) + "," +
+                            std::to_string(sample[1]) + " channel=" + std::to_string(channel) +
+                            " actual=" + std::to_string(pixel[channel]));
+        }
+        Check("FBO readback");
     }
     void Snapshot(const std::string &path, int width, int height) {
         Require(width > 0 && height > 0 && width <= 16384 && height <= 16384, "Invalid snapshot size");
@@ -278,6 +307,8 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
                                                    options.cache.c_str(), paths),
             "Cannot configure separate read-only data and user roots");
     Blizzard::Assets::Image image{};
+    Gx::Native::ShaderPackage vertexShaders, fragmentShaders;
+    bool vertexSigned = false, fragmentSigned = false;
     size_t signatures = 0;
     std::string failure;
     bool loaded = false;
@@ -290,6 +321,12 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
                 throw std::runtime_error("Original image loading cancelled");
             auto file = packages->Read("Interface\\Glues\\LoadingBar\\Loading-BarFill.blp");
             image = Blizzard::Assets::DecodeBlp(file.bytes).at(0);
+            auto vs = packages->Read("Shaders\\Vertex\\arbvp1\\UI.bls", 64 * 1024 * 1024);
+            auto fs = packages->Read("Shaders\\Pixel\\arbfp1\\UI.bls", 64 * 1024 * 1024);
+            vertexSigned = vs.signedFile;
+            fragmentSigned = fs.signedFile;
+            vertexShaders = Gx::Native::DecodeShaderPackage(vs.bytes, 2);
+            fragmentShaders = Gx::Native::DecodeShaderPackage(fs.bytes, 1);
             return Services::Native::ReadResult{};
         },
         [&](const Services::Native::ReadResult &result) {
@@ -311,7 +348,28 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
         queue.Cancel(ticket);
     queue.Shutdown();
     Require(loaded && !closed, failure.empty() ? "Original image load cancelled/timed out" : failure);
+    // Both original vertex permutations must upload. The normal UI draw uses
+    // permutation zero; stereo constants/rendering are not qualified here.
+    Gx::Native::GlProgram stereo(context, Gx::Native::ShaderStage::Vertex, vertexShaders.permutations.at(1));
+    probe.vertex = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Vertex,
+                                                         vertexShaders.permutations.at(0));
+    probe.fragment = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Fragment,
+                                                           fragmentShaders.permutations.at(0));
+    const float identity[4][4] = {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1}};
+    for (uint32_t i = 0; i < 4; ++i) probe.vertex->Constant(i, identity[i]);
+    // Reuse known synthetic pixels with the original programs before displaying
+    // the original texture. Shader upload alone is not rendered-output evidence.
+    probe.BindFramebufferEXT(GL_FRAMEBUFFER_EXT, probe.framebuffer);
+    probe.Draw(32, 32, true);
+    probe.ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    probe.CheckPixels();
+    probe.Check("Original UI shader readback");
+    probe.BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    probe.ReadBuffer(GL_BACK);
     probe.Image(probe.texture, image);
+    std::cout << "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1"
+              << " vertex-md5=" << vertexSigned << " fragment-md5=" << fragmentSigned << '\n'
+              << "original-ui-shader-fbo-pixel=passed\n";
     std::cout << "original-signaturefile=authenticated records=" << signatures << '\n'
               << "original-glue-loadingbar=uploaded (asset probe; original login "
                  "UI unavailable)\n";

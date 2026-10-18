@@ -107,6 +107,10 @@ driver qualification. GPU sanitizer runs used no `LSAN_OPTIONS`, `LD_PRELOAD` or
 `LD_AUDIT`; the existing M2 Wayland Fontconfig qualification is unchanged. Captures
 remain external; only their hash/dimensions and inspection results are recorded.
 
+The next [native shader work package](SHADERS.md) adds bounded original
+`0x10003` containers and owned ARB programs. Validation is in progress; it does
+not close the device, original login UI or gameplay requirements below.
+
 Next dependencies, in order:
 
 1. Adapt the existing Gx device/shared services to the native ABI and the new

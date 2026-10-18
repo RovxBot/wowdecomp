@@ -22,6 +22,8 @@ class NativeGlGraphTests(unittest.TestCase):
     def test_gl_rejects_legacy_device_sources_and_abi(self):
         message = 'WowNativeGl: unexpected native Gx context provider/ABI'
         target = self.target('WowNativeGl', 'Engine/Source/Gx/Portable/GlContext.cpp')
+        target['sources'] += [{'path': 'Engine/Source/Gx/Portable/' + name + '.cpp'}
+                              for name in ['GlProgram', 'ShaderPackage']]
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         legacy = copy.deepcopy(target)
         legacy['sources'].append({'path': 'Engine/Source/Gx/CGxDeviceOpenGL/CGxDeviceOpenGl.cpp'})

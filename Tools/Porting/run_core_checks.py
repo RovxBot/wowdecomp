@@ -42,7 +42,7 @@ def main():
                       'macos-arm64-core': ('MACOS', 'ARM64'),
                       'windows-core': ('WINDOWS', 'X86_64')}[core_preset]
     manifest = {
-        'schema_version': 1, 'scope': ('M3 Linux SDL3/Gx OpenGL context and synthetic ARB/FBO readback; no login/gameplay' if graphics else
+        'schema_version': 1, 'scope': ('M3 Linux SDL3/Gx context, 12340 shader decoder and synthetic ARB/FBO readback; no login/gameplay' if graphics else
                                     'M2 SDL3 window/input synthetic fixtures plus native async/assets/core; dummy driver, no game' if window else
                                     'M2 native asynchronous file, package/asset and core fixtures; no window/gameplay' if asynchronous else
                                     'M2 native read-only MPQ/signatures with synthetic fixtures; no game/window' if assets else
@@ -106,7 +106,7 @@ def main():
                     raise RuntimeError('SDL display-library loading differs from the selected baseline/control')
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeGlCheck'] if graphics else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeGlCheck', 'ShaderPackageCheck'] if graphics else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -143,7 +143,7 @@ def main():
         if assets:
             manifest['notices'] = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
                                    for path in sorted(notices.iterdir())}
-        manifest['status'] = ('OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle fixtures passed on hosted X11; no original login/gameplay' if graphics else
+        manifest['status'] = ('12340 shader fixtures, OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle passed on hosted X11; no original login/gameplay' if graphics else
                               'native SDL3 window/input fixtures passed on dummy video; desktop validation separate' if window else
                               'native asynchronous file and package/asset fixtures passed; no full game/window' if asynchronous else
                               'native MPQ/signature fixtures passed; original-data runtime validation separate' if assets else
