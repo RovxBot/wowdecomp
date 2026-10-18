@@ -7,6 +7,7 @@
 
 struct SDL_Window;
 namespace OsNative {
+enum class WindowGraphics { Software, OpenGlCompatibility };
 struct WindowState;
 struct Composition {
     std::string text, result;
@@ -16,7 +17,8 @@ struct Composition {
 };
 class Window {
   public:
-    Window(const char *title, int width, int height, bool hidden = false);
+    Window(const char *title, int width, int height, bool hidden = false,
+           WindowGraphics graphics = WindowGraphics::Software);
     ~Window();
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;

@@ -271,6 +271,9 @@ assets need to be copied into the repository.
 
 Depends on: M2. The modern graphics/shader prototype can begin during this stage.
 
+Status: in progress through the [Linux OpenGL context work package](docs/m3/HANDOFF.md).
+Its separate native ABI probe does not establish the original login UI or gameplay.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
