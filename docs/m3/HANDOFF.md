@@ -119,9 +119,15 @@ passed five texture/depth/blend/FBO pixels and displayed the original loading-ba
 texture. Both UI shader files have no registered MD5 record; the original-key
 signaturefile and existing selective MD5 policy remain enabled. This adapts a
 native shader resource service, not the complete legacy device/native ABI.
-Original fonts/GlueXML/login, networking and gameplay remain open. The new
-artifact's operator window checks remain pending; prior operator acceptance above
-belongs to `2afd390` and is not relabeled.
+Original fonts/GlueXML/login, networking and gameplay remain open. On 2026-10-18
+the operator confirmed that resize, minimize/restore, focus changes, F11 and window
+close all passed on the exact `543243c` original-data shader probe, with no crash
+or corruption. The saved release report matches its hosted source/binary identity
+and records exit 0, no timeout, empty stderr and zero workers. These physical
+observations are recorded separately from automatic shader/FBO checks. The report
+has no per-event telemetry or additional capture; prior context-probe acceptance
+above remains attached to `2afd390`. Neither acceptance establishes original login
+UI or gameplay.
 
 The prepared final artifact is `/tmp/wowdecomp-m3-shaders-release`; use it in the
 [shader operator command](SHADERS.md#validation-and-operator-use). The command

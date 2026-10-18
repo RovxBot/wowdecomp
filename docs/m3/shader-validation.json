@@ -675,7 +675,7 @@
     "Original UI shader execution is not model/terrain/world parity; other shader dialects and bone-range expansion remain open.",
     "New shader service is qualified only on Linux x86-64 X11/Xwayland; no native Xorg, M3 Wayland, macOS renderer or ARM64 graphics claim.",
     "M2 Wayland Fontconfig qualification remains unchanged; no suppression added.",
-    "Physical window-control acceptance remains attached to the historical 2afd390 context probe until a new operator report arrives.",
+    "Operator window-control acceptance is reported for the selected 543243c original-data shader probe; no per-event telemetry or new capture was supplied. Historical 2afd390 context acceptance remains separate, and broader display/platform coverage is unobserved.",
     "Read-only game data, original signature policy, Windows implementations, 12340 protocol and server/cluster policy are preserved."
   ],
   "duplicate_push_regressions": "Cancelled in favor of complete final PR matrix; cancellations are not counted as passes",
@@ -718,5 +718,88 @@
       "No native Xorg or M3 Wayland desktop qualification",
       "No macOS/ARM64 shader rendering; existing core/asset/window fixtures pass on ARM64"
     ]
+  },
+  "operator_acceptance": {
+    "status": "Operator-reported pass for all requested window controls with original-data shaders on the selected Linux X11/Xwayland probe",
+    "reported_on": "2026-10-18",
+    "reporting_timezone": "Australia/Adelaide",
+    "operator_statement": "no crashes or corruption. Tested all",
+    "observations": {
+      "resize": "pass; included in the confirmation that all requested checks were tested, with no crash or corruption",
+      "minimize_restore": "pass; included in the confirmation that all requested checks were tested, with no crash or corruption",
+      "focus_changes": "pass; included in the confirmation that all requested checks were tested, with no crash or corruption",
+      "f11_fullscreen": "pass; included in the confirmation that all requested checks were tested, with no crash or corruption",
+      "window_close": "pass; included in the confirmation that all requested checks were tested; the matching report corroborates normal exit and zero workers"
+    },
+    "runtime": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-18T01:57:53.202401+00:00",
+      "completed_at": "2026-10-18T01:58:11.619779+00:00",
+      "source_commit": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+      "binary_sha256": "dd58cd10b523bf6e39fa263713541721bc6b7a19ee8940e37653605cdfbd8cac",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=1 workers=0"
+      ],
+      "stderr": []
+    },
+    "external_raw_report_sha256": "71d9eacd46651b64f58c0ea26a00a58cc798776de1a87662294a6a29d485aa3e",
+    "runtime_parameters": {
+      "preset": "linux-gl",
+      "frames": 3600,
+      "cycles": 1,
+      "timeout_seconds": 120,
+      "original_data": true,
+      "sanitizers": false
+    },
+    "runtime_corroboration": "Selected source and binary hash match the hosted release manifest; exit 0, no timeout, empty stderr, zero workers, original signaturefile authentication and shader/FBO checks passed.",
+    "additional_capture_supplied": false,
+    "scope": "Physical checks are operator observations. The saved report contains no per-event telemetry and does not independently prove each window operation. Earlier automatic GPU/sanitizer cycles and the historical 2afd390 context-probe acceptance retain their own identities. This is original-data shader/texture probe acceptance, not original login UI or gameplay."
+  },
+  "operator_acceptance_documentation_checks": {
+    "scope": "Documentation-only update; no rebuild or new agent-driven runtime session",
+    "checks": [
+      "Runtime source, binary hash and workflow identity match the hosted release manifest",
+      "Saved report exit/no-timeout/empty-stderr/worker and shader-output consistency",
+      "Relative Markdown references, JSON consistency and git diff --check"
+    ],
+    "client_or_dependency_compilation_local": false
   }
 }

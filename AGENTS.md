@@ -115,8 +115,12 @@ it does not turn a documentation request into authorization to start the whole p
   Preserve its main-thread/current-context ownership and distinguish uploaded
   stereo permutations from rendered stereo, original shaders from original
   fonts/GlueXML, and rendered pixels from gameplay. Full native device/targets,
-  login UI/network/world remain open; M3 is not complete. New operator window
-  checks are pending; historical context-probe acceptance remains separate.
+  login UI/network/world remain open; M3 is not complete. On 2026-10-18 the
+  operator confirmed resize, minimize/restore, focus changes, F11 and window close
+  all passed on this exact original-data shader probe, with no crash or corruption.
+  The matching release report corroborates exit 0, empty stderr and zero workers;
+  it has no per-event telemetry or new capture. Keep this operator acceptance
+  separate from automatic GPU/sanitizer checks and historical context acceptance.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

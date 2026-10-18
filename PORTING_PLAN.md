@@ -289,7 +289,9 @@ The [original shader service](docs/m3/SHADERS.md) in
 [PR #17](https://github.com/RovxBot/wowdecomp/pull/17) now decodes unchanged
 `0x10003` UI shaders, owns native ARB resources and executes them on the observed
 Linux GPU with clean sanitizer cycles; [shader evidence](docs/m3/shader-validation.json)
-separates compilation/fixtures, captured output and remaining operator checks.
+separates compilation/fixtures, captured output and operator observations. On
+2026-10-18 the operator confirmed all requested original-data shader-probe window
+controls passed without crashes or corruption, with a matching clean-exit report.
 The complete device/native ABI, fonts/GlueXML/login UI and networking/world steps
 remain open. M3 is not complete.
 
