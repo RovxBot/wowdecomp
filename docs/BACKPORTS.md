@@ -182,9 +182,10 @@ and source inspection are different evidence levels.
 
 ## NP-007 — Native Gx transforms and normalized raster state
 
-- Status: implementation awaiting hosted/GPU validation; see
-  [transform contracts and caller audit](m3/TRANSFORMS.md). Stacked on qualified,
-  unmerged render-target PR #20; M3 remains open.
+- Status: qualified in [PR #21](https://github.com/RovxBot/wowdecomp/pull/21),
+  selected implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415`; see
+  [transform contracts/caller audit](m3/TRANSFORMS.md). Stacked on qualified,
+  unmerged render-target PR #20; both remain unmerged and M3 remains open.
 - Source: product 12340 at `840dc0fbda9206573a167a55f9051d3d6e3bfd38`,
   Gx transform/viewport entry points, OpenGL projection/model-view/scissor and
   Gxu UI constant callers. No donor body, address or VERIFY claim is imported.
@@ -199,8 +200,15 @@ and source inspection are different evidence levels.
   `0x10003` UI programs. No new asset/dependency, optional effect, signature bypass,
   protocol or server-policy change. Full legacy device/cache/texture/async and
   original fonts/login/network/world integration remain open.
-- Validation: local Python source/launcher checks and whitespace; hosted C++ and
-  actual-GPU checks pending. No local client/dependency compilation.
+- Validation: [durable evidence](m3/transform-validation.json) records all eight
+  successful implementation PR workflows, 17 CTest checks in each Linux GL
+  configuration, distinct Windows merge-checkout compilation and verified binary
+  identities. Exact-source RX 7900 XTX release/ASan/UBSan/leak checks passed three
+  target/transform cycles each and one/three original-data shader cycles, with
+  empty stderr and zero probe workers. Initial enum and fresh matrix-mode failures
+  and their corrections remain recorded separately. Local Python checks: 25 pass,
+  one CMake selection check unavailable locally; all 26 ran in hosted Linux.
+  No local compilation or new physical-input/gameplay acceptance.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

@@ -160,13 +160,24 @@ qualified. Preserve this later snapshot separately from historical M0 observatio
 The next [transform work package](TRANSFORMS.md) adapts existing scalar Gx/Tempest
 matrices, normalized viewport/scissor, offscreen projection/culling and original
 UI shader constants to the context/target owner. It is stacked on PR #20 and
-awaits hosted/GPU validation. This remains a native boundary, not the full legacy
-CGxDevice/CGxTex/state-cache or original login UI. M3 remains open.
+is qualified at `a1c43f820448cbb0b0c0eb2fda2ab59216687415` in
+[PR #21](https://github.com/RovxBot/wowdecomp/pull/21), still unmerged. The
+[transform evidence](transform-validation.json) records all eight implementation
+PR workflows, 17 CTest passes per Linux GL configuration, separate Windows merge
+checkout `b18ed2af2622a8dd15e67a5863a9997b1f143f13`, and exact-source RX 7900 XTX
+release/sanitizer target/transform/original-data shader cycles. These include
+scaled/translated original UI shader pixels, empty stderr and zero probe workers.
+Fresh compatibility matrix-mode initialization and validated unsigned stack
+indices fix two recorded initial failures; nonidentity texture-matrix delivery
+fails visibly until integrated. This remains a native boundary, not the full
+legacy CGxDevice/CGxTex/state-cache or original login UI. No new physical-input
+acceptance or server session is recorded. M3 remains open.
 
 Next dependencies, in order:
 
-1. Adapt the existing Gx device/shared services to the native ABI and the new
-   context boundary; audit render-target transitions and legacy async callers.
+1. Adapt the remaining Gx device, texture/buffer and state-cache services to the
+   native ABI/context boundary, using the qualified scalar transform/raster
+   contract; audit texture/texgen delivery and legacy async callers.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
 2. Extend unchanged 12340 `0x10003` shader coverage beyond UI; bring up original

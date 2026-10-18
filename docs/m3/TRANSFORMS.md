@@ -74,6 +74,29 @@ operator observations keep their historical source identities. No new physical
 input acceptance is implied. The external server snapshot's tag/embedded-revision
 difference remains recorded in [server identity](SERVER_IDENTITY.md).
 
+Selected implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415` in
+[PR #21](https://github.com/RovxBot/wowdecomp/pull/21) is qualified, not merged.
+The [durable validation](transform-validation.json) records all eight successful
+implementation PR workflows, 17 CTest passes in each Linux GL configuration and
+full Windows x64 compilation at separate PR merge checkout
+`b18ed2af2622a8dd15e67a5863a9997b1f143f13`. Downloaded ZIPs, all packaged binaries,
+notices and Windows AMD64 PE identities matched their manifests. All 26 Python
+source/launcher checks ran in the hosted Linux job. Local checks discovered 26:
+25 passed, one CMake selection fixture unavailable locally; file references,
+JSON and whitespace checks passed. All client/dependency compilation was hosted.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 on Xwayland release and
+ASan/UBSan/leak-enabled target and transform fixtures each passed three cycles.
+The original-data probe passed one release and three sanitizer cycles, including
+both the original shader pixels and scaled/translated pixels. Every executable
+had empty stderr; each original-data probe shutdown reported zero native workers.
+No suppression, preload or audit shim was used. The 960x640 original loading-bar
+capture was inspected. Original-key authentication covered 28,948 signaturefile
+records; both UI shader members still lack registered MD5 entries under the
+unchanged selective policy. Stereo permutation upload is separate from rendering
+permutation zero. No new physical-input, original font/login UI, Windows gameplay,
+macOS graphics or native server-session acceptance is recorded.
+
 The initial release at `0373a4cf7c31e77cbd4ff89e907513d465d01edb` passed
 17 CTest checks. Its sanitizer run caught an invalid-enum load in the new negative
 input fixture: passing -1 as the unfixed `EGxXform` enum is itself undefined before

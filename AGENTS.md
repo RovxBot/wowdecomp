@@ -143,6 +143,25 @@ it does not turn a documentation request into authorization to start the whole p
   legacy `CGxTex`/device/state/projection/async integration, original fonts/login
   UI or gameplay. No new physical-input acceptance is recorded; keep prior
   operator observations attached to their historical sources. M3 remains open.
+- M3 transform [PR #21](https://github.com/RovxBot/wowdecomp/pull/21) selected
+  implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415` is qualified but
+  unmerged, stacked on PR #20. Read [transform contracts](docs/m3/TRANSFORMS.md)
+  and [validation](docs/m3/transform-validation.json). All eight implementation
+  PR workflows passed; both Linux GL configurations passed 17 CTest checks and
+  full Windows x64 compilation used separate merge checkout
+  `b18ed2af2622a8dd15e67a5863a9997b1f143f13`. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and ASan/UBSan/leak checks passed three target and
+  transform cycles each, plus one release and three sanitizer original-data
+  shader cycles, with empty stderr and zero probe workers. Scalar CGxMatrixStack
+  and Tempest math, normalized raster state and original UI shader constants are
+  integrated into the native probe. Initialize the legacy GL_MODELVIEW baseline
+  before querying/restoring matrix mode; validate unsigned stack indices before
+  enum interpretation. Nonidentity texture-matrix delivery fails visibly pending
+  integration. Keep the literal bit-31 perspective-compression branch and its
+  unqualified Windows warped-scene behavior explicit. Full legacy device/cache/
+  texture/buffer/async, original fonts/login UI, networking and observed gameplay
+  remain open. No new physical-input acceptance or server session is recorded;
+  preserve the external tag/embedded-revision distinction. M3 is not complete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

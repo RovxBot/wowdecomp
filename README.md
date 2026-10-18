@@ -44,6 +44,10 @@ texture display. It does not yet run the original login UI or connect to a serve
 The [native target owner](docs/m3/RENDER_TARGETS.md) adds retained offscreen color,
 depth and cube resources with hosted and actual-GPU sanitizer evidence. The full
 native device, original fonts/login UI, networking and gameplay remain open.
+The [transform adapter](docs/m3/TRANSFORMS.md) now reuses scalar Gx/Tempest math
+for normalized viewport/scissor and target projection, with original UI shader
+constants and transformed-pixel checks qualified in hosted and real-GPU
+release/sanitizer runs. It is stacked on the unmerged target work; M3 is open.
 
 ## Progress
 
