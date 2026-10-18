@@ -100,7 +100,7 @@ and source inspection are different evidence levels.
 
 ## NP-004 — Native SDL3/Gx OpenGL context boundary
 
-- Status: first M3 work package, [PR #13](https://github.com/RovxBot/wowdecomp/pull/13);
+- Status: first M3 work package merged in [PR #13](https://github.com/RovxBot/wowdecomp/pull/13);
   validation and remaining integration are recorded in [the M3 handoff](m3/HANDOFF.md).
 - References: this checkout's 12340 `CGxDeviceOpenGl` context attach/remove,
   presentation, capability initialization and `GlExt.cpp` ARB entry points;
@@ -116,8 +116,13 @@ and source inspection are different evidence levels.
   original-key signaturefile and registered-MD5 checks remain enabled. Optional
   loading-bar texture display is not a GlueXML login screen. No enhancement
   asset, shader-version conversion, protocol or server-policy change is made.
-- Validation scope: hosted X11/Mesa fixtures, exact-source desktop rendering and
-  sanitizers must be recorded separately. Full Gx integration, original fonts/UI,
+- Validation: all eight PR workflows passed, including full Windows x64 client
+  compilation and two Linux GL configurations with 14 CTest checks each. Exact
+  head `2afd390c8fb9f1d7b478c915b5b9d736bcc234d9` rendered the original glue
+  texture on RX 7900 XTX / Mesa 26.2.4 / Xwayland; release and three
+  ASan/UBSan/leak-enabled original-data cycles exited 0 with empty stderr and
+  zero native workers. The [context record](m3/context-validation.json) retains
+  exact manifests/hashes and separates operator observations. Full Gx integration, original fonts/UI,
   native networking, authentication and observed world entry remain M3 work.
 
 ## BP-001 — Correct CPUID structure initialization
