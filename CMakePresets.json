@@ -182,6 +182,20 @@
       "cacheVariables": {
         "WOWDECOMP_SDL_LINK_DISPLAY_DEPS": "OFF"
       }
+    },
+    {
+      "name": "linux-gl",
+      "inherits": "linux-window",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_GL": "ON"
+      }
+    },
+    {
+      "name": "linux-gl-asan",
+      "inherits": "linux-gl",
+      "cacheVariables": {
+        "WOWDECOMP_CORE_SANITIZERS": "ON"
+      }
     }
   ]
 }

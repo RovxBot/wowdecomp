@@ -382,7 +382,7 @@ void Translate(const SDL_Event &event) {
     }
 }
 } // namespace
-Window::Window(const char *title, int width, int height, bool hidden) {
+Window::Window(const char *title, int width, int height, bool hidden, WindowGraphics graphics) {
     if (active)
         throw std::logic_error("Only one native shell window may own Os input");
 #if defined(WOWDECOMP_OS_MACOS)
@@ -396,8 +396,28 @@ Window::Window(const char *title, int width, int height, bool hidden) {
     if (!SDL_Init(SDL_INIT_VIDEO))
         throw std::runtime_error(SDL_GetError());
     state = std::make_unique<WindowState>();
+    if (graphics == WindowGraphics::OpenGlCompatibility) {
+#if defined(WOWDECOMP_NATIVE_OPENGL)
+        SDL_GL_ResetAttributes();
+        // Fixed-function state and ARB assembly programs are required by 12340.
+        // Never silently substitute a core or OpenGL ES context.
+        const std::pair<SDL_GLAttr, int> attributes[] = {
+            {SDL_GL_CONTEXT_MAJOR_VERSION, 3}, {SDL_GL_CONTEXT_MINOR_VERSION, 3},
+            {SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY},
+            {SDL_GL_RED_SIZE, 8}, {SDL_GL_GREEN_SIZE, 8}, {SDL_GL_BLUE_SIZE, 8},
+            {SDL_GL_ALPHA_SIZE, 8}, {SDL_GL_DEPTH_SIZE, 24}, {SDL_GL_STENCIL_SIZE, 8},
+            {SDL_GL_DOUBLEBUFFER, 1}, {SDL_GL_MULTISAMPLEBUFFERS, 0},
+            {SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 0}};
+        for (auto attribute : attributes)
+            if (!SDL_GL_SetAttribute(attribute.first, attribute.second))
+                throw std::runtime_error(std::string("SDL OpenGL attribute: ") + SDL_GetError());
+#else
+        throw std::runtime_error("Desktop OpenGL is unavailable in this native window target");
+#endif
+    }
     state->window = SDL_CreateWindow(title, width, height,
                                      SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
+                                         (graphics == WindowGraphics::OpenGlCompatibility ? SDL_WINDOW_OPENGL : 0) |
                                          (hidden ? SDL_WINDOW_HIDDEN : 0));
     if (!state->window)
         throw std::runtime_error(SDL_GetError());

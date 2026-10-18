@@ -83,7 +83,9 @@ it does not turn a documentation request into authorization to start the whole p
   pass. Preserve
   the distinction between operator observations, telemetry and injected fixtures.
   Preserve the distinction between scalar inspection geometry and full
-  animation/material/world rendering. M3 game integration has not started.
+  animation/material/world rendering. M3 starts with the separate Linux SDL3/Gx
+  OpenGL compatibility context work described in [the M3 handoff](docs/m3/HANDOFF.md).
+  Its synthetic/asset probe is not the original login UI or a playable client.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
