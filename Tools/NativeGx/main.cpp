@@ -1,6 +1,7 @@
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
 #include "Engine/Source/Gx/Portable/GlContext.h"
 #include "Engine/Source/Gx/Portable/GlProgram.h"
+#include "Engine/Source/Gx/Portable/GlRenderTargets.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
@@ -116,28 +117,17 @@ struct Probe {
     EXT(PFNGLVERTEXATTRIB4FARBPROC, VertexAttrib4fARB);
     EXT(PFNGLVERTEXATTRIB2FARBPROC, VertexAttrib2fARB);
     EXT(PFNGLCOMPRESSEDTEXIMAGE2DARBPROC, CompressedTexImage2DARB);
-    EXT(PFNGLGENFRAMEBUFFERSEXTPROC, GenFramebuffersEXT);
-    EXT(PFNGLBINDFRAMEBUFFEREXTPROC, BindFramebufferEXT);
-    EXT(PFNGLFRAMEBUFFERTEXTURE2DEXTPROC, FramebufferTexture2DEXT);
-    EXT(PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC, CheckFramebufferStatusEXT);
-    EXT(PFNGLDELETEFRAMEBUFFERSEXTPROC, DeleteFramebuffersEXT);
-    EXT(PFNGLGENRENDERBUFFERSEXTPROC, GenRenderbuffersEXT);
-    EXT(PFNGLBINDRENDERBUFFEREXTPROC, BindRenderbufferEXT);
-    EXT(PFNGLRENDERBUFFERSTORAGEEXTPROC, RenderbufferStorageEXT);
-    EXT(PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC, FramebufferRenderbufferEXT);
-    EXT(PFNGLDELETERENDERBUFFERSEXTPROC, DeleteRenderbuffersEXT);
 #undef EXT
     std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
-    GLuint texture = 0, target = 0, framebuffer = 0, depth = 0;
-    explicit Probe(GlContext &owner) : context(owner) {}
+    Gx::Native::GlRenderTargets targets;
+    Gx::Native::GlTarget target;
+    GLuint texture = 0;
+    explicit Probe(GlContext &owner) : context(owner), targets(owner) {}
     ~Probe() {
-        BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        targets.Bind();
         Disable(GL_VERTEX_PROGRAM_ARB);
         Disable(GL_FRAGMENT_PROGRAM_ARB);
         DeleteTextures(1, &texture);
-        DeleteTextures(1, &target);
-        DeleteRenderbuffersEXT(1, &depth);
-        DeleteFramebuffersEXT(1, &framebuffer);
     }
     void Check(const char *operation) {
         GLenum error = GetError();
@@ -238,18 +228,8 @@ struct Probe {
         ProgramFailures();
         GenTextures(1, &texture);
         Image(texture, {2, 2, {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255}});
-        GenTextures(1, &target);
-        BindTexture(GL_TEXTURE_2D, target);
-        TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 32, 32, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        GenFramebuffersEXT(1, &framebuffer);
-        BindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
-        FramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, target, 0);
-        GenRenderbuffersEXT(1, &depth);
-        BindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth);
-        RenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, 32, 32);
-        FramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depth);
-        Require(CheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT,
-                "Synthetic FBO is incomplete");
+        target = targets.Create({GxTex_2d, 32, 32, Gx::Native::GlTargetFormat::Rgba8, true});
+        targets.Bind({target, 0});
         Draw(32, 32, true);
         ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
         CheckPixels();
@@ -264,8 +244,7 @@ struct Probe {
                 "S3TC/DXT1 pixel mismatch");
         Check("S3TC readback");
         Image(texture, {2, 2, {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255}});
-        BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-        ReadBuffer(GL_BACK);
+        targets.Bind();
         std::cout << "synthetic-arb-texture-depth-blend-fbo=passed\n";
         std::cout << "synthetic-s3tc-dxt1=passed\n";
     }
@@ -359,13 +338,12 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
     for (uint32_t i = 0; i < 4; ++i) probe.vertex->Constant(i, identity[i]);
     // Reuse known synthetic pixels with the original programs before displaying
     // the original texture. Shader upload alone is not rendered-output evidence.
-    probe.BindFramebufferEXT(GL_FRAMEBUFFER_EXT, probe.framebuffer);
+    probe.targets.Bind({probe.target, 0});
     probe.Draw(32, 32, true);
     probe.ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
     probe.CheckPixels();
     probe.Check("Original UI shader readback");
-    probe.BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    probe.ReadBuffer(GL_BACK);
+    probe.targets.Bind();
     probe.Image(probe.texture, image);
     std::cout << "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1"
               << " vertex-md5=" << vertexSigned << " fragment-md5=" << fragmentSigned << '\n'
@@ -412,6 +390,7 @@ void Cycle(const Options &options) {
         int w, h, pw, ph;
         context.Window().Size(w, h, pw, ph);
         if (pw > 0 && ph > 0) {
+            probe.targets.Bind();
             probe.Draw(pw, ph, options.data.empty());
             if (!options.snapshot.empty() && frame == 0)
                 probe.Snapshot(options.snapshot, pw, ph);

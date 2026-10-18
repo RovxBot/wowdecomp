@@ -23,7 +23,7 @@ class NativeGlGraphTests(unittest.TestCase):
         message = 'WowNativeGl: unexpected native Gx context provider/ABI'
         target = self.target('WowNativeGl', 'Engine/Source/Gx/Portable/GlContext.cpp')
         target['sources'] += [{'path': 'Engine/Source/Gx/Portable/' + name + '.cpp'}
-                              for name in ['GlProgram', 'ShaderPackage']]
+                              for name in ['GlProgram', 'GlRenderTargets', 'ShaderPackage']]
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         legacy = copy.deepcopy(target)
         legacy['sources'].append({'path': 'Engine/Source/Gx/CGxDeviceOpenGL/CGxDeviceOpenGl.cpp'})

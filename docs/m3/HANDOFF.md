@@ -134,6 +134,13 @@ The prepared final artifact is `/tmp/wowdecomp-m3-shaders-release`; use it in th
 checks the binary hash, uses the unchanged read-only clean reference and external
 settings/cache. No new server connection or credentials are needed.
 
+A [native render-target owner](RENDER_TARGETS.md) is now under implementation on
+`native-port/m3-render-targets`. It replaces the shader probe's inline FBO and adds
+retained texture/depth ownership, attachment transitions, cube/depth-only targets,
+feedback rejection and drawable restoration. Hosted and actual-GPU validation of
+this new implementation must be recorded separately from the historical evidence
+above. This does not expose the complete legacy device or original login UI.
+
 Next dependencies, in order:
 
 1. Adapt the existing Gx device/shared services to the native ABI and the new

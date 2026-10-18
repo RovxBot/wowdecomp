@@ -2,6 +2,7 @@
 add_library(WowNativeGl STATIC
     ../Gx/Portable/GlContext.cpp
     ../Gx/Portable/GlProgram.cpp
+    ../Gx/Portable/GlRenderTargets.cpp
     ../Gx/Portable/ShaderPackage.cpp
 )
 target_link_libraries(WowNativeGl PUBLIC WowNativeWindow)
@@ -12,6 +13,13 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeGlCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_executable(GlRenderTargetsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/targets.cpp)
+    target_link_libraries(GlRenderTargetsCheck PRIVATE WowNativeGl)
+    if(WOWDECOMP_CORE_SANITIZERS)
+        target_compile_options(GlRenderTargetsCheck PRIVATE -g1)
+    endif()
+    add_test(NAME native-gl-render-targets COMMAND GlRenderTargetsCheck)
+    set_tests_properties(native-gl-render-targets PROPERTIES TIMEOUT 60 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_executable(ShaderPackageCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/shaders.cpp)
     target_link_libraries(ShaderPackageCheck PRIVATE WowNativeGl)
     add_test(NAME native-shader-packages COMMAND ShaderPackageCheck)

@@ -153,6 +153,28 @@ and source inspection are different evidence levels.
   signaturefile/selective policy is preserved without claiming per-file MD5
   coverage.
 
+## NP-006 — Native Gx render-target ownership
+
+- Status: implementation and validation in progress; see
+  [target contracts/caller audit](m3/RENDER_TARGETS.md).
+- Source: product 12340 at `6023d6a1901637f58507c4eac987e1e450cdaa53`,
+  `CGxDevice::DeviceSetRenderTarget`, OpenGL FBO/texture ownership, target/face
+  mappings and shared-model async cancellation callers. No donor/fork body,
+  original binary address or VERIFY claim is imported.
+- Destination/adaptation: `Gx/Portable/GlRenderTargets*`, the explicit native Gx
+  allowlist and integrated shader probe. Immutable retained texture handles,
+  atomic attachment pairs, explicit/implicit depth ownership, all cube planes,
+  feedback checks, GPU size validation, binding/PBO restoration and incomplete-FBO
+  rollback. Legacy per-slot state/projection and `CGxTex`/`CAsyncObject` contracts
+  remain explicit integration work; no native ticket or inspection geometry is
+  substituted for them.
+- Assets/defaults: original `0x10003` UI shaders/loading-bar through unchanged
+  authenticated external packages. No new assets, optional effects, dependencies,
+  signature bypasses, protocol or server-policy changes. Full-client gate retained.
+- Validation: source/launcher checks plus hosted and actual-GPU checks are recorded
+  with the work package. Historical context/shader passes are not new evidence for
+  this implementation. Original login UI and observed world entry remain open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
