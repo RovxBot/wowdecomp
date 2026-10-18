@@ -41,6 +41,9 @@ M3 begins with a separate [Linux SDL3/OpenGL context probe](docs/m3/HANDOFF.md),
 built by [M3 Actions](.github/workflows/m3-gl.yml). It checks desktop compatibility
 contexts and synthetic ARB shader/FBO rendering, with optional original glue
 texture display. It does not yet run the original login UI or connect to a server.
+The [native target owner](docs/m3/RENDER_TARGETS.md) adds retained offscreen color,
+depth and cube resources with hosted and actual-GPU sanitizer evidence. The full
+native device, original fonts/login UI, networking and gameplay remain open.
 
 ## Progress
 

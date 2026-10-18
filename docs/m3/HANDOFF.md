@@ -134,6 +134,29 @@ The prepared final artifact is `/tmp/wowdecomp-m3-shaders-release`; use it in th
 checks the binary hash, uses the unchanged read-only clean reference and external
 settings/cache. No new server connection or credentials are needed.
 
+A [native render-target owner](RENDER_TARGETS.md) is qualified in
+[PR #20](https://github.com/RovxBot/wowdecomp/pull/20), selected implementation
+`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`; it is not yet merged. It replaces the
+shader probe's inline FBO with retained texture/depth ownership, attachment
+transitions, cube/depth-only targets, feedback rejection and drawable restoration.
+The [durable validation](render-target-validation.json) records all eight passing
+implementation PR workflows, full Windows x64 compilation at separate merge
+checkout `30a0acafc0af371f9bb1f77ee6360585ece00cbf`, and 16 CTest passes per Linux
+GL configuration. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and
+ASan/UBSan/leak runs passed three target cycles each, plus one release and three
+sanitizer original-data shader cycles. Both executables had empty stderr and all
+probe cycles closed with zero workers. The release capture was inspected.
+This is automatic GPU/fixture evidence, with no new physical-input acceptance.
+Prior operator acceptance retains its own implementation identity above.
+Full device/state/projection, original fonts/login UI and gameplay remain open.
+
+A separate [live server observation](SERVER_IDENTITY.md) now records image IDs,
+running binary identity, mounted Warden and listener metadata externally. The
+embedded core revision differs from the package tag and has a `+` suffix; neither
+the desired tag nor local checkout identifies an exact clean compiled source tree.
+No native authentication, advertised realm-list endpoint or Warden session was
+qualified. Preserve this later snapshot separately from historical M0 observations.
+
 Next dependencies, in order:
 
 1. Adapt the existing Gx device/shared services to the native ABI and the new
@@ -147,9 +170,11 @@ Next dependencies, in order:
 3. Replace IOCP beneath the original network interfaces, with framing, partial
    I/O, cancellation and lifetime fixtures; preserve 12340 authentication and
    packet layouts. Observe character selection and world entry on GrimGuzzler.
-4. Record live server/core/image/endpoints and Warden behavior externally. M0
-   records identify desired deployment settings only; do not change server or
-   cluster policy or disable client signature checks to qualify a session.
+4. Refresh the external live server snapshot for the actual gameplay session,
+   verify the realm-list advertised endpoint and record Warden outcomes. The
+   current image/binary/mounted-policy observation does not establish those
+   session behaviors or an exact clean server source tree. Do not change server
+   or cluster policy or disable client signature checks to qualify a session.
 
 M3 exits only after an observed native Linux world session with unchanged data.
 Audio/movie limitations and unavailable platform coverage must stay explicit.

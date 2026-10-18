@@ -153,6 +153,33 @@ and source inspection are different evidence levels.
   signaturefile/selective policy is preserved without claiming per-file MD5
   coverage.
 
+## NP-006 — Native Gx render-target ownership
+
+- Status: qualified in [PR #20](https://github.com/RovxBot/wowdecomp/pull/20),
+  selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`, awaiting
+  merge; see [target contracts/caller audit](m3/RENDER_TARGETS.md).
+- Source: product 12340 at `6023d6a1901637f58507c4eac987e1e450cdaa53`,
+  `CGxDevice::DeviceSetRenderTarget`, OpenGL FBO/texture ownership, target/face
+  mappings and shared-model async cancellation callers. No donor/fork body,
+  original binary address or VERIFY claim is imported.
+- Destination/adaptation: `Gx/Portable/GlRenderTargets*`, the explicit native Gx
+  allowlist and integrated shader probe. Immutable retained texture handles,
+  atomic attachment pairs, explicit/implicit depth ownership, all cube planes,
+  feedback checks, GPU size validation, binding/PBO restoration and incomplete-FBO
+  rollback. Legacy per-slot state/projection and `CGxTex`/`CAsyncObject` contracts
+  remain explicit integration work; no native ticket or inspection geometry is
+  substituted for them.
+- Assets/defaults: original `0x10003` UI shaders/loading-bar through unchanged
+  authenticated external packages. No new assets, optional effects, dependencies,
+  signature bypasses, protocol or server-policy changes. Full-client gate retained.
+- Validation: [durable evidence](m3/render-target-validation.json) records all eight
+  successful implementation PR workflows, full Windows x64 compilation, 16 CTest
+  checks per Linux GL configuration, exact-source RX 7900 XTX release/sanitizer
+  target and original-data shader cycles. ZIP/binary/notices hashes were verified;
+  automatic cycles had empty stderr and no probe workers at shutdown. No new
+  physical-input or Windows runtime observation is claimed. Original login UI and
+  observed world entry remain open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
