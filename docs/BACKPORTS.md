@@ -236,7 +236,9 @@ and source inspection are different evidence levels.
 
 ## NP-009 — Native sampled textures and font-atlas update formats
 
-- Status: implemented for hosted validation; see [texture contracts](m3/TEXTURES.md).
+- Status: qualified in [PR #23](https://github.com/RovxBot/wowdecomp/pull/23),
+  selected implementation `8e4fcde51d7962411d27c462655ad677f95aa23c`;
+  see [texture contracts](m3/TEXTURES.md).
 - Source: product 12340 at `fd0ae32545f6da42b4fa58572eb26953131324c7`,
   original OpenGL upload/filter/format tables and Gxu font atlas callbacks.
   No donor body, original binary address or VERIFY claim imported.
@@ -247,8 +249,13 @@ and source inspection are different evidence levels.
   Native handles are not legacy CGxTex/cache/callback or async ABI exports.
 - Assets/defaults: unchanged authenticated 12340 data and `0x10003` UI shaders,
   no new dependency/asset/effect, protocol change or server-policy modification.
-- Validation: hosted and actual GPU checks pending; synthetic atlas pixels are
-  separate from original font rasterization/login UI and native server gameplay.
+- Validation: [durable evidence](m3/texture-validation.json) records all eight
+  passing PR workflows, 19 CTest checks per Linux GL configuration, full Windows
+  compilation, verified artifacts and exact-source RX 7900 XTX release/sanitizer
+  texture/buffer/target/transform and original-data shader cycles. Empty stderr,
+  zero workers, no suppressions. Local Python checks: 29 passed, one unavailable;
+  all 30 ran hosted. Synthetic atlas pixels remain separate from original font
+  rasterization/login UI and native server gameplay.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

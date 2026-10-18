@@ -194,9 +194,16 @@ is implied. M3 remains open.
 
 The [sampled-texture work](TEXTURES.md) now extends the same owner to bounded
 mip/face/rectangle uploads, packed font-atlas formats and DXT resources, and
-removes raw texture allocation/upload from the probe. Hosted and actual-GPU
-qualification is pending. It does not complete legacy texture callback/cache or
-original font/login rendering.
+removes raw texture allocation/upload from the probe. It is qualified at
+`8e4fcde51d7962411d27c462655ad677f95aa23c` in
+[PR #23](https://github.com/RovxBot/wowdecomp/pull/23). The
+[texture record](texture-validation.json) retains all eight passing PR workflows,
+19 CTest passes per Linux GL configuration, separate Windows compilation identity,
+verified artifacts and exact-source RX 7900 XTX release/sanitizer resource and
+original-data shader cycles. These passed with empty stderr and zero workers.
+The atlas fixture is synthetic; legacy texture callbacks/cache and original
+font/login rendering remain open. The user will sign in interactively when
+native authentication becomes available.
 
 Next dependencies, in order:
 

@@ -329,6 +329,13 @@ and exact-source RX 7900 XTX release/sanitizer buffer/target/transform/original
 shader cycles. Full legacy device/state/texture/async, fonts/login, networking
 and observed gameplay stay open; M3 is not complete.
 
+The [sampled-texture package](docs/m3/TEXTURES.md) is qualified at
+`8e4fcde51d7962411d27c462655ad677f95aa23c` in PR #23, following merged
+PRs #20–#22. Its [evidence](docs/m3/texture-validation.json) records all eight
+passing workflows, 19 CTest checks per Linux GL configuration, full Windows
+compilation and real-GPU release/sanitizer checks. Synthetic ARGB4444 atlas output
+is separate from original font rasterization and login UI. M3 remains open.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

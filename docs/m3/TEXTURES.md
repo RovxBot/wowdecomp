@@ -74,4 +74,23 @@ login UI, portable networking, character selection/world entry and Warden sessio
 outcomes remain open. Keep the external server revision discrepancy in
 [server identity](SERVER_IDENTITY.md).
 
-Hosted and actual-GPU validation of this implementation is pending.
+Selected implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` in
+[PR #23](https://github.com/RovxBot/wowdecomp/pull/23) is qualified. The
+[durable evidence](texture-validation.json) retains all eight passing PR workflows,
+19 CTest passes in each Linux GL configuration and full Windows x64 compilation
+at separate merge checkout `dc4bde6d308abb9d36d3b6d8cc29f5e2552319e5`.
+ZIP digests, twelve packaged Linux binaries per configuration, notices and all
+three Windows AMD64 binary identities matched their manifests. All 30 Python
+checks ran on hosted Linux; local checks passed 29 with one CMake selection check
+unavailable. File references, JSON/identities and whitespace passed.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 through Xwayland release and
+ASan/UBSan/leak-enabled texture, buffer, transform and target checks each passed
+three cycles. The original-data shader probe passed one release and three
+sanitizer cycles with empty stderr and zero workers at shutdown. Original-key
+signature authentication covered 28,948 records. Both original UI vertex variants
+uploaded; permutation zero rendered. Both shader members lack registered MD5s
+under the unchanged selective policy. The 960x640 loading-bar capture was
+inspected. No sanitizer suppression, preload/audit shim, new physical-input
+acceptance, original font/login rendering or native server session is claimed.
+The user will sign in interactively when native authentication is available.

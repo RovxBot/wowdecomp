@@ -180,6 +180,20 @@ it does not turn a documentation request into authorization to start the whole p
   CGxPool/CGxBuf/device/cache/async objects or complete fonts/login, networking
   or gameplay. No new physical-input/server acceptance is recorded; preserve the
   external tag/embedded-revision distinction. M3 remains open.
+- M3 texture [PR #23](https://github.com/RovxBot/wowdecomp/pull/23) selected
+  implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` is qualified.
+  Read [texture contracts](docs/m3/TEXTURES.md) and
+  [validation](docs/m3/texture-validation.json). All eight PR workflows passed;
+  both Linux GL configurations passed 19 CTest checks, and full Windows x64
+  compilation used separate merge checkout `dc4bde6d308abb9d36d3b6d8cc29f5e2552319e5`.
+  Exact-source RX 7900 XTX release/sanitizer texture, buffer, target and transform
+  checks each passed three cycles, plus one/three original-data shader cycles,
+  with empty stderr and zero workers. Sampled textures share attachment/sampler
+  ownership and feedback checks, accept bounded mip/face/rectangle uploads and
+  isolate unpack/PBO state. ARGB4444 atlas pixels are synthetic, not original
+  glyph rasterization. Original font/login, device/cache/callback/async and
+  networking/world work remain open. The user will sign in interactively when
+  native login is ready. Preserve server revision discrepancies. M3 is incomplete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

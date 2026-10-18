@@ -52,6 +52,9 @@ The merged [buffer adapter](docs/m3/BUFFERS.md), following the transform work, n
 submits retained PCT vertex/index resources through original UI shaders, with
 hosted and real-GPU release/sanitizer checks. Full legacy device integration,
 original fonts/login, networking and observed gameplay remain open; M3 is incomplete.
+The [texture owner](docs/m3/TEXTURES.md) now also handles ordinary sampled assets,
+packed font-atlas formats, mip/cube uploads and DXT resources with qualified
+hosted/GPU checks. Its synthetic atlas fixture is separate from original text.
 
 ## Progress
 
