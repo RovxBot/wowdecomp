@@ -7,6 +7,11 @@ previous dynamic load/unload boundary without suppressing the detector or changi
 the SDL version. The [controlled evidence](desktop-leak-triage.json) retains source,
 workflow, binary hashes, loading options, runtime results and module attribution.
 Final baseline verification is recorded in the [handoff](HANDOFF.md).
+At final implementation `50a7d91a1794529da6bc094fcf58dc5435392033`, all five
+hosted shell configurations passed 12 CTest checks, including native Windows x64
+and actual macOS ARM64. The [closeout](closeout.json) also records exact-source
+Linux release, two X11 sanitizer launches, eight control cycles, a passing Wayland
+release smoke and the still-failing Wayland Fontconfig sanitizer qualification.
 
 ## Control and result
 
@@ -84,6 +89,7 @@ All compilation runs in Actions. Download a passing artifact and verify the
 control or shell against its manifest before local execution. For a control:
 
 ```sh
+chmod +x /tmp/extracted-artifact/bin/SDLDesktopControl
 SDL_VIDEODRIVER=x11 EGL_PLATFORM=x11 \
 ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 UBSAN_OPTIONS=halt_on_error=1 \

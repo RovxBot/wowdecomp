@@ -70,8 +70,17 @@ it does not turn a documentation request into authorization to start the whole p
   the requested physical-input checklist passed on 2026-10-18; the saved final
   Wayland report corroborates real mouse/clipboard activity and clean shutdown.
   See [operator acceptance](docs/m2/operator-acceptance.json). IME language and
-  additional display/platform coverage were not identified. Desktop LeakSanitizer
-  triage remains open; unsuppressed reports are not counted as passes. Preserve
+  additional display/platform coverage were not identified. M2 exit criteria are
+  met for the observed Linux X11 asset/shell baseline as of 2026-10-18. Lifecycle
+  [PR #11](https://github.com/RovxBot/wowdecomp/pull/11) selected implementation
+  `50a7d91a1794529da6bc094fcf58dc5435392033`, merged as
+  `df0f2d0f1f7abf86afd125f9d4d42d37ce542625`. Read the
+  [closeout evidence](docs/m2/closeout.json) and
+  [desktop lifetime design](docs/m2/DESKTOP_LIFETIMES.md). Exact-source X11 release,
+  ASan/UBSan/leak checks, settings relaunch and repeated SDL teardown passed.
+  Wayland's remaining Fontconfig report reproduces without engine code or a
+  renderer; retain it as a system-library qualification, not a clean sanitizer
+  pass. Preserve
   the distinction between operator observations, telemetry and injected fixtures.
   Preserve the distinction between scalar inspection geometry and full
   animation/material/world rendering. M3 game integration has not started.
@@ -91,8 +100,9 @@ it does not turn a documentation request into authorization to start the whole p
   required; this is not the M3/M4 Gx or bgfx prototype. Optional vendor SDKs stay
   excluded and visibly unavailable. Native settings remain separate from WTF.
 - Preserve upstream `4119c4b` / `5b41f72` cursor anchoring in both Windows Input.cpp
-  files, in addition to the original tutorial bounds fix. The user's sessions
-  predate that upstream input change; do not claim it was runtime-validated.
+  files, in addition to the original tutorial bounds fix. The recorded M0/M1
+  Windows gameplay sessions predate that input change. Linux SDL acceptance does
+  not runtime-validate those Windows implementations.
 
 ## Compatibility requirements
 
@@ -213,8 +223,8 @@ An explicit Linux video-driver request also sets matching child EGL platform;
 timeouts are recorded failures, not physical-input or clean-shutdown evidence.
 Dummy-driver fixtures do not establish desktop input/IME, usable windows or Gx
 rendering. Actual ARM64 fixtures do not establish Cocoa desktop/gameplay support.
-Physical input acceptance is recorded. Complete final baseline validation before
-M2 sign-off; report unavailable hardware/session coverage explicitly. The SDL-only
+Physical input acceptance and the selected X11 M2 baseline are complete. Report
+unavailable hardware/session coverage explicitly. The SDL-only
 desktop control must stay free of engine/data dependencies. Linux now links its
 required display libraries with normal ELF process lifetime ownership: both the
 SDL-only control and original-data shell passed X11 ASan/UBSan/leak checks. Keep

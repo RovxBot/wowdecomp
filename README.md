@@ -26,13 +26,15 @@ library and `NativeCore` initialization/shutdown executable, tested in hosted
 Linux x86-64, macOS ARM64 and Windows x64 jobs. The full native game remains gated.
 The [M1 core workflow](.github/workflows/m1-core.yml) also runs Linux ASan/UBSan
 and provides NativeCore binaries plus evidence; no game data is needed for that tool.
-M2 adds [host-file/path services](docs/m2/FILESYSTEM.md), authenticated retail MPQs
+M2 is complete for the observed Linux asset/shell baseline. It adds
+[host-file/path services](docs/m2/FILESYSTEM.md), authenticated retail MPQs
 and [original asset inspection](docs/m2/ASSETS.md), an [async file queue](docs/m2/ASYNC.md)
 and a [native SDL3 shell](docs/m2/SHELL.md). Hosted semantic fixtures pass on all
 three platforms, including Linux sanitizers and actual ARM64 execution. Downloaded
 Linux binaries load the supplied read-only 12340/enUS data and display decoded
 terrain pixels on X11 and Wayland. The [M2 handoff](docs/m2/HANDOFF.md) records exact
-evidence, passed operator input acceptance and remaining desktop leak triage. These tools do not run the
+evidence, passed operator input acceptance and the clean X11 sanitizer baseline.
+The separate Wayland Fontconfig qualification remains documented. These tools do not run the
 login screen, world, networking or audio.
 
 ## Progress
