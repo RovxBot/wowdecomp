@@ -125,6 +125,33 @@ and source inspection are different evidence levels.
   exact manifests/hashes and separates operator observations. Full Gx integration, original fonts/UI,
   native networking, authentication and observed world entry remain M3 work.
 
+## UP-001 — Reviewed 12340 upstream maintenance
+
+- Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
+  `aac28edaf5463c15b9612ced9168fa67cbbe1607`, main merge
+  `d1da8da29f575f4c57434cacab96664b82cef796`.
+- Source: `SatyPardus/wowdecomp`, shared ancestor
+  `4119c4b590ddd6934045b00f78b4b15ba39f7be2` through
+  `b1c71b8bd108823bca952f16c6f83a7ad33b9648`, build 12340. This is not a 15595
+  import. The [50-commit review](upstream/2026-10-18.md) and
+  [record](upstream/2026-10-18.json) identify every commit and disposition.
+- Benefit/scope: console height initialization, correct one-byte guild-bank
+  charge decoding, unit transport override, rounded integral attack-power Lua
+  values, and completed definition/constant cleanup across 127 existing files.
+  Keep final corrections `56888bd` and `8bf90bc`. No implementation body is
+  relabeled with a donor address; upstream verification annotations retain their
+  provenance without a blanket new verification claim.
+- Adaptation: a conflict-free history merge preserves all 195 fork-only changed
+  paths byte-for-byte. The sole shared file, Event/Types.h, keeps native guards
+  and adds historical definitions as comments. Native/legacy ABIs remain separate.
+- Assets/defaults: unchanged 12340 data, signature defaults and shader format;
+  no optional effect, extra asset, dependency pin or server-policy change. Packet
+  charge width matches the inspected original PE and AzerothCore source writer.
+- Validation: all eight hosted workflows passed, including full Windows x64
+  compilation and existing native matrices; downloaded Windows binary identities
+  match the manifest. Focused read-only original PE inspection supports the four
+  behavior fixes. New Windows gameplay and native full-game acceptance remain open.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

@@ -61,6 +61,15 @@ files at the pinned revision. M0 obtained and verified a separate scratch checko
 see the baseline report for reproduction. Do not merge the donor branch into the
 product wholesale or add game data to Git.
 
+2026-10-18 upstream maintenance deliberately integrates the 50 reviewed 12340
+commits through `b1c71b8bd108823bca952f16c6f83a7ad33b9648` in
+[PR #15](https://github.com/RovxBot/wowdecomp/pull/15). The
+[review](docs/upstream/2026-10-18.md) and [commit/build record](docs/upstream/2026-10-18.json)
+retain the shared ancestor, integration/merge identities, corrective follow-ups
+and remaining Windows runtime checks. The M0 source/build identities above and
+the 15595 donor pin remain historical references; they are not replaced by this
+maintenance merge.
+
 The inspected evidence is:
 
 | Finding | Source | Implication |

@@ -1,0 +1,823 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-18",
+  "reporting_timezone": "Australia/Adelaide",
+  "upstream_repository": "https://github.com/SatyPardus/wowdecomp",
+  "upstream_branch": "main",
+  "upstream_tip": "b1c71b8bd108823bca952f16c6f83a7ad33b9648",
+  "product_base": "9e236483c7d5876946c3d8e44b4fb27220613ec7",
+  "shared_ancestor": "4119c4b590ddd6934045b00f78b4b15ba39f7be2",
+  "recommendation": "Accepted: integrate the complete reviewed upstream batch with both corrective follow-ups and preserve upstream history; merged after all eight hosted workflows passed.",
+  "integration_candidate": {
+    "pull_request": "https://github.com/RovxBot/wowdecomp/pull/15",
+    "head": "aac28edaf5463c15b9612ced9168fa67cbbe1607"
+  },
+  "summary": {
+    "commits": 50,
+    "regular_commits": 44,
+    "merge_commits": 6,
+    "definitions_and_constant_commits": 38,
+    "behavior_and_followup_commits": 6,
+    "files_changed": 127,
+    "insertions": 1416,
+    "deletions": 1072
+  },
+  "preservation": {
+    "base": "4119c4b590ddd6934045b00f78b4b15ba39f7be2",
+    "product_review_head": "9e236483c7d5876946c3d8e44b4fb27220613ec7",
+    "upstream_tip": "b1c71b8bd108823bca952f16c6f83a7ad33b9648",
+    "candidate_head": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+    "upstream_only_commits": 50,
+    "regular_commits": 44,
+    "upstream_changed_files": 127,
+    "overlapping_files": [
+      "Engine/Source/Event/Types.h"
+    ],
+    "preserved_fork_paths": 195,
+    "fork_only_paths_changed": [],
+    "upstream_only_paths_match_exactly": true,
+    "auto_merge": "conflict-free; Event/Types.h adds historical names as comments while preserving native enum guards"
+  },
+  "binary_inspection": {
+    "scope": "Read-only static inspection of the externally inventoried PE32 12340 executable; no execution or gameplay",
+    "sha256": "aa63a5750d60ef16746c686b3d5e26876d98953eab08b1c026cd0faf78e88cb8",
+    "unit_vtables": [
+      {
+        "vtable": "0xa326c8",
+        "rtti_name": "RTTI unavailable; matched five source-identified virtual slots",
+        "is_transport_slot": 59,
+        "target": "0x8a1420",
+        "bytes": "b001c3",
+        "other_slots_matched": {
+          "GetNamePosition": "0x71fef0",
+          "GetPosition": "0x6e6ef0",
+          "GetFacing": "0x6e6f40",
+          "GetRenderFacing": "0x7156a0",
+          "AddPassenger": "0x74b810"
+        }
+      },
+      {
+        "vtable": "0xa34d90",
+        "rtti_name": "RTTI unavailable; matched five source-identified virtual slots",
+        "is_transport_slot": 59,
+        "target": "0x8a1420",
+        "bytes": "b001c3",
+        "other_slots_matched": {
+          "GetNamePosition": "0x71fef0",
+          "GetPosition": "0x6e6ef0",
+          "GetFacing": "0x6e6f40",
+          "GetRenderFacing": "0x7156a0",
+          "AddPassenger": "0x74b810"
+        }
+      }
+    ],
+    "static_console_values": {
+      "0xadbacc": 0.019999999552965164,
+      "0xadbad0": 10.0,
+      "0xca19b0": 0.0
+    },
+    "additional_observations": [
+      {
+        "function": "Console height initializer",
+        "address": "0x009CD790",
+        "observation": "fld [0x00ADBAD0]; fmul [0x00ADBACC]; fstp [0x00CA19B0] confirms lines multiplied by font height"
+      },
+      {
+        "function": "Packet_SMSG_GUILD_BANK_LIST",
+        "address": "0x005A75BF",
+        "observation": "Calls CDataStore::Get(uint8_t&) at 0x0047B340 with the slot +0x14 charge field; following enchantment count is another byte read"
+      },
+      {
+        "function": "Script_UnitAttackPower",
+        "address": "0x00610B60",
+        "observation": "Three fistp/fild pairs at 0x00610BDC/0x00610C16/0x00610C50 before pushing Lua numbers"
+      },
+      {
+        "function": "Script_UnitRangedAttackPower",
+        "address": "0x00610CA0",
+        "observation": "Three fistp/fild pairs at 0x00610D1C/0x00610D56/0x00610D90 before pushing Lua numbers"
+      }
+    ]
+  },
+  "server_source_comparison": {
+    "repository": "mod-playerbots/azerothcore-wotlk",
+    "commit": "d6f96d206b0e835fe692ebf4206e8db8a52d4d38",
+    "path": "src/server/game/Server/Packets/GuildPackets.cpp",
+    "function": "WorldPackets::Guild::GuildBankQueryResults::Write",
+    "observation": "Charges and following socket-enchantment count each serialize as uint8",
+    "scope": "External read-only source checkout, not live GrimGuzzler identity or compatibility"
+  },
+  "validation": {
+    "local": "Static source comparison, read-only PE inspection and documentation checks; no local compilation",
+    "hosted": "All eight PR workflows passed, including the full Windows x64 client and the existing native core/files/assets/async/shell/GL matrix. No new Windows gameplay observation.",
+    "gameplay": "Not observed for this candidate; operator M3 probe acceptance belongs to its existing exact-head binary",
+    "hosted_workflows": [
+      {
+        "conclusion": "success",
+        "databaseId": 39084502711,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M3 Linux OpenGL context",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502789,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M0 source audit",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502733,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M1 portable core",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502781,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M2 native file services",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502708,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M2 native asynchronous files",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502734,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M2 native asset services",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502745,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M2 native SDL3 shell",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 39084502730,
+        "headSha": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+        "name": "M0 Windows baseline",
+        "status": "completed"
+      }
+    ],
+    "windows": {
+      "manifest": {
+        "schema_version": 1,
+        "source_commit": "88dc92441c2ceac5957888371cd06dee4cf1c275",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39084502730",
+        "runner_os": "Windows",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "configuration": "Release",
+        "generator": "Visual Studio 17 2022",
+        "architecture": "x64",
+        "signature_checks": "enabled",
+        "crash_logger": "enabled",
+        "status": "build passed; runtime unverified",
+        "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+        "dependencies": [
+          {
+            "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+            "bytes": 999686,
+            "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+          },
+          {
+            "path": "ThirdParty/nvapi/x86/nvapi.lib",
+            "bytes": 439838,
+            "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+          },
+          {
+            "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+            "bytes": 3494900,
+            "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+          }
+        ],
+        "binaries": [
+          {
+            "path": "bin/WowClient64.exe",
+            "bytes": 9859584,
+            "sha256": "4973cee5dfba443627569e721853342b2badf32076b7e283f0069d11119cf136"
+          },
+          {
+            "path": "bin/Wow64.exe",
+            "bytes": 9856000,
+            "sha256": "c78376349fb695cbf7ab103d1c80d1f5f82d4fe5d96c64d1199fed136ed27809"
+          },
+          {
+            "path": "bin/XvidDecoder.dll",
+            "bytes": 456192,
+            "sha256": "186f6da020902aa815552fa107513ad2c8a960bbbff55b48967bed1909364a83"
+          }
+        ],
+        "cmake_version": "cmake version 3.31.6",
+        "visual_studio": {
+          "instanceId": "754ae0a8",
+          "installDate": "2026-10-12T22:00:54Z",
+          "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+          "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "installationVersion": "17.14.37710.0",
+          "productId": "Microsoft.VisualStudio.Product.Enterprise",
+          "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+          "state": 4294967295,
+          "isComplete": true,
+          "isLaunchable": true,
+          "isPrerelease": false,
+          "isRebootRequired": false,
+          "displayName": "Visual Studio Enterprise 2022",
+          "description": "Scalable, end-to-end solution for teams of any size",
+          "channelId": "VisualStudio.17.Release",
+          "channelUri": "https://aka.ms/vs/17/release/channel",
+          "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+          "installChannelUri": "https://aka.ms/vs/17/release/channel",
+          "installedChannelId": "VisualStudio.17.Release",
+          "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+          "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+          "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+          "updateDate": "2026-10-12T22:00:54.346826Z",
+          "catalog": {
+            "buildBranch": "d17.14",
+            "buildVersion": "17.14.37710.0",
+            "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+            "localBuild": "build-lab",
+            "manifestName": "VisualStudio",
+            "manifestType": "installer",
+            "productDisplayVersion": "17.14.41 (September 2026)",
+            "productLine": "Dev17",
+            "productLineVersion": "2022",
+            "productMilestone": "RTW",
+            "productMilestoneIsPreRelease": "False",
+            "productName": "Visual Studio",
+            "productPatchVersion": "41",
+            "productPreReleaseMilestoneSuffix": "1.0",
+            "productReleaseNameSuffix": "(September 2026)",
+            "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+            "requiredEngineVersion": "3.14.2094.42856"
+          },
+          "properties": {
+            "campaignId": "",
+            "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+            "includeRecommended": "1",
+            "nickname": "",
+            "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+          }
+        }
+      },
+      "artifact": {
+        "id": 12120835186,
+        "name": "windows-x64-baseline-88dc92441c2ceac5957888371cd06dee4cf1c275",
+        "size_in_bytes": 9264251,
+        "digest": "sha256:56c31f2281cdf148971e3d05701c3ac4f31202e803133a9aeaa96898d8c3ae59"
+      },
+      "downloaded_binary_hashes_verified": true,
+      "binaries": [
+        {
+          "path": "bin/WowClient64.exe",
+          "sha256": "4973cee5dfba443627569e721853342b2badf32076b7e283f0069d11119cf136",
+          "file_type": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/Wow64.exe",
+          "sha256": "c78376349fb695cbf7ab103d1c80d1f5f82d4fe5d96c64d1199fed136ed27809",
+          "file_type": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/XvidDecoder.dll",
+          "sha256": "186f6da020902aa815552fa107513ad2c8a960bbbff55b48967bed1909364a83",
+          "file_type": "PE32+ executable for MS Windows 6.00 (DLL), x86-64, 7 sections"
+        }
+      ],
+      "source_identity_note": "Manifest source is the temporary PR merge checkout, distinct from candidate head and final main merge; compilation only."
+    },
+    "local_checks": [
+      "Read-only source and original PE inspection; no C/C++ or dependency compilation",
+      "50-commit inventory, fork/upstream blob preservation assertions",
+      "Operator acceptance consistency, Markdown local references and git diff --check"
+    ]
+  },
+  "commits": [
+    {
+      "commit": "eb5e65597b0e7ab2ea366f88d0508dcf5de342a9",
+      "parents": [
+        "cd29da38b9162419ee0fa29c6b16e07e10f6c4f0"
+      ],
+      "subject": "Fix console being brokey",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include",
+      "reason": "Restore console height initialization from configured lines times font height."
+    },
+    {
+      "commit": "1ba4a32588c5349d44aeb06db61a59e1b6b148e2",
+      "parents": [
+        "eb5e65597b0e7ab2ea366f88d0508dcf5de342a9"
+      ],
+      "subject": "Fix guild bank packet",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include",
+      "reason": "Read one charge byte, matching 12340 PE and inspected AzerothCore packet writer."
+    },
+    {
+      "commit": "f48c86fd03779e3d8dbb7a1122c6a36f912e5349",
+      "parents": [
+        "1ba4a32588c5349d44aeb06db61a59e1b6b148e2"
+      ],
+      "subject": "Add IsTransport override to Unit",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include",
+      "reason": "Restore unit transport virtual dispatch; static unit-like vtables point to a return-true stub."
+    },
+    {
+      "commit": "d961c9a295dab9c25eb54b65a63d4dac04abb15e",
+      "parents": [
+        "cd29da38b9162419ee0fa29c6b16e07e10f6c4f0"
+      ],
+      "subject": "F01: restore typed message insertion modes",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "07f9a6010460d4157939511d765da9a27d75ff22",
+      "parents": [
+        "d961c9a295dab9c25eb54b65a63d4dac04abb15e"
+      ],
+      "subject": "F02: name backdrop pieces and aggregate masks",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "cf33d7ab098dca15d1d268fb9dc5483779597f20",
+      "parents": [
+        "07f9a6010460d4157939511d765da9a27d75ff22"
+      ],
+      "subject": "F03: name layout recursion guard bits",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "771ff6bcb48e34c8c1ebdd2a43f2f03da8ef798d",
+      "parents": [
+        "cf33d7ab098dca15d1d268fb9dc5483779597f20"
+      ],
+      "subject": "F04: restore the particle emitter discriminator enum",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "feb31c038b0ccb783c349ea402f89d0102bccc90",
+      "parents": [
+        "771ff6bcb48e34c8c1ebdd2a43f2f03da8ef798d"
+      ],
+      "subject": "F06: restore scene clear buffer masks",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "b22c3f19750e890bafec06ea28750d40c609d0fe",
+      "parents": [
+        "feb31c038b0ccb783c349ea402f89d0102bccc90"
+      ],
+      "subject": "F07: use verified world enable definitions",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "0955578817e2e102b2d3a991d74a0a50da4016ca",
+      "parents": [
+        "b22c3f19750e890bafec06ea28750d40c609d0fe"
+      ],
+      "subject": "F08: type queued network event ids as EVENTID",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "aef51b613e6be9f32a34d1fe3ef808bb44768fc4",
+      "parents": [
+        "0955578817e2e102b2d3a991d74a0a50da4016ca"
+      ],
+      "subject": "F09: recover input control masks from current behavior",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "5586b2bbaa5d3c7accb5be2f4f68fe070fe912e4",
+      "parents": [
+        "aef51b613e6be9f32a34d1fe3ef808bb44768fc4"
+      ],
+      "subject": "F14: type archive and file kinds with current values",
+      "category": "definitions and constant cleanup",
+      "decision": "include only with 8bf90bc",
+      "reason": "The follow-up removes an extra archive-type initialization added by this cleanup."
+    },
+    {
+      "commit": "3e8bd21170b97d454a7b1a700a95e84381274754",
+      "parents": [
+        "5586b2bbaa5d3c7accb5be2f4f68fe070fe912e4"
+      ],
+      "subject": "F16: name idle sit and logout thresholds",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "ff075a44ad9c501a6976e7743e2bfb7d912791ad",
+      "parents": [
+        "3e8bd21170b97d454a7b1a700a95e84381274754"
+      ],
+      "subject": "F17: restore matching particle update constants",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "3f63f0a2e198719da39263b066cf3436cd87785a",
+      "parents": [
+        "ff075a44ad9c501a6976e7743e2bfb7d912791ad"
+      ],
+      "subject": "F16: use existing const style for idle thresholds",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "d2c35adc52fdf288bd4f9464d3d9032f05070142",
+      "parents": [
+        "3f63f0a2e198719da39263b066cf3436cd87785a"
+      ],
+      "subject": "F17: define particle float constants out of line",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "7e42e28d9c09a54278759822e177937138e8dfba",
+      "parents": [
+        "d2c35adc52fdf288bd4f9464d3d9032f05070142",
+        "4119c4b590ddd6934045b00f78b4b15ba39f7be2"
+      ],
+      "subject": "Merge branch 'main' of https://github.com/T1ti/wowdecomp into t1ti_main",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    },
+    {
+      "commit": "9ee09e036e81e7cbcaa3341327cadac46ffddb7d",
+      "parents": [
+        "7e42e28d9c09a54278759822e177937138e8dfba"
+      ],
+      "subject": "F18: restore named camera view records without changing layout",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "2f4a29d9439ef55a54692fde34ab22cbf2ac23de",
+      "parents": [
+        "9ee09e036e81e7cbcaa3341327cadac46ffddb7d"
+      ],
+      "subject": "F20: type camera shake directions and name the three direction slots",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "bafa21d733cab0b927061aec435f4344002caf66",
+      "parents": [
+        "2f4a29d9439ef55a54692fde34ab22cbf2ac23de"
+      ],
+      "subject": "F21: restore typed network send outcomes on both platforms",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "9a58c4c1f10ad6b969f285b52bba3464adb3df02",
+      "parents": [
+        "bafa21d733cab0b927061aec435f4344002caf66"
+      ],
+      "subject": "F22: restore eight-rank unit reaction type",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "6bc764ed3de0f1832bd17d8e3acc611e64558824",
+      "parents": [
+        "9a58c4c1f10ad6b969f285b52bba3464adb3df02"
+      ],
+      "subject": "F23: restore five current loot methods",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "36e68c09a66d4e4f76725863b5b4409e944be1a6",
+      "parents": [
+        "6bc764ed3de0f1832bd17d8e3acc611e64558824"
+      ],
+      "subject": "F24: recover current unit sound selectors",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "1c8cc1bebf27073d2efff3753052dc8fba7a917e",
+      "parents": [
+        "36e68c09a66d4e4f76725863b5b4409e944be1a6"
+      ],
+      "subject": "F25: restore verified item sound operation types",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "98b0a7fc9af227873c43da27050f78728f67d0a7",
+      "parents": [
+        "1c8cc1bebf27073d2efff3753052dc8fba7a917e"
+      ],
+      "subject": "F26: restore current name validation results",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "dec63d6f03b2298b62ef0392c3028851e7a739e1",
+      "parents": [
+        "98b0a7fc9af227873c43da27050f78728f67d0a7"
+      ],
+      "subject": "F27: restore current cursor payload types and verify loot slot",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "dbb0ccdb709af94a837218bfda20bcbf3fc565e6",
+      "parents": [
+        "dec63d6f03b2298b62ef0392c3028851e7a739e1"
+      ],
+      "subject": "F28: restore signed current power types across central helpers",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "5462ee216946074de432421a69b078b3efaf1909",
+      "parents": [
+        "dbb0ccdb709af94a837218bfda20bcbf3fc565e6"
+      ],
+      "subject": "F29: name verified frustum results without changing values",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "435e178f9c38f5f11be8fbedf97fc94322aefab7",
+      "parents": [
+        "5462ee216946074de432421a69b078b3efaf1909"
+      ],
+      "subject": "F30: type the two verified object highlight channels",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "28153004450d307ced6326a6c3a8475130cdac9b",
+      "parents": [
+        "435e178f9c38f5f11be8fbedf97fc94322aefab7"
+      ],
+      "subject": "F31: complete handler priorities and replace numeric casts",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "eb29cb4d5c28fc624c080be6ffd3bb308ef6a10c",
+      "parents": [
+        "28153004450d307ced6326a6c3a8475130cdac9b"
+      ],
+      "subject": "F32: name the particle integration time step",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "091f808c458111e3ed86126949c36e538cdec37b",
+      "parents": [
+        "eb29cb4d5c28fc624c080be6ffd3bb308ef6a10c"
+      ],
+      "subject": "F33: name the mouse drag distance threshold",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "4e129316ccad67d451119b42bad0b5b55dbc07c9",
+      "parents": [
+        "091f808c458111e3ed86126949c36e538cdec37b"
+      ],
+      "subject": "F34: name camera shake falloff distances",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "d0c528315e37ec0b9e2074c13a84d8cb7a1005af",
+      "parents": [
+        "4e129316ccad67d451119b42bad0b5b55dbc07c9"
+      ],
+      "subject": "F08: retain unused historical event identifiers as comments",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "ee9cb26a30a7b4defed3be53a9a8d462e2db6014",
+      "parents": [
+        "d0c528315e37ec0b9e2074c13a84d8cb7a1005af"
+      ],
+      "subject": "F09: retain unused historical input masks as comments",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "96dfe077ceb15248bbe4d1a650cc286ac00b79a2",
+      "parents": [
+        "ee9cb26a30a7b4defed3be53a9a8d462e2db6014"
+      ],
+      "subject": "F22: retain the unused reaction rank alias as a comment",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "72b2bff602c537f27f071f603ca46f12d4d9184e",
+      "parents": [
+        "96dfe077ceb15248bbe4d1a650cc286ac00b79a2"
+      ],
+      "subject": "F24: retain unused historical unit sound members as comments",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "3be27bfbde4ddd3cf4f27bd19214f2c2f29e7b6c",
+      "parents": [
+        "72b2bff602c537f27f071f603ca46f12d4d9184e"
+      ],
+      "subject": "F25: retain the unused close sound name as a comment",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "3ebfdc73dbd7b86452cfab78c515c3789c2a8363",
+      "parents": [
+        "3be27bfbde4ddd3cf4f27bd19214f2c2f29e7b6c"
+      ],
+      "subject": "F26: retain unused historical validation members as comments",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "2008a71d03c451700768d172629542cfc535e3f4",
+      "parents": [
+        "3ebfdc73dbd7b86452cfab78c515c3789c2a8363"
+      ],
+      "subject": "F27: retain the unused pet spell cursor alias as a comment",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "e7a9a35c26a76c1fd90ad1a51575576fdcb4d3c6",
+      "parents": [
+        "2008a71d03c451700768d172629542cfc535e3f4"
+      ],
+      "subject": "F29: retain unused culling classifications as comments",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "00c58d4fda674f61b850af0bc4d413eadf04e162",
+      "parents": [
+        "e7a9a35c26a76c1fd90ad1a51575576fdcb4d3c6"
+      ],
+      "subject": "F30: retain the unused historical highlight count as a comment",
+      "category": "definitions and constant cleanup",
+      "decision": "include with completed definition batch",
+      "reason": ""
+    },
+    {
+      "commit": "d36a92c08630c3dd219528337e4c0ef9c0d5745b",
+      "parents": [
+        "4119c4b590ddd6934045b00f78b4b15ba39f7be2",
+        "eb5e65597b0e7ab2ea366f88d0508dcf5de342a9"
+      ],
+      "subject": "Merge pull request #21 from SatyPardus/original-335",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    },
+    {
+      "commit": "1807f8d854b3576d00e88ff2372b618a95a1a6e4",
+      "parents": [
+        "00c58d4fda674f61b850af0bc4d413eadf04e162",
+        "d36a92c08630c3dd219528337e4c0ef9c0d5745b"
+      ],
+      "subject": "Merge branch 'main' of https://github.com/SatyPardus/wowdecomp into t1ti_main",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    },
+    {
+      "commit": "8bf90bc6c47fbc87f18ae266955a1a77d7a3d65a",
+      "parents": [
+        "1807f8d854b3576d00e88ff2372b618a95a1a6e4"
+      ],
+      "subject": "Fix one behavior change",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include",
+      "reason": "Restores original OpenPathAsArchive initialization behavior after F14."
+    },
+    {
+      "commit": "e49028b950babea63eeec7d786c8ffefa2fe99b7",
+      "parents": [
+        "f48c86fd03779e3d8dbb7a1122c6a36f912e5349",
+        "8bf90bc6c47fbc87f18ae266955a1a77d7a3d65a"
+      ],
+      "subject": "Merge pull request #22 from T1ti/t1ti_main",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    },
+    {
+      "commit": "56bb138daf743e4a87e73da738376a18496b2f3b",
+      "parents": [
+        "d36a92c08630c3dd219528337e4c0ef9c0d5745b"
+      ],
+      "subject": "fix(ui): return integers from UnitAttackPower",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include only with 56888bd",
+      "reason": "Initial truncation is superseded by floating-point-environment-aware rounding."
+    },
+    {
+      "commit": "56888bd8afe2c1f7595bee8259515f80c09b1134",
+      "parents": [
+        "56bb138daf743e4a87e73da738376a18496b2f3b"
+      ],
+      "subject": "Match the binary",
+      "category": "behavior fix or corrective follow-up",
+      "decision": "include",
+      "reason": "Keep final CMath::fint_ form; original attack-power code uses x87 fistp."
+    },
+    {
+      "commit": "da15563b0b9b004f7dea73a0896301b5679efe4a",
+      "parents": [
+        "e49028b950babea63eeec7d786c8ffefa2fe99b7",
+        "56888bd8afe2c1f7595bee8259515f80c09b1134"
+      ],
+      "subject": "Merge pull request #28 from bloodfangx/fix/unit-attack-power-integer-main",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    },
+    {
+      "commit": "b1c71b8bd108823bca952f16c6f83a7ad33b9648",
+      "parents": [
+        "d36a92c08630c3dd219528337e4c0ef9c0d5745b",
+        "da15563b0b9b004f7dea73a0896301b5679efe4a"
+      ],
+      "subject": "Merge pull request #32 from SatyPardus/original-335",
+      "category": "merge history",
+      "decision": "include ancestry; no separate patch",
+      "reason": ""
+    }
+  ],
+  "merge": {
+    "headRefOid": "aac28edaf5463c15b9612ced9168fa67cbbe1607",
+    "mergeCommit": {
+      "oid": "d1da8da29f575f4c57434cacab96664b82cef796"
+    },
+    "mergedAt": "2026-10-18T01:02:30Z",
+    "state": "MERGED"
+  }
+}
