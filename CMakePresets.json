@@ -177,10 +177,10 @@
       }
     },
     {
-      "name": "linux-window-linked-asan",
+      "name": "linux-window-dynamic-asan",
       "inherits": "linux-window-asan",
       "cacheVariables": {
-        "WOWDECOMP_SDL_LINK_DISPLAY_DEPS": "ON"
+        "WOWDECOMP_SDL_LINK_DISPLAY_DEPS": "OFF"
       }
     }
   ]

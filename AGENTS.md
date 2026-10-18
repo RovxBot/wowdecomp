@@ -213,10 +213,14 @@ An explicit Linux video-driver request also sets matching child EGL platform;
 timeouts are recorded failures, not physical-input or clean-shutdown evidence.
 Dummy-driver fixtures do not establish desktop input/IME, usable windows or Gx
 rendering. Actual ARM64 fixtures do not establish Cocoa desktop/gameplay support.
-Physical input acceptance is recorded. Complete desktop leak triage before final
+Physical input acceptance is recorded. Complete final baseline validation before
 M2 sign-off; report unavailable hardware/session coverage explicitly. The SDL-only
-desktop control must stay free of engine/data dependencies. The Linux direct-link
-dependency preset is diagnostic until its real desktop results justify selection.
+desktop control must stay free of engine/data dependencies. Linux now links its
+required display libraries with normal ELF process lifetime ownership: both the
+SDL-only control and original-data shell passed X11 ASan/UBSan/leak checks. Keep
+`linux-window-dynamic-asan` as a diagnostic comparison. The remaining Wayland
+Fontconfig report reproduces without engine code and is retained, not suppressed;
+do not claim a clean Wayland LeakSanitizer run.
 
 For implementation changes, record the commands and checks run, their results and
 any skipped platform checks. Update milestone status only with evidence. Distinguish

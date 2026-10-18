@@ -89,6 +89,15 @@ because CMake is unavailable. M2 JSON parsing, local Markdown file references an
 
 ## Remaining acceptance and next work
 
+The follow-up [desktop lifetime investigation](DESKTOP_LIFETIMES.md) reproduces
+the X11 report in an SDL-only control and records clean X11 control/shell results
+with normal ELF display-library ownership, including eight init/quit cycles and
+settings relaunch. Linux defaults now use that linkage; the final hosted source
+still needs its complete baseline verification before milestone sign-off. The
+remaining Wayland Fontconfig report also reproduces without engine code or a
+renderer and is retained as a platform-library qualification, not a passing leak
+check. The historical failures above remain unchanged.
+
 On 2026-10-18 the operator confirmed that all requested physical-input checks
 passed without visible errors: typing/backspace, clipboard, IME if available,
 F2/Escape capture, F11, and close/relaunch settings. The

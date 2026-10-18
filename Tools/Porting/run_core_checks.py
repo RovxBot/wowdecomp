@@ -19,7 +19,7 @@ def main():
                                            'linux-files', 'linux-files-asan', 'macos-arm64-files', 'windows-files',
                                            'linux-assets', 'linux-assets-asan', 'macos-arm64-assets', 'windows-assets',
                                            'linux-async', 'linux-async-asan', 'macos-arm64-async', 'windows-async',
-                                           'linux-window', 'linux-window-asan', 'linux-window-linked-asan', 'macos-arm64-window', 'windows-window'], required=True)
+                                           'linux-window', 'linux-window-asan', 'linux-window-dynamic-asan', 'macos-arm64-window', 'windows-window'], required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
@@ -35,7 +35,7 @@ def main():
     asynchronous = '-async' in args.preset or window
     assets = '-assets' in args.preset or asynchronous
     files = '-files' in args.preset or assets
-    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core').replace('-async', '-core').replace('-window', '-core').replace('-linked', '')
+    core_preset = args.preset.replace('-files', '-core').replace('-assets', '-core').replace('-async', '-core').replace('-window', '-core').replace('-dynamic', '')
     target_os, cpu = {'linux-core': ('LINUX', 'X86_64'),
                       'linux-core-asan': ('LINUX', 'X86_64'),
                       'macos-arm64-core': ('MACOS', 'ARM64'),
@@ -93,9 +93,11 @@ def main():
         if window:
             manifest['sdl_display_dependency_options'] = [line for line in cache.splitlines()
                 if line.startswith(('SDL_X11_SHARED:', 'SDL_WAYLAND_SHARED:', 'SDL_WAYLAND_LIBDECOR_SHARED:'))]
-            if '-linked-' in args.preset and (len(manifest['sdl_display_dependency_options']) != 3 or
-                    any(not line.endswith('=OFF') for line in manifest['sdl_display_dependency_options'])):
-                raise RuntimeError('The linked dependency control did not disable dynamic display loading')
+            if target_os == 'LINUX':
+                expected_loading = '=ON' if '-dynamic-' in args.preset else '=OFF'
+                if (len(manifest['sdl_display_dependency_options']) != 3 or any(
+                        not line.endswith(expected_loading) for line in manifest['sdl_display_dependency_options'])):
+                    raise RuntimeError('SDL display-library loading differs from the selected baseline/control')
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
         executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else [])

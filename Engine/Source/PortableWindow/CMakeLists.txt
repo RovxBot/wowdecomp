@@ -1,8 +1,12 @@
 include(FetchContent)
-option(WOWDECOMP_SDL_LINK_DISPLAY_DEPS "Direct-link Linux display dependencies for lifetime diagnostics" OFF)
+set(sdl_display_link_default OFF)
+if(WOWDECOMP_OS STREQUAL "LINUX")
+    set(sdl_display_link_default ON)
+endif()
+option(WOWDECOMP_SDL_LINK_DISPLAY_DEPS "Link Linux display dependencies with process lifetime ownership" ${sdl_display_link_default})
 if(WOWDECOMP_SDL_LINK_DISPLAY_DEPS)
     if(NOT WOWDECOMP_OS STREQUAL "LINUX")
-        message(FATAL_ERROR "The direct display-dependency experiment is Linux-only")
+        message(FATAL_ERROR "The display-dependency selection is Linux-only")
     endif()
     # ELF DT_NEEDED ownership keeps process-global X11/Wayland state mapped until
     # process exit. This is normal linking, not a sanitizer suppression or shim.

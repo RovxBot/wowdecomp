@@ -76,7 +76,7 @@ jobs:
             preset: linux-window-asan
             python: python3
           - runner: ubuntu-24.04
-            preset: linux-window-linked-asan
+            preset: linux-window-dynamic-asan
             python: python3
           - runner: macos-14
             preset: macos-arm64-window

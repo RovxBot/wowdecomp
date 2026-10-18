@@ -62,6 +62,11 @@ The `linux-window`, `linux-window-asan`, `macos-arm64-window` and `windows-windo
 presets include core, file, package/decoder, async, SDL input and settings checks.
 The input fixture uses SDL's dummy driver; it cannot establish desktop/physical IME
 or GPU behavior. macOS checks require an ARM64 runner and ARM64 binaries.
+`SDLDesktopControl` provides a separate engine-free lifetime control. Linux
+display dependencies now use ordinary ELF linkage; the explicit
+`linux-window-dynamic-asan` preset retains dynamic loading for comparison. See
+[desktop library lifetimes](DESKTOP_LIFETIMES.md) for the required libraries,
+clean X11 sanitizer results and remaining external Wayland Fontconfig report.
 
 Download a passing `m2-linux-window-*` artifact from that workflow and extract it
 outside the product/data tree. The runtime wrapper verifies `NativeShell` against
