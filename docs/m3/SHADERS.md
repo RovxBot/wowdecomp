@@ -74,9 +74,10 @@ suppress leak or external-library failures. No build command runs locally.
 Operator checks on the new artifact: the blue loading-bar rectangle should remain
 visible through resize, minimize/restore, focus changes and F11; Escape/window
 close should exit normally. Record the report, GPU/driver/session and any visual
-failure. Prior operator acceptance belongs to the older context probe. Fixed
-Windows scene captures, original native login/UI, authenticated server login,
-character selection/world entry and Warden observations remain separate checks.
+failure. The original-data shader-probe acceptance below is separate from the
+older context-probe observations. Fixed Windows scene captures, original native
+login/UI, authenticated server login, character selection/world entry and Warden
+observations remain separate checks.
 
 [Durable validation](shader-validation.json) records selected head
 `543243c676f16b1a2c32af38d8b0910c73eaadbd` and its merge in
@@ -94,8 +95,14 @@ members lack registered MD5 entries; this is the unchanged selective policy,
 not an MD5 pass for those files. The original-key signaturefile authenticated
 28,948 records. Captures/game data remain external.
 
-The new operator window-control checklist remains pending. The earlier M3
-context-probe operator acceptance retains its own source identity. New Windows
-runtime, original fonts/login UI and observed native gameplay remain unavailable.
+On 2026-10-18 the operator reported all requested window checks passed: resize,
+minimize/restore, focus changes, F11 and window close, with no crash or corruption.
+The saved original-data release report matches selected head `543243c` and its
+hosted binary hash; it records exit 0, no timeout, empty stderr and zero workers.
+The [operator acceptance](shader-validation.json) preserves the statement and raw
+report separately from automatic GPU/sanitizer runs. There is no per-event
+telemetry or new operator capture. The earlier M3 context-probe acceptance retains
+its own source identity. New Windows runtime, original fonts/login UI and observed
+native gameplay remain unavailable.
 No local client/dependency compilation, game-data mutation or server-policy
 change occurred.

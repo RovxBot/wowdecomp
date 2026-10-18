@@ -146,9 +146,12 @@ and source inspection are different evidence levels.
   PR workflows passing, full Windows x64 compilation, 15 CTest checks per Linux GL
   configuration, and exact-source RX 7900 XTX release/three clean sanitizer cycles.
   Original UI shader execution and loading-bar output are observed; original login
-  UI and gameplay are not. New operator window checks remain pending. Both shader
-  members lack registered MD5 entries; original signaturefile/selective policy is
-  preserved without claiming per-file MD5 coverage.
+  UI and gameplay are not. On 2026-10-18 the operator reported all requested
+  window controls passed without crashes or corruption on the selected shader
+  probe; its matching clean-exit report is retained separately from automatic
+  checks. Both shader members lack registered MD5 entries; original
+  signaturefile/selective policy is preserved without claiming per-file MD5
+  coverage.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 
