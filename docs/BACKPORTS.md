@@ -257,6 +257,23 @@ and source inspection are different evidence levels.
   all 30 ran hosted. Synthetic atlas pixels remain separate from original font
   rasterization/login UI and native server gameplay.
 
+## NP-010 — Native original font face and glyph preview
+
+- Status: implemented for hosted validation; see [font contracts](m3/FONTS.md).
+- Source: product 12340 at `365016e226547f7f3867f419988ccdf6b3182f25`,
+  original memory face, glyph load/raster, font size/advance/kerning and atlas
+  encoding/batched PCT callers. No donor code/address/VERIFY claim is imported.
+- Adaptation: retained native `Gxu/Portable/FontFace*`, Storm-backed bundled
+  FreeType modules with native ABI, bounded owned coverage and thread affinity,
+  original unhinted rendering/advance conventions and original-data UI preview.
+  This is not legacy HFACE/CGxFont/cache/layout or complete login integration.
+- Assets/defaults: unchanged authenticated `Fonts/FRIZQT__.TTF` and original UI
+  shaders, no enhancement assets, new download, protocol or server-policy change.
+  Existing FreeType attribution/license is retained in artifacts. CI uses a tiny
+  authored geometric font, separate from retail data.
+- Validation: hosted compilation/semantic/sanitizer and original-data GPU checks
+  pending; native login/world, Windows runtime and macOS font/render coverage open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

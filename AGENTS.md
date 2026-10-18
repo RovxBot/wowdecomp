@@ -181,7 +181,8 @@ it does not turn a documentation request into authorization to start the whole p
   or gameplay. No new physical-input/server acceptance is recorded; preserve the
   external tag/embedded-revision distinction. M3 remains open.
 - M3 texture [PR #23](https://github.com/RovxBot/wowdecomp/pull/23) selected
-  implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` is qualified.
+  implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` is merged as
+  `365016e226547f7f3867f419988ccdf6b3182f25`.
   Read [texture contracts](docs/m3/TEXTURES.md) and
   [validation](docs/m3/texture-validation.json). All eight PR workflows passed;
   both Linux GL configurations passed 19 CTest checks, and full Windows x64

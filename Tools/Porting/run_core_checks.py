@@ -106,7 +106,7 @@ def main():
                     raise RuntimeError('SDL display-library loading differs from the selected baseline/control')
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'] if graphics else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeFontsCheck', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'] if graphics else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -123,7 +123,7 @@ def main():
             if target_os != 'WINDOWS':
                 run(f'binary-type-{name}', ['file', str(executable)])
             manifest['binaries'].append(entry)
-            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck', 'SDLDesktopControl', 'NativeGlCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'}:
+            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck', 'SDLDesktopControl', 'NativeGlCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'NativeFontsCheck'}:
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)
@@ -136,6 +136,8 @@ def main():
                                  ('ThirdParty/lzma/LzmaDecode.c', 'LZMA-NOTICE.txt')]:
                 original = (root / source).read_text()
                 (notices / name).write_text(original[:original.index('*/') + 2] + '\n')
+        if graphics:
+            shutil.copy2(root / 'ThirdParty/freetype/docs/FTL.txt', notices / 'FreeType-LICENSE.txt')
         if window:
             shutil.copy2(build / '_deps/sdl3-src/LICENSE.txt', notices / 'SDL3-LICENSE.txt')
             manifest['sdl3'] = {'version': '3.2.28', 'commit': '7f3ae3d57459e59943a4ecfefc8f6277ec6bf540',

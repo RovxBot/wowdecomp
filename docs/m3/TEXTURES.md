@@ -75,7 +75,8 @@ outcomes remain open. Keep the external server revision discrepancy in
 [server identity](SERVER_IDENTITY.md).
 
 Selected implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` in
-[PR #23](https://github.com/RovxBot/wowdecomp/pull/23) is qualified. The
+[PR #23](https://github.com/RovxBot/wowdecomp/pull/23) is merged as
+`365016e226547f7f3867f419988ccdf6b3182f25`. The
 [durable evidence](texture-validation.json) retains all eight passing PR workflows,
 19 CTest passes in each Linux GL configuration and full Windows x64 compilation
 at separate merge checkout `dc4bde6d308abb9d36d3b6d8cc29f5e2552319e5`.
