@@ -95,7 +95,10 @@ it does not turn a documentation request into authorization to start the whole p
   loading-bar texture display. The new Gx host context is not yet wired into the
   legacy device/native ABI adaptation. Original login UI, portable networking,
   authentication, character selection and observed GrimGuzzler world entry remain
-  open; M3 is not complete. Physical operator observations remain separate.
+  open; M3 is not complete. On 2026-10-18 the operator confirmed resize,
+  minimize/restore, focus, F11 and close passed on the matching synthetic probe,
+  without blank graphics or crashes. Boxes scaled with the window. Keep those
+  operator observations separate from automatic GPU telemetry and game rendering.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
@@ -115,6 +118,18 @@ it does not turn a documentation request into authorization to start the whole p
   files, in addition to the original tutorial bounds fix. The recorded M0/M1
   Windows gameplay sessions predate that input change. Linux SDL acceptance does
   not runtime-validate those Windows implementations.
+- The 50 reviewed 12340 upstream commits through
+  `b1c71b8bd108823bca952f16c6f83a7ad33b9648` were integrated by
+  [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate head
+  `aac28edaf5463c15b9612ced9168fa67cbbe1607`, merge
+  `d1da8da29f575f4c57434cacab96664b82cef796`. Read the
+  [upstream review](docs/upstream/2026-10-18.md) and
+  [commit/build record](docs/upstream/2026-10-18.json). All eight workflows passed;
+  Windows compilation used separate PR merge checkout
+  `88dc92441c2ceac5957888371cd06dee4cf1c275`. Keep `56888bd`'s final attack-power
+  rounding helper and `8bf90bc`'s archive behavior correction. Historical 0.5.3
+  names without a current mapping stay comments. Original PE/static source
+  findings are not new Windows gameplay or native login/world observations.
 
 ## Compatibility requirements
 

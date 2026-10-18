@@ -448,7 +448,7 @@
     "Original login UI/fonts/GlueXML/FrameXML/addons, portable networking/authentication/character selection/world entry remain unimplemented.",
     "No native gameplay, Warden compatibility, audio or movie support is established.",
     "M0 live server/image/endpoints/Warden records and captured Windows fixed scenes remain incomplete.",
-    "Only Xwayland desktop GPU execution is observed here; physical resize/focus/fullscreen and other displays/platforms remain unobserved.",
+    "Operator window-control acceptance is reported on the selected X11/Xwayland probe; native Xorg, M3 Wayland and other displays/platforms remain unobserved.",
     "M2 Wayland Fontconfig qualification remains unchanged; no M3 Wayland desktop or macOS renderer claim.",
     "Data installations remained read-only; no server/cluster policy or verification defaults changed."
   ],
@@ -590,7 +590,7 @@
     "scope": "Compilation only; no new Windows runtime session"
   },
   "operator_acceptance": {
-    "status": "Operator-launched synthetic session exited 0 with empty stderr and zero workers; physical resize/focus/fullscreen observations not yet reported",
+    "status": "Operator-reported pass for resize, minimize/restore, focus changes, F11 fullscreen and window close on the selected X11/Xwayland synthetic probe",
     "runtime": {
       "schema_version": 1,
       "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
@@ -635,7 +635,18 @@
       ],
       "stderr": []
     },
-    "physical_checklist_result": "pending operator report; process success does not establish that these controls were exercised"
+    "physical_checklist_result": "pass, as reported by the operator on 2026-10-18; runtime report separately corroborates exit 0, empty stderr and zero workers",
+    "reported_on": "2026-10-18",
+    "reporting_timezone": "Australia/Adelaide",
+    "operator_statement": "All worked as I expected. resizing shrunk and squished the boxes. the graphic never went blank or crashed on resizing minamising expanding and opening.",
+    "observations": {
+      "resize": "pass; boxes scaled and changed aspect ratio with the window; no blank output or crash reported",
+      "minimize_restore": "pass; graphic remained available after minimizing/restoring and expanding",
+      "focus_changes": "pass; included in the operator confirmation that all requested checks worked",
+      "f11_fullscreen": "pass; included in the operator confirmation that all requested checks worked",
+      "window_close": "pass; included in the operator confirmation; saved exact-head process report exits 0 with zero workers"
+    },
+    "scope": "Physical observations of the synthetic GL probe only. No per-event telemetry or additional capture was supplied; not original login UI, original-data operator interaction, native Xorg/Wayland driver or gameplay acceptance."
   },
   "superseded_duplicate_push_runs": "Redundant push regression runs were cancelled to retain the complete PR matrix; they are not counted as passing tests.",
   "data_authentication_scope": "Original-key signaturefile and registered file MD5 policy retained. Representative authenticated reads do not establish every archive as stock or server compatibility."

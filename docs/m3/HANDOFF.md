@@ -20,10 +20,21 @@ merge-checkout identity `deebdb8d58b80bffefbd8eb224d0dcdc39a87fb8`.
 | Windows regression | Full x64 client compiled with signatures enabled; downloaded binary hashes/types verified; no new Windows gameplay observation |
 | Original login/gameplay | Not implemented or observed; M3 remains open |
 
-The corrected absolute-path operator launch also produced a matching exact-head
-synthetic report: exit 0, empty stderr and zero workers. Physical resize/focus/
-fullscreen observations have not yet been reported; the process report does not
-establish that those controls were exercised.
+The corrected absolute-path operator launch produced a matching exact-head
+synthetic report: exit 0, empty stderr and zero workers. On 2026-10-18 the operator
+confirmed resize, minimize/restore, focus changes, F11 fullscreen and window close
+all worked as expected. The boxes scaled and changed aspect ratio with the window;
+the graphic never went blank or crashed during the reported operations. This is
+operator acceptance of the synthetic probe's window controls, separately from
+automatic GPU checks. The report has no per-event telemetry or new operator
+capture; it does not establish original login UI or gameplay acceptance.
+
+The separate [12340 upstream review](../upstream/2026-10-18.md) integrates the
+50-commit maintenance batch in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15),
+with passing hosted compilation/fixtures and focused original-PE source checks.
+It preserves the native context implementation and its historical runtime
+identities. Its Windows console/guild-bank/vehicle/Lua observations remain open;
+it does not advance the original native login/network/world acceptance below.
 
 The initial target is `WowNativeGl` and the executable is `NativeGlCheck`.
 `linux-gl` and `linux-gl-asan` extend the M2 allowlist without linking legacy
