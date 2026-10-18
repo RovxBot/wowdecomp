@@ -129,8 +129,8 @@ it does not turn a documentation request into authorization to start the whole p
   it has no per-event telemetry or new capture. Keep this operator acceptance
   separate from automatic GPU/sanitizer checks and historical context acceptance.
 - M3 [render-target PR #20](https://github.com/RovxBot/wowdecomp/pull/20) selected
-  implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` is qualified but not
-  yet merged. Read the [target contracts](docs/m3/RENDER_TARGETS.md) and
+  implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` is merged as
+  `4d74dd0c5330f92c3fc282329fc071c61b23f62a`. Read the [target contracts](docs/m3/RENDER_TARGETS.md) and
   [validation](docs/m3/render-target-validation.json). All eight implementation
   PR workflows passed; both Linux GL configurations passed 16 CTest checks and
   the full Windows x64 client compiled at separate merge checkout
@@ -144,8 +144,8 @@ it does not turn a documentation request into authorization to start the whole p
   UI or gameplay. No new physical-input acceptance is recorded; keep prior
   operator observations attached to their historical sources. M3 remains open.
 - M3 transform [PR #21](https://github.com/RovxBot/wowdecomp/pull/21) selected
-  implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415` is qualified but
-  unmerged, stacked on PR #20. Read [transform contracts](docs/m3/TRANSFORMS.md)
+  implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415` is merged as
+  `37bc74b492ce3f547d8b222676a7cc547e7727ab`, following PR #20. Read [transform contracts](docs/m3/TRANSFORMS.md)
   and [validation](docs/m3/transform-validation.json). All eight implementation
   PR workflows passed; both Linux GL configurations passed 17 CTest checks and
   full Windows x64 compilation used separate merge checkout
@@ -163,8 +163,8 @@ it does not turn a documentation request into authorization to start the whole p
   remain open. No new physical-input acceptance or server session is recorded;
   preserve the external tag/embedded-revision distinction. M3 is not complete.
 - M3 buffers [PR #22](https://github.com/RovxBot/wowdecomp/pull/22) selected
-  implementation `42859739d5359cffc0b55f33ebfed789ff152dcd` is qualified but
-  unmerged, stacked on PR #21. Read [buffer contracts](docs/m3/BUFFERS.md) and
+  implementation `42859739d5359cffc0b55f33ebfed789ff152dcd` is merged as
+  `fd0ae32545f6da42b4fa58572eb26953131324c7`, following PR #21. Read [buffer contracts](docs/m3/BUFFERS.md) and
   [validation](docs/m3/buffer-validation.json). All eight implementation PR
   workflows passed; both Linux GL configurations passed 18 CTest checks and
   full Windows x64 compilation used separate merge checkout

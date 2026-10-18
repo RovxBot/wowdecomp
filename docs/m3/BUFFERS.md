@@ -78,7 +78,7 @@ original fonts/login or a native server session. The external server revision
 versus package-tag discrepancy remains in [server identity](SERVER_IDENTITY.md).
 
 Selected implementation `42859739d5359cffc0b55f33ebfed789ff152dcd` in
-[PR #22](https://github.com/RovxBot/wowdecomp/pull/22) is qualified, not merged.
+[PR #22](https://github.com/RovxBot/wowdecomp/pull/22) is qualified and merged as `fd0ae32545f6da42b4fa58572eb26953131324c7` on 2026-10-18.
 The [durable validation](buffer-validation.json) records all eight successful
 implementation PR workflows, 18 CTest passes in each Linux GL configuration and
 full Windows x64 compilation at separate PR merge checkout

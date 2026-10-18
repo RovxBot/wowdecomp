@@ -75,7 +75,7 @@ Selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` in
 PR workflows, including full Windows x64 compilation. Both Linux GL configurations
 passed 16 CTest checks. The [durable evidence](render-target-validation.json)
 preserves the distinct Windows merge checkout, hosted manifests, ZIP/binary
-verification and exact-source GPU reports. The PR is not yet merged.
+verification and exact-source GPU reports. The PR merged as `4d74dd0c5330f92c3fc282329fc071c61b23f62a` on 2026-10-18.
 
 On RX 7900 XTX / Mesa 26.2.5 / SDL X11 in the Wayland desktop, release and
 ASan/UBSan/leak-enabled target checks each passed three context/owner cycles.
