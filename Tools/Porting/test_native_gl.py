@@ -23,7 +23,7 @@ class NativeGlGraphTests(unittest.TestCase):
         message = 'WowNativeGl: unexpected native Gx context provider/ABI'
         target = self.target('WowNativeGl', 'Engine/Source/Gx/Portable/GlContext.cpp')
         target['sources'] += [{'path': 'Engine/Source/Gx/Portable/' + name + '.cpp'}
-                              for name in ['GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']]
+                              for name in ['GlBuffers', 'GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']]
         target['sources'] += [{'path': path} for path in [
             'Engine/Source/Gx/CGxMatrixStack.cpp', 'Engine/Source/Tempest/C44Matrix.cpp',
             'Engine/Source/Tempest/C33Matrix.cpp']]
@@ -118,6 +118,25 @@ class NativeGlLauncherTests(unittest.TestCase):
         result = self.run_wrapper('--render-target-checks', '--transform-checks')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('transform binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_buffer_failure_recorded_and_fails_combined_run(self):
+        self.script('print("probe-passed")\n')
+        self.target_script('print("buffer-failed")\nraise SystemExit(6)\n', 'GlBuffersCheck')
+        result = self.run_wrapper('--buffer-checks')
+        self.assertEqual(result.returncode, 6, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['probe_exit_code'], 0)
+        self.assertEqual(record['buffer_checks']['exit_code'], 6)
+        self.assertEqual(record['buffer_checks']['stdout'], ['buffer-failed'])
+
+    def test_buffer_hash_checked_before_any_execution(self):
+        self.script('raise SystemExit("probe must not execute")\n')
+        binary = self.target_script('raise SystemExit("buffers must not execute")\n', 'GlBuffersCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--buffer-checks')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('buffer binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
     def test_refuses_tampered_artifact_before_execution(self):

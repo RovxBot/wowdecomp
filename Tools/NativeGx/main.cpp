@@ -3,6 +3,7 @@
 #include "Engine/Source/Gx/Portable/GlProgram.h"
 #include "Engine/Source/Gx/Portable/GlRenderTargets.h"
 #include "Engine/Source/Gx/Portable/GlTransforms.h"
+#include "Engine/Source/Gx/Portable/GlBuffers.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
@@ -100,11 +101,6 @@ struct Probe {
     BASE(Disable);
     BASE(BlendFunc);
     BASE(DepthFunc);
-    BASE(Color4f);
-    BASE(Begin);
-    BASE(End);
-    BASE(TexCoord2f);
-    BASE(Vertex3f);
     BASE(ReadPixels);
     BASE(PixelStorei);
     BASE(ReadBuffer);
@@ -116,17 +112,28 @@ struct Probe {
 #undef BASE
 #define EXT(type, name) type name = reinterpret_cast<type>(context.Proc("gl" #name))
     EXT(PFNGLGETPROGRAMIVARBPROC, GetProgramivARB);
-    EXT(PFNGLVERTEXATTRIB4FARBPROC, VertexAttrib4fARB);
-    EXT(PFNGLVERTEXATTRIB2FARBPROC, VertexAttrib2fARB);
     EXT(PFNGLCOMPRESSEDTEXIMAGE2DARBPROC, CompressedTexImage2DARB);
 #undef EXT
     std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
     Gx::Native::GlRenderTargets targets;
     Gx::Native::GlTransforms transforms;
+    Gx::Native::GlBuffers buffers;
+    Gx::Native::GlBuffer quadVertices, quadIndices;
     Gx::Native::GlTarget target;
     GLuint texture = 0;
     bool originalUi = false;
-    explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets) {}
+    explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets), buffers(owner) {
+        quadVertices = buffers.Create({GxPoolTarget_Vertex, GxPoolUsage_Stream, 24, 4});
+        quadIndices = buffers.Create({GxPoolTarget_Index, GxPoolUsage_Static, 2, 6});
+        const uint16_t indices[] = {0, 1, 2, 0, 2, 3};
+        buffers.Upload(quadIndices, indices, sizeof(indices));
+        const Gx::Native::GlVertexBinding attributes[] = {
+            {quadVertices, GxVA_Position, 4, 0, 24},
+            {quadVertices, GxVA_Color0, 0, 12, 24},
+            {quadVertices, GxVA_TexCoord0, 3, 16, 24}};
+        buffers.VertexFormat(attributes, std::size(attributes));
+        buffers.IndexBuffer(quadIndices);
+    }
     ~Probe() {
         targets.Bind();
         Disable(GL_VERTEX_PROGRAM_ARB);
@@ -180,22 +187,18 @@ struct Probe {
         Check("RGBA8 texture upload");
     }
     void Quad(float z, float alpha) {
-        Color4f(1, 1, 1, alpha);
-        VertexAttrib4fARB(4, 1, 1, 1, alpha);
-        Begin(GL_QUADS);
-        TexCoord2f(0, 0);
-        VertexAttrib2fARB(6, 0, 0);
-        Vertex3f(-0.75f, -0.75f, z);
-        TexCoord2f(1, 0);
-        VertexAttrib2fARB(6, 1, 0);
-        Vertex3f(0.75f, -0.75f, z);
-        TexCoord2f(1, 1);
-        VertexAttrib2fARB(6, 1, 1);
-        Vertex3f(0.75f, 0.75f, z);
-        TexCoord2f(0, 1);
-        VertexAttrib2fARB(6, 0, 1);
-        Vertex3f(-0.75f, 0.75f, z);
-        End();
+        struct Vertex { float x, y, z; uint8_t color[4]; float u, v; };
+        static_assert(sizeof(Vertex) == 24, "12340 PCT vertex size");
+        uint8_t a = static_cast<uint8_t>(alpha * 255 + 0.5f);
+        const Vertex vertices[] = {
+            {-0.75f, -0.75f, z, {255, 255, 255, a}, 0, 0},
+            { 0.75f, -0.75f, z, {255, 255, 255, a}, 1, 0},
+            { 0.75f,  0.75f, z, {255, 255, 255, a}, 1, 1},
+            {-0.75f,  0.75f, z, {255, 255, 255, a}, 0, 1}};
+        auto write = buffers.Lock(quadVertices);
+        std::memcpy(write.Data(), vertices, sizeof(vertices));
+        write.Commit();
+        buffers.Draw(GxPrim_Triangles, 0, 6, true);
     }
     void Draw(int width, int height, bool synthetic) {
         auto view = targets.View();
@@ -260,6 +263,7 @@ struct Probe {
         Image(texture, {2, 2, {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255}});
         targets.Bind();
         std::cout << "synthetic-arb-texture-depth-blend-fbo=passed\n";
+        std::cout << "native-buffered-pct-u16-submission=passed\n";
         std::cout << "synthetic-s3tc-dxt1=passed\n";
     }
     void CheckPixels(bool flipY = false, bool scaled = false) {

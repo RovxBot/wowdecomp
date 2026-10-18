@@ -173,6 +173,12 @@ fails visibly until integrated. This remains a native boundary, not the full
 legacy CGxDevice/CGxTex/state-cache or original login UI. No new physical-input
 acceptance or server session is recorded. M3 remains open.
 
+The next [buffer/vertex work package](BUFFERS.md), stacked on unmerged PR #21,
+connects retained vertex/index resources and checked submission to the existing
+probe. It replaces immediate-mode quads with streamed PCT triangles and uint16
+indices. Hosted and actual-GPU validation is pending. It does not export legacy
+CGxPool/CGxBuf objects or complete the global device/state/texture/async integration.
+
 Next dependencies, in order:
 
 1. Adapt the remaining Gx device, texture/buffer and state-cache services to the

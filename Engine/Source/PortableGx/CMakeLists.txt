@@ -1,6 +1,7 @@
 # Separate native ABI; no legacy Gx/CGxDevice, WGL, D3D or vendor SDK linkage.
 add_library(WowNativeGl STATIC
     ../Gx/Portable/GlContext.cpp
+    ../Gx/Portable/GlBuffers.cpp
     ../Gx/Portable/GlProgram.cpp
     ../Gx/Portable/GlRenderTargets.cpp
     ../Gx/Portable/GlTransforms.cpp
@@ -17,6 +18,13 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeGlCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_executable(GlBuffersCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/buffers.cpp)
+    target_link_libraries(GlBuffersCheck PRIVATE WowNativeGl)
+    if(WOWDECOMP_CORE_SANITIZERS)
+        target_compile_options(GlBuffersCheck PRIVATE -g1)
+    endif()
+    add_test(NAME native-gl-buffers COMMAND GlBuffersCheck)
+    set_tests_properties(native-gl-buffers PROPERTIES TIMEOUT 60 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_executable(GlTransformsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/transforms.cpp)
     target_link_libraries(GlTransformsCheck PRIVATE WowNativeGl)
     if(WOWDECOMP_CORE_SANITIZERS)

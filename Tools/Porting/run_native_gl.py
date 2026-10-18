@@ -22,6 +22,8 @@ def main():
                         help='Also hash-verify and run the three-cycle native Gx target fixture')
     parser.add_argument('--transform-checks', action='store_true',
                         help='Also hash-verify and run the three-cycle native Gx transform fixture')
+    parser.add_argument('--buffer-checks', action='store_true',
+                        help='Also hash-verify and run native Gx buffer/vertex submission checks')
     for name in ['data', 'settings', 'cache']:
         parser.add_argument('--' + name, type=Path)
     parser.add_argument('--locale', default='enUS')
@@ -51,7 +53,8 @@ def main():
     checks = []
     for enabled, name, key, label in [
             (args.render_target_checks, 'GlRenderTargetsCheck', 'render_target_checks', 'render-target'),
-            (args.transform_checks, 'GlTransformsCheck', 'transform_checks', 'transform')]:
+            (args.transform_checks, 'GlTransformsCheck', 'transform_checks', 'transform'),
+            (args.buffer_checks, 'GlBuffersCheck', 'buffer_checks', 'buffer')]:
         if not enabled:
             continue
         check_binary = args.artifact / 'bin' / name

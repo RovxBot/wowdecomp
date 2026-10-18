@@ -317,6 +317,11 @@ and exact-source GPU release/sanitizer target/transform/original-shader cycles.
 It does not complete the legacy device/cache, original fonts/login UI, networking
 or observed world entry. M3 remains open.
 
+The next [buffer/vertex work package](docs/m3/BUFFERS.md) connects retained
+vertex/index storage and checked PCT submission to the shader/target/transform
+probe, stacked on PR #21. Hosted and actual-GPU qualification is pending; full
+legacy device/state/texture/async, fonts/login, networking and gameplay stay open.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
