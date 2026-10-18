@@ -26,6 +26,9 @@ Native source faces are bounded to 32 MiB. Raster bitmaps/row spans are bounded,
 and bearings/advances outside the bring-up range fail. Each returned glyph owns
 its coverage after FreeType reuses its slot or the face is destroyed. No pointer
 into the file worker or FreeType slot survives into GPU upload.
+Row traversal follows FreeType's signed downward pitch convention. The selected
+outline renderers produce positive pitch; negative pitch is source-audited,
+without a separate runtime fixture claiming that path.
 
 The native module configuration supports TrueType outlines with the original
 unhinted load flags. CFF/Type1 and auto-hinting are outside this service and fail

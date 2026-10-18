@@ -4,6 +4,7 @@
 #include <freetype/ftmodule.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <thread>
@@ -93,7 +94,8 @@ Glyph FontFace::Raster(uint32_t code, uint32_t pixels, bool monochrome) {
         throw std::out_of_range("Font glyph pitch exceeds native bounds");
     result.coverage.resize(size_t(result.width) * result.height);
     for (uint32_t y = 0; y < result.height; ++y) {
-        const auto* row = bitmap.buffer + size_t(pitch < 0 ? result.height - 1 - y : y) * stride;
+        // FreeType defines pitch as the signed offset to move down one row.
+        const auto* row = bitmap.buffer + static_cast<ptrdiff_t>(y) * pitch;
         for (uint32_t x = 0; x < result.width; ++x)
             result.coverage[size_t(y) * result.width + x] = mono ? ((row[x >> 3] >> (7 - (x & 7))) & 1) * 255 : row[x];
     }
