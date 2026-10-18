@@ -78,3 +78,12 @@ original fonts/login or a native server session. The external server revision
 versus package-tag discrepancy remains in [server identity](SERVER_IDENTITY.md).
 
 Hosted and actual-GPU validation of this implementation is pending.
+
+The initial hosted release at `5f5d2d9e255e468df9e0ee99b0f7e30b674952de`
+compiled but failed buffer/probe pixels: the synthetic vertex programs read
+conventional `vertex.color`/`vertex.texcoord[0]`, while buffered submission uses
+Gx generic attributes 4/6. Those are separate inputs; the previous immediate-mode
+probe supplied both. Synthetic programs now use the same explicit generic indices
+as Gx submission. The [ARB vertex-program specification](https://registry.khronos.org/OpenGL/extensions/ARB/ARB_vertex_program.txt)
+defines conventional and generic inputs separately. No original shader or native
+buffer format is relabeled to conceal this fixture mismatch.

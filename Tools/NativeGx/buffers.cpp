@@ -50,7 +50,10 @@ struct Checks {
     void Pixel(int r, int g, int b) {
         std::array<uint8_t, 4> pixel{};
         ReadPixels(16, 16, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
-        Require(pixel[0] == r && pixel[1] == g && pixel[2] == b, "Buffered Gx pixel mismatch");
+        if (pixel[0] != r || pixel[1] != g || pixel[2] != b)
+            throw std::runtime_error("Buffered Gx pixel mismatch: actual=" + std::to_string(pixel[0]) + "," +
+                std::to_string(pixel[1]) + "," + std::to_string(pixel[2]) + ";expected=" +
+                std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(b));
         Clean();
     }
     void Run() {
@@ -62,7 +65,7 @@ struct Checks {
         ClearColor(0, 0, 0, 1); Clear(GL_COLOR_BUFFER_BIT);
         GlProgram vertex(context, ShaderStage::Vertex, Record(
             "!!ARBvp1.0\nMOV result.position, vertex.position;\n"
-            "MOV result.color, vertex.color;\nEND\n"));
+            "MOV result.color, vertex.attrib[4];\nEND\n"));
         GlProgram fragment(context, ShaderStage::Fragment, Record(
             "!!ARBfp1.0\nMOV result.color, fragment.color;\nEND\n"));
         vertex.Bind(); fragment.Bind();

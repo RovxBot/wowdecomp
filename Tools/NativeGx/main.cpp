@@ -236,8 +236,8 @@ struct Probe {
     void Initialize() {
         vertex = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Vertex, Record(
                 "!!ARBvp1.0\nMOV result.position, vertex.position;\n"
-                "MOV result.texcoord[0], vertex.texcoord[0];\nMOV result.color, "
-                "vertex.color;\nEND\n"));
+                "MOV result.texcoord[0], vertex.attrib[6];\nMOV result.color, "
+                "vertex.attrib[4];\nEND\n"));
         fragment = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Fragment, Record(
                 "!!ARBfp1.0\nTEMP tex;\nTEX tex, fragment.texcoord[0], texture[0], "
                 "2D;\n"
