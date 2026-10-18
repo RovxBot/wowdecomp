@@ -83,9 +83,19 @@ it does not turn a documentation request into authorization to start the whole p
   pass. Preserve
   the distinction between operator observations, telemetry and injected fixtures.
   Preserve the distinction between scalar inspection geometry and full
-  animation/material/world rendering. M3 starts with the separate Linux SDL3/Gx
-  OpenGL compatibility context work described in [the M3 handoff](docs/m3/HANDOFF.md).
-  Its synthetic/asset probe is not the original login UI or a playable client.
+  animation/material/world rendering.
+- M3 context [PR #13](https://github.com/RovxBot/wowdecomp/pull/13) selected head
+  `2afd390c8fb9f1d7b478c915b5b9d736bcc234d9`, merged as
+  `d1dd70aedeae7f09468692503590c4fdbc9423ff`. Read the
+  [M3 handoff](docs/m3/HANDOFF.md) and [context evidence](docs/m3/context-validation.json).
+  All eight PR workflows passed, including full Windows x64 compilation; both
+  Linux GL configurations passed 14 CTest checks. Exact-head release and three
+  ASan/UBSan/leak-enabled context/asset cycles passed on AMD RX 7900 XTX,
+  SDL X11 on Xwayland, with original 12340/enUS signature authentication and
+  loading-bar texture display. The new Gx host context is not yet wired into the
+  legacy device/native ABI adaptation. Original login UI, portable networking,
+  authentication, character selection and observed GrimGuzzler world entry remain
+  open; M3 is not complete. Physical operator observations remain separate.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

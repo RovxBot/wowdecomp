@@ -273,6 +273,10 @@ Depends on: M2. The modern graphics/shader prototype can begin during this stage
 
 Status: in progress through the [Linux OpenGL context work package](docs/m3/HANDOFF.md).
 Its separate native ABI probe does not establish the original login UI or gameplay.
+[PR #13](https://github.com/RovxBot/wowdecomp/pull/13) is merged; hosted GL/Windows
+compilation, synthetic render checks and exact-source original-data GPU sanitizer
+execution are recorded in the [context evidence](docs/m3/context-validation.json).
+The original device/native ABI, login UI and networking steps remain open.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

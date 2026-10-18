@@ -5,6 +5,26 @@ boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client
 gate remains in place. No original login UI, networking, authentication,
 character selection or world entry has been established.
 
+Implemented in [PR #13](https://github.com/RovxBot/wowdecomp/pull/13), selected head
+`2afd390c8fb9f1d7b478c915b5b9d736bcc234d9`, merged as
+`d1dd70aedeae7f09468692503590c4fdbc9423ff`. The
+[durable context evidence](context-validation.json) preserves all hosted manifests,
+artifact/binary hashes, actual GPU reports and the separate Windows regression
+merge-checkout identity `deebdb8d58b80bffefbd8eb224d0dcdc39a87fb8`.
+
+| Evidence level | Result |
+| --- | --- |
+| Hosted compilation/fixtures | All eight PR workflows passed; GL release and ASan/UBSan each passed 14 CTest checks on X11/Xvfb with Mesa software rendering |
+| Actual GPU rendering | Exact-head release probe on RX 7900 XTX / Mesa 26.2.4 / Xwayland authenticated 28,948 signaturefile records and displayed the original glue texture; captured frame inspected |
+| Actual GPU sanitizers | Three original-data context/asset cycles, ASan/UBSan/leak detection enabled, exit 0, empty stderr, zero native workers |
+| Windows regression | Full x64 client compiled with signatures enabled; downloaded binary hashes/types verified; no new Windows gameplay observation |
+| Original login/gameplay | Not implemented or observed; M3 remains open |
+
+The corrected absolute-path operator launch also produced a matching exact-head
+synthetic report: exit 0, empty stderr and zero workers. Physical resize/focus/
+fullscreen observations have not yet been reported; the process report does not
+establish that those controls were exercised.
+
 The initial target is `WowNativeGl` and the executable is `NativeGlCheck`.
 `linux-gl` and `linux-gl-asan` extend the M2 allowlist without linking legacy
 `CGxDevice`, WGL, D3D, game or optional vendor SDK objects. The existing Windows
@@ -20,7 +40,7 @@ all SDL/context/render operations stay on the process main thread. A native
 worker loads optional original assets, then delivers one owner-thread callback.
 
 The synthetic probe uploads ARB assembly programs, draws a textured quad into
-an FBO, checks known pixels for texture coordinates, depth, blending, clipping
+an FBO, checks known pixels for texture coordinates, depth, blending, quad boundaries
 and compressed DXT1 upload,
 then presents into the window's pixel-sized drawable. It checks off-thread
 presentation rejection and repeated context/window teardown. A dummy driver
@@ -34,9 +54,15 @@ loads `Interface\Glues\LoadingBar\Loading-BarFill.blp` using the existing MPQ,
 patch/locale and registered-MD5 policy. It displays that texture through ARB
 programs. A loading-bar asset is not the original GlueXML login UI.
 
-All compilation runs in [M3 OpenGL Actions](../../.github/workflows/m3-gl.yml).
-Build results and exact runtime identities will be retained in this directory
-after hosted execution. No local client or dependency compilation is permitted.
+All compilation ran in [M3 OpenGL Actions](../../.github/workflows/m3-gl.yml).
+[Push run 39083361222](https://github.com/RovxBot/wowdecomp/actions/runs/39083361222)
+and [PR run 39083364041](https://github.com/RovxBot/wowdecomp/actions/runs/39083364041)
+passed both Linux configurations. Full Windows regression
+[39083364138](https://github.com/RovxBot/wowdecomp/actions/runs/39083364138) passed.
+Local source/launcher checks discovered 22 tests: 21 passed, one CMake selection
+check skipped because local CMake is unavailable; that check runs in Actions.
+Local work executed downloaded binaries and Python source/document checks only.
+No local client or dependency compilation is permitted.
 
 After downloading a passing `m3-linux-gl-*` artifact, extract it outside the
 repository and both installations. The launcher checks the binary hash and
@@ -44,12 +70,17 @@ uses X11 with a matching child EGL platform:
 
 ```sh
 python3 Tools/Porting/run_native_gl.py \
-  --artifact /tmp/extracted-m3-artifact \
+  --artifact /tmp/wowdecomp-m3-2afd-release \
   --data /mnt/games/3.3.5aClean/Data \
   --settings /tmp/wowdecomp-m3-settings --cache /tmp/wowdecomp-m3-cache \
   --frames 3600 --timeout 120 \
   --snapshot /tmp/wowdecomp-m3.ppm --output /tmp/wowdecomp-m3.json
 ```
+
+Run from the repository or use the absolute wrapper path
+`/home/Rov/Documents/Git/wowdecomp/Tools/Porting/run_native_gl.py` from another
+directory. The prepared artifact path above is local runtime state; after artifact
+expiration, rebuild through Actions and verify the new manifest/source identity.
 
 Omit data/settings/cache for the synthetic quad. Use the sanitizer artifact with
 `--sanitizers`; keep all detectors enabled and retain external-library failures.
@@ -58,6 +89,12 @@ minimize/restore, focus changes and fullscreen must keep the image stable and
 the drawable dimensions correct. Record actual GPU/driver, X11 versus Xwayland,
 artifact/commit, captures and errors. This does not request credentials or a
 server connection. M2 input/settings acceptance remains separate.
+
+The observed desktop is Xwayland under a Wayland session, using SDL's X11 driver
+and child `EGL_PLATFORM=x11`. This is not a separate native Xorg or M3 Wayland
+driver qualification. GPU sanitizer runs used no `LSAN_OPTIONS`, `LD_PRELOAD` or
+`LD_AUDIT`; the existing M2 Wayland Fontconfig qualification is unchanged. Captures
+remain external; only their hash/dimensions and inspection results are recorded.
 
 Next dependencies, in order:
 
