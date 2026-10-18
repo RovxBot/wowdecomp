@@ -6,8 +6,10 @@ desktop startup, original-data reads, settings reload and joined shutdown are
 recorded in the [M2 handoff](HANDOFF.md), [build record](shell-builds.json) and
 [runtime record](shell-runtime.json). The operator confirmed physical-input checks
 passed on 2026-10-18; [the acceptance record](operator-acceptance.json) retains the
-matching final Wayland session. Desktop LeakSanitizer triage remains open. The full
-native game remains gated.
+matching tested Wayland session. M2 exit criteria are met on the selected Linux
+X11 profile with clean ASan/UBSan/LeakSanitizer shutdown; the external Wayland
+Fontconfig report remains a documented qualification. See the final
+[closeout evidence](closeout.json). The full native game remains gated.
 
 The shell uses BlizzardCore's authenticated packages and scalar asset decoders,
 the Services owner-thread file queue and Os input/clipboard/IME entry points.
@@ -78,10 +80,12 @@ python Tools/Porting/run_native_shell.py \
   --artifact /tmp/extracted-shell-artifact \
   --data /mnt/games/3.3.5aClean/Data \
   --settings /tmp/wowdecomp-m2-settings --cache /tmp/wowdecomp-m2-cache \
+  --video x11 \
   --output /tmp/wowdecomp-m2-desktop.json
 ```
 
-Use an explicit `--video x11` or `--video wayland` to test that driver. Add
+X11 is the recorded clean sanitizer acceptance profile. Use `--video wayland`
+for the separately qualified Wayland path. Add
 `--smoke-ms 1500 --snapshot /tmp/wowdecomp-m2-shell.bmp` for an automatic smoke run.
 For the ASan artifact, add `--sanitizers`; leak checking needs execution outside a
 ptrace debugger/sandbox. Real data and private session reports remain external.

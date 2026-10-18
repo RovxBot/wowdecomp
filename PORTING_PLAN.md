@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-17. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-18. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -16,6 +16,9 @@ and Windows client regression checks. See [M1 foundations](docs/m1/FOUNDATIONS.m
 [upstream-fix review](docs/m1/UPSTREAM_REVIEW.md) and the
 [M0 baseline report](docs/m0/BASELINE.md). Historical source/build identities remain
 in the reports and manifests. Repository instructions are in [AGENTS.md](AGENTS.md).
+M2 asset/shell exit criteria are met for the observed Linux X11 baseline, with
+operator Wayland input acceptance and its separate system Fontconfig qualification.
+See the [M2 closeout](docs/m2/closeout.json) and [handoff](docs/m2/HANDOFF.md).
 
 ## Outcome and scope
 
@@ -224,7 +227,8 @@ runtime and SDL3 default. The review records source defects, external build/runt
 evidence and proposed work packages; no code is imported or M2 exit criterion met
 by that review. Keep graphics alternatives as separate prototypes.
 
-Status: implementation merged in [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
+Status: **complete for the observed native Linux asset/shell exit criteria**.
+Implementation merged in [PR #5](https://github.com/RovxBot/wowdecomp/pull/5)
 (host files), [PR #6](https://github.com/RovxBot/wowdecomp/pull/6)
 (authenticated packages/assets), [PR #7](https://github.com/RovxBot/wowdecomp/pull/7)
 (async files) and [PR #8](https://github.com/RovxBot/wowdecomp/pull/8) (SDL3 shell).
@@ -234,8 +238,17 @@ the separate clean 12340/enUS reference. Native startup, original-data reads,
 settings reload and joined shutdown are observed. The operator confirmed the
 requested physical-input checks passed on 2026-10-18, with matching final Wayland
 runtime telemetry in [the acceptance record](docs/m2/operator-acceptance.json).
-Unsuppressed desktop leak reports remain open; final sign-off awaits their
-recorded disposition. The shell is separate
+The [lifetime fix](docs/m2/DESKTOP_LIFETIMES.md) in
+[PR #11](https://github.com/RovxBot/wowdecomp/pull/11) makes X11 the recorded clean
+ASan/UBSan/LeakSanitizer baseline using normal ELF display-library ownership.
+Final head `50a7d91a1794529da6bc094fcf58dc5435392033` passed actual original-data
+startup, settings relaunch and eight SDL teardown cycles with empty stderr, plus
+all five hosted shell configurations and the full Windows reference. The
+[closeout](docs/m2/closeout.json) preserves exact identities. Wayland's remaining
+Fontconfig report reproduces in an engine-free control without a renderer and is
+retained as an external platform qualification, not a clean Wayland leak pass.
+M2 acceptance applies to the observed X11 Linux profile; broader desktop coverage
+remains explicit. The shell is separate
 from the gated full game and does not establish rendered scene or gameplay parity.
 
 1. Port filesystem and async file services, including BlizzardCore package I/O.
@@ -422,7 +435,7 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [x] Port read-only retail file/archive access and add a validated 12340 asset inspector.
 - [x] Add the SDL shell, original-data startup, settings reload and joined shutdown.
 - [x] Record operator acceptance of the requested physical-input checklist; IME language/display coverage remains limited.
-- [ ] Resolve or explicitly disposition the recorded desktop-library leak findings.
+- [x] Establish the clean X11 sanitizer baseline and disposition the reproduced external Wayland Fontconfig report.
 - [ ] Adapt Linux OpenGL context creation and display the original login UI.
 - [ ] Implement portable network I/O and enter the world against the M0 server.
 - [ ] Complete sound/movie support and the Vulkan/Metal graphics decision prototype.

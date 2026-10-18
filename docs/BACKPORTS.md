@@ -67,6 +67,37 @@ and source inspection are different evidence levels.
   execution is distinct from dummy-driver fixtures, physical input, Gx rendering
   and gameplay; none establishes the later Vulkan/Metal graphics decision.
 
+## NP-003 — SDL display-library lifetime ownership
+
+- Status: selected for the Linux M2 baseline in
+  [PR #11](https://github.com/RovxBot/wowdecomp/pull/11), implementation
+  `50a7d91a1794529da6bc094fcf58dc5435392033`. M2 acceptance uses the observed
+  clean X11 profile; Wayland's external Fontconfig qualification stays explicit.
+- Reference: pinned SDL 3.2.28 at
+  `7f3ae3d57459e59943a4ecfefc8f6277ec6bf540`, unchanged archive SHA256
+  `7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5`.
+  Its supported `SDL_X11_SHARED`, `SDL_WAYLAND_SHARED` and
+  `SDL_WAYLAND_LIBDECOR_SHARED` CMake choices control dynamic loading. No donor
+  function, source body, original binary address or verification claim is imported.
+- Destination/adaptation: native window CMake sets normal ELF display dependencies
+  for Linux. The source/graph audit keeps `SDLDesktopControl` free of engine code
+  and the portable engine ABI, while allowing CMake build utilities. A separate
+  `linux-window-dynamic-asan` preset retains the previous lifetime for comparison.
+- Benefit/evidence: the dynamic SDL-only control reproduces the original X11
+  50,184-byte report. Linked control and original-data shell pass unsuppressed
+  X11 ASan/UBSan/leak checks, including eight cycles and settings relaunch. All
+  remaining linked Wayland allocation groups map to Fontconfig and reproduce
+  without an engine or renderer; they are retained as failures, not suppressed.
+  [Design/control results](m2/DESKTOP_LIFETIMES.md) and
+  [final closeout](m2/closeout.json) preserve exact build/runtime identities.
+- Dependencies/defaults: required X11/extensions, Wayland/EGL/cursor, xkbcommon,
+  libdecor and EGL libraries are now Linux loader dependencies even when a single
+  display provider is selected. Windows/macOS selection, SDL version/notices,
+  original assets, file verification, protocol and optional effects stay unchanged.
+  No `dlclose` shim, forced font-cache cleanup or sanitizer suppression is added.
+- Scope: library ownership for the diagnostic shell. It does not select a Gx,
+  Vulkan/Metal renderer, establish Cocoa desktop support or alter game schemas.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.
