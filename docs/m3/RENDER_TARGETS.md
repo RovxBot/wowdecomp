@@ -70,6 +70,24 @@ Hosted Xvfb/Mesa checks, actual GPU execution and physical operator observations
 must be recorded separately. Historical context/shader evidence is not relabeled
 as validation of this implementation. No new physical-input acceptance is implied.
 
+Selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` in
+[PR #20](https://github.com/RovxBot/wowdecomp/pull/20) passed all eight implementation
+PR workflows, including full Windows x64 compilation. Both Linux GL configurations
+passed 16 CTest checks. The [durable evidence](render-target-validation.json)
+preserves the distinct Windows merge checkout, hosted manifests, ZIP/binary
+verification and exact-source GPU reports. The PR is not yet merged.
+
+On RX 7900 XTX / Mesa 26.2.5 / SDL X11 in the Wayland desktop, release and
+ASan/UBSan/leak-enabled target checks each passed three context/owner cycles.
+The integrated original-data probe passed one release and three sanitizer cycles,
+with original signature authentication, five UI-shader FBO pixels, empty stderr
+and zero native workers at each shutdown. No suppression/preload/audit shim was
+used. The loading-bar capture was inspected; no original fonts/login UI, stereo
+rendering, full model rendering, Windows runtime or native gameplay is established.
+Local Python checks discovered 24 tests: 23 passed, one CMake selection check was
+unavailable locally; all 24 ran in Actions. File references and whitespace passed.
+All client/dependency compilation ran in Actions.
+
 After downloading and hash-verifying a passing artifact, the existing
 [runtime wrapper](../../Tools/Porting/run_native_gl.py) runs the integrated probe.
 Add `--render-target-checks` to hash-verify and run `GlRenderTargetsCheck` before

@@ -155,8 +155,9 @@ and source inspection are different evidence levels.
 
 ## NP-006 — Native Gx render-target ownership
 
-- Status: implementation and validation in progress; see
-  [target contracts/caller audit](m3/RENDER_TARGETS.md).
+- Status: qualified in [PR #20](https://github.com/RovxBot/wowdecomp/pull/20),
+  selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`, awaiting
+  merge; see [target contracts/caller audit](m3/RENDER_TARGETS.md).
 - Source: product 12340 at `6023d6a1901637f58507c4eac987e1e450cdaa53`,
   `CGxDevice::DeviceSetRenderTarget`, OpenGL FBO/texture ownership, target/face
   mappings and shared-model async cancellation callers. No donor/fork body,
@@ -171,9 +172,13 @@ and source inspection are different evidence levels.
 - Assets/defaults: original `0x10003` UI shaders/loading-bar through unchanged
   authenticated external packages. No new assets, optional effects, dependencies,
   signature bypasses, protocol or server-policy changes. Full-client gate retained.
-- Validation: source/launcher checks plus hosted and actual-GPU checks are recorded
-  with the work package. Historical context/shader passes are not new evidence for
-  this implementation. Original login UI and observed world entry remain open.
+- Validation: [durable evidence](m3/render-target-validation.json) records all eight
+  successful implementation PR workflows, full Windows x64 compilation, 16 CTest
+  checks per Linux GL configuration, exact-source RX 7900 XTX release/sanitizer
+  target and original-data shader cycles. ZIP/binary/notices hashes were verified;
+  automatic cycles had empty stderr and no probe workers at shutdown. No new
+  physical-input or Windows runtime observation is claimed. Original login UI and
+  observed world entry remain open.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

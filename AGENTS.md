@@ -46,6 +46,13 @@ it does not turn a documentation request into authorization to start the whole p
   with playerbots and enabled Warden; desired manifests do not verify live image
   identity, realm endpoints or gameplay compatibility. Do not change cluster/server
   policy as part of the client port.
+  A later [read-only live snapshot](docs/m3/SERVER_IDENTITY.md) records runtime
+  image IDs, matching packaged/PID-1 executable hashes, embedded world version,
+  mounted Warden and listener metadata externally. The embedded revision differs
+  from the package tag and has a `+` suffix; do not substitute that tag or a local
+  checkout for an exact clean compiled source tree. Realm-list endpoint, client
+  Warden responses and native gameplay remain unobserved. Historical M0 sessions
+  retain their own incomplete server identities.
 - M1 runtime foundations were merged into main via
   [PR #3](https://github.com/RovxBot/wowdecomp/pull/3), with passing hosted core,
   native lifecycle, sanitizer and Windows client checks. M1 core exit criteria
@@ -121,6 +128,21 @@ it does not turn a documentation request into authorization to start the whole p
   The matching release report corroborates exit 0, empty stderr and zero workers;
   it has no per-event telemetry or new capture. Keep this operator acceptance
   separate from automatic GPU/sanitizer checks and historical context acceptance.
+- M3 [render-target PR #20](https://github.com/RovxBot/wowdecomp/pull/20) selected
+  implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` is qualified but not
+  yet merged. Read the [target contracts](docs/m3/RENDER_TARGETS.md) and
+  [validation](docs/m3/render-target-validation.json). All eight implementation
+  PR workflows passed; both Linux GL configurations passed 16 CTest checks and
+  the full Windows x64 client compiled at separate merge checkout
+  `30a0acafc0af371f9bb1f77ee6360585ece00cbf`. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and ASan/UBSan/leak checks passed three target cycles
+  each, plus one release and three sanitizer original-data shader cycles, with
+  empty stderr and zero native workers at each probe shutdown. Targets retain
+  attachment/sampler storage, reject feedback and roll back incomplete FBOs.
+  The zero-width image failure is an explicit fixture injection. This is not
+  legacy `CGxTex`/device/state/projection/async integration, original fonts/login
+  UI or gameplay. No new physical-input acceptance is recorded; keep prior
+  operator observations attached to their historical sources. M3 remains open.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

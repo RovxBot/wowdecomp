@@ -295,6 +295,18 @@ controls passed without crashes or corruption, with a matching clean-exit report
 The complete device/native ABI, fonts/GlueXML/login UI and networking/world steps
 remain open. M3 is not complete.
 
+The [native render-target owner](docs/m3/RENDER_TARGETS.md) in
+[PR #20](https://github.com/RovxBot/wowdecomp/pull/20) is qualified at
+`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` and awaits merge. Its
+[record](docs/m3/render-target-validation.json) preserves all eight passing
+implementation PR workflows, 16 CTest checks per Linux GL configuration, separate
+Windows compilation identity, and exact-source real-GPU release/sanitizer target
+and original-data shader cycles. This advances resource ownership; the full
+device/state/projection, original UI, native networking and observed world remain
+open. The [read-only live server snapshot](docs/m3/SERVER_IDENTITY.md) identifies
+runtime images/binaries externally while preserving the distinction between the
+package tag, embedded revision, mounted policy and unobserved session behavior.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
