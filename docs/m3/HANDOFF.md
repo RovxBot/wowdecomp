@@ -173,6 +173,22 @@ fails visibly until integrated. This remains a native boundary, not the full
 legacy CGxDevice/CGxTex/state-cache or original login UI. No new physical-input
 acceptance or server session is recorded. M3 remains open.
 
+The next [buffer/vertex work package](BUFFERS.md), stacked on unmerged PR #21,
+is qualified at `42859739d5359cffc0b55f33ebfed789ff152dcd` in
+[PR #22](https://github.com/RovxBot/wowdecomp/pull/22), still unmerged. It connects
+retained vertex/index resources and checked submission to the existing probe,
+replacing immediate-mode quads with streamed PCT triangles and uint16 indices.
+The [buffer evidence](buffer-validation.json) records all eight successful PR
+workflows, 18 CTest passes per Linux GL configuration, separate Windows compilation
+checkout `827d3cdd0876014389239e3ae40eea8d053e6a5e` and verified artifact identities.
+Exact-source RX 7900 XTX release/sanitizer buffer, transform and target checks each
+passed three cycles; the original-data shader probe passed one/three cycles,
+with empty stderr and zero workers. The initial synthetic conventional/generic
+attribute mismatch and its correction remain recorded. This does not export
+legacy CGxPool/CGxBuf objects or complete global device/state/texture/async
+integration. No new physical-input, original fonts/login or server acceptance
+is implied. M3 remains open.
+
 Next dependencies, in order:
 
 1. Adapt the remaining Gx device, texture/buffer and state-cache services to the

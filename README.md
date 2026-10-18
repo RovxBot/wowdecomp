@@ -47,7 +47,11 @@ native device, original fonts/login UI, networking and gameplay remain open.
 The [transform adapter](docs/m3/TRANSFORMS.md) now reuses scalar Gx/Tempest math
 for normalized viewport/scissor and target projection, with original UI shader
 constants and transformed-pixel checks qualified in hosted and real-GPU
-release/sanitizer runs. It is stacked on the unmerged target work; M3 is open.
+release/sanitizer runs. It is stacked on the unmerged target work.
+The [buffer adapter](docs/m3/BUFFERS.md), stacked on the transform work, now
+submits retained PCT vertex/index resources through original UI shaders, with
+hosted and real-GPU release/sanitizer checks. Full legacy device integration,
+original fonts/login, networking and observed gameplay remain open; M3 is incomplete.
 
 ## Progress
 

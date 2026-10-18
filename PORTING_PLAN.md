@@ -317,6 +317,16 @@ and exact-source GPU release/sanitizer target/transform/original-shader cycles.
 It does not complete the legacy device/cache, original fonts/login UI, networking
 or observed world entry. M3 remains open.
 
+The next [buffer/vertex work package](docs/m3/BUFFERS.md) connects retained
+vertex/index storage and checked PCT submission to the shader/target/transform
+probe. [PR #22](https://github.com/RovxBot/wowdecomp/pull/22) is qualified at
+`42859739d5359cffc0b55f33ebfed789ff152dcd`, stacked on unmerged PR #21.
+Its [evidence](docs/m3/buffer-validation.json) records all eight successful PR
+workflows, 18 CTest passes per Linux GL configuration, full Windows compilation
+and exact-source RX 7900 XTX release/sanitizer buffer/target/transform/original
+shader cycles. Full legacy device/state/texture/async, fonts/login, networking
+and observed gameplay stay open; M3 is not complete.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
