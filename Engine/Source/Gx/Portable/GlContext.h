@@ -27,6 +27,7 @@ class GlContext {
     // All methods, procedure calls and destruction belong to the process main
     // thread. Procedures belong to this context and expire before its window.
     GlProc Proc(const char *name) const;
+    void CheckCurrent() const;
     void MakeCurrent();
     void Present();
     // A rejected swap interval is an explicit failure; no silent fallback.

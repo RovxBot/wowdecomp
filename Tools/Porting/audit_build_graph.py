@@ -20,7 +20,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeGl', 'NativeGlCheck'}
+        expected |= {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -117,10 +117,14 @@ def audit(targets, mode, target_os, cpu):
                        'ShellSettingsCheck': ['Tools/PortableWindow/settings.cpp']}[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
-        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck'}:
-            path = ('Engine/Source/Gx/Portable/GlContext.cpp' if target['name'] == 'WowNativeGl'
-                    else 'Tools/NativeGx/main.cpp')
-            if len(sources) != 1 or not sources[0].endswith(path) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
+        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck'}:
+            allowed = {'WowNativeGl': ['Engine/Source/Gx/Portable/' + name + '.cpp'
+                                      for name in ['GlContext', 'GlProgram', 'ShaderPackage']],
+                       'NativeGlCheck': ['Tools/NativeGx/main.cpp'],
+                       'ShaderPackageCheck': ['Tools/NativeGx/shaders.cpp']}[target['name']]
+            if (len(sources) != len(allowed) or
+                    any(not any(s.endswith(p) for s in sources) for p in allowed) or
+                    'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native Gx context provider/ABI")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):

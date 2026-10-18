@@ -99,6 +99,12 @@ it does not turn a documentation request into authorization to start the whole p
   minimize/restore, focus, F11 and close passed on the matching synthetic probe,
   without blank graphics or crashes. Boxes scaled with the window. Keep those
   operator observations separate from automatic GPU telemetry and game rendering.
+- M3 original shader service is in progress. Read the
+  [shader contracts](docs/m3/SHADERS.md) before continuing. It adapts bounded
+  `0x10003` arbvp1/arbfp1 containers and context-owned programs in the native ABI;
+  it does not expose legacy `CGxShader` objects or qualify the original login UI.
+  Keep context ownership, the existing 94-register range and unsupported shader
+  dialects explicit. All new C++ compilation/fixtures run in Actions.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

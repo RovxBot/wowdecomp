@@ -123,6 +123,9 @@ GlContext::GlContext(const char *title, int width, int height, bool hidden)
         throw Failure("Query OpenGL swap interval");
 }
 GlContext::~GlContext() = default;
+void GlContext::CheckCurrent() const {
+    state->Check(true);
+}
 OsNative::Window &GlContext::Window() {
     state->Check();
     return state->window;

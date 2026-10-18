@@ -125,6 +125,25 @@ and source inspection are different evidence levels.
   exact manifests/hashes and separates operator observations. Full Gx integration, original fonts/UI,
   native networking, authentication and observed world entry remain M3 work.
 
+## NP-005 — Native original shader resource service
+
+- Status: M3 implementation and validation in progress; see
+  [shader contracts and caller audit](m3/SHADERS.md).
+- Source: product 12340 at `0786df65a30135c833d573bfda7836cf5cff8d70`,
+  `CGxDevice::IShaderLoad`, `CGxShader::Load`, OpenGL shader creation/patch/constants
+  and Gxu font UI callers. No donor body, address or VERIFY claim is imported.
+- Destination/adaptation: `Gx/Portable/ShaderPackage*` and `GlProgram*`, explicit
+  native Gx allowlist and probe. Bounded little-endian metadata/permutations,
+  caller-count validation, token-based local-to-env conversion, main-thread GPU
+  ownership, rejected-upload cleanup and explicit constant limits. The legacy
+  Windows object/hash/refcount ABI remains separately selected.
+- Assets/defaults: unchanged original UI arbvp1/arbfp1 `0x10003` shaders read from
+  authenticated external packages with registered MD5 policy. No shader conversion,
+  optional effect, new dependency or server/protocol change. Model constant-range
+  expansion, other dialects, font/GlueXML and full device integration remain open.
+- Validation: hosted decoder/ARB/FBO fixtures and original-data GPU checks pending.
+  Compilation, rendered output and observed gameplay will be recorded separately.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
