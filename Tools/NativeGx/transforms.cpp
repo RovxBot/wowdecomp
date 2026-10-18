@@ -234,6 +234,11 @@ int main() {
             GlRenderTargets targets(context); targets.Bind();
             GlTransforms transforms(context,targets);
             Checks checks(context);
+            // Sync before the fixture makes any matrix-mode selection. The
+            // adapter must initialize the compatibility baseline itself.
+            transforms.Sync();
+            GLint initialMode = 0; checks.GetIntegerv(GL_MATRIX_MODE, &initialMode);
+            Require(initialMode == GL_MODELVIEW, "Missing initial Gx matrix-mode baseline");
             checks.Stacks(transforms); checks.State(targets,transforms);
             checks.Raster(targets,transforms); checks.Resize(targets,transforms);
             std::thread wrong([&] {

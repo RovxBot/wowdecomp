@@ -19,7 +19,10 @@ using GlUiConstants = std::array<std::array<float, 4>, 4>;
 // scalar Tempest matrices and four-entry CGxMatrixStack. This is not a
 // CGxDevice layout, state cache or a replacement for legacy global Gx exports.
 // Context and target owner must outlive this object. All access is owner-thread,
-// current-context only. Call Sync after target changes and before drawing.
+// current-context only. Construction selects the legacy GL_MODELVIEW baseline;
+// Sync preserves the caller's subsequent matrix-mode selection. Call Sync after
+// target changes and before drawing. Native offscreen orientation uses the
+// original default capability branch (unk_00B0 == 0).
 class GlTransforms {
 public:
     GlTransforms(GlContext& context, GlRenderTargets& targets);

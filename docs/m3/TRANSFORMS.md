@@ -81,3 +81,14 @@ range validation. The native boundary now accepts unsigned indices, preserving
 normal enum callers while rejecting raw invalid values before interpretation.
 Final hosted/sanitizer and actual-GPU qualification remain pending; the evidence
 record will retain the failed run and final source/artifact identities.
+
+The initial actual-GPU probe found a second integration gap: Radeon returned
+matrix mode zero before any compatibility matrix had been selected. Restoring
+that value failed with `GL_INVALID_ENUM`; debugger argument tracing identified
+the restore call. The standalone fixture had explicitly selected `GL_TEXTURE`,
+masking this missing startup step. Adapter construction now selects the legacy
+`IStateSetContextDefaults` `GL_MODELVIEW` baseline, and the fixture synchronizes a
+fresh context before making any matrix-mode selection. Subsequent sync preserves
+the caller's mode. Native offscreen orientation uses the original default
+capability branch (`unk_00B0 == 0`); the alternate capability is not exposed.
+These failures remain diagnostic history, not qualified runtime passes.

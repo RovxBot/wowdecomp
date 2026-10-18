@@ -77,6 +77,12 @@ struct GlTransforms::State {
 GlTransforms::GlTransforms(GlContext& context, GlRenderTargets& targets) {
     context.CheckCurrent();
     state = std::make_unique<State>(context, targets);
+    // Match IStateSetContextDefaults before the first matrix query. A fresh
+    // shader-only native context has not selected any compatibility matrix.
+    // In particular, the observed Radeon driver reports matrix mode zero until
+    // this explicit selection; zero cannot be restored with glMatrixMode.
+    state->MatrixMode(GL_MODELVIEW);
+    state->Check("Initialize Gx compatibility matrix mode");
 }
 GlTransforms::~GlTransforms() = default;
 void GlTransforms::Set(uint32_t which, const C44Matrix& matrix) {
