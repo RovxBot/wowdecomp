@@ -72,3 +72,7 @@ passed release raster/GPU checks but failed the sanitizer fixture at the old
 [run 39110055917](https://github.com/RovxBot/wowdecomp/actions/runs/39110055917).
 That failure motivated the explicit native module scope and callback audit above;
 it is not a clean sanitizer result.
+The next implementation `33217d10f26e280b6f1eaefbccef29d82c5309cb`
+passed release checks but reached a null glyph-loader offset at `ftobjs.c:371` in
+[run 39110748627](https://github.com/RovxBot/wowdecomp/actions/runs/39110748627).
+Native empty loaders now preserve null arrays before allocation.

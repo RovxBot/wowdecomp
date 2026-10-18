@@ -11,6 +11,8 @@ For the native 12340 font preview, changes guarded by
 - `src/raster/ftraster.c`, `src/smooth/ftgrays.c`: typed raster callbacks;
   grayscale outline/span callbacks; defined scaling of negative coordinates.
 - `src/base/ftoutln.c`, `src/base/ftcalc.c`: defined signed coordinate scaling.
+- `src/base/ftobjs.c`: preserve null glyph-loader arrays when adjusting an empty
+  loader; no pointer arithmetic before allocation.
 
 The Windows paths retain their original expressions and callback selection.
 The native target's separate module list selects TrueType/SFNT and grayscale/

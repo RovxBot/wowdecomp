@@ -368,14 +368,25 @@
     FT_Outline*  current = &loader->current.outline;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* Rewind also adjusts an empty loader, before these arrays exist. */
+    current->points   = base->points   ? base->points   + base->n_points : 0;
+    current->tags     = base->tags     ? base->tags     + base->n_points : 0;
+    current->contours = base->contours ? base->contours + base->n_contours : 0;
+#else
     current->points   = base->points   + base->n_points;
     current->tags     = base->tags     + base->n_points;
     current->contours = base->contours + base->n_contours;
+#endif
 
     /* handle extra points table - if any */
     if ( loader->use_extra )
       loader->current.extra_points =
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        loader->base.extra_points ? loader->base.extra_points + base->n_points : 0;
+#else
         loader->base.extra_points + base->n_points;
+#endif
   }
 
 
@@ -404,7 +415,11 @@
     FT_GlyphLoad* current = &loader->current;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    current->subglyphs = base->subglyphs ? base->subglyphs + base->num_subglyphs : 0;
+#else
     current->subglyphs = base->subglyphs + base->num_subglyphs;
+#endif
   }
 
 
