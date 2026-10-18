@@ -8,6 +8,7 @@ def audit(targets, mode, target_os, cpu):
     errors = []
     compiled = [t for t in targets if t['type'] in
                 ('STATIC_LIBRARY', 'SHARED_LIBRARY', 'EXECUTABLE', 'OBJECT_LIBRARY')]
+    build_utilities = {t['id'] for t in targets if t['type'] == 'UTILITY' and 'id' in t}
     names = {t['name'] for t in compiled}
     expected = {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}
     if mode in {'files', 'assets', 'async', 'window'}:
@@ -103,6 +104,7 @@ def audit(targets, mode, target_os, cpu):
             if len(sources) != 1 or not sources[0].endswith('Tools/PortableWindow/desktop_control.cpp'):
                 errors.append('SDLDesktopControl: source outside the standalone control')
             if 'WOWDECOMP_PORTABLE_RUNTIME=1' in definitions or any(
+                    d['id'] not in build_utilities and
                     d['id'].split('::')[0] not in {'SDL3-static', 'SDL_uclibc'}
                     for d in target.get('dependencies', [])):
                 errors.append('SDLDesktopControl: engine dependency leaked into the SDL-only control')

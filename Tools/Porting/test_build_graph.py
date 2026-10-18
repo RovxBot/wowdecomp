@@ -80,6 +80,20 @@ class BuildGraphTests(unittest.TestCase):
         targets[-2]['compileGroups'][0]['defines'].pop()
         self.assertTrue(audit(targets, 'files', 'LINUX', 'X86_64'))
 
+    def test_sdl_control_allows_build_utilities_but_rejects_engine_libraries(self):
+        targets = copy.deepcopy(self.targets)
+        targets[2]['id'] = 'WowCoreServices::@fixture'
+        control = copy.deepcopy(targets[0])
+        control.update(name='SDLDesktopControl', type='EXECUTABLE',
+                       sources=[{'path': 'Tools/PortableWindow/desktop_control.cpp'}],
+                       dependencies=[{'id': 'ZERO_CHECK::@fixture'}, {'id': 'SDL3-static::@fixture'}])
+        targets += [dict(name='ZERO_CHECK', id='ZERO_CHECK::@fixture', type='UTILITY'), control]
+        message = 'SDLDesktopControl: engine dependency leaked into the SDL-only control'
+        # Other window targets are intentionally absent from this narrow fixture.
+        self.assertNotIn(message, audit(targets, 'window', 'LINUX', 'X86_64'))
+        control['dependencies'].append({'id': 'WowCoreServices::@fixture'})
+        self.assertIn(message, audit(targets, 'window', 'LINUX', 'X86_64'))
+
 
 @unittest.skipUnless(shutil.which('cmake'), 'CMake unavailable; source-selection checks run in Actions')
 class SourceSelectionTests(unittest.TestCase):
