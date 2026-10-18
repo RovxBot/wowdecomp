@@ -212,8 +212,9 @@ and source inspection are different evidence levels.
 
 ## NP-008 — Native Gx buffers and vertex submission
 
-- Status: implemented for hosted validation, stacked on qualified, unmerged
-  transform PR #21; see [buffer contracts/caller audit](m3/BUFFERS.md).
+- Status: qualified in [PR #22](https://github.com/RovxBot/wowdecomp/pull/22),
+  selected implementation `42859739d5359cffc0b55f33ebfed789ff152dcd`, stacked
+  on qualified, unmerged transform PR #21; see [buffer contracts](m3/BUFFERS.md).
 - Source: product 12340 at `2a92c398ef818e690c897ec5806ff4097a9fac3a`,
   CGxPool/CGxBuf, BufData/Lock/Unlock/Stream, original vertex descriptors and
   OpenGL attribute/index/Draw callers. No donor body, address or VERIFY claim.
@@ -225,7 +226,13 @@ and source inspection are different evidence levels.
 - Assets/defaults: unchanged authenticated external 12340 data and original
   `0x10003` UI programs. No new dependency, optional effect, verification bypass,
   protocol or server-policy change. Native full-client gate retained.
-- Validation: hosted compilation, GPU fixtures and actual-GPU qualification pending.
+- Validation: [durable evidence](m3/buffer-validation.json) records all eight
+  successful PR workflows, 18 CTest passes per Linux GL configuration, separate
+  Windows full-client merge checkout and verified ZIP/binary identities. Exact-source
+  RX 7900 XTX release/sanitizer buffer, target and transform checks passed three
+  cycles each, plus one/three original-data shader cycles, empty stderr and zero
+  workers. Local Python checks: 27 passed, one CMake selection check unavailable;
+  all 28 ran in hosted Linux. Initial synthetic attribute mismatch is preserved.
   No new physical-input, Windows gameplay, macOS graphics or server acceptance.
 
 ## UP-001 — Reviewed 12340 upstream maintenance

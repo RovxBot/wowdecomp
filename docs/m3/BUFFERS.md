@@ -20,7 +20,7 @@ on PR #21. No donor body, original binary address or VERIFY claim is imported.
 | `CGxDeviceOpenGl::BufLock/BufUnlock` | A move-only write retains the allocation and owns CPU staging until commit/abort. Zero commit size means the whole allocation; explicit size publishes a prefix. Abandonment leaves uploaded bytes intact. Double lock, upload or draw during a write fail. Pointers expire when committed/aborted. This is an explicit native contract, not an ABI replacement for legacy lock pointers or emergency-memory/device-loss behavior. |
 | `PrimVertexFormat`, `Buffer::s_vertexBufDesc`, `s_glAttribSize/Type/Normalized` | Validate raw indices, duplicates, byte extents and strides before replacing the format. Preserve all fourteen Gx ARB attribute indices and seven original type codes, including normalized versus unnormalized byte weights/indices, short pairs and float scalar/pairs/triples. Separate streams and zero tightly packed strides work. Packed color byte order is preserved; no implicit BGRA conversion is added. The PCT probe uses the original offsets 0/12/16 and stride 24. |
 | `IStateSyncVertexPtrs`, `IStateSyncIndexPtr`, `CGxDeviceOpenGl::Draw` | Use a private VAO with ARB attributes and preserve caller VAO/array/element bindings. Original batch start/count count vertices or uint16 indices; actual indices and each fetched byte extent are checked against uploaded coverage. No base vertex or unchecked min/max hint is introduced. All six original primitive mappings are available. Enabled ARB vertex programs are required; fixed-function client arrays and texture-coordinate remapping remain unavailable. |
-| Gxu UI/cursor streams and state ownership | The shader probe now submits buffered PCT triangles, with original shader constants and target orientation supplied by the existing transform owner. This does not export a legacy `CGxBuf*`, wire global Gx dispatch, render font glyphs or provide the complete dirty-state cache. Missing generic attributes use caller constants; callers must supply every shader input. |
+| `BATCHEDRENDERFONTDESC::RenderBatch/UnlockVertexPtrAndRender`, UI/cursor streams | The shader probe now submits buffered PCT triangles, with original shader constants and target orientation supplied by the existing transform owner. This does not export a legacy `CGxBuf*`, wire global Gx dispatch, render font glyphs or provide the complete dirty-state cache. Missing generic attributes use caller constants; callers must supply every shader input. |
 
 All GPU access, handles' final release and staging-token destruction require the
 owning live current context on the process main thread. Formats and index binding
@@ -77,7 +77,29 @@ identity. This work does not qualify macOS graphics, new Windows gameplay,
 original fonts/login or a native server session. The external server revision
 versus package-tag discrepancy remains in [server identity](SERVER_IDENTITY.md).
 
-Hosted and actual-GPU validation of this implementation is pending.
+Selected implementation `42859739d5359cffc0b55f33ebfed789ff152dcd` in
+[PR #22](https://github.com/RovxBot/wowdecomp/pull/22) is qualified, not merged.
+The [durable validation](buffer-validation.json) records all eight successful
+implementation PR workflows, 18 CTest passes in each Linux GL configuration and
+full Windows x64 compilation at separate PR merge checkout
+`827d3cdd0876014389239e3ae40eea8d053e6a5e`. Downloaded ZIPs, eleven packaged
+Linux binaries per configuration, notices and all three Windows AMD64 identities
+matched their manifests. Local Python checks discovered 28: 27 passed and one
+CMake selection fixture was unavailable locally; all 28 ran on hosted Linux.
+Documentation references, JSON and whitespace checks passed. All compilation
+ran in Actions.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 through Xwayland release and
+ASan/UBSan/leak-enabled buffer, target and transform fixtures each passed three
+cycles. The original-data shader probe passed one release and three sanitizer
+cycles with buffered PCT submission, original and transformed UI-shader pixels,
+empty stderr and zero native workers at each shutdown. No suppression, preload
+or audit shim was used. Original-key signature authentication covered 28,948
+records; both UI shader members still lack registered MD5 entries under the
+unchanged selective policy. Both vertex permutations uploaded; only permutation
+zero was rendered. The 960x640 original loading-bar capture was inspected.
+No new physical-input, Windows gameplay, macOS graphics or server acceptance
+is recorded. M3 remains open.
 
 The initial hosted release at `5f5d2d9e255e468df9e0ee99b0f7e30b674952de`
 compiled but failed buffer/probe pixels: the synthetic vertex programs read

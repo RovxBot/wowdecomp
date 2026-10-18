@@ -162,6 +162,24 @@ it does not turn a documentation request into authorization to start the whole p
   texture/buffer/async, original fonts/login UI, networking and observed gameplay
   remain open. No new physical-input acceptance or server session is recorded;
   preserve the external tag/embedded-revision distinction. M3 is not complete.
+- M3 buffers [PR #22](https://github.com/RovxBot/wowdecomp/pull/22) selected
+  implementation `42859739d5359cffc0b55f33ebfed789ff152dcd` is qualified but
+  unmerged, stacked on PR #21. Read [buffer contracts](docs/m3/BUFFERS.md) and
+  [validation](docs/m3/buffer-validation.json). All eight implementation PR
+  workflows passed; both Linux GL configurations passed 18 CTest checks and
+  full Windows x64 compilation used separate merge checkout
+  `827d3cdd0876014389239e3ae40eea8d053e6a5e`. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and ASan/UBSan/leak buffer, target and transform checks
+  each passed three cycles, plus one release and three sanitizer original-data
+  shader cycles, with empty stderr and zero probe workers. Retained native
+  vertex/index buffers now submit PCT triangles through a private VAO. Preserve
+  original generic attribute indices/types; synthetic shaders must explicitly
+  read Gx attributes 4/6 rather than assume conventional color/texcoord aliases.
+  Staging writes retain allocations until commit/abort; draw bounds include
+  actual uint16 indices and uploaded byte coverage. This does not export legacy
+  CGxPool/CGxBuf/device/cache/async objects or complete fonts/login, networking
+  or gameplay. No new physical-input/server acceptance is recorded; preserve the
+  external tag/embedded-revision distinction. M3 remains open.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
