@@ -127,7 +127,8 @@ and source inspection are different evidence levels.
 
 ## NP-005 — Native original shader resource service
 
-- Status: M3 implementation and validation in progress; see
+- Status: merged in [PR #17](https://github.com/RovxBot/wowdecomp/pull/17),
+  implementation `543243c676f16b1a2c32af38d8b0910c73eaadbd`; see
   [shader contracts and caller audit](m3/SHADERS.md).
 - Source: product 12340 at `0786df65a30135c833d573bfda7836cf5cff8d70`,
   `CGxDevice::IShaderLoad`, `CGxShader::Load`, OpenGL shader creation/patch/constants
@@ -141,8 +142,13 @@ and source inspection are different evidence levels.
   authenticated external packages with registered MD5 policy. No shader conversion,
   optional effect, new dependency or server/protocol change. Model constant-range
   expansion, other dialects, font/GlueXML and full device integration remain open.
-- Validation: hosted decoder/ARB/FBO fixtures and original-data GPU checks pending.
-  Compilation, rendered output and observed gameplay will be recorded separately.
+- Validation: [durable shader evidence](m3/shader-validation.json) records all eight
+  PR workflows passing, full Windows x64 compilation, 15 CTest checks per Linux GL
+  configuration, and exact-source RX 7900 XTX release/three clean sanitizer cycles.
+  Original UI shader execution and loading-bar output are observed; original login
+  UI and gameplay are not. New operator window checks remain pending. Both shader
+  members lack registered MD5 entries; original signaturefile/selective policy is
+  preserved without claiming per-file MD5 coverage.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

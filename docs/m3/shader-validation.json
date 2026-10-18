@@ -1,0 +1,722 @@
+{
+  "schema_version": 1,
+  "milestone": "M3",
+  "recorded_on": "2026-10-18",
+  "reporting_timezone": "Australia/Adelaide",
+  "status": "In progress: original UI shader service qualified; full native login/device/network/world remain open",
+  "implementation_head": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+  "source_reference": "0786df65a30135c833d573bfda7836cf5cff8d70",
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/17",
+  "hosted_push_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+  "hosted_pr_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756683",
+  "configurations": [
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 Linux SDL3/Gx context, 12340 shader decoder and synthetic ARB/FBO readback; no login/gameplay",
+        "source_commit": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+        "preset": "linux-gl",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "12340 shader fixtures, OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle passed on hosted X11; no original login/gameplay",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL",
+          "OGL_ES2"
+        ],
+        "sdl_desktop_opengl": true,
+        "sdl_display_dependency_options": [
+          "SDL_WAYLAND_SHARED:BOOL=OFF",
+          "SDL_X11_SHARED:BOOL=OFF",
+          "SDL_WAYLAND_LIBDECOR_SHARED:INTERNAL=OFF"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "c2486a023f6e69b4b6b286ffa085c88e43fe7bd1f4ccf2a43b1a2f31c1fc4a6f"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "12dff84e8bb7c46b313b241b05b0cf251e54b477cf82cbba97be9dac57d9eca4"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "fb54240630f055ab0923c97e9e156a87c32fefc410116db92583688913d66957"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "0a6fed545f4fb0312d76dac446185a0e241d8bcdb0c10bbc305486ea65c95fc5"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "5ce9587702cfbcb2f7c028bd1df79f3a2069fb2b29c38eb9e9d9c81e8bb1ec4f"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "7158eeb2e2414c806797aceb64b39436f2536558cb85ce12af7f29079f888f8d"
+          },
+          {
+            "name": "SDLDesktopControl",
+            "sha256": "f838c9f76e678b46f95f28be9aa05cf0d9054c40af3da78d165e2e0b48fb4c06"
+          },
+          {
+            "name": "NativeGlCheck",
+            "sha256": "dd58cd10b523bf6e39fa263713541721bc6b7a19ee8940e37653605cdfbd8cac"
+          },
+          {
+            "name": "ShaderPackageCheck",
+            "sha256": "661c24f80075507120308c93706df7e8c843ae7e5242637a3d17a912818069dc"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "artifact": {
+        "id": 12120462164,
+        "name": "m3-linux-gl-543243c676f16b1a2c32af38d8b0910c73eaadbd",
+        "size_in_bytes": 4779170,
+        "digest": "sha256:9a35e43831dd45631fa27fabd72e82d02faf326fee05ee57a6f581c3e847267b"
+      },
+      "ctest_passed": 15,
+      "graph_audit_errors": [],
+      "downloaded_binary_hash_verified": true,
+      "downloaded_notice_hashes_verified": true,
+      "hosted_renderer": "Xvfb/Mesa llvmpipe software rendering; no game data",
+      "fixture_scope": "12340 shader version/metadata/permutations/padding/truncation, bounded ARB adaptation, failed-upload binding restoration, constant bounds, owner-thread rejection, five texture/depth/blend/FBO pixels, DXT1 and repeated context teardown",
+      "evidence_sha256": {
+        "tests.log": "cae69a384a8a518a0194a551f2f9ea4ee4a2b86cc01fe6fe9ef3a48930155007",
+        "ctest-detail.log": "ffb2bcbe23a3d7d82a1e0aa2e889bc66034a0c3c80231901bec91bff47343356",
+        "build-graph.json": "838137ccd093151921b68babc22bb422ec06e9101d8562982927c67b9a89601f"
+      }
+    },
+    {
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 Linux SDL3/Gx context, 12340 shader decoder and synthetic ARB/FBO readback; no login/gameplay",
+        "source_commit": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+        "preset": "linux-gl-asan",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "12340 shader fixtures, OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle passed on hosted X11; no original login/gameplay",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL",
+          "OGL_ES2"
+        ],
+        "sdl_desktop_opengl": true,
+        "sdl_display_dependency_options": [
+          "SDL_WAYLAND_SHARED:BOOL=OFF",
+          "SDL_X11_SHARED:BOOL=OFF",
+          "SDL_WAYLAND_LIBDECOR_SHARED:INTERNAL=OFF"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "131d6f367df2d05b8653f52ec97b18436ded63269cdd0492f409233cee489b51"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "5253c0d4f7691761f144d9306b45f426084217fd36b529001c4d9f1d0a9918ba"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "a86508cd460214c31d74fad656a228b366053c59fe1823058bcd9dcfbea8c70f"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "9398052ef436aa1a3f86f168193e3737a589347269dbda6b2ad55897338bf2fe"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "786ae9c453e8dca247bd452d27bfd7f97102862ce8983e6d85a30b9e0e7b015e"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "44a8f1533b582fb94db5fd49e975be57b371e02c608085c6c79e3d70d9b376c2"
+          },
+          {
+            "name": "SDLDesktopControl",
+            "sha256": "33976d21ef82bd3e125d626498b156f37dcfe621f7af717436b7255283b52bdf"
+          },
+          {
+            "name": "NativeGlCheck",
+            "sha256": "9249d78004def1c4448461e913b6ed8bc5aac5a9042f414f7053344a744dfa97"
+          },
+          {
+            "name": "ShaderPackageCheck",
+            "sha256": "d61ae11b6d428924f72a04069c51c728dc1842dab266757b5d3ed18c2bc97a32"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "artifact": {
+        "id": 12120532001,
+        "name": "m3-linux-gl-asan-543243c676f16b1a2c32af38d8b0910c73eaadbd",
+        "size_in_bytes": 34645989,
+        "digest": "sha256:fe1cf4db3d613a85c328462ad27c56e7b26e078cb8c682d65f90e7b96e107ade"
+      },
+      "ctest_passed": 15,
+      "graph_audit_errors": [],
+      "downloaded_binary_hash_verified": true,
+      "downloaded_notice_hashes_verified": true,
+      "hosted_renderer": "Xvfb/Mesa llvmpipe software rendering; no game data",
+      "fixture_scope": "12340 shader version/metadata/permutations/padding/truncation, bounded ARB adaptation, failed-upload binding restoration, constant bounds, owner-thread rejection, five texture/depth/blend/FBO pixels, DXT1 and repeated context teardown",
+      "evidence_sha256": {
+        "tests.log": "3148510c6eb10ddfeb8e29f84e35fa52fdffe23594008b2efa28de766134f99e",
+        "ctest-detail.log": "098e1fca643dbf6855d93fa887db2ae5edd11aa8ec158b84ffc8f4b0c01fa62d",
+        "build-graph.json": "7a848c6f59f78c27f4634c613169e42af1e8418dc61b7ef0e5f7fbcea1fbac96"
+      }
+    }
+  ],
+  "final_pr_workflows": [
+    {
+      "conclusion": "success",
+      "databaseId": 39085756720,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M0 source audit",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756720"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756663,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M2 native file services",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756663"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756674,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M1 portable core",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756674"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756660,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M2 native asynchronous files",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756660"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756679,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M2 native asset services",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756679"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756669,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M2 native SDL3 shell",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756669"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756683,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756683"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39085756672,
+      "headSha": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756672"
+    }
+  ],
+  "windows_regression": {
+    "manifest": {
+      "schema_version": 1,
+      "source_commit": "823161d5a4311e35f38298cc354205f8e2a7e72b",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085756672",
+      "runner_os": "Windows",
+      "runner_arch": "X64",
+      "runner_image": "20261012.333.1",
+      "configuration": "Release",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "signature_checks": "enabled",
+      "crash_logger": "enabled",
+      "status": "build passed; runtime unverified",
+      "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+      "dependencies": [
+        {
+          "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+          "bytes": 999686,
+          "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+        },
+        {
+          "path": "ThirdParty/nvapi/x86/nvapi.lib",
+          "bytes": 439838,
+          "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+        },
+        {
+          "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+          "bytes": 3494900,
+          "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+        }
+      ],
+      "binaries": [
+        {
+          "path": "bin/WowClient64.exe",
+          "bytes": 9859584,
+          "sha256": "387ceec564bcd1451950966c99e011a570ab9616c20a6e0c0eb317aec40e42a6"
+        },
+        {
+          "path": "bin/Wow64.exe",
+          "bytes": 9856000,
+          "sha256": "7b580adfd84e18c3e7ba296b96fc19a3861491d1bd692afac243e02a79d58a32"
+        },
+        {
+          "path": "bin/XvidDecoder.dll",
+          "bytes": 456192,
+          "sha256": "88c5ba9455e325a8d1bf7b4581b86ba376fe07bbc8041d500b0c10b114e4e818"
+        }
+      ],
+      "cmake_version": "cmake version 3.31.6",
+      "visual_studio": {
+        "instanceId": "754ae0a8",
+        "installDate": "2026-10-12T22:00:54Z",
+        "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+        "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+        "installationVersion": "17.14.37710.0",
+        "productId": "Microsoft.VisualStudio.Product.Enterprise",
+        "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+        "state": 4294967295,
+        "isComplete": true,
+        "isLaunchable": true,
+        "isPrerelease": false,
+        "isRebootRequired": false,
+        "displayName": "Visual Studio Enterprise 2022",
+        "description": "Scalable, end-to-end solution for teams of any size",
+        "channelId": "VisualStudio.17.Release",
+        "channelUri": "https://aka.ms/vs/17/release/channel",
+        "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+        "installChannelUri": "https://aka.ms/vs/17/release/channel",
+        "installedChannelId": "VisualStudio.17.Release",
+        "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+        "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+        "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+        "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+        "updateDate": "2026-10-12T22:00:54.346826Z",
+        "catalog": {
+          "buildBranch": "d17.14",
+          "buildVersion": "17.14.37710.0",
+          "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+          "localBuild": "build-lab",
+          "manifestName": "VisualStudio",
+          "manifestType": "installer",
+          "productDisplayVersion": "17.14.41 (September 2026)",
+          "productLine": "Dev17",
+          "productLineVersion": "2022",
+          "productMilestone": "RTW",
+          "productMilestoneIsPreRelease": "False",
+          "productName": "Visual Studio",
+          "productPatchVersion": "41",
+          "productPreReleaseMilestoneSuffix": "1.0",
+          "productReleaseNameSuffix": "(September 2026)",
+          "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+          "requiredEngineVersion": "3.14.2094.42856"
+        },
+        "properties": {
+          "campaignId": "",
+          "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+          "includeRecommended": "1",
+          "nickname": "",
+          "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+        }
+      }
+    },
+    "artifacts": [
+      {
+        "id": 12120522463,
+        "node_id": "MDg6QXJ0aWZhY3QxMjEyMDUyMjQ2Mw==",
+        "name": "windows-x64-baseline-823161d5a4311e35f38298cc354205f8e2a7e72b",
+        "size_in_bytes": 9264258,
+        "url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12120522463",
+        "archive_download_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12120522463/zip",
+        "expired": false,
+        "digest": "sha256:cd428dc18bd887f9a63f2969fd5e9b3cdddc6be1f3a933923d0704644e97050f",
+        "created_at": "2026-10-18T01:21:22Z",
+        "updated_at": "2026-10-18T01:21:22Z",
+        "expires_at": "2026-11-01T01:21:20Z",
+        "workflow_run": {
+          "id": 39085756672,
+          "repository_id": 1421450310,
+          "head_repository_id": 1421450310,
+          "head_branch": "native-port/m3-original-shaders",
+          "head_sha": "543243c676f16b1a2c32af38d8b0910c73eaadbd"
+        }
+      }
+    ],
+    "selected_head": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+    "binary_hashes_verified": true,
+    "binary_machine": "PE AMD64 (0x8664)",
+    "scope": "Full Windows x64 compilation with signatures enabled; no new Windows gameplay observation"
+  },
+  "runtime": [
+    {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-18T01:17:35.192127+00:00",
+      "completed_at": "2026-10-18T01:17:35.797099+00:00",
+      "source_commit": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+      "binary_sha256": "dd58cd10b523bf6e39fa263713541721bc6b7a19ee8940e37653605cdfbd8cac",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=1 workers=0"
+      ],
+      "stderr": []
+    },
+    {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-18T01:18:47.216397+00:00",
+      "completed_at": "2026-10-18T01:18:49.383715+00:00",
+      "source_commit": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085753623",
+      "binary_sha256": "9249d78004def1c4448461e913b6ed8bc5aac5a9042f414f7053344a744dfa97",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=1 workers=0",
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=2 workers=0",
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    }
+  ],
+  "runtime_session": {
+    "client_data_build": 12340,
+    "locale": "enUS",
+    "external_data_inventory": "../m2/clean-data-inventory.json",
+    "display_provider": "SDL x11 on Xwayland under a Wayland desktop session",
+    "gpu": "AMD Radeon RX 7900 XTX",
+    "driver": "radeonsi; Mesa 26.2.4-arch1.1",
+    "context": "OpenGL 4.6 compatibility; RGBA8, depth24, stencil8, double buffering",
+    "rendered_content": "Original arbvp1/arbfp1 UI permutation zero, identity matrix, Gx attributes, synthetic five-pixel FBO validation, then original loading-bar texture",
+    "stereo_scope": "Second original vertex permutation uploaded and deleted; no stereo rendering qualification",
+    "signature_scope": "Original-key signaturefile authenticated (28948 records). Both UI shader members lack registered MD5 entries; existing selective verification policy retained, no MD5 coverage claimed for them.",
+    "physical_input_observed": false,
+    "injected_input_used": false,
+    "snapshot": {
+      "format": "PPM",
+      "width": 960,
+      "height": 640,
+      "sha256": "a65848d9881983f17175b2279832ddd8d55a151d56cdfdcb5dae9f0beac34e00",
+      "location": "External game pixels; not committed",
+      "inspection": "Original blue loading-bar gradient in centered rectangle, black margins; viewed final capture"
+    }
+  },
+  "local_source_checks": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -v",
+    "discovered": 22,
+    "passed": 21,
+    "skipped": 1,
+    "skipped_reason": "CMake unavailable locally; source-selection check runs in Actions",
+    "documentation_links": "passed",
+    "whitespace": "git diff --check passed",
+    "client_or_dependency_compilation_local": false
+  },
+  "initial_release_smoke": {
+    "runtime": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-18T01:13:47.683667+00:00",
+      "completed_at": "2026-10-18T01:13:48.302419+00:00",
+      "source_commit": "39a34e451c0694d24cbaeda5ff6c2b2fe154f4dd",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39085566957",
+      "binary_sha256": "1ed1a9f7d642a807d04ee951dbd5b37e8c90a6f62c8942ef96ed7a9c7f6c65f1",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-1-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "video=x11",
+        "gl-vendor=AMD",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-1-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.4-arch1.1",
+        "profile=compatibility",
+        "rgba=8,8,8,8 depth=24 stencil=8 double-buffer=1 swap-interval=1",
+        "native-program-failure-rollback-affinity=passed",
+        "synthetic-arb-texture-depth-blend-fbo=passed",
+        "synthetic-s3tc-dxt1=passed",
+        "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1 vertex-md5=0 fragment-md5=0",
+        "original-ui-shader-fbo-pixel=passed",
+        "original-signaturefile=authenticated records=28948",
+        "original-glue-loadingbar=uploaded (asset probe; original login UI unavailable)",
+        "context-cycle-closed=1 workers=0"
+      ],
+      "stderr": []
+    },
+    "scope": "Earlier 39a34e4 head before final diagnostic-allocation cleanup; not the selected candidate"
+  },
+  "limitations": [
+    "This service does not expose legacy CGxShader/CGxDevice object layouts or replace legacy hash/refcount/cache state.",
+    "Full native device/render-target/material/model animation/streaming, fonts, Lua, GlueXML/FrameXML/addons remain open.",
+    "No original login UI, networking/authentication/character selection/world entry or GrimGuzzler/Warden compatibility is observed.",
+    "M0 live server/image/endpoints/Warden duration/logs and captured Windows scenes remain incomplete.",
+    "Original UI shader execution is not model/terrain/world parity; other shader dialects and bone-range expansion remain open.",
+    "New shader service is qualified only on Linux x86-64 X11/Xwayland; no native Xorg, M3 Wayland, macOS renderer or ARM64 graphics claim.",
+    "M2 Wayland Fontconfig qualification remains unchanged; no suppression added.",
+    "Physical window-control acceptance remains attached to the historical 2afd390 context probe until a new operator report arrives.",
+    "Read-only game data, original signature policy, Windows implementations, 12340 protocol and server/cluster policy are preserved."
+  ],
+  "duplicate_push_regressions": "Cancelled in favor of complete final PR matrix; cancellations are not counted as passes",
+  "merge": {
+    "headRefOid": "543243c676f16b1a2c32af38d8b0910c73eaadbd",
+    "mergeCommit": {
+      "oid": "7c5f5ec4feb59760a25aec07d30dbaa433826da5"
+    },
+    "mergedAt": "2026-10-18T01:22:59Z",
+    "state": "MERGED"
+  },
+  "commands_and_parameters": {
+    "hosted_native": [
+      "python3 Tools/Porting/run_core_checks.py --preset linux-gl",
+      "python3 Tools/Porting/run_core_checks.py --preset linux-gl-asan"
+    ],
+    "hosted_graphics_environment": "xvfb-run with LIBGL_ALWAYS_SOFTWARE=1; ASAN_OPTIONS=detect_leaks=1:halt_on_error=1; UBSAN_OPTIONS=halt_on_error=1",
+    "hosted_windows": "./Tools/Porting/Build-WindowsBaseline.ps1 (GitHub Actions Windows runner only)",
+    "local_runtime_wrapper": "python3 Tools/Porting/run_native_gl.py; extracted hosted artifact; external read-only data and external writable settings/cache",
+    "runtime_parameters": [
+      {
+        "preset": "linux-gl",
+        "frames": 30,
+        "cycles": 1,
+        "timeout_seconds": 120,
+        "snapshot": "external PPM; hash in runtime_session"
+      },
+      {
+        "preset": "linux-gl-asan",
+        "frames": 30,
+        "cycles": 3,
+        "timeout_seconds": 120,
+        "sanitizers": true
+      }
+    ],
+    "local_documentation": "Relative Markdown file references and JSON consistency checked with Python; git diff --check",
+    "skipped_platform_checks": [
+      "No new Windows interactive session",
+      "No Win32 compilation/layout checks",
+      "No native Xorg or M3 Wayland desktop qualification",
+      "No macOS/ARM64 shader rendering; existing core/asset/window fixtures pass on ARM64"
+    ]
+  }
+}

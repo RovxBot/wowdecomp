@@ -285,7 +285,13 @@ Its separate native ABI probe does not establish the original login UI or gamepl
 [PR #13](https://github.com/RovxBot/wowdecomp/pull/13) is merged; hosted GL/Windows
 compilation, synthetic render checks and exact-source original-data GPU sanitizer
 execution are recorded in the [context evidence](docs/m3/context-validation.json).
-The original device/native ABI, login UI and networking steps remain open.
+The [original shader service](docs/m3/SHADERS.md) in
+[PR #17](https://github.com/RovxBot/wowdecomp/pull/17) now decodes unchanged
+`0x10003` UI shaders, owns native ARB resources and executes them on the observed
+Linux GPU with clean sanitizer cycles; [shader evidence](docs/m3/shader-validation.json)
+separates compilation/fixtures, captured output and remaining operator checks.
+The complete device/native ABI, fonts/GlueXML/login UI and networking/world steps
+remain open. M3 is not complete.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

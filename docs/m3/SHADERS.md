@@ -78,5 +78,24 @@ failure. Prior operator acceptance belongs to the older context probe. Fixed
 Windows scene captures, original native login/UI, authenticated server login,
 character selection/world entry and Warden observations remain separate checks.
 
-Validation results and exact source/run/artifact identities will be recorded in
-`shader-validation.json` after the hosted builds and downloaded-binary runs.
+[Durable validation](shader-validation.json) records selected head
+`543243c676f16b1a2c32af38d8b0910c73eaadbd` and its merge in
+[PR #17](https://github.com/RovxBot/wowdecomp/pull/17). All eight PR workflows
+passed, including full Windows x64 compilation with signatures enabled. Both
+Linux GL configurations passed 15 CTest checks. Downloaded binaries and notices
+matched their manifests; Windows binaries also matched PE AMD64 identities.
+
+On RX 7900 XTX / Mesa 26.2.4 / SDL X11 on Xwayland, exact-source release and three
+ASan/UBSan/leak-enabled original-data cycles passed, with exit 0, empty stderr and
+zero workers. Both original UI vertex permutations uploaded. Permutation zero
+and the original fragment program passed all five FBO samples, and the captured
+original loading-bar output was inspected. No input was injected. Both shader
+members lack registered MD5 entries; this is the unchanged selective policy,
+not an MD5 pass for those files. The original-key signaturefile authenticated
+28,948 records. Captures/game data remain external.
+
+The new operator window-control checklist remains pending. The earlier M3
+context-probe operator acceptance retains its own source identity. New Windows
+runtime, original fonts/login UI and observed native gameplay remain unavailable.
+No local client/dependency compilation, game-data mutation or server-policy
+change occurred.
