@@ -51,7 +51,8 @@ existing bundled FreeType C entry units, plus `NativeFontsCheck`.
 `native-original-font-raster` exercises retained memory, grayscale/monochrome
 coverage, whitespace, actual negative AV kerning, malformed input, Unicode/size
 bounds, owner-thread rejection and repeated teardown using a 1 KiB authored
-geometric TrueType fixture. Its [license/generator](../../Tools/NativeGx/fonts/LICENSE.txt)
+geometric TrueType fixture, including negative bearings, curved descenders and a
+reflected Unicode composite. Its [license/generator](../../Tools/NativeGx/fonts/LICENSE.txt)
 is separate from game fonts; ordinary CI contains no retail font data.
 
 After downloading a passing artifact, the existing hash-checking

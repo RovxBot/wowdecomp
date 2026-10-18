@@ -16,11 +16,20 @@ def shape(points):
     return pen.glyph()
 
 builder = FontBuilder(1000, isTTF=True)
-builder.setupGlyphOrder(['.notdef', 'space', 'A', 'V'])
-builder.setupCharacterMap({32:'space', 65:'A', 86:'V'})
-builder.setupGlyf({'.notdef':shape([]), 'space':shape([]),
-    'A':shape([(0,0),(300,700),(600,0)]), 'V':shape([(0,700),(300,0),(600,700)])})
-builder.setupHorizontalMetrics({'.notdef':(600,0), 'space':(250,0), 'A':(600,0), 'V':(600,0)})
+builder.setupGlyphOrder(['.notdef', 'space', 'A', 'V', 'curve', 'reflected'])
+builder.setupCharacterMap({32:'space', 65:'A', 86:'V', 81:'curve', 0x100:'reflected'})
+glyphs = {'.notdef':shape([]), 'space':shape([]),
+    'A':shape([(0,0),(300,700),(600,0)]), 'V':shape([(0,700),(300,0),(600,700)])}
+curve = TTGlyphPen(None)
+curve.moveTo((-100,-200)); curve.qCurveTo((700,-200),(600,700))
+curve.qCurveTo((-100,700),(-100,-200)); curve.closePath()
+glyphs['curve'] = curve.glyph()
+composite = TTGlyphPen(glyphs)
+composite.addComponent('A', (-1,0,0,1,600,0))
+glyphs['reflected'] = composite.glyph()
+builder.setupGlyf(glyphs)
+builder.setupHorizontalMetrics({'.notdef':(600,0), 'space':(250,0), 'A':(600,0),
+    'V':(600,0), 'curve':(700,-100), 'reflected':(600,0)})
 builder.setupHorizontalHeader(ascent=800, descent=-200)
 builder.setupNameTable({'familyName':'Native Geometric Fixture', 'styleName':'Regular',
     'uniqueFontIdentifier':'wowdecomp-native-geometric-1', 'fullName':'Native Geometric Fixture',

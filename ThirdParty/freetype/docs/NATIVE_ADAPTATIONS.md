@@ -13,6 +13,8 @@ For the native 12340 font preview, changes guarded by
 - `src/base/ftoutln.c`, `src/base/ftcalc.c`: defined signed coordinate scaling.
 - `src/base/ftobjs.c`: preserve null glyph-loader arrays when adjusting an empty
   loader; no pointer arithmetic before allocation.
+- `src/truetype/ttgload.c`: scale signed F2Dot14 composite coefficients by
+  multiplication, including reflected components.
 
 The Windows paths retain their original expressions and callback selection.
 The native target's separate module list selects TrueType/SFNT and grayscale/

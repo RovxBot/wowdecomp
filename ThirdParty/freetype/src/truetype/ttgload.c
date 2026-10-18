@@ -44,6 +44,13 @@
 #undef  FT_COMPONENT
 #define FT_COMPONENT  trace_ttgload
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+/* A reflected composite can carry a negative F2Dot14 transform coefficient. */
+#define WOW_TT_F2DOT14() ( (FT_Fixed)GET_Short() * 4 )
+#else
+#define WOW_TT_F2DOT14() ( (FT_Fixed)GET_Short() << 2 )
+#endif
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -469,20 +476,20 @@
 
       if ( subglyph->flags & WE_HAVE_A_SCALE )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
         yy = xx;
       }
       else if ( subglyph->flags & WE_HAVE_AN_XY_SCALE )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
-        yy = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
+        yy = WOW_TT_F2DOT14();
       }
       else if ( subglyph->flags & WE_HAVE_A_2X2 )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
-        xy = (FT_Fixed)GET_Short() << 2;
-        yx = (FT_Fixed)GET_Short() << 2;
-        yy = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
+        xy = WOW_TT_F2DOT14();
+        yx = WOW_TT_F2DOT14();
+        yy = WOW_TT_F2DOT14();
       }
 
       subglyph->transform.xx = xx;

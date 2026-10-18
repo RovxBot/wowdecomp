@@ -30,6 +30,11 @@ int main(int argc,char**argv) {
                 Require(!mono.coverage.empty() && std::all_of(mono.coverage.begin(),mono.coverage.end(),[](uint8_t c){return c==0||c==255;}),"Monochrome raster not expanded to binary coverage");
                 auto space=face.Raster(' ',size);
                 Require(space.coverage.empty() && space.advance>0,"Whitespace lost its advance");
+                auto curve=face.Raster('Q',size);
+                Require(curve.bearing<0 && curve.top<int32_t(curve.height) && !curve.coverage.empty(),"Curve lost negative bearing or descender");
+                auto composite=face.Raster(0x100,size);
+                Require(composite.width==glyph.width && composite.height==glyph.height && composite.advance==glyph.advance,"Unicode transformed composite has inconsistent metrics");
+                Require(std::any_of(composite.coverage.begin(),composite.coverage.end(),[](uint8_t c){return c!=0;}),"Composite raster is blank");
                 Require(face.Step('A','V',size)<=glyph.advance,"Negative original kerning increased advance");
             }
             Require(face.Step('A','V',16)<face.Raster('A',16).advance,"Synthetic AV kerning was ignored");
