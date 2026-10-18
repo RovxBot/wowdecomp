@@ -156,8 +156,7 @@ and source inspection are different evidence levels.
 ## NP-006 — Native Gx render-target ownership
 
 - Status: qualified in [PR #20](https://github.com/RovxBot/wowdecomp/pull/20),
-  selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`, awaiting
-  merge; see [target contracts/caller audit](m3/RENDER_TARGETS.md).
+  selected implementation `2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`, merged as `4d74dd0c5330f92c3fc282329fc071c61b23f62a`; see [target contracts/caller audit](m3/RENDER_TARGETS.md).
 - Source: product 12340 at `6023d6a1901637f58507c4eac987e1e450cdaa53`,
   `CGxDevice::DeviceSetRenderTarget`, OpenGL FBO/texture ownership, target/face
   mappings and shared-model async cancellation callers. No donor/fork body,
@@ -184,8 +183,8 @@ and source inspection are different evidence levels.
 
 - Status: qualified in [PR #21](https://github.com/RovxBot/wowdecomp/pull/21),
   selected implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415`; see
-  [transform contracts/caller audit](m3/TRANSFORMS.md). Stacked on qualified,
-  unmerged render-target PR #20; both remain unmerged and M3 remains open.
+  [transform contracts/caller audit](m3/TRANSFORMS.md). Merged as `37bc74b492ce3f547d8b222676a7cc547e7727ab` after render-target
+  PR #20. M3 remains open.
 - Source: product 12340 at `840dc0fbda9206573a167a55f9051d3d6e3bfd38`,
   Gx transform/viewport entry points, OpenGL projection/model-view/scissor and
   Gxu UI constant callers. No donor body, address or VERIFY claim is imported.
@@ -214,7 +213,7 @@ and source inspection are different evidence levels.
 
 - Status: qualified in [PR #22](https://github.com/RovxBot/wowdecomp/pull/22),
   selected implementation `42859739d5359cffc0b55f33ebfed789ff152dcd`, stacked
-  on qualified, unmerged transform PR #21; see [buffer contracts](m3/BUFFERS.md).
+  on transform PR #21; merged as `fd0ae32545f6da42b4fa58572eb26953131324c7`; see [buffer contracts](m3/BUFFERS.md).
 - Source: product 12340 at `2a92c398ef818e690c897ec5806ff4097a9fac3a`,
   CGxPool/CGxBuf, BufData/Lock/Unlock/Stream, original vertex descriptors and
   OpenGL attribute/index/Draw callers. No donor body, address or VERIFY claim.
@@ -234,6 +233,22 @@ and source inspection are different evidence levels.
   workers. Local Python checks: 27 passed, one CMake selection check unavailable;
   all 28 ran in hosted Linux. Initial synthetic attribute mismatch is preserved.
   No new physical-input, Windows gameplay, macOS graphics or server acceptance.
+
+## NP-009 — Native sampled textures and font-atlas update formats
+
+- Status: implemented for hosted validation; see [texture contracts](m3/TEXTURES.md).
+- Source: product 12340 at `fd0ae32545f6da42b4fa58572eb26953131324c7`,
+  original OpenGL upload/filter/format tables and Gxu font atlas callbacks.
+  No donor body, original binary address or VERIFY claim imported.
+- Adaptation: extend retained `GlRenderTargets` storage and feedback ownership
+  to ordinary texture formats, mips/cube faces, bounded subrectangles/row strides,
+  original filter/wrap mappings and explicit anisotropy limits. The probe's
+  original UI shaders consume owned sampled textures and buffered PCT geometry.
+  Native handles are not legacy CGxTex/cache/callback or async ABI exports.
+- Assets/defaults: unchanged authenticated 12340 data and `0x10003` UI shaders,
+  no new dependency/asset/effect, protocol change or server-policy modification.
+- Validation: hosted and actual GPU checks pending; synthetic atlas pixels are
+  separate from original font rasterization/login UI and native server gameplay.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

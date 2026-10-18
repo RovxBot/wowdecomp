@@ -139,6 +139,25 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertIn('buffer binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
+    def test_texture_failure_recorded_and_fails_combined_run(self):
+        self.script('print("probe-passed")\n')
+        self.target_script('print("texture-failed")\nraise SystemExit(5)\n', 'GlTexturesCheck')
+        result = self.run_wrapper('--texture-checks')
+        self.assertEqual(result.returncode, 5, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['probe_exit_code'], 0)
+        self.assertEqual(record['texture_checks']['exit_code'], 5)
+        self.assertEqual(record['texture_checks']['stdout'], ['texture-failed'])
+
+    def test_texture_hash_checked_before_any_execution(self):
+        self.script('raise SystemExit("probe must not execute")\n')
+        binary = self.target_script('raise SystemExit("textures must not execute")\n', 'GlTexturesCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--texture-checks')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('texture binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_refuses_tampered_artifact_before_execution(self):
         self.script('raise SystemExit("Should not execute")\n')
         self.binary.write_text('tampered')
