@@ -136,7 +136,8 @@ settings/cache. No new server connection or credentials are needed.
 
 A [native render-target owner](RENDER_TARGETS.md) is qualified in
 [PR #20](https://github.com/RovxBot/wowdecomp/pull/20), selected implementation
-`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`; it is not yet merged. It replaces the
+`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`; merged as
+`4d74dd0c5330f92c3fc282329fc071c61b23f62a`. It replaces the
 shader probe's inline FBO with retained texture/depth ownership, attachment
 transitions, cube/depth-only targets, feedback rejection and drawable restoration.
 The [durable validation](render-target-validation.json) records all eight passing
@@ -161,7 +162,8 @@ The next [transform work package](TRANSFORMS.md) adapts existing scalar Gx/Tempe
 matrices, normalized viewport/scissor, offscreen projection/culling and original
 UI shader constants to the context/target owner. It is stacked on PR #20 and
 is qualified at `a1c43f820448cbb0b0c0eb2fda2ab59216687415` in
-[PR #21](https://github.com/RovxBot/wowdecomp/pull/21), still unmerged. The
+[PR #21](https://github.com/RovxBot/wowdecomp/pull/21), merged as
+`37bc74b492ce3f547d8b222676a7cc547e7727ab`. The
 [transform evidence](transform-validation.json) records all eight implementation
 PR workflows, 17 CTest passes per Linux GL configuration, separate Windows merge
 checkout `b18ed2af2622a8dd15e67a5863a9997b1f143f13`, and exact-source RX 7900 XTX
@@ -173,9 +175,10 @@ fails visibly until integrated. This remains a native boundary, not the full
 legacy CGxDevice/CGxTex/state-cache or original login UI. No new physical-input
 acceptance or server session is recorded. M3 remains open.
 
-The next [buffer/vertex work package](BUFFERS.md), stacked on unmerged PR #21,
+The next [buffer/vertex work package](BUFFERS.md), following merged PR #21,
 is qualified at `42859739d5359cffc0b55f33ebfed789ff152dcd` in
-[PR #22](https://github.com/RovxBot/wowdecomp/pull/22), still unmerged. It connects
+[PR #22](https://github.com/RovxBot/wowdecomp/pull/22), merged as
+`fd0ae32545f6da42b4fa58572eb26953131324c7`. It connects
 retained vertex/index resources and checked submission to the existing probe,
 replacing immediate-mode quads with streamed PCT triangles and uint16 indices.
 The [buffer evidence](buffer-validation.json) records all eight successful PR
@@ -188,6 +191,19 @@ attribute mismatch and its correction remain recorded. This does not export
 legacy CGxPool/CGxBuf objects or complete global device/state/texture/async
 integration. No new physical-input, original fonts/login or server acceptance
 is implied. M3 remains open.
+
+The [sampled-texture work](TEXTURES.md) now extends the same owner to bounded
+mip/face/rectangle uploads, packed font-atlas formats and DXT resources, and
+removes raw texture allocation/upload from the probe. It is qualified at
+`8e4fcde51d7962411d27c462655ad677f95aa23c` in
+[PR #23](https://github.com/RovxBot/wowdecomp/pull/23). The
+[texture record](texture-validation.json) retains all eight passing PR workflows,
+19 CTest passes per Linux GL configuration, separate Windows compilation identity,
+verified artifacts and exact-source RX 7900 XTX release/sanitizer resource and
+original-data shader cycles. These passed with empty stderr and zero workers.
+The atlas fixture is synthetic; legacy texture callbacks/cache and original
+font/login rendering remain open. The user will sign in interactively when
+native authentication becomes available.
 
 Next dependencies, in order:
 

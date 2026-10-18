@@ -897,5 +897,14 @@
     "python3 Tools/Porting/run_native_gl.py --artifact /tmp/wowdecomp-m3-buffers-release --render-target-checks --transform-checks --buffer-checks --data /mnt/games/3.3.5aClean/Data --settings /tmp/wowdecomp-m3-buffers-settings --cache /tmp/wowdecomp-m3-buffers-cache --frames 30 --timeout 120 --snapshot /tmp/wowdecomp-m3-buffers.ppm --output /tmp/wowdecomp-m3-buffers-release.json",
     "python3 Tools/Porting/run_native_gl.py --artifact /tmp/wowdecomp-m3-buffers-asan --sanitizers --cycles 3 --render-target-checks --transform-checks --buffer-checks --data /mnt/games/3.3.5aClean/Data --settings /tmp/wowdecomp-m3-buffers-asan-settings --cache /tmp/wowdecomp-m3-buffers-asan-cache --frames 30 --timeout 120 --output /tmp/wowdecomp-m3-buffers-asan.json",
     "git diff --check"
-  ]
+  ],
+  "merge": {
+    "sha": "fd0ae32545f6da42b4fa58572eb26953131324c7",
+    "pull_request": 22,
+    "base": "main",
+    "merged_on": "2026-10-18",
+    "method": "merge",
+    "qualification_implementation_preserved": true,
+    "final_head_changes_after_qualification": "documentation only"
+  }
 }

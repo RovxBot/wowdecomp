@@ -75,7 +75,7 @@ input acceptance is implied. The external server snapshot's tag/embedded-revisio
 difference remains recorded in [server identity](SERVER_IDENTITY.md).
 
 Selected implementation `a1c43f820448cbb0b0c0eb2fda2ab59216687415` in
-[PR #21](https://github.com/RovxBot/wowdecomp/pull/21) is qualified, not merged.
+[PR #21](https://github.com/RovxBot/wowdecomp/pull/21) is qualified and merged as `37bc74b492ce3f547d8b222676a7cc547e7727ab` on 2026-10-18.
 The [durable validation](transform-validation.json) records all eight successful
 implementation PR workflows, 17 CTest passes in each Linux GL configuration and
 full Windows x64 compilation at separate PR merge checkout

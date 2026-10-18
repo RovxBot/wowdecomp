@@ -786,5 +786,14 @@
   "duplicate_push_windows_runs_cancelled": [
     39105997804,
     39106558724
-  ]
+  ],
+  "merge": {
+    "sha": "37bc74b492ce3f547d8b222676a7cc547e7727ab",
+    "pull_request": 21,
+    "base": "main",
+    "merged_on": "2026-10-18",
+    "method": "merge",
+    "qualification_implementation_preserved": true,
+    "final_head_changes_after_qualification": "documentation only"
+  }
 }

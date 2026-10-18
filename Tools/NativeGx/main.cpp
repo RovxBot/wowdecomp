@@ -104,15 +104,9 @@ struct Probe {
     BASE(ReadPixels);
     BASE(PixelStorei);
     BASE(ReadBuffer);
-    BASE(GenTextures);
-    BASE(DeleteTextures);
-    BASE(BindTexture);
-    BASE(TexImage2D);
-    BASE(TexParameteri);
 #undef BASE
 #define EXT(type, name) type name = reinterpret_cast<type>(context.Proc("gl" #name))
     EXT(PFNGLGETPROGRAMIVARBPROC, GetProgramivARB);
-    EXT(PFNGLCOMPRESSEDTEXIMAGE2DARBPROC, CompressedTexImage2DARB);
 #undef EXT
     std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
     Gx::Native::GlRenderTargets targets;
@@ -120,7 +114,7 @@ struct Probe {
     Gx::Native::GlBuffers buffers;
     Gx::Native::GlBuffer quadVertices, quadIndices;
     Gx::Native::GlTarget target;
-    GLuint texture = 0;
+    Gx::Native::GlTexture texture;
     bool originalUi = false;
     explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets), buffers(owner) {
         quadVertices = buffers.Create({GxPoolTarget_Vertex, GxPoolUsage_Stream, 24, 4});
@@ -138,7 +132,7 @@ struct Probe {
         targets.Bind();
         Disable(GL_VERTEX_PROGRAM_ARB);
         Disable(GL_FRAGMENT_PROGRAM_ARB);
-        DeleteTextures(1, &texture);
+        targets.Sample(0);
     }
     void Check(const char *operation) {
         GLenum error = GetError();
@@ -176,15 +170,12 @@ struct Probe {
         Check("Rejected shader operations leave clean GL state");
         std::cout << "native-program-failure-rollback-affinity=passed\n";
     }
-    void Image(GLuint name, const Blizzard::Assets::Image &image) {
-        BindTexture(GL_TEXTURE_2D, name);
-        TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                   image.rgba.data());
-        Check("RGBA8 texture upload");
+    void Image(Gx::Native::GlTexture& name, const Blizzard::Assets::Image& image) {
+        name = targets.Create({GxTex_2d, image.width, image.height,
+            Gx::Native::GlTargetFormat::Rgba8, false, 1, false});
+        targets.Upload(name, {0, 0, 0, 0, image.width, image.height}, GxTex_Abgr8888,
+            image.rgba.data(), image.rgba.size());
+        Check("Owned RGBA8 texture upload");
     }
     void Quad(float z, float alpha) {
         struct Vertex { float x, y, z; uint8_t color[4]; float u, v; };
@@ -223,7 +214,7 @@ struct Probe {
         DepthFunc(GL_LESS);
         Enable(GL_BLEND);
         BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        BindTexture(GL_TEXTURE_2D, texture);
+        targets.Sample(0, texture);
         ClearColor(0, 0, 0, 1);
         Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Quad(0, synthetic ? 0.5f : 1);
@@ -243,7 +234,6 @@ struct Probe {
                 "2D;\n"
                 "MUL result.color, tex, fragment.color;\nEND\n"));
         ProgramFailures();
-        GenTextures(1, &texture);
         Image(texture, {2, 2, {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255}});
         target = targets.Create({GxTex_2d, 32, 32, Gx::Native::GlTargetFormat::Rgba8, true});
         targets.Bind({target, 0});
@@ -251,9 +241,8 @@ struct Probe {
         ReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
         CheckPixels();
         const uint8_t dxt1[] = {0, 248, 224, 7, 0, 0, 0, 0};
-        BindTexture(GL_TEXTURE_2D, texture);
-        CompressedTexImage2DARB(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 4, 4, 0, sizeof(dxt1),
-                                dxt1);
+        texture = targets.Create({GxTex_2d, 4, 4, Gx::Native::GlTargetFormat::Dxt1, false, 1, false});
+        targets.Upload(texture, {0, 0, 0, 0, 4, 4}, GxTex_Dxt1, dxt1, sizeof(dxt1));
         Draw(32, 32, false);
         std::array<uint8_t, 4> compressedPixel{};
         ReadPixels(8, 8, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, compressedPixel.data());
@@ -264,6 +253,7 @@ struct Probe {
         targets.Bind();
         std::cout << "synthetic-arb-texture-depth-blend-fbo=passed\n";
         std::cout << "native-buffered-pct-u16-submission=passed\n";
+        std::cout << "native-owned-texture-rgba-dxt1-sampling=passed\n";
         std::cout << "synthetic-s3tc-dxt1=passed\n";
     }
     void CheckPixels(bool flipY = false, bool scaled = false) {

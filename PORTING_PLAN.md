@@ -297,7 +297,8 @@ remain open. M3 is not complete.
 
 The [native render-target owner](docs/m3/RENDER_TARGETS.md) in
 [PR #20](https://github.com/RovxBot/wowdecomp/pull/20) is qualified at
-`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c` and awaits merge. Its
+`2eb6dd9ee61c15aa5b788a6f7856cdb2019e9b4c`, merged as
+`4d74dd0c5330f92c3fc282329fc071c61b23f62a`. Its
 [record](docs/m3/render-target-validation.json) preserves all eight passing
 implementation PR workflows, 16 CTest checks per Linux GL configuration, separate
 Windows compilation identity, and exact-source real-GPU release/sanitizer target
@@ -310,8 +311,8 @@ package tag, embedded revision, mounted policy and unobserved session behavior.
 The [transform work package](docs/m3/TRANSFORMS.md) now connects scalar Gx/Tempest
 matrices and normalized viewport/scissor to the native targets and original UI
 shader constant path. [PR #21](https://github.com/RovxBot/wowdecomp/pull/21) is
-qualified at `a1c43f820448cbb0b0c0eb2fda2ab59216687415`, stacked on unmerged PR
-#20. Its [evidence](docs/m3/transform-validation.json) records all eight PR
+qualified at `a1c43f820448cbb0b0c0eb2fda2ab59216687415`, merged as
+`37bc74b492ce3f547d8b222676a7cc547e7727ab` after PR #20. Its [evidence](docs/m3/transform-validation.json) records all eight PR
 workflows, 17 CTest passes per Linux GL configuration, full Windows compilation
 and exact-source GPU release/sanitizer target/transform/original-shader cycles.
 It does not complete the legacy device/cache, original fonts/login UI, networking
@@ -320,12 +321,20 @@ or observed world entry. M3 remains open.
 The next [buffer/vertex work package](docs/m3/BUFFERS.md) connects retained
 vertex/index storage and checked PCT submission to the shader/target/transform
 probe. [PR #22](https://github.com/RovxBot/wowdecomp/pull/22) is qualified at
-`42859739d5359cffc0b55f33ebfed789ff152dcd`, stacked on unmerged PR #21.
+`42859739d5359cffc0b55f33ebfed789ff152dcd`, merged as
+`fd0ae32545f6da42b4fa58572eb26953131324c7` after PR #21.
 Its [evidence](docs/m3/buffer-validation.json) records all eight successful PR
 workflows, 18 CTest passes per Linux GL configuration, full Windows compilation
 and exact-source RX 7900 XTX release/sanitizer buffer/target/transform/original
 shader cycles. Full legacy device/state/texture/async, fonts/login, networking
 and observed gameplay stay open; M3 is not complete.
+
+The [sampled-texture package](docs/m3/TEXTURES.md) is qualified at
+`8e4fcde51d7962411d27c462655ad677f95aa23c` in PR #23, following merged
+PRs #20–#22. Its [evidence](docs/m3/texture-validation.json) records all eight
+passing workflows, 19 CTest checks per Linux GL configuration, full Windows
+compilation and real-GPU release/sanitizer checks. Synthetic ARGB4444 atlas output
+is separate from original font rasterization and login UI. M3 remains open.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

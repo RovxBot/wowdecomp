@@ -708,5 +708,14 @@
     "Observed GrimGuzzler character selection, world entry, gameplay, zoning, logout and Warden session",
     "New Windows gameplay observations, macOS native game and broader driver/hardware qualification"
   ],
-  "server_or_cluster_policy_mutated": false
+  "server_or_cluster_policy_mutated": false,
+  "merge": {
+    "sha": "4d74dd0c5330f92c3fc282329fc071c61b23f62a",
+    "pull_request": 20,
+    "base": "main",
+    "merged_on": "2026-10-18",
+    "method": "merge",
+    "qualification_implementation_preserved": true,
+    "final_head_changes_after_qualification": "documentation only"
+  }
 }
