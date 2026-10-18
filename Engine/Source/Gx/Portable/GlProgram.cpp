@@ -48,13 +48,15 @@ GlProgram::GlProgram(GlContext& context, ShaderStage stage, const ShaderRecord& 
     s.GetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &position);
     s.GetProgramivARB(s.target, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native);
     auto message = s.GetString(GL_PROGRAM_ERROR_STRING_ARB);
-    std::string detail = message ? reinterpret_cast<const char*>(message) : "no driver diagnostic";
     // Restore even on a rejected upload; construction failure deletes its name.
+    // Restore before any diagnostic allocation can throw as well.
     s.BindProgramARB(s.target, static_cast<GLuint>(previous));
     GLenum error = s.GetError();
-    if (position != -1 || !native || error != GL_NO_ERROR)
+    if (position != -1 || !native || error != GL_NO_ERROR) {
+        std::string detail = message ? reinterpret_cast<const char*>(message) : "no driver diagnostic";
         throw std::runtime_error("ARB program rejected at " + std::to_string(position) +
             " native=" + std::to_string(native) + " GL error=" + std::to_string(error) + ": " + detail);
+    }
 }
 GlProgram::~GlProgram() = default;
 void GlProgram::Bind() const {
