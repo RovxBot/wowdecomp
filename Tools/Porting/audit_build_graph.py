@@ -121,9 +121,7 @@ def audit(targets, mode, target_os, cpu):
             allowed = ['Engine/Source/Gxu/Portable/FontFace.cpp'] + [
                 'ThirdParty/freetype/src/' + name + '.c' for name in [
                     'base/ftsystem', 'base/ftinit', 'base/ftdebug', 'base/ftbase',
-                    'autohint/autohint', 'cff/cff', 'cid/type1cid', 'psaux/psaux',
-                    'psnames/psnames', 'raster/raster', 'sfnt/sfnt', 'smooth/smooth',
-                    'truetype/truetype', 'type1/type1', 'winfonts/winfnt']]
+                    'raster/raster', 'sfnt/sfnt', 'smooth/smooth', 'truetype/truetype']]
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):

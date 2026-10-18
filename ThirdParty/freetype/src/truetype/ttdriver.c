@@ -430,6 +430,42 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+  /* Native ABI adapters preserve the original typed implementations. */
+  static FT_Error wow_native_TT_Init_Driver( FT_Module module )
+  { return TT_Init_Driver( (TT_Driver)module ); }
+  static void wow_native_TT_Done_Driver( FT_Module module )
+  { TT_Done_Driver( (TT_Driver)module ); }
+  static FT_Module_Interface wow_native_tt_get_interface( FT_Module module, const char* name )
+  { return tt_get_interface( (TT_Driver)module, name ); }
+  static FT_Error wow_native_TT_Init_Face( FT_Stream stream, FT_Face face, FT_Int index,
+                                         FT_Int count, FT_Parameter* parameters )
+  { return TT_Init_Face( stream, (TT_Face)face, index, count, parameters ); }
+  static void wow_native_TT_Done_Face( FT_Face face )
+  { TT_Done_Face( (TT_Face)face ); }
+  static FT_Error wow_native_TT_Init_Size( FT_Size size )
+  { return TT_Init_Size( (TT_Size)size ); }
+  static void wow_native_TT_Done_Size( FT_Size size )
+  { TT_Done_Size( (TT_Size)size ); }
+  static FT_Error wow_native_Set_Char_Sizes( FT_Size size, FT_F26Dot6 width, FT_F26Dot6 height,
+                                          FT_UInt horizontal, FT_UInt vertical )
+  { return Set_Char_Sizes( (TT_Size)size, width, height, horizontal, vertical ); }
+  static FT_Error wow_native_Set_Pixel_Sizes( FT_Size size, FT_UInt width, FT_UInt height )
+  { return Set_Pixel_Sizes( (TT_Size)size, width, height ); }
+  static FT_Error wow_native_Load_Glyph( FT_GlyphSlot slot, FT_Size size, FT_UInt index, FT_Int flags )
+  {
+    if ( index > 0xFFFFu ) return FT_Err_Invalid_Argument;
+    return Load_Glyph( (TT_GlyphSlot)slot, (TT_Size)size, (FT_UShort)index, (FT_UInt)flags );
+  }
+  static FT_UInt wow_native_Get_Char_Index( FT_CharMap map, FT_Long code )
+  { return Get_Char_Index( (TT_CharMap)map, code ); }
+  static FT_Error wow_native_Get_Kerning( FT_Face face, FT_UInt left, FT_UInt right, FT_Vector* value )
+  { return Get_Kerning( (TT_Face)face, left, right, value ); }
+#define WOW_FT_DRIVER_CB(name) wow_native_ ## name
+#else
+#define WOW_FT_DRIVER_CB(name) name
+#endif
+
   /* The FT_DriverInterface structure is defined in ftdriver.h. */
 
   FT_CALLBACK_TABLE_DEF
@@ -452,9 +488,9 @@
 
       (void*)0,        /* driver specific interface */
 
-      (FT_Module_Constructor)TT_Init_Driver,
-      (FT_Module_Destructor) TT_Done_Driver,
-      (FT_Module_Requester)  tt_get_interface,
+      (FT_Module_Constructor)WOW_FT_DRIVER_CB(TT_Init_Driver),
+      (FT_Module_Destructor) WOW_FT_DRIVER_CB(TT_Done_Driver),
+      (FT_Module_Requester)  WOW_FT_DRIVER_CB(tt_get_interface),
     },
 
     sizeof ( TT_FaceRec ),
@@ -462,19 +498,19 @@
     sizeof ( FT_GlyphSlotRec ),
 
 
-    (FTDriver_initFace)     TT_Init_Face,
-    (FTDriver_doneFace)     TT_Done_Face,
-    (FTDriver_initSize)     TT_Init_Size,
-    (FTDriver_doneSize)     TT_Done_Size,
+    (FTDriver_initFace)     WOW_FT_DRIVER_CB(TT_Init_Face),
+    (FTDriver_doneFace)     WOW_FT_DRIVER_CB(TT_Done_Face),
+    (FTDriver_initSize)     WOW_FT_DRIVER_CB(TT_Init_Size),
+    (FTDriver_doneSize)     WOW_FT_DRIVER_CB(TT_Done_Size),
     (FTDriver_initGlyphSlot)0,
     (FTDriver_doneGlyphSlot)0,
 
-    (FTDriver_setCharSizes) Set_Char_Sizes,
-    (FTDriver_setPixelSizes)Set_Pixel_Sizes,
-    (FTDriver_loadGlyph)    Load_Glyph,
-    (FTDriver_getCharIndex) Get_Char_Index,
+    (FTDriver_setCharSizes) WOW_FT_DRIVER_CB(Set_Char_Sizes),
+    (FTDriver_setPixelSizes)WOW_FT_DRIVER_CB(Set_Pixel_Sizes),
+    (FTDriver_loadGlyph)    WOW_FT_DRIVER_CB(Load_Glyph),
+    (FTDriver_getCharIndex) WOW_FT_DRIVER_CB(Get_Char_Index),
 
-    (FTDriver_getKerning)   Get_Kerning,
+    (FTDriver_getKerning)   WOW_FT_DRIVER_CB(Get_Kerning),
     (FTDriver_attachFile)   0,
     (FTDriver_getAdvances)  0
   };

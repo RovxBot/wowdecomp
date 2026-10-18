@@ -264,7 +264,7 @@ and source inspection are different evidence levels.
   original memory face, glyph load/raster, font size/advance/kerning and atlas
   encoding/batched PCT callers. No donor code/address/VERIFY claim is imported.
 - Adaptation: retained native `Gxu/Portable/FontFace*`, Storm-backed bundled
-  FreeType modules with native ABI, bounded owned coverage and thread affinity,
+  TrueType/SFNT FreeType modules with native ABI, bounded owned coverage and thread affinity,
   original unhinted rendering/advance conventions and original-data UI preview.
   This is not legacy HFACE/CGxFont/cache/layout or complete login integration.
 - Assets/defaults: unchanged authenticated `Fonts/FRIZQT__.TTF` and original UI

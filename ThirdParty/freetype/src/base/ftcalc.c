@@ -206,7 +206,11 @@
     FT_Int64  z;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    z = (FT_Int64)x * 65536;
+#else
     z = (FT_Int64)(x) << 16;
+#endif
     return FT_Sqrt64( z );
   }
 

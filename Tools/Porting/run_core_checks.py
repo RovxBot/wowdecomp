@@ -138,6 +138,7 @@ def main():
                 (notices / name).write_text(original[:original.index('*/') + 2] + '\n')
         if graphics:
             shutil.copy2(root / 'ThirdParty/freetype/docs/FTL.txt', notices / 'FreeType-LICENSE.txt')
+            shutil.copy2(root / 'ThirdParty/freetype/docs/NATIVE_ADAPTATIONS.md', notices / 'FreeType-NATIVE_ADAPTATIONS.md')
         if window:
             shutil.copy2(build / '_deps/sdl3-src/LICENSE.txt', notices / 'SDL3-LICENSE.txt')
             manifest['sdl3'] = {'version': '3.2.28', 'commit': '7f3ae3d57459e59943a4ecfefc8f6277ec6bf540',

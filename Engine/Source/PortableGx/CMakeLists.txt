@@ -20,19 +20,13 @@ add_library(WowNativeFonts STATIC
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftinit.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftdebug.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftbase.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/autohint/autohint.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/cff/cff.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/cid/type1cid.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/psaux/psaux.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/psnames/psnames.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/raster/raster.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/sfnt/sfnt.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/smooth/smooth.c
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/truetype/truetype.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/type1/type1.c
-    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/winfonts/winfnt.c
  )
 target_include_directories(WowNativeFonts PRIVATE
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Gxu/Portable/FreeTypeConfig
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src)
 target_link_libraries(WowNativeFonts PUBLIC WowCoreServices)
