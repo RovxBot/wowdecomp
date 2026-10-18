@@ -18,7 +18,7 @@ retain their historical provenance; hosted execution is not binary revalidation.
 
 | Boundary | Native adaptation and limits |
 | --- | --- |
-| `CGxMatrixStack`, `GxXformSet/Push/Pop/Translate/Scale` | Reuse four-entry stacks and Tempest row-vector math, including level-three saturation/copy and base-level pop behavior. Validate stack indices and finite results before publishing mutations. Device projection remains separate from the projection stack slot, as in the original callers. |
+| `CGxMatrixStack`, `GxXformSet/Push/Pop/Translate/Scale` | Reuse four-entry stacks and Tempest row-vector math, including level-three saturation/copy and base-level pop behavior. Accept unsigned stack indices and validate before enum interpretation; validate finite results before publishing mutations. Device projection remains separate from the projection stack slot, as in the original callers. |
 | `GxXformSetViewport`, OpenGL viewport/scissor synchronization | Clamp normalized edges, retain ordered nonempty viewports and ordered [0,1] depth ranges, and round pixel edges with +0.5. Use actual bound attachment/drawable pixel dimensions, including depth-only FBOs. Scissor intersects the normalized target extent and allows empty results; invalid/nonfinite input fails before changing state. |
 | `IXformSetProjection`, `IXformGLModelView` | Load the original Z row/column adaptations and world-times-view order into compatibility GL. Offscreen targets flip projection Y and reverse the cull selection; drawable restoration removes that flip. Retain the caller's GL matrix mode. Texture generation/matrices, clip planes, stereo and resource/state-cache integration remain separate work. |
 | Perspective projection branch | Preserve the inspected literal bit-31 test and `d3 != 1` perspective *0.2 branch. The named `NormalProjection` enum is bit seven; it does not substitute for bit 31. This records source behavior and does not diagnose or fix the historical warped Windows OpenGL scenes. |
@@ -74,5 +74,10 @@ operator observations keep their historical source identities. No new physical
 input acceptance is implied. The external server snapshot's tag/embedded-revision
 difference remains recorded in [server identity](SERVER_IDENTITY.md).
 
-Implementation validation is pending hosted compilation and actual-GPU execution;
-the final evidence record will preserve their exact source/artifact identities.
+The initial release at `0373a4cf7c31e77cbd4ff89e907513d465d01edb` passed
+17 CTest checks. Its sanitizer run caught an invalid-enum load in the new negative
+input fixture: passing -1 as the unfixed `EGxXform` enum is itself undefined before
+range validation. The native boundary now accepts unsigned indices, preserving
+normal enum callers while rejecting raw invalid values before interpretation.
+Final hosted/sanitizer and actual-GPU qualification remain pending; the evidence
+record will retain the failed run and final source/artifact identities.

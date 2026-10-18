@@ -2,7 +2,6 @@
 #include <SDL3/SDL_opengl.h>
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <stdexcept>
 
 namespace Gx { namespace Native {
@@ -63,9 +62,9 @@ struct GlTransforms::State {
     BASE(CullFace);
 #undef BASE
     State(GlContext& owner, GlRenderTargets& targetOwner) : context(owner), targets(targetOwner) {}
-    CGxMatrixStack& Stack(EGxXform which) {
+    CGxMatrixStack& Stack(uint32_t which) {
         context.CheckCurrent();
-        if (static_cast<uint32_t>(which) >= stacks.size())
+        if (which >= stacks.size())
             throw std::out_of_range("Invalid Gx transform stack");
         return stacks[which];
     }
@@ -80,7 +79,7 @@ GlTransforms::GlTransforms(GlContext& context, GlRenderTargets& targets) {
     state = std::make_unique<State>(context, targets);
 }
 GlTransforms::~GlTransforms() = default;
-void GlTransforms::Set(EGxXform which, const C44Matrix& matrix) {
+void GlTransforms::Set(uint32_t which, const C44Matrix& matrix) {
     auto& stack = state->Stack(which);
     Finite(matrix);
     stack.m_mtx[stack.m_level] = matrix;
@@ -88,11 +87,11 @@ void GlTransforms::Set(EGxXform which, const C44Matrix& matrix) {
     stack.m_dirty = 1;
     state->synced = false;
 }
-C44Matrix GlTransforms::Get(EGxXform which) const {
+C44Matrix GlTransforms::Get(uint32_t which) const {
     auto& stack = state->Stack(which);
     return stack.m_mtx[stack.m_level];
 }
-void GlTransforms::Push(EGxXform which) {
+void GlTransforms::Push(uint32_t which) {
     auto& stack = state->Stack(which);
     // Legacy pushes saturate at level three and copy level two again.
     stack.m_level = std::min(stack.m_level + 1, 3u);
@@ -101,18 +100,18 @@ void GlTransforms::Push(EGxXform which) {
     stack.m_dirty = 1;
     state->synced = false;
 }
-void GlTransforms::Pop(EGxXform which) {
+void GlTransforms::Pop(uint32_t which) {
     auto& stack = state->Stack(which);
     if (stack.m_level) --stack.m_level;
     stack.m_dirty = 1;
     state->synced = false;
 }
-void GlTransforms::Translate(EGxXform which, const C3Vector& move) {
+void GlTransforms::Translate(uint32_t which, const C3Vector& move) {
     auto matrix = Get(which);
     matrix.Translate(move);
     Set(which, matrix);
 }
-void GlTransforms::Scale(EGxXform which, const C3Vector& scale) {
+void GlTransforms::Scale(uint32_t which, const C3Vector& scale) {
     auto matrix = Get(which);
     matrix.Scale(scale);
     Set(which, matrix);

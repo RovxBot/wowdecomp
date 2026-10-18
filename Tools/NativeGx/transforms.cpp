@@ -62,7 +62,7 @@ struct Checks {
             transforms.Pop(which); transforms.Pop(which);
             Require(transforms.Get(which) == identity, "Gx stack pop lost its base");
         }
-        Reject<std::out_of_range>([&] { transforms.Push(static_cast<EGxXform>(-1)); });
+        Reject<std::out_of_range>([&] { transforms.Push(UINT32_MAX); });
         Reject<std::out_of_range>([&] { transforms.Get(GxXforms_Last); });
         auto invalid = identity;
         invalid.d0 = std::numeric_limits<float>::infinity();

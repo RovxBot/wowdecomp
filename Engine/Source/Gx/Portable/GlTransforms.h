@@ -26,12 +26,14 @@ public:
     ~GlTransforms();
     GlTransforms(const GlTransforms&) = delete;
     GlTransforms& operator=(const GlTransforms&) = delete;
-    void Set(EGxXform which, const C44Matrix& matrix);
-    C44Matrix Get(EGxXform which) const;
-    void Push(EGxXform which);
-    void Pop(EGxXform which);
-    void Translate(EGxXform which, const C3Vector& move);
-    void Scale(EGxXform which, const C3Vector& scale);
+    // Accept enum constants as unsigned indices; reject invalid raw values
+    // before interpreting them as a C++ enum.
+    void Set(uint32_t which, const C44Matrix& matrix);
+    C44Matrix Get(uint32_t which) const;
+    void Push(uint32_t which);
+    void Pop(uint32_t which);
+    void Translate(uint32_t which, const C3Vector& move);
+    void Scale(uint32_t which, const C3Vector& scale);
     // As in CGxDevice, the projection setter is distinct from the stack slot.
     void Projection(const C44Matrix& matrix);
     C44Matrix Projection() const;
