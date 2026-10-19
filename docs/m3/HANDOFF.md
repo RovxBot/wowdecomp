@@ -208,8 +208,17 @@ native authentication becomes available.
 
 The [original font work](FONTS.md) adds an owner-thread memory face using the
 bundled FreeType sources and a bounded ARGB4444/PCT text preview through original
-UI shaders. Hosted/native ABI and real-GPU qualification is pending. This does
-not complete full Gxu string/cache/layout or original GlueXML/login.
+UI shaders. It is qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd` in
+[PR #24](https://github.com/RovxBot/wowdecomp/pull/24), with
+[durable evidence](font-validation.json) for nine passing PR workflows, 20 CTest
+checks per Linux GL configuration, full Windows x64 compilation at separate
+merge checkout `528822b509acfb57869cb65591edea824ddd09e9`, and verified artifacts.
+Exact-source RX 7900 XTX release/strict sanitizer original-data font/shader cycles
+passed one/three times with empty stderr and zero workers. Resource fixtures
+passed three cycles each in both modes; the release text capture was inspected.
+The prior FreeType failures and native-only corrections remain recorded, including
+font-program execution despite unhinted glyph flags. This does not complete
+legacy HFACE/Gxu cache/layout, [global Gx dispatch](LEGACY_GX.md) or GlueXML/login.
 
 The [packet prerequisite package](PACKETS.md) prepares original `CDataStore`,
 ARC4 and SHA1/HMAC code for native transport integration, with explicit unaligned

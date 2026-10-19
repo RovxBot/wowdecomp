@@ -259,7 +259,8 @@ and source inspection are different evidence levels.
 
 ## NP-010 — Native original font face and glyph preview
 
-- Status: implemented for hosted validation; see [font contracts](m3/FONTS.md).
+- Status: qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd` in
+  [PR #24](https://github.com/RovxBot/wowdecomp/pull/24); see [font contracts](m3/FONTS.md).
 - Source: product 12340 at `365016e226547f7f3867f419988ccdf6b3182f25`,
   original memory face, glyph load/raster, font size/advance/kerning and atlas
   encoding/batched PCT callers. No donor code/address/VERIFY claim is imported.
@@ -271,8 +272,14 @@ and source inspection are different evidence levels.
   shaders, no enhancement assets, new download, protocol or server-policy change.
   Existing FreeType attribution/license is retained in artifacts. CI uses a tiny
   authored geometric font, separate from retail data.
-- Validation: hosted compilation/semantic/sanitizer and original-data GPU checks
-  pending; native login/world, Windows runtime and macOS font/render coverage open.
+- Validation: [durable evidence](m3/font-validation.json) records nine passing PR
+  workflows, 20 CTest checks per Linux GL configuration, full Windows x64
+  compilation, verified artifacts and real-GPU release/strict ASan/UBSan/leak
+  original-font/UI-shader checks. One/three original-data cycles and three cycles
+  per resource fixture passed with empty stderr and zero workers. Prior FreeType
+  callback, signed-scaling, empty-array and stream-lifetime failures remain
+  recorded; native corrections preserve the Windows paths and all detectors.
+  Native login/world, Windows runtime and macOS font/render coverage remain open.
 
 ## NP-011 — Native 12340 packet prerequisites
 

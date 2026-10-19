@@ -336,6 +336,15 @@ passing workflows, 19 CTest checks per Linux GL configuration, full Windows
 compilation and real-GPU release/sanitizer checks. Synthetic ARGB4444 atlas output
 is separate from original font rasterization and login UI. M3 remains open.
 
+The [original font preview](docs/m3/FONTS.md) is qualified at
+`16c111a5f36864530a2109ff7228a78f68fb17fd` in PR #24. Its
+[evidence](docs/m3/font-validation.json) records nine passing PR workflows,
+20 CTest checks per Linux GL configuration, full Windows x64 compilation,
+verified artifacts and strict original-data GPU font/UI-shader cycles. Original
+Friz Quadrata rasterization is now observed; full legacy Gx/Gxu cache/layout and
+GlueXML/login are still open. The [legacy integration audit](docs/m3/LEGACY_GX.md)
+maps those remaining dispatch and ownership dependencies. M3 remains incomplete.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

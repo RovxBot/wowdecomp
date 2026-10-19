@@ -70,8 +70,22 @@ login UI, Windows gameplay, macOS graphics or server session follows from these
 checks. The user will sign in interactively once native authentication is ready.
 The external [server revision discrepancy](SERVER_IDENTITY.md) is preserved.
 
-Hosted and real-GPU qualification is pending. All sanitizers remain enabled;
-any bundled dependency failure must be retained and corrected, not suppressed.
+Implementation `16c111a5f36864530a2109ff7228a78f68fb17fd` is qualified in
+[PR #24](https://github.com/RovxBot/wowdecomp/pull/24). The
+[durable evidence](font-validation.json) records all nine successful PR workflows,
+20 CTest checks in each Linux GL configuration, verified hosted artifacts and
+the separate full Windows x64 merge-checkout compilation identity
+`528822b509acfb57869cb65591edea824ddd09e9`.
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict
+ASan/UBSan/leak execution passed one/three original-font and UI-shader cycles.
+Texture, buffer, target and transform checks each passed three cycles in both
+modes, with empty stderr, no timeout and zero workers at probe shutdown. The
+960x640 release capture was inspected: original white Friz Quadrata text above
+the original blue loading-bar fill. No login UI or new physical-input/server
+acceptance is implied. Full [legacy Gx integration](LEGACY_GX.md) remains open.
+
+All sanitizers remain enabled. Prior failures below are retained as failures;
+none is a clean sanitizer result or a detector suppression.
 The first implementation `9712f9dbdbf53ccd9bcfa789818dc01213ffc248`
 passed release raster/GPU checks but failed the sanitizer fixture at the old
 `ft_autohinter_init` constructor callback (`ftobjs.c:2308`), in
