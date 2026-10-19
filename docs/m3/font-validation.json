@@ -1139,5 +1139,14 @@
     "python3 Tools/Porting/run_native_gl.py --artifact /tmp/wowdecomp-m3-font-interpreter-release --render-target-checks --transform-checks --buffer-checks --texture-checks --data /mnt/games/3.3.5aClean/Data --settings /tmp/wowdecomp-m3-font-interpreter-settings --cache /tmp/wowdecomp-m3-font-interpreter-cache --frames 30 --timeout 120 --snapshot /tmp/wowdecomp-m3-font-interpreter.ppm --output /tmp/wowdecomp-m3-font-interpreter-release.json",
     "python3 Tools/Porting/run_native_gl.py --artifact /tmp/wowdecomp-m3-font-interpreter-asan --render-target-checks --transform-checks --buffer-checks --texture-checks --data /mnt/games/3.3.5aClean/Data --settings /tmp/wowdecomp-m3-font-interpreter-asan-settings --cache /tmp/wowdecomp-m3-font-interpreter-asan-cache --frames 30 --timeout 120 --cycles 3 --sanitizers --output /tmp/wowdecomp-m3-font-interpreter-asan.json",
     "git diff --check"
-  ]
+  ],
+  "merge": {
+    "sha": "5090a23e6fc46f572df301ac8f1a9a13b29c409b",
+    "pull_request": 24,
+    "base": "main",
+    "merged_at_utc": "2026-10-19T03:14:33Z",
+    "method": "merge",
+    "qualification_implementation_preserved": true,
+    "final_head_changes_after_qualification": "documentation only"
+  }
 }

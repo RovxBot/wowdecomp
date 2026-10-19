@@ -1,4 +1,5 @@
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Storm/H/stpl.h"
 #include "Engine/Source/Storm/Source/SThread.h"
 #include "Engine/Source/Os/OsSecureRandom.h"
 #include "Engine/Source/Os/Tls.h"
@@ -254,10 +255,111 @@ void LogsAndTime() {
     OsSecureRandom(guard.data, sizeof(guard.data));
     CHECK(guard.before == 17 && guard.after == 23);
 }
+
+int Ordered(char* out, size_t size, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    int result = vsnoprintf(out, size, format, args);
+    va_end(args);
+    return result;
+}
+void ReuseFormatArguments(const char* format, ...) {
+    char first[128], second[128];
+    va_list args;
+    va_start(args, format);
+    CHECK(vsnoprintf(first, sizeof(first), format, args) > 0);
+    CHECK(vsnoprintf(second, sizeof(second), format, args) > 0);
+    va_end(args);
+    CHECK(!std::strcmp(first, second));
+}
+void ReusePublicFormatArguments(size_t size, const char* format, ...) {
+    char first[128], second[128];
+    va_list args;
+    va_start(args, format);
+    CHECK(SStrVPrintf(first, size, format, args) > 0);
+    CHECK(SStrVPrintf(second, size, format, args) > 0);
+    va_end(args);
+    CHECK(!std::strcmp(first, second));
+    CHECK(!std::strcmp(first, "shader:23:0.5"));
+}
+struct CachedName : TSHashObject<CachedName, HASHKEY_STRI> { int value = 0; };
+void LegacyStrings() {
+    // These are the original Gx/Gxu key/hash callers, rather than a replacement
+    // std::unordered_map with different name matching or allocation lifetimes.
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        TSHashTable<CachedName, HASHKEY_STRI> cache;
+        for (int i = 0; i < 100; ++i) {
+            char name[64];
+            CHECK(SStrPrintf(name, sizeof(name), "Font-%d", i) > 0);
+            cache.New(name, 0, 0)->value = i;
+        }
+        for (int i = 0; i < 100; ++i) {
+            char name[64]; SStrPrintf(name, sizeof(name), "fONT-%d", i);
+            CHECK(cache.Ptr(name) && cache.Ptr(name)->value == i);
+        }
+        cache.Delete(cache.Ptr("font-17"));
+        CHECK(!cache.Ptr("font-17"));
+        cache.Clear(); CHECK(!cache.Head());
+    }
+    CHECK(SStrHashHT("Fonts/FRIZQT__.TTF") == SStrHashHT("fonts\\frizqt__.ttf"));
+    CHECK(SStrHash("Interface/Test", 0, 0) == SStrHash("interface\\test", 0, 0));
+    CHECK(SStrCmpI("shader", "SHADER", STORM_MAX_STR) == 0);
+    CHECK(SStrCmpI("a", "B", 1) < 0 && SStrCmpI("z", "B", 1) > 0);
+    CHECK(SStrCmpI("aX", "Ay", 1) == 0);
+    char cases[] = "AbZ\xC0";
+    SStrUpper(cases); CHECK(!std::strcmp(cases, "ABZ\xC0"));
+    SStrLower(cases); CHECK(!std::strcmp(cases, "abz\xC0"));
+    CHECK(SStrCmpUTF8I("\xC3\xA9", "\xC3\x89", STORM_MAX_STR) == 0);
+    CHECK(SStrLenUTF8("A\xC3\xA9\xE2\x82\xAC") == 3);
+    char copied[6];
+    CHECK(SStrCopy(copied, "longer", sizeof(copied)) == 5 && !std::strcmp(copied, "longe"));
+    CHECK(SStrToInt("-2147483648") == INT32_MIN);
+    CHECK(SStrToInt64("-9223372036854775808") == INT64_MIN);
+    CHECK(SStrToInt64("9223372036854775807") == INT64_MAX);
+    CHECK(SStrToInt64("18446744073709551616") == 0);
+
+    char output[256];
+    CHECK(Ordered(output, sizeof(output), "%2$s:%1$04d:%3$.2f:%%", 7, "font", 1.25) == 16);
+    CHECK(!std::strcmp(output, "font:0007:1.25:%"));
+    CHECK(Ordered(output, sizeof(output), "%1$I64d/%1$lld", int64_t(-9223372036854775807LL)) == 41);
+    CHECK(!std::strcmp(output, "-9223372036854775807/-9223372036854775807"));
+    CHECK(Ordered(output, sizeof(output), "%1$#08X/%2$-5.3s/%3$I64u", 42u, "shader", UINT64_MAX) == 35);
+    CHECK(!std::strcmp(output, "0X00002A/sha  /18446744073709551615"));
+    ReuseFormatArguments("%2$s:%1$d:%3$f", 23, "shader", 0.5);
+    struct Guard { char before = 'L'; char data[5]; char after = 'R'; } guard;
+    CHECK(Ordered(guard.data, sizeof(guard.data), "%s", "abcdef") == 4);
+    CHECK(!std::strcmp(guard.data, "abcd") && guard.before == 'L' && guard.after == 'R');
+    CHECK(Ordered(guard.data, 1, "%s", "abcdef") == 0 && !guard.data[0]);
+    guard.data[0] = 'x';
+    CHECK(Ordered(guard.data, 0, "%s", "abcdef") == 0 && guard.data[0] == 'x');
+    for (const char* bad : {"%65$d", "%214748364800$d", "%2$d", "%1$s %3$d", "%1$d %1$s",
+            "%lls", "%n", "%S", "%C", "%", "%I", "%I6", "%ll", "%ll1$d", "%1$2$d",
+            "%1$ll2$d", "%1$1.2.3f", "%1$*d", "%1$.*s", "%1$llc", "%1$I64f", "%1$%"}) {
+        SErrSetLastError(0);
+        CHECK(Ordered(output, sizeof(output), bad) == 0 && !output[0]);
+        CHECK(SErrGetLastError() == STORM_ERROR_INVALID_PARAMETER);
+    }
+    int enabled = 1;
+    CHECK(StormSetOption(STORM_OPTION_ORDERED_PRINTF_ENABLED, &enabled, sizeof(enabled)));
+    CHECK(SStrPrintf(output, sizeof(output), "%2$s:%1$d", 42, "shader") == 9);
+    CHECK(!std::strcmp(output, "shader:42"));
+    ReusePublicFormatArguments(128, "%2$s:%1$d:%3$.1f", 23, "shader", 0.5);
+    ReusePublicFormatArguments(STORM_MAX_STR, "%2$s:%1$d:%3$.1f", 23, "shader", 0.5);
+    enabled = 0; CHECK(StormSetOption(STORM_OPTION_ORDERED_PRINTF_ENABLED, &enabled, sizeof(enabled)));
+    ReusePublicFormatArguments(128, "%s:%d:%.1f", "shader", 23, 0.5);
+    ReusePublicFormatArguments(STORM_MAX_STR, "%s:%d:%.1f", "shader", 23, 0.5);
+    CHECK(SStrPrintf(output, sizeof(output), "%016I64X:%I64d", uint64_t(0x123456789ABCDEF0), INT64_MIN) == 37);
+    CHECK(!std::strcmp(output, "123456789ABCDEF0:-9223372036854775808"));
+    CHECK(SStrPrintf(output, STORM_MAX_STR, "I64 literal/%%I64u/%I64u/%.3s", UINT64_MAX, "shader") == 42);
+    CHECK(!std::strcmp(output, "I64 literal/%I64u/18446744073709551615/sha"));
+    CHECK(SStrPrintf(guard.data, sizeof(guard.data), "%s", "abcdef") == 4);
+    CHECK(!std::strcmp(guard.data, "abcd") && guard.before == 'L' && guard.after == 'R');
+    std::puts("Legacy Storm names, hash-cache ownership and bounded native formatting checks passed.");
+}
 int main(int argc, char**) {
     if (argc > 1) { OsSecureRandom(nullptr, 1); return 0; }
     StormRtlInitialize();
-    Allocation(); WaitSemantics(); LocksAndTLS(); LogsAndTime();
+    Allocation(); WaitSemantics(); LocksAndTLS(); LogsAndTime(); LegacyStrings();
     CHECK(!OsLiveThreadCount());
     StormRtlDestroy();
     std::puts("Core allocation, waits, locks, TLS, logging, time and randomness checks passed.");

@@ -207,7 +207,8 @@ it does not turn a documentation request into authorization to start the whole p
   ABI, not socket dispatch or authentication. M3 remains incomplete; preserve the
   external server revision discrepancy and interactive user sign-in preference.
 - M3 original-font [PR #24](https://github.com/RovxBot/wowdecomp/pull/24) is
-  qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd`. Read
+  qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd`, merged as
+  `5090a23e6fc46f572df301ac8f1a9a13b29c409b`. Read
   [font contracts](docs/m3/FONTS.md), [validation](docs/m3/font-validation.json)
   and the [legacy Gx audit](docs/m3/LEGACY_GX.md). Nine PR workflows passed;
   Linux release/strict sanitizer configurations passed 20 CTest checks each.
@@ -221,6 +222,18 @@ it does not turn a documentation request into authorization to start the whole p
   interpreter execution even with unhinted glyphs. Original HFACE/Gxu layout/cache,
   global legacy device/async integration, actual login, networking and gameplay
   remain open. No new operator acceptance/server session; M3 is incomplete.
+- M3 Storm string/cache [PR #26](https://github.com/RovxBot/wowdecomp/pull/26)
+  is qualified at `2d946465e52d7ccfb43722d844d76a4fa4cd038b`. Read
+  [string contracts](docs/m3/LEGACY_STRINGS.md) and
+  [validation](docs/m3/string-validation.json). Nine implementation PR workflows
+  passed, including full Windows x64 compilation; actual ARM64 macOS, Windows and
+  Linux native fixtures passed. Seven archive digests and 45 packaged binary
+  hashes/types were verified. Original-data GPU font/UI-shader release/strict
+  sanitizer regressions passed one/three cycles with empty stderr and zero workers.
+  Preserve original hashes, native format argument preflight/ownership and ordinary
+  `I64` integer values without enabling global ordered formatting. Ordered UTF-16
+  formats remain visibly unavailable. Actual legacy device/Gxu/login, transport
+  and observed gameplay remain open; M3 is incomplete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

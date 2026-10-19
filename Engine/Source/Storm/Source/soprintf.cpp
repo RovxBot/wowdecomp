@@ -3,7 +3,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <climits>
+#endif
 #include "Engine/Source/Storm/H/storm.h"
+
+// Native ABI adapters below do not inherit the original Windows VERIFY claims.
 
 #define MAX_ARGUMENTS 64
 #define MAX_SPECIFIER_LENGTH 64
@@ -25,6 +30,75 @@ union ArgumentValue {
 // VERIFY: 291dacd5 manual
 // OFFSET: 0x00773CC0
 static int32_t ParseFormatSpecifier(const char** format, ArgumentSize* size, int32_t* orderingPtr) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Validate the complete native grammar before passing a specifier to libc.
+    // In particular, an ordering marker must precede flags/width/length: moving
+    // past a later '$' when emitting would otherwise discard the argument type.
+    const char* start = *format;
+    const char* curr = start;
+    auto digits = [&](int32_t& number) {
+        number = 0;
+        while (*curr >= '0' && *curr <= '9') {
+            if (curr - start >= MAX_SPECIFIER_LENGTH - 2 ||
+                number > (INT_MAX - (*curr - '0')) / 10) return false;
+            number = number * 10 + *curr++ - '0';
+        }
+        return true;
+    };
+    int32_t number;
+    if (!digits(number)) return -1;
+    if (*curr == '$') {
+        if (number < 1 || number > MAX_ARGUMENTS) return -1;
+        *orderingPtr = number - 1;
+        ++curr;
+    } else {
+        curr = start;
+    }
+    const char* body = curr;
+    while (*curr && strchr(" #+-0", *curr)) {
+        if (curr - start >= MAX_SPECIFIER_LENGTH - 2) return -1;
+        ++curr;
+    }
+    if (!digits(number)) return -1;
+    if (*curr == '.') {
+        ++curr;
+        if (!digits(number)) return -1;
+    }
+    *size = e_intSized;
+    if (*curr == 'I') {
+        ++curr;
+        if (*curr != '6' || *++curr != '4') return -1;
+        ++curr;
+        *size = e_longLongSized;
+    } else if (*curr == 'l') {
+        ++curr;
+        if (*curr++ != 'l') return -1;
+        *size = e_longLongSized;
+    }
+    const char conversion = *curr;
+    if (!conversion || curr - start >= MAX_SPECIFIER_LENGTH - 2) return -1;
+    int32_t result = 1;
+    if (strchr("dDiouxXOU", conversion)) {
+        // Keep the parsed integer width.
+    } else {
+        if (*size == e_longLongSized) return -1;
+        if (conversion == 'c') {
+            *size = e_intSized;
+        } else if (strchr("eEfFgG", conversion)) {
+            *size = e_doubleSized;
+        } else if (strchr("spP", conversion)) {
+            *size = e_pointerSized;
+        } else if (conversion == '%' && curr == body && body == start) {
+            *size = e_takesNoSpace;
+            result = 0;
+        } else {
+            // Includes UTF-16 S/C, star fields, %n and host-only lengths.
+            return -1;
+        }
+    }
+    *format = curr + 1;
+    return result;
+#else
     const char* curr = *format;
     int32_t currentNumber = 0;
     *size = e_intSized;
@@ -116,22 +190,37 @@ static int32_t ParseFormatSpecifier(const char** format, ArgumentSize* size, int
         *format = curr;
         return result;
     }
+#endif
 }
 
 // VERIFY: 7c8d9894 manual
 // OFFSET: 0x00773E10
 static void FixUpLongLongFormatSpecifier(char* specifier) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    char* legacy = strstr(specifier, "I64");
+    if (legacy) {
+        memcpy(legacy, "ll", 2);
+        memmove(legacy + 2, legacy + 3, strlen(legacy + 3) + 1);
+    }
+#else
     char* ll = strstr(specifier, "ll");
 
     if (ll) {
         memmove(ll + 3, ll + 2, strlen(ll) - 1);
         memcpy(ll, "I64", 3);
     }
+#endif
 }
 
 // VERIFY: 33f0aefe manual
 // OFFSET: 0x00773E60
 int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argumentList) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!out || !format || outSize > INT_MAX) {
+        SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+        return 0;
+    }
+#endif
     if (!outSize) {
         return 0;
     }
@@ -159,6 +248,9 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
         }
 
         if (numSpecifiers >= MAX_ARGUMENTS) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+#endif
             *dest = 0;
             return dest - out;
         }
@@ -168,6 +260,9 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
         int32_t result = ParseFormatSpecifier(&curr, &size, &orderingPtr);
 
         if (result == -1) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+#endif
             *dest = 0;
             return dest - out;
         }
@@ -176,7 +271,17 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
         spec->length = curr - start;
 
         if (result > 0) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+            if (orderingPtr < 0 || orderingPtr >= MAX_ARGUMENTS) {
+                *dest = 0;
+                SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+                return 0;
+            }
+#endif
             if (sizes[orderingPtr] && sizes[orderingPtr] != size) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+#endif
                 *dest = 0;
                 return dest - out;
             }
@@ -196,28 +301,53 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
         spec++;
     } while (ch);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Reject every gap before consuming any argument, including later gaps.
+    for (int32_t i = 0; i < numArguments; ++i) {
+        if (sizes[i] == e_unspecified) {
+            *out = 0;
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+            return 0;
+        }
+    }
+    // va_list is an array on some native ABIs and a pointer on others.
+    // Consume a copy so the caller retains ownership and can reuse its list.
+    va_list nativeArguments;
+    va_copy(nativeArguments, argumentList);
+#define WOW_FORMAT_ARGUMENTS nativeArguments
+#else
+#define WOW_FORMAT_ARGUMENTS argumentList
+#endif
     for (int32_t i = 0; i < numArguments; i++) {
         switch (sizes[i]) {
         case e_unspecified:
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+            va_end(nativeArguments);
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+#endif
             *dest = 0;
             return dest - out;
         case e_intSized:
-            values[i].intValue = va_arg(argumentList, int32_t);
+            values[i].intValue = va_arg(WOW_FORMAT_ARGUMENTS, int32_t);
             break;
         case e_pointerSized:
-            values[i].pointerValue = va_arg(argumentList, void*);
+            values[i].pointerValue = va_arg(WOW_FORMAT_ARGUMENTS, void*);
             break;
         case e_longLongSized:
-            values[i].longLongValue = va_arg(argumentList, int64_t);
+            values[i].longLongValue = va_arg(WOW_FORMAT_ARGUMENTS, int64_t);
             break;
         case e_doubleSized:
-            values[i].doubleValue = va_arg(argumentList, double);
+            values[i].doubleValue = va_arg(WOW_FORMAT_ARGUMENTS, double);
             break;
         default:
             values[i].doubleValue = 0.0;
             break;
         }
     }
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    va_end(nativeArguments);
+#endif
+#undef WOW_FORMAT_ARGUMENTS
 
     spec = specifiers;
 
@@ -252,6 +382,34 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
         int32_t avail = static_cast<int32_t>(end - dest);
         int32_t written = 0;
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        FixUpLongLongFormatSpecifier(specifier);
+        char& conversion = specifier[strlen(specifier) - 1];
+        if (conversion == 'D') conversion = 'd';
+        if (conversion == 'O') conversion = 'o';
+        if (conversion == 'U') conversion = 'u';
+        if (conversion == 'P') conversion = 'p';
+        const bool unsignedInteger = conversion == 'u' || conversion == 'o' || conversion == 'x' || conversion == 'X';
+        switch (sizes[argument]) {
+        case e_intSized:
+            written = unsignedInteger ? snprintf(dest, size_t(avail) + 1, specifier, static_cast<uint32_t>(values[argument].intValue))
+                                      : snprintf(dest, size_t(avail) + 1, specifier, values[argument].intValue);
+            break;
+        case e_pointerSized:
+            written = snprintf(dest, size_t(avail) + 1, specifier, values[argument].pointerValue);
+            break;
+        case e_longLongSized:
+            written = unsignedInteger ? snprintf(dest, size_t(avail) + 1, specifier, static_cast<unsigned long long>(values[argument].longLongValue))
+                                      : snprintf(dest, size_t(avail) + 1, specifier, static_cast<long long>(values[argument].longLongValue));
+            break;
+        case e_doubleSized:
+            written = snprintf(dest, size_t(avail) + 1, specifier, values[argument].doubleValue);
+            break;
+        case e_takesNoSpace:
+            written = snprintf(dest, size_t(avail) + 1, specifier);
+            break;
+        }
+#else
         switch (sizes[argument]) {
         case e_intSized:
             written = _snprintf(dest, avail, specifier, values[argument].intValue);
@@ -270,7 +428,17 @@ int32_t vsnoprintf(char* out, size_t outSize, const char* format, va_list argume
             written = _snprintf(dest, avail, specifier);
             break;
         }
+#endif
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        if (written < 0) {
+            // An encoding/format error is not truncation: do not count bytes
+            // that libc did not initialize as retained output.
+            *out = 0;
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+            return 0;
+        }
+#endif
         if (written < 0 || written > avail) {
             written = avail;
         }

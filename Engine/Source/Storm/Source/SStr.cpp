@@ -6,6 +6,13 @@
 #include <cstring>
 #include "SOption.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <string>
+#include <type_traits>
+#endif
+
+// WOWDECOMP_PORTABLE_RUNTIME branches adapt the native ABI. Historical VERIFY
+// annotations describe the separately selected original Windows bodies.
 
 #define mix(a, b, c) \
     { \
@@ -89,7 +96,20 @@ int32_t STORMAPI SStrCmp(const char* string1, const char* string2, size_t maxcha
 // VERIFY: 0278ea41 auto
 // OFFSET: 0x0076E780
 int32_t STORMAPI SStrCmpI(const char* string1, const char* string2, size_t maxchars) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Preserve the default C-locale byte comparison without host locale state.
+    for (size_t i = 0; i < maxchars; ++i) {
+        unsigned a = static_cast<uint8_t>(string1[i]);
+        unsigned b = static_cast<uint8_t>(string2[i]);
+        if (a >= 'A' && a <= 'Z') a += 'a' - 'A';
+        if (b >= 'A' && b <= 'Z') b += 'a' - 'A';
+        if (a != b) return a < b ? -1 : 1;
+        if (!a) return 0;
+    }
+    return 0;
+#else
     return _strnicmp(string1, string2, maxchars);
+#endif
 }
 
 // VERIFY: 806bfb4a manual
@@ -596,6 +616,28 @@ static size_t ISStrVPrintf(char* dest, size_t maxchars, const char* format, va_l
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Existing achievement/chat/link callers use MSVC's I64 spelling even when
+    // ordered formatting is disabled. Translate directive lengths, not literal
+    // text, to the host spelling for the original fixed-width argument type.
+    std::string nativeFormat;
+    if (!g_opt.orderedprintfenabled && strstr(format, "I64")) {
+        for (const char* curr = format; *curr;) {
+            char ch = *curr++;
+            nativeFormat += ch;
+            if (ch != '%' || !*curr) continue;
+            while (*curr && strchr(" #+-0.123456789*", *curr)) nativeFormat += *curr++;
+            if (curr[0] == 'I' && curr[1] == '6' && curr[2] == '4' &&
+                curr[3] && strchr("diouxX", curr[3])) {
+                nativeFormat += std::is_same<int64_t, long>::value ? "l" : "ll";
+                curr += 3;
+            }
+            if (*curr) nativeFormat += *curr++;
+        }
+        format = nativeFormat.c_str();
+    }
+#endif
+
     if (maxchars == STORM_MAX_STR) {
         if (g_opt.orderedprintfenabled) {
             return vsoprintf(dest, format, arglist);
@@ -609,7 +651,17 @@ static size_t ISStrVPrintf(char* dest, size_t maxchars, const char* format, va_l
     if (g_opt.orderedprintfenabled) {
         result = vsnoprintf(dest, maxchars, format, arglist);
     } else {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        int written = vsnprintf(dest, maxchars, format, arglist);
+        if (written < 0) {
+            dest[0] = 0;
+            SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
+            return 0;
+        }
+        result = static_cast<size_t>(written);
+#else
         result = _vsnprintf(dest, maxchars, format, arglist);
+#endif
     }
 
     if (result >= maxchars) {
@@ -630,7 +682,13 @@ size_t SStrPrintf(char* dest, size_t maxchars, const char* format, ...) {
 
     va_list arglist;
     va_start(arglist, format);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    size_t result = ISStrVPrintf(dest, maxchars, format, arglist);
+    va_end(arglist);
+    return result;
+#else
     return ISStrVPrintf(dest, maxchars, format, arglist);
+#endif
 }
 
 // VERIFY: 190c39be manual
@@ -641,7 +699,17 @@ size_t SStrVPrintf(char* dest, size_t maxchars, const char* format, va_list argl
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Preserve the original caller-owned list on array-based native va_list ABIs
+    // for both ordered and ordinary (bounded or unbounded) formatting.
+    va_list copy;
+    va_copy(copy, arglist);
+    size_t result = ISStrVPrintf(dest, maxchars, format, copy);
+    va_end(copy);
+    return result;
+#else
     return ISStrVPrintf(dest, maxchars, format, arglist);
+#endif
 }
 
 // VERIFY: 79f69ad9 manual
@@ -667,7 +735,15 @@ int32_t STORMAPI SStrToInt(const char* string) {
     }
 
     if (*string == '-') {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        // Original fixed-width two's-complement result, including INT32_MIN.
+        result = uint32_t(0) - result;
+        int32_t signedResult;
+        memcpy(&signedResult, &result, sizeof(result));
+        return signedResult;
+#else
         return -static_cast<int32_t>(result);
+#endif
     }
 
     return result;
@@ -886,13 +962,21 @@ uint32_t STORMAPI SStrHashHT(const char* string) {
 // VERIFY: 95c28b4a auto
 // OFFSET: 0x0076F6C0
 void STORMAPI SStrUpper(char* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    for (; *string; ++string) if (*string >= 'a' && *string <= 'z') *string -= 'a' - 'A';
+#else
     _strupr(string);
+#endif
 }
 
 // VERIFY: 760ebea0 auto
 // OFFSET: 0x0076F6E0
 void STORMAPI SStrLower(char* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    for (; *string; ++string) if (*string >= 'A' && *string <= 'Z') *string += 'a' - 'A';
+#else
     _strlwr(string);
+#endif
 }
 
 // VERIFY: d9e4e017 auto
@@ -1052,6 +1136,18 @@ int64_t STORMAPI SStrToInt64(const char* string) {
         string++;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Accumulate at the original integer width; no floating conversion or
+    // signed overflow for the minimum value. Retain modulo-2^64 semantics.
+    uint64_t bits = 0;
+    while (static_cast<unsigned>(*string - '0') < 10) {
+        bits = bits * 10 + static_cast<unsigned>(*string++ - '0');
+    }
+    if (negative) bits = uint64_t(0) - bits;
+    int64_t result;
+    memcpy(&result, &bits, sizeof(result));
+    return result;
+#else
     int64_t result = 0;
     uint32_t value = 0;
     const char* start = string;
@@ -1075,6 +1171,7 @@ int64_t STORMAPI SStrToInt64(const char* string) {
     }
 
     return negative ? -result : result;
+#endif
 }
 
 // INLINED: [0x0076FB9E->0x0076FBB6]

@@ -1,4 +1,4 @@
-# M3 Linux game integration — 2026-10-18
+# M3 Linux game integration — 2026-10-19
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client
@@ -232,6 +232,23 @@ No sockets or server session are implemented by it. Source inspection
 also identifies `WowConnectionNet`'s WSA event/worker dispatcher, in addition to
 the Os IOCP transport, as required networking work. The original login/gameplay
 gate and the external server revision discrepancy remain unchanged.
+
+The original-font PR #24 is merged as
+`5090a23e6fc46f572df301ac8f1a9a13b29c409b`. The subsequent
+[Storm string/cache prerequisite](LEGACY_STRINGS.md) in
+[PR #26](https://github.com/RovxBot/wowdecomp/pull/26) selects original string,
+option and ordered-format sources in the native core and exercises actual
+`TSHashTable` name ownership. Follow-up source review corrects variadic argument
+preflight, misplaced format lengths, caller-owned argument-list reuse and the
+original `I64` spelling in ordinary GUID/achievement formats. It is qualified at
+`2d946465e52d7ccfb43722d844d76a4fa4cd038b`; the [record](string-validation.json)
+retains all nine passing PR workflows, four native CPU configurations, 20 CTest
+checks per Linux GL configuration, the separate Windows merge-checkout identity
+and seven verified artifacts. Exact-source original-data GPU release/strict
+sanitizer regressions passed one/three cycles with empty stderr and zero workers;
+all four resource fixtures passed three cycles in both modes. These identities
+remain separate from the historical font and packet evidence above. This
+prerequisite does not connect legacy device dispatch or render the original login UI.
 
 Next dependencies, in order:
 
