@@ -26,7 +26,25 @@ class NativeGlGraphTests(unittest.TestCase):
                               for name in ['GlBuffers', 'GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']]
         target['sources'] += [{'path': path} for path in [
             'Engine/Source/Gx/CGxMatrixStack.cpp', 'Engine/Source/Tempest/C44Matrix.cpp',
-            'Engine/Source/Tempest/C33Matrix.cpp'] + ['Engine/Source/Gx/Portable/LegacyDevice.cpp', 'Engine/Source/Gx/Gx.cpp', 'Engine/Source/Gx/Buffer.cpp', 'Engine/Source/Gx/CGxDevice/CGxDevice.cpp', 'Engine/Source/Gx/CGxDevice/CGxShader.cpp', 'Engine/Source/Gx/CGxDevice/EmergencyMem.cpp', 'Engine/Source/Gx/CGxTex.cpp', 'Engine/Source/Gx/CGxTexFlags.cpp', 'Engine/Source/Gx/CGxPool.cpp', 'Engine/Source/Gx/CGxBuf.cpp', 'Engine/Source/Gx/CGxFormat.cpp', 'Engine/Source/Gx/CGxGammaRamp.cpp', 'Engine/Source/Tempest/CiRect.cpp', 'Engine/Source/Tempest/CRect.cpp', 'Engine/Source/Gx/CGxLight.cpp', 'Engine/Source/Tempest/C2Vector.cpp', 'Engine/Source/Tempest/C4Plane.cpp']]
+            'Engine/Source/Tempest/C33Matrix.cpp'] + [
+            'Engine/Source/Gx/Portable/LegacyDevice.cpp',
+            'Engine/Source/Gx/Gx.cpp',
+            'Engine/Source/Gx/Buffer.cpp',
+            'Engine/Source/Gx/CGxDevice/CGxDevice.cpp',
+            'Engine/Source/Gx/CGxDevice/CGxShader.cpp',
+            'Engine/Source/Gx/CGxDevice/EmergencyMem.cpp',
+            'Engine/Source/Gx/CGxTex.cpp',
+            'Engine/Source/Gx/CGxTexFlags.cpp',
+            'Engine/Source/Gx/CGxPool.cpp',
+            'Engine/Source/Gx/CGxBuf.cpp',
+            'Engine/Source/Gx/CGxFormat.cpp',
+            'Engine/Source/Gx/CGxGammaRamp.cpp',
+            'Engine/Source/Tempest/CiRect.cpp',
+            'Engine/Source/Tempest/CRect.cpp',
+            'Engine/Source/Gx/CGxLight.cpp',
+            'Engine/Source/Tempest/C2Vector.cpp',
+            'Engine/Source/Tempest/C4Plane.cpp',
+            ]]
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         legacy = copy.deepcopy(target)
         legacy['sources'].append({'path': 'Engine/Source/Gx/CGxDeviceOpenGL/CGxDeviceOpenGl.cpp'})

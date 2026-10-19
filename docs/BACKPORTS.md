@@ -332,6 +332,32 @@ and source inspection are different evidence levels.
   check unavailable. All compilation ran in Actions. Actual device/Gxu/login,
   transport and observed gameplay remain open.
 
+## NP-013 — Native legacy Gx UI dispatch
+
+- Status: implementation in [PR #27](https://github.com/RovxBot/wowdecomp/pull/27),
+  stacked on still-open PR #26; final qualification pending.
+- Source: product 12340 Storm-string handoff
+  `7f4ca29b95379505f07ae74f4834ff5f99ec0693`. Select the existing `Gx.cpp`,
+  `CGxDevice`, shader, texture/flags, pool/buffer, format/gamma/light and required
+  scalar Tempest sources in the native ABI. No donor implementation/address,
+  new dependency or new binary-verification claim is imported. Existing VERIFY
+  annotations describe historical Windows bodies, not guarded native adaptations.
+- Benefit/adaptation: concrete SDL-context-owned native UI device beneath actual
+  Gx dispatch, original render-state stack/cache and resource objects. Typed owner
+  markers preserve texture readiness without GLuint/pointer aliasing; callbacks
+  retain borrowed bytes through exactly one Unlock after completed Lock. Native
+  buffer retirement clears bindings before deletion; shader cache admission is
+  bounded and handles partial permutation reuse. Native-only state comparison,
+  scalar integer delivery and owner checks retain the original Windows paths.
+- Assets/defaults: unchanged `0x10003` UI shaders and original font bytes remain
+  behind authenticated original-key/registered-MD5 package reads on the retained
+  worker. No enhancement, credentials, server traffic or policy change. This is
+  a single-mip 2D/UI adapter, not original Gxu HFACE/layout/cache or login/world.
+- Validation: compilation only in Actions; local Python checks passed (34 passed,
+  one unavailable CMake check skipped). Three-cycle legacy dispatch/callback/PCT
+  fixtures, original-data GPU output and strict sanitizers require final recorded
+  qualification in [the contract](m3/LEGACY_DEVICE.md). M3 remains incomplete.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

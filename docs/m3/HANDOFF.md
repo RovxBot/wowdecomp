@@ -36,9 +36,10 @@ It preserves the native context implementation and its historical runtime
 identities. Its Windows console/guild-bank/vehicle/Lua observations remain open;
 it does not advance the original native login/network/world acceptance below.
 
-The initial target is `WowNativeGl` and the executable is `NativeGlCheck`.
-`linux-gl` and `linux-gl-asan` extend the M2 allowlist without linking legacy
-`CGxDevice`, WGL, D3D, game or optional vendor SDK objects. The existing Windows
+The initial target was `WowNativeGl` and the executable was `NativeGlCheck`.
+The later [legacy UI adapter](LEGACY_DEVICE.md) adds the allowlisted common
+`CGxDevice`/global Gx/resource sources and `LegacyGxCheck`; WGL, D3D, game and
+optional vendor SDK objects remain excluded. The existing Windows
 client and M2 software shell keep their existing source selection. SDL remains
 pinned to 3.2.28 with its existing archive hash and notices.
 
@@ -250,11 +251,20 @@ all four resource fixtures passed three cycles in both modes. These identities
 remain separate from the historical font and packet evidence above. This
 prerequisite does not connect legacy device dispatch or render the original login UI.
 
+The [legacy UI dispatch adapter](LEGACY_DEVICE.md) in
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on still-open PR #26,
+now connects actual common Gx state/cache/resource objects to the native owners.
+Final implementation qualification is pending. This bounded 2D/UI step does not
+export original Gxu HFACE/layout/cache or render the original login UI. Its
+single-mip/format/state limits remain explicit instead of advertising the full
+underlying native resource surface as a completed legacy adapter.
+
 Next dependencies, in order:
 
-1. Adapt the remaining Gx device, texture/buffer and state-cache services to the
-   native ABI/context boundary, using the qualified scalar transform/raster
-   contract; audit texture/texgen delivery and legacy async callers.
+1. Qualify the bounded concrete Gx UI adapter, then connect original Gxu
+   HFACE/font/string/atlas cache and batched rendering to its actual resource
+   objects. Extend remaining device/state/mip/texture contracts as their callers
+   require them; audit texture/texgen delivery and legacy async callers.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
 2. Extend unchanged 12340 `0x10003` shader coverage beyond UI; bring up original

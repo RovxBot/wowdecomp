@@ -694,3 +694,9 @@ int32_t CGxDevice::AdapterMonitorModes(TSGrowableArray<CGxMonitorMode> &) { retu
 int32_t CGxDevice::AdapterFormats(EGxApi, TSGrowableArray<CGxFormat> &) { return 0; }
 int32_t CGxDevice::DeviceAdapterID(uint16_t &, uint16_t &, uint32_t &, uint32_t &) { return 0; }
 int32_t CGxDevice::DeviceAdapterInfer(uint16_t &) { return 0; }
+
+// Native abstract draw-list key functions. The original declarations have no
+// definitions in the product tree; provide the empty interface destructors so
+// UBSan can retain vptr/typeinfo checks on the actual Gx consumer shutdown route.
+GxuDrawListItem::~GxuDrawListItem() = default;
+GxuDrawListState::~GxuDrawListState() = default;
