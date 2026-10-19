@@ -303,6 +303,27 @@ and source inspection are different evidence levels.
   were verified. Local Python checks: 32 passed, one CMake check unavailable.
   No local compilation or sockets/login/gameplay observation.
 
+
+## NP-012 — Native legacy Storm string prerequisites
+
+- Status: implementation pending hosted qualification; see
+  [contracts and caller limits](m3/LEGACY_STRINGS.md).
+- Source: product 12340 main `5090a23e6fc46f572df301ac8f1a9a13b29c409b`,
+  `Storm/Source/SStr.cpp`, `soprintf.cpp`, `SOption.cpp` and Gx/Gxu shader/font
+  hash/cache callers. No donor code, address or new VERIFY claim is imported.
+- Adaptation: explicit native core source selection, host-independent default
+  byte case rules, fixed-width decimal limits, bounded native printf and ordered
+  va-list handling. Keep original hash/UTF-8 algorithms and actual TSHashTable
+  allocation/key ownership; guard substantive adaptations with the native ABI.
+  Original Windows bodies remain selected in the full client.
+- Assets/defaults: no game data, enhancement, dependency or protocol/policy change.
+  Native ordered UTF-16 wide formats remain visibly unavailable pending an
+  encoding adapter; this is not the complete legacy device or original login UI.
+- Validation: extended existing core semantic checks cover original cache
+  growth/lookup/delete/teardown, ordered mixed types, 64-bit spelling, va-list
+  reuse, bounded truncation and invalid argument references. All compilation and
+  sanitizer checks run in Actions. Qualification remains pending.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

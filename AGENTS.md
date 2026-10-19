@@ -207,7 +207,8 @@ it does not turn a documentation request into authorization to start the whole p
   ABI, not socket dispatch or authentication. M3 remains incomplete; preserve the
   external server revision discrepancy and interactive user sign-in preference.
 - M3 original-font [PR #24](https://github.com/RovxBot/wowdecomp/pull/24) is
-  qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd`. Read
+  qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd`, merged as
+  `5090a23e6fc46f572df301ac8f1a9a13b29c409b`. Read
   [font contracts](docs/m3/FONTS.md), [validation](docs/m3/font-validation.json)
   and the [legacy Gx audit](docs/m3/LEGACY_GX.md). Nine PR workflows passed;
   Linux release/strict sanitizer configurations passed 20 CTest checks each.

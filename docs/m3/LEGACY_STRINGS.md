@@ -1,0 +1,52 @@
+# Native original Storm string prerequisites
+
+Source reference: product main `5090a23e6fc46f572df301ac8f1a9a13b29c409b`.
+This work selects original `Storm/Source/SStr.cpp`, `SOption.cpp` and
+`soprintf.cpp` into the native core to unblock the actual Gx/Gxu shader/font
+hashes, cache names and localized ordered text. It does not install a native
+CGxDevice or export the original login UI. M3 remains open.
+
+The existing 12340 string hashes, slash/case normalization, UTF-8 comparison
+rules, allocation and `TSHashTable<..., HASHKEY_STRI>` remain the caller contract.
+Byte case conversion/comparison uses the original default C-locale ASCII rules,
+independent of the host locale; it does not replace the engine's Unicode rules
+with a system locale or a new general Unicode library. Host `long` width does not
+change fixed-width decimal conversion. Native negative limits use unsigned
+arithmetic and explicit bit copies. Original Windows bodies remain selected
+outside `WOWDECOMP_PORTABLE_RUNTIME`; no donor address or VERIFY claim is added.
+
+The original ordered formatter retains up to 64 arguments/specifiers, explicit
+`%N$` ordering, repeated arguments, integer/pointer/double classes and literal
+`%%`. Native dispatch uses standard `va_copy`/`va_arg`/`va_end`, bounded C
+`snprintf`, and converts the original `I64` spelling to `ll` while passing the
+matching native `long long` type. Truncation returns bytes actually retained,
+always leaving room for the terminator. Regular bounded formatting uses host
+`vsnprintf` with the same retained-byte return convention.
+
+Native ordered formats reject argument indices outside 1..64, gaps, conflicting
+argument classes, overflowing numeric fields, excessive specifier lengths and
+unsupported conversions before fetching missing arguments. An invalid ordered
+format returns an empty string and sets the Storm invalid-parameter error.
+Ordered UTF-16 `%S`/`%C` are explicitly unavailable pending an encoding adapter;
+they are not reinterpreted using Linux's 32-bit `wchar_t`. Star width/precision,
+single-`l` and `%n` remain outside the original ordered dialect. Ordinary host
+wide-string formatting does not qualify original UTF-16 callers. The legacy
+unbounded string APIs still require caller-owned sufficient storage; this work
+is not a qualification of every original Storm API or every malformed UTF-8
+sequence. Global option changes belong to startup, before concurrent consumers.
+
+## Validation
+
+All compilation runs in Actions. `CoreServicesCheck` now exercises the original
+hash-table key allocation, growth, mixed-case lookups, deletion and cleanup for
+three cycles; original path/hash and UTF-8 cases; fixed-width integer limits;
+ordered mixed integer/string/double arguments, repeated 64-bit arguments,
+`va_list` reuse, exact bounded truncation and invalid formats with no arguments
+to fetch. Existing Linux, strict sanitizer, actual ARM64 macOS and Windows core
+jobs cover the native ABI; full Windows client compilation covers the separately
+selected legacy bodies. Hosted qualification is pending.
+
+No original game data, credentials, server requests or dependency downloads are
+added. The [legacy Gx audit](LEGACY_GX.md) remains the next integration boundary.
+Original font GPU evidence remains attached to PR #24's implementation and
+[server revision discrepancies](SERVER_IDENTITY.md) remain preserved.

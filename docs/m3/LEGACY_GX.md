@@ -58,3 +58,8 @@ world/material parity from UI pixels. [Packet prerequisites](PACKETS.md) are
 qualified separately; socket/DNS/worker dispatch, authentication and the observed
 GrimGuzzler session still remain. The user will sign in interactively, and the
 [external server revision discrepancy](SERVER_IDENTITY.md) remains unchanged.
+
+The next [legacy string prerequisites](LEGACY_STRINGS.md) select the original
+Storm hash/name/ordered-format code for the native ABI and exercise actual
+hash-cache allocation/lifetimes. Hosted qualification is pending; this does not
+change the device/async/login qualification boundary above.

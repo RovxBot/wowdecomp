@@ -14,6 +14,9 @@ add_library(WowCoreServices STATIC
     ../Storm/Portable/LogError.cpp
     ../Storm/Portable/SLock.cpp
     ../Storm/Source/StormRtl.cpp
+    ../Storm/Source/SOption.cpp
+    ../Storm/Source/SStr.cpp
+    ../Storm/Source/soprintf.cpp
     ../BlizzardCore/Portable/Core.cpp
     ../BlizzardCore/Portable/Thread.cpp
     ../BlizzardCore/Portable/Time.cpp
