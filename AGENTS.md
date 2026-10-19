@@ -194,6 +194,10 @@ it does not turn a documentation request into authorization to start the whole p
   glyph rasterization. Original font/login, device/cache/callback/async and
   networking/world work remain open. The user will sign in interactively when
   native login is ready. Preserve server revision discrepancies. M3 is incomplete.
+- M3 native packet prerequisites are being qualified separately. Read
+  [packet contracts](docs/m3/PACKETS.md) before extending transport. This adapts
+  original `CDataStore`, ARC4 and SHA1/HMAC in the native ABI, not socket dispatch
+  or authentication. Preserve the distinction from observed GrimGuzzler sessions.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

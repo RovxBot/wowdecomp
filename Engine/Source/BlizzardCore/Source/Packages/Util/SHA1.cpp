@@ -1,6 +1,10 @@
 #include <cstdint>
 #include <cstring>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <vector>
+#else
 #include <malloc.h>
+#endif
 #include "Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.h"
 
 // STATIC: 0x00A505D8
@@ -51,7 +55,13 @@ static inline void Round4(uint32_t a, uint32_t& b, uint32_t c, uint32_t d, uint3
 // VERIFY: 5a235895 manual
 // OFFSET: 0x006CA330
 void SHA1_Transform(uint32_t* state, uint8_t* buffer) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    uint32_t alignedBlock[16];
+    memcpy(alignedBlock, buffer, sizeof(alignedBlock));
+    uint32_t* block = alignedBlock;
+#else
     uint32_t* block = reinterpret_cast<uint32_t*>(buffer);
+#endif
 
     uint32_t a = state[0];
     uint32_t b = state[1];
@@ -163,7 +173,12 @@ uint8_t* SHA1_InterleaveHash(uint8_t* out, const uint8_t* in, uint32_t length) {
     }
 
     uint32_t half = length >> 1;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::vector<uint8_t> storage(half);
+    uint8_t* temp = storage.data();
+#else
     uint8_t* temp = static_cast<uint8_t*>(_alloca(half));
+#endif
 
     if (!temp) {
         return nullptr;
@@ -206,7 +221,11 @@ void Process(uint32_t* hash, const uint8_t* data) {
 
     for (int32_t i = 0; i < 16; ++i) {
         const uint8_t* b = data + i * 4;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        w[i] = (uint32_t(b[0]) << 24) | (uint32_t(b[1]) << 16) | (uint32_t(b[2]) << 8) | b[3];
+#else
         w[i] = (((((b[0] << 8) | b[1]) << 8) | b[2]) << 8) | b[3];
+#endif
     }
 
     for (int32_t i = 16; i < 80; ++i) {
@@ -275,6 +294,19 @@ void SHA1::Process(const void* _data, uint32_t length) {
     uint32_t index = (static_cast<uint32_t>(this->m_size) >> 3) & 0x3F;
     this->m_size += static_cast<uint64_t>(length) * 8;
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Preserve incremental hashing without forming a pointer before the input.
+    while (length) {
+        if (!index && length >= 64) {
+            ::Process(this->m_hash, data); data += 64; length -= 64;
+        } else {
+            uint32_t count = length < 64-index ? length : 64-index;
+            memcpy(this->m_data+index, data, count);
+            data += count; length -= count; index += count;
+            if (index == 64) { ::Process(this->m_hash, this->m_data); index = 0; }
+        }
+    }
+#else
     if (index) {
         length += index;
         data -= index;
@@ -299,6 +331,7 @@ void SHA1::Process(const void* _data, uint32_t length) {
     for (; index < length; ++index) {
         this->m_data[index] = data[index];
     }
+#endif
 }
 
 // VERIFY: 6e49fbc0 auto

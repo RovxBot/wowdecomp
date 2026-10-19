@@ -24,6 +24,19 @@ class BuildGraphTests(unittest.TestCase):
     def test_clean_core(self):
         self.assertEqual(audit(self.targets, 'core', 'LINUX', 'X86_64'), [])
 
+    def test_packet_subset_and_reject_wrong_provider(self):
+        targets=copy.deepcopy(self.targets)
+        for name,sources in [('WowNativePackets',['Engine/Source/Base/CDataStore.cpp',
+                'Engine/Source/Storm/Source/SArc4.cpp','Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.cpp']),
+                ('NativePacketCheck',['Tools/NativeNet/packets.cpp'])]:
+            target=copy.deepcopy(targets[0]);target['name']=name
+            target['sources']=[{'path':source} for source in sources]
+            target['compileGroups'][0]['defines'].append({'define':'WOWDECOMP_PORTABLE_RUNTIME=1'})
+            targets.append(target)
+        self.assertEqual(audit(targets,'packets','LINUX','X86_64'),[])
+        targets[-2]['sources'].append({'path':'WoW/Source/WowServices/Win64/WowConnection.cpp'})
+        self.assertTrue(audit(targets,'packets','LINUX','X86_64'))
+
     def test_reject_windows_leaks_and_wrong_identity(self):
         for source in ['Engine/Source/Os/Win64/Time.cpp', 'Engine/Source/Os/Win32/Time.cpp',
                        'waystone.rc', 'dependency.lib']:

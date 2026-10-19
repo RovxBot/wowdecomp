@@ -257,6 +257,22 @@ and source inspection are different evidence levels.
   all 30 ran hosted. Synthetic atlas pixels remain separate from original font
   rasterization/login UI and native server gameplay.
 
+## NP-011 — Native 12340 packet prerequisites
+
+- Status: implemented for hosted qualification; see [packet contracts](m3/PACKETS.md).
+- Source: product main `365016e226547f7f3867f419988ccdf6b3182f25`, 12340
+  `Base/CDataStore*`, `Storm/Source/SArc4.cpp`, BlizzardCore `Util/SHA1.cpp`
+  and existing WowServices HMAC callers. No donor body/address is imported.
+- Adaptation: native-only explicit little-endian/unaligned scalar operations,
+  bounded buffer ownership, original scalar ARC4, incremental SHA1 without
+  invalid input-pointer arithmetic and aligned digest compression scratch.
+  Original OFFSET/VERIFY comments do not qualify these native adaptations.
+- Assets/defaults: authored byte fixtures only; no data, credentials, protocol,
+  signature-policy, server-policy or optional-effect change.
+- Validation: 33 local Python checks discovered, 32 passed and one local CMake
+  check unavailable. All C++ compilation/semantic/sanitizer and full Windows
+  regression checks remain pending in Actions. No sockets/login/gameplay claim.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <cstring>
 #include "Engine/Source/Storm/H/storm.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Base/Portable/PacketValue.h"
+#endif
 
 class CDataStore {
     public:
@@ -117,14 +120,24 @@ void CDataStoreCache<size>::InternalDestroy(uint8_t*& data, uint32_t& base, uint
 // OFFSET: 0x008CD0B0
 template <uint32_t size>
 int32_t CDataStoreCache<size>::InternalFetchWrite(uint32_t pos, uint32_t bytes, uint8_t*& data, uint32_t& base, uint32_t& alloc, const char* fileName, int32_t lineNumber) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    uint32_t newAlloc = NativePacket::End(pos, bytes);
+#else
     uint32_t newAlloc = pos + bytes;
+#endif
 
     if (newAlloc <= alloc) {
         return 1;
     }
 
     if (data != this->m_cache) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        auto replacement = static_cast<uint8_t*>(CDataStore::ReAlloc(data, newAlloc, fileName, lineNumber));
+        if (!replacement && newAlloc) throw std::bad_alloc();
+        data = replacement;
+#else
         data = static_cast<uint8_t*>(CDataStore::ReAlloc(data, newAlloc, fileName, lineNumber));
+#endif
         alloc = newAlloc;
         return 1;
     }
@@ -137,8 +150,14 @@ int32_t CDataStoreCache<size>::InternalFetchWrite(uint32_t pos, uint32_t bytes, 
         newData = nullptr;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!newData && newAlloc) throw std::bad_alloc();
+    if (pos && alloc) memcpy(newData, this->m_cache, pos < alloc ? pos : alloc);
+    data = newData;
+#else
     data = newData;
     memcpy(newData, this->m_cache, pos < alloc ? pos : alloc);
+#endif
     alloc = newAlloc;
 
     return 1;
