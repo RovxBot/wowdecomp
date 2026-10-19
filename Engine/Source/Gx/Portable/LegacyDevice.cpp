@@ -117,6 +117,9 @@ LegacyDevice::LegacyDevice(GlContext &context, ShaderBytes shaders) {
     try {
         DeviceCreatePools();
         DeviceCreateStreamBufs();
+        // Original Gxu renders directly to the drawable before selecting an FBO.
+        // Publish its pixel extent to the native transform owner at installation.
+        state->targets.Bind();
     } catch (...) {
         while (auto *pool = m_poolList.Head())
             PoolDestroy(pool);
