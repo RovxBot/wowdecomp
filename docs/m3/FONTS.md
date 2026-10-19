@@ -86,3 +86,7 @@ font-stream extraction (`ftstream.c:350`, negative left shift) in
 Native extraction now scales signed high bytes by multiplication and explicitly
 converts unsigned 32-bit words before widening to host `long`. Focused checks
 retain signed big/little-endian values, unsigned high-bit words and 24-bit offsets.
+Implementation `6948a3802102878b4163f18135080ec8643e5bb3` then reached the valid
+empty short-metrics array in `sfnt/ttload.c:744`, in
+[run 39178927442](https://github.com/RovxBot/wowdecomp/actions/runs/39178927442).
+Native table loading skips that absent array and rejects truncated long metrics.

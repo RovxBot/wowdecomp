@@ -18,6 +18,8 @@ For the native 12340 font preview, changes guarded by
 - `include/freetype/internal/ftstream.h`: defined signed big/little-endian
   extraction; keep unsigned 32-bit words at disk width on LP64 and retain the
   full width of little-endian getter results.
+- `src/sfnt/ttload.c`: reject incomplete long metrics and skip an absent short
+  metrics array when all glyphs already have long metrics.
 
 The Windows paths retain their original expressions and callback selection.
 The native target's separate module list selects TrueType/SFNT and grayscale/

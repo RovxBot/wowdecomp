@@ -703,6 +703,15 @@
       shorts    = (TT_ShortMetrics**)&face->horizontal.short_metrics;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* A metrics table needs at least one complete long metric. */
+    if ( !num_longs || table_len < (FT_ULong)num_longs * 4 )
+    {
+      error = vertical ? TT_Err_Invalid_Vert_Metrics : TT_Err_Invalid_Horiz_Metrics;
+      goto Exit;
+    }
+#endif
+
     /* never trust derived values */
 
     num_shorts         = face->max_profile.numGlyphs - num_longs;
@@ -739,6 +748,10 @@
     }
 
     /* do we have an inconsistent number of metric values? */
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* A valid table can encode every glyph with a long metric. */
+    if ( num_shorts )
+#endif
     {
       TT_ShortMetrics*  cur   = *shorts;
       TT_ShortMetrics*  limit = cur + MIN( num_shorts, num_shorts_checked );
