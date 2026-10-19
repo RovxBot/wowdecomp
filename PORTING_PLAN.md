@@ -346,6 +346,9 @@ is separate from original font rasterization and login UI. M3 remains open.
    lifetimes, callback threads/order, framing, partial reads/writes, cancellation,
    error reporting and disconnect/reconnect behavior. Leave 12340 packet formats,
    authentication and serialization semantics intact.
+   The client also uses `WowConnectionNet`'s WSA event/worker dispatcher, which
+   must be adapted alongside Os IOCP. The [native packet prerequisite target](docs/m3/PACKETS.md)
+   is qualified separately in PR #25; it does not establish transport or login.
 4. Complete login, character selection, world entry and movement against the same
    server used for M0. Test zoning/teleports, combat, chat, inventory and logout.
 

@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstring>
+#include <new>
 #include "Engine/Source/Base/CDataStore.h"
 #include "Engine/Source/Storm/H/storm.h"
 
@@ -16,6 +17,10 @@ CDataStore::CDataStore() {
 // VERIFY: 4e5e5344 auto
 // OFFSET: 0x004669A0
 CDataStore::CDataStore(uint8_t* data, uint32_t size) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::End(0, size);
+    if (!data && size) throw std::invalid_argument("Null borrowed packet buffer");
+#endif
     this->m_data = data;
     this->m_base = 0;
     this->m_alloc = -1;
@@ -26,9 +31,20 @@ CDataStore::CDataStore(uint8_t* data, uint32_t size) {
 // VERIFY: 750f93c6 manual
 // OFFSET: 0x00401070
 int32_t CDataStore::FetchWrite(uint32_t pos, uint32_t bytes, const char* fileName, int32_t lineNumber) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::End(pos, bytes);
+    if (pos < this->m_base) throw std::out_of_range("Packet write precedes resident buffer");
+    if (this->m_alloc == uint32_t(-1)) {
+        if (pos > this->m_size || bytes > this->m_size-pos)
+            throw std::out_of_range("Cannot grow a borrowed packet buffer");
+        return 1;
+    }
+    if (pos-this->m_base <= this->m_alloc && bytes <= this->m_alloc-(pos-this->m_base)) return 1;
+#else
     if (pos >= this->m_base && pos + bytes <= this->m_base + this->m_alloc) {
         return 1;
     }
+#endif
 
     return this->InternalFetchWrite(pos, bytes, this->m_data, this->m_base, this->m_alloc, fileName, lineNumber) ? 1 : 0;
 }
@@ -121,14 +137,24 @@ void CDataStore::InternalDestroy(uint8_t*& data, uint32_t& base, uint32_t& alloc
 // VERIFY: 6fabe025 manual
 // OFFSET: 0x0047AEA0
 int32_t CDataStore::InternalFetchWrite(uint32_t pos, uint32_t bytes, uint8_t*& data, uint32_t& base, uint32_t& alloc, const char* fileName, int32_t lineNumber) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    uint32_t newAlloc = (NativePacket::End(pos, bytes) + 255) & ~255u;
+#else
     alloc = (pos + bytes + 255) & ~255;
+#endif
 
     if (!fileName) {
         fileName = __FILE__;
         lineNumber = __LINE__;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    auto replacement = static_cast<uint8_t*>(SMemReAlloc(data, newAlloc, fileName, lineNumber, 0));
+    if (!replacement && newAlloc) throw std::bad_alloc();
+    data = replacement; alloc = newAlloc;
+#else
     data = static_cast<uint8_t*>(SMemReAlloc(data, alloc, fileName, lineNumber, 0));
+#endif
 
     return 1;
 }
@@ -146,7 +172,11 @@ CDataStore& CDataStore::Set(uint32_t pos, uint8_t val) {
 // OFFSET: 0x0047AF40
 CDataStore& CDataStore::Set(uint32_t pos, uint16_t val) {
     this->FetchWrite(pos, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[pos - this->m_base], val);
+#else
     *reinterpret_cast<uint16_t*>(&this->m_data[pos - this->m_base]) = val;
+#endif
 
     return *this;
 }
@@ -155,7 +185,11 @@ CDataStore& CDataStore::Set(uint32_t pos, uint16_t val) {
 // OFFSET: 0x0047AF90
 CDataStore& CDataStore::Set(uint32_t pos, uint32_t val) {
     this->FetchWrite(pos, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[pos - this->m_base], val);
+#else
     *reinterpret_cast<uint32_t*>(&this->m_data[pos - this->m_base]) = val;
+#endif
 
     return *this;
 }
@@ -174,7 +208,11 @@ CDataStore& CDataStore::Put(uint8_t val) {
 // OFFSET: 0x0047B040
 CDataStore& CDataStore::Put(uint16_t val) {
     this->FetchWrite(this->m_size, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[this->m_size - this->m_base], val);
+#else
     *reinterpret_cast<uint16_t*>(&this->m_data[this->m_size - this->m_base]) = val;
+#endif
     this->m_size += sizeof(val);
 
     return *this;
@@ -184,7 +222,11 @@ CDataStore& CDataStore::Put(uint16_t val) {
 // OFFSET: 0x0047B0A0
 CDataStore& CDataStore::Put(uint32_t val) {
     this->FetchWrite(this->m_size, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[this->m_size - this->m_base], val);
+#else
     *reinterpret_cast<uint32_t*>(&this->m_data[this->m_size - this->m_base]) = val;
+#endif
     this->m_size += sizeof(val);
 
     return *this;
@@ -194,7 +236,11 @@ CDataStore& CDataStore::Put(uint32_t val) {
 // OFFSET: 0x0047B100
 CDataStore& CDataStore::Put(uint64_t val) {
     this->FetchWrite(this->m_size, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[this->m_size - this->m_base], val);
+#else
     *reinterpret_cast<uint64_t*>(&this->m_data[this->m_size - this->m_base]) = val;
+#endif
     this->m_size += sizeof(val);
 
     return *this;
@@ -204,7 +250,11 @@ CDataStore& CDataStore::Put(uint64_t val) {
 // OFFSET: 0x0047B160
 CDataStore& CDataStore::Put(float val) {
     this->FetchWrite(this->m_size, sizeof(val), nullptr, 0);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    NativePacket::Store(&this->m_data[this->m_size - this->m_base], val);
+#else
     *reinterpret_cast<float*>(&this->m_data[this->m_size - this->m_base]) = val;
+#endif
     this->m_size += sizeof(val);
 
     return *this;
@@ -221,6 +271,20 @@ CDataStore& CDataStore::PutArray(const uint8_t* pval, uint32_t count) {
         return *this;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!count) return *this;
+    uint32_t end = NativePacket::End(this->m_size, count);
+    uintptr_t source = reinterpret_cast<uintptr_t>(pval), start = reinterpret_cast<uintptr_t>(this->m_data);
+    bool own = this->m_data && source >= start && source-start < this->m_size-this->m_base;
+    uint32_t offset = own ? static_cast<uint32_t>(source-start) : 0;
+    if (own && count > this->m_size-this->m_base-offset)
+        throw std::out_of_range("Packet append source exceeds existing bytes");
+    this->FetchWrite(this->m_size, count, nullptr, 0);
+    if (own) pval = this->m_data+offset;
+    std::memmove(this->m_data+this->m_size-this->m_base, pval, count);
+    this->m_size = end;
+    return *this;
+#else
     this->FetchWrite(this->m_size, count, nullptr, 0);
 
     while (count) {
@@ -243,6 +307,7 @@ CDataStore& CDataStore::PutArray(const uint8_t* pval, uint32_t count) {
     }
 
     return *this;
+#endif
 }
 
 // VERIFY: ebebf2be manual
@@ -254,12 +319,21 @@ CDataStore& CDataStore::PutData(const void* data, uint32_t bytes) {
 // VERIFY: cef12e51 manual
 // OFFSET: 0x0047B290
 int32_t CDataStore::FetchRead(uint32_t pos, uint32_t bytes) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (pos > this->m_size || bytes > this->m_size-pos) {
+#else
     if (pos + bytes > this->m_size) {
+#endif
         this->m_read = this->m_size + 1;
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (pos >= this->m_base && (this->m_alloc == uint32_t(-1) ||
+        (pos-this->m_base <= this->m_alloc && bytes <= this->m_alloc-(pos-this->m_base)))) {
+#else
     if (pos >= this->m_base && pos + bytes <= this->m_base + this->m_alloc) {
+#endif
         return 1;
     }
 
@@ -275,7 +349,13 @@ int32_t CDataStore::FetchRead(uint32_t pos, uint32_t bytes) {
 // OFFSET: 0x0047B300
 CDataStore& CDataStore::PutString(const char* string) {
     if (string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        size_t length = std::strlen(string);
+        if (length >= UINT32_MAX-255u) throw std::length_error("Packet string exceeds 32-bit range");
+        this->PutArray(reinterpret_cast<const uint8_t*>(string), static_cast<uint32_t>(length)+1);
+#else
         this->PutArray(reinterpret_cast<const uint8_t*>(string), static_cast<uint32_t>(SStrLen(string)) + 1);
+#endif
     } else {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
     }
@@ -298,7 +378,11 @@ CDataStore& CDataStore::Get(uint8_t& val) {
 // OFFSET: 0x0047B380
 CDataStore& CDataStore::Get(uint16_t& val) {
     if (this->FetchRead(this->m_read, sizeof(val))) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        val = NativePacket::Load<uint16_t>(&this->m_data[this->m_read - this->m_base]);
+#else
         val = *reinterpret_cast<uint16_t*>(&this->m_data[this->m_read - this->m_base]);
+#endif
         this->m_read += sizeof(val);
     }
 
@@ -309,7 +393,11 @@ CDataStore& CDataStore::Get(uint16_t& val) {
 // OFFSET: 0x0047B3C0
 CDataStore& CDataStore::Get(uint32_t& val) {
     if (this->FetchRead(this->m_read, sizeof(val))) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        val = NativePacket::Load<uint32_t>(&this->m_data[this->m_read - this->m_base]);
+#else
         val = *reinterpret_cast<uint32_t*>(&this->m_data[this->m_read - this->m_base]);
+#endif
         this->m_read += sizeof(val);
     }
 
@@ -320,7 +408,11 @@ CDataStore& CDataStore::Get(uint32_t& val) {
 // OFFSET: 0x0047B400
 CDataStore& CDataStore::Get(uint64_t& val) {
     if (this->FetchRead(this->m_read, sizeof(val))) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        val = NativePacket::Load<uint64_t>(&this->m_data[this->m_read - this->m_base]);
+#else
         val = *reinterpret_cast<uint64_t*>(&this->m_data[this->m_read - this->m_base]);
+#endif
         this->m_read += sizeof(val);
     }
 
@@ -331,7 +423,11 @@ CDataStore& CDataStore::Get(uint64_t& val) {
 // OFFSET: 0x0047B440
 CDataStore& CDataStore::Get(float& val) {
     if (this->FetchRead(this->m_read, sizeof(val))) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        val = NativePacket::Load<float>(&this->m_data[this->m_read - this->m_base]);
+#else
         val = *reinterpret_cast<float*>(&this->m_data[this->m_read - this->m_base]);
+#endif
         this->m_read += sizeof(val);
     }
 
@@ -438,6 +534,15 @@ CDataStore& CDataStore::GetArray(uint32_t* pval, uint32_t count) {
         return *this;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (count > UINT32_MAX/sizeof(uint32_t)) {
+        this->m_read = this->m_size+1; return *this;
+    }
+    while (count-- && this->FetchRead(this->m_read, sizeof(uint32_t))) {
+        *pval++ = NativePacket::Load<uint32_t>(this->m_data+this->m_read-this->m_base);
+        this->m_read += sizeof(uint32_t);
+    }
+#else
     if (this->m_read <= this->m_size) {
         uint32_t remaining = count * sizeof(uint32_t);
 
@@ -461,6 +566,7 @@ CDataStore& CDataStore::GetArray(uint32_t* pval, uint32_t count) {
             remaining -= bytes;
         }
     }
+#endif
 
     return *this;
 }
@@ -477,7 +583,11 @@ CDataStore& CDataStore::GetDataInSitu(void*& data, uint32_t bytes) {
     data = nullptr;
 
     if (this->FetchRead(this->m_read, bytes)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        data = this->m_data ? this->m_data+this->m_read-this->m_base : nullptr;
+#else
         data = &this->m_data[this->m_read - this->m_base];
+#endif
         this->m_read += bytes;
     }
 

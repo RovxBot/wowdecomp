@@ -205,6 +205,19 @@ The atlas fixture is synthetic; legacy texture callbacks/cache and original
 font/login rendering remain open. The user will sign in interactively when
 native authentication becomes available.
 
+The [packet prerequisite package](PACKETS.md) prepares original `CDataStore`,
+ARC4 and SHA1/HMAC code for native transport integration, with explicit unaligned
+wire accesses and bounded native ownership. It is qualified at
+`6d1a9c209410d42f4351e71645c44edbe891cfb2` in
+[PR #25](https://github.com/RovxBot/wowdecomp/pull/25). Its
+[record](packet-validation.json) retains nine passing PR workflows, five CTest
+checks/three packet cycles in each of four native configurations, verified ARM64
+macOS identity and separate full Windows compilation/artifact identity.
+No sockets or server session are implemented by it. Source inspection
+also identifies `WowConnectionNet`'s WSA event/worker dispatcher, in addition to
+the Os IOCP transport, as required networking work. The original login/gameplay
+gate and the external server revision discrepancy remain unchanged.
+
 Next dependencies, in order:
 
 1. Adapt the remaining Gx device, texture/buffer and state-cache services to the
