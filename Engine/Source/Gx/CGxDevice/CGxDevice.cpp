@@ -1982,10 +1982,19 @@ void CGxDevice::RsSet(EGxRenderState which, int32_t value) {
 
     CGxAppRenderState& state = this->m_appRenderStates[which];
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Scalar state remains an int32 value on LP64; pointer states use their
+    // separate overload. Keep the remaining cache words initialized.
+    if (state.m_value.m_data.i[0] != value) {
+        this->IRsDirty(which);
+        state.m_value.m_data.i[0] = value;
+    }
+#else
     if (state.m_value.m_data.p != reinterpret_cast<void*>(static_cast<intptr_t>(value))) {
         this->IRsDirty(which);
         state.m_value.m_data.p = reinterpret_cast<void*>(static_cast<intptr_t>(value));
     }
+#endif
 }
 
 // INLINED

@@ -68,12 +68,17 @@ LegacyDevice::LegacyDevice(GlContext& context, ShaderBytes shaders) {
     for (uint32_t i = GxTex_Abgr8888; i <= GxTex_Rgb565; ++i) m_caps.m_texFmt[i] = 1;
     m_caps.m_rttFormat[GxTex_Argb8888] = 1;
     for (uint32_t i = 0; i < GxRenderStates_Last; ++i) state->defaults[i] = m_appRenderStates[i].m_value;
-    DeviceCreatePools(); DeviceCreateStreamBufs();
+    IRsForceUpdate();
+    try { DeviceCreatePools(); DeviceCreateStreamBufs(); }
+    catch (...) {
+        while (auto* pool=m_poolList.Head()) PoolDestroy(pool);
+        m_vertexPool=m_indexPool=nullptr;
+        throw;
+    }
     m_context = 1;
     m_windowVisible = m_windowFocus = 1;
     // Publish last: CGxTexFlags requires a fully initialized capability owner.
     g_theGxDevicePtr = this;
-    IRsForceUpdate();
 }
 LegacyDevice::~LegacyDevice() {
     Check();
@@ -161,14 +166,22 @@ int32_t LegacyDevice::TexCreate(EGxTexTarget target, uint32_t width, uint32_t he
     auto resource = state->targets.Create({uint32_t(target), width, height, Format(format),
         bool(flags.m_renderTarget), 1, bool(flags.m_renderTarget)});
     auto tex = std::make_unique<CGxTex>(target,width,height,depth,format,dataFormat,flags,user,callback,name);
-    state->textures.emplace(tex.get(), State::Texture{std::move(resource)});
+    auto inserted=state->textures.emplace(tex.get(), State::Texture{std::move(resource)});
+    // Stable typed owner address satisfies legacy readiness without aliasing a
+    // GLuint through a pointer field. Native storage remains in the owner map.
+    tex->m_apiSpecificData=&inserted.first->second;
+    tex->m_lastUsedFrame=0; tex->unused_0054=0;
+    tex->m_char58=tex->m_char59=0; tex->m_pad=0;
     m_textures.LinkToHead(tex.get()); out = tex.release(); return 1;
 }
 void LegacyDevice::ITexMarkAsUpdated(CGxTex* tex) {
     Check();
     auto& item = state->textures.at(tex);
     if (item.callback) throw std::logic_error("Reentrant legacy texture callback");
-    if (tex->m_flags.m_filter > GxTex_Linear || tex->m_flags.m_maxAnisotropy != 1)
+    const auto& flags=tex->m_flags;
+    if (flags.m_filter > GxTex_Linear || flags.m_maxAnisotropy != 1 || flags.m_generateMipMaps ||
+        flags.m_forceMipTracking || flags.m_bit8 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 || flags.m_bit31 ||
+        bool(flags.m_renderTarget) != item.resource.Spec().renderable)
         throw std::invalid_argument("Unavailable legacy native sampler flags");
     state->targets.Sampling(item.resource, {tex->m_flags.m_filter,tex->m_flags.m_wrapU,tex->m_flags.m_wrapV,1});
     if (tex->m_needsUpdate && !tex->m_flags.m_renderTarget) {
@@ -214,16 +227,20 @@ void LegacyDevice::TexDestroy(CGxTex* tex) {
     for (auto& target : m_textureTarget) if (target.m_texture == tex) {
         DeviceSetRenderTarget(GxBuffers_Color,nullptr,0); break;
     }
-    if (m_appRenderStates[GxRs_Texture0].m_value.m_data.p == tex || m_hwRenderStates[GxRs_Texture0].m_data.p == tex) {
-        state->targets.Sample(0); RsSet(GxRs_Texture0,nullptr);
-        m_hwRenderStates[GxRs_Texture0].m_data.p = nullptr;
+    for (uint32_t unit=GxRs_Texture0;unit<=GxRs_Texture15;++unit) {
+        if (m_appRenderStates[unit].m_value.m_data.p==tex || m_hwRenderStates[unit].m_data.p==tex) {
+            if (unit==GxRs_Texture0) state->targets.Sample(0);
+            RsSet(static_cast<EGxRenderState>(unit),nullptr);
+            m_hwRenderStates[unit].m_data.p=nullptr;
+        }
     }
+    if (m_cursorTexture==tex) m_cursorTexture=nullptr;
     for (uint32_t i=0;i<m_pushedStates.Count();++i) {
         auto& pushed=m_pushedStates[i];
         if (pushed.m_which >= GxRs_Texture0 && pushed.m_which <= GxRs_Texture15 && pushed.m_value.m_data.p == tex)
             pushed.m_value.m_data.p = nullptr;
     }
-    state->textures.erase(tex); CGxDevice::TexDestroy(tex);
+    tex->m_apiSpecificData=nullptr; state->textures.erase(tex); CGxDevice::TexDestroy(tex);
 }
 void LegacyDevice::DeviceSetRenderTarget(EGxBuffer buffer, CGxTex* tex, uint32_t plane) {
     Check();
@@ -241,20 +258,26 @@ void LegacyDevice::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
     std::vector<std::string> keys;
     for (uint32_t i=0;i<count;++i) keys.push_back(member+":"+std::to_string(count)+":"+std::to_string(i));
     auto& list=m_shaderList[target];
-    if (list.Ptr(keys[0].c_str())) {
-        for (uint32_t i=0;i<count;++i) { out[i]=list.Ptr(keys[i].c_str()); ++out[i]->m_refCount; }
-        return;
+    bool missing=false;
+    for (auto& key:keys) missing |= !list.Ptr(key.c_str());
+    std::vector<std::unique_ptr<GlProgram>> programs(count);
+    ShaderPackage package;
+    if (missing) {
+        if (!state->shaderBytes) throw std::logic_error("Authenticated shader provider unavailable");
+        package=DecodeShaderPackage(state->shaderBytes(member),count);
+        // Decode/compile missing permutations before publishing any cache entry.
+        for (uint32_t i=0;i<count;++i) if (!list.Ptr(keys[i].c_str()))
+            programs[i]=std::make_unique<GlProgram>(state->context,
+                target == GxSh_Vertex ? ShaderStage::Vertex : ShaderStage::Fragment,package.permutations[i]);
     }
-    if (!state->shaderBytes) throw std::logic_error("Authenticated shader provider unavailable");
-    auto package=DecodeShaderPackage(state->shaderBytes(member),count);
-    // Decode/compile all permutations before publishing cache entries.
-    std::vector<std::unique_ptr<GlProgram>> programs;
-    for (auto& record:package.permutations) programs.push_back(std::make_unique<GlProgram>(state->context,
-        target == GxSh_Vertex ? ShaderStage::Vertex : ShaderStage::Fragment,record));
+    std::vector<CGxShader*> created;
+    created.reserve(count);
     try {
         for (uint32_t i=0;i<count;++i) {
-            auto* shader=list.New(keys[i].c_str(),0,0); out[i]=shader;
-            shader->m_refCount=1; shader->m_target=target;
+            auto* shader=list.Ptr(keys[i].c_str());
+            if (shader) continue;
+            shader=list.New(keys[i].c_str(),0,0); created.push_back(shader);
+            shader->m_target=target;
             const auto& record=package.permutations[i];
             shader->m_code.SetCount(uint32_t(record.code.size()));
             std::memcpy(shader->m_code.Ptr(),record.code.data(),record.code.size());
@@ -264,8 +287,11 @@ void LegacyDevice::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
             shader->m_valid=shader->m_loaded=1;
         }
     } catch (...) {
-        for(uint32_t i=0;i<count;++i) if(out[i]) { state->programs.erase(out[i]); list.Delete(out[i]); out[i]=nullptr; }
+        for (auto* shader:created) { state->programs.erase(shader); list.Delete(shader); }
         throw;
+    }
+    for (uint32_t i=0;i<count;++i) {
+        out[i]=list.Ptr(keys[i].c_str()); ++out[i]->m_refCount;
     }
 }
 void LegacyDevice::ShaderDestroy(CGxShader*& shader) {
@@ -341,17 +367,21 @@ void LegacyDevice::Sync() {
     auto* tex=static_cast<CGxTex*>(m_appRenderStates[GxRs_Texture0].m_value.m_data.p);
     if(tex) ITexMarkAsUpdated(tex);
     s.targets.Sample(0,tex?s.textures.at(tex).resource:GlTexture{});
+    auto submitted=[&](CGxBuf* buf) -> GlBuffer& {
+        if (!buf || !buf->m_hasData) throw std::logic_error("Legacy batch buffer has no published data");
+        return Buffer(buf);
+    };
     std::vector<GlVertexBinding> attributes;
     if(m_primVertexFormat<GxVertexBufferFormats_Last) {
         auto& desc=Buffer::s_vertexBufDesc[m_primVertexFormat];
-        for(uint32_t i=0;i<desc.attribCount;++i) { auto& a=desc.attribs[i]; attributes.push_back({Buffer(m_primVertexBuf),uint32_t(a.m_attrib),a.m_type,a.m_offset,a.m_bufSize}); }
+        for(uint32_t i=0;i<desc.attribCount;++i) { auto& a=desc.attribs[i]; attributes.push_back({submitted(m_primVertexBuf),uint32_t(a.m_attrib),a.m_type,a.m_offset,a.m_bufSize}); }
     } else {
         for(uint32_t i=0;i<GxVAs_Last;++i) if((m_primVertexMask&(1u<<i)) && m_primVertexFormatBuf[i]) {
-            auto& a=m_primVertexFormatAttrib[i]; attributes.push_back({Buffer(m_primVertexFormatBuf[i]),i,a.m_type,a.m_offset,a.m_bufSize});
+            auto& a=m_primVertexFormatAttrib[i]; attributes.push_back({submitted(m_primVertexFormatBuf[i]),i,a.m_type,a.m_offset,a.m_bufSize});
         }
     }
     s.buffers.VertexFormat(attributes.data(),attributes.size());
-    s.buffers.IndexBuffer(m_primIndexBuf?Buffer(m_primIndexBuf):GlBuffer{});
+    s.buffers.IndexBuffer(m_primIndexBuf?submitted(m_primIndexBuf):GlBuffer{});
 }
 void LegacyDevice::Draw(CGxBatch* batches,int32_t count) {
     Check(); if(count<0 || (count && !batches)) throw std::invalid_argument("Invalid legacy batch list");

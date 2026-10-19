@@ -12,6 +12,9 @@ add_library(WowNativeGl STATIC
     ../Gx/CGxBuf.cpp
     ../Gx/CGxFormat.cpp
     ../Gx/CGxGammaRamp.cpp
+    ../Gx/CGxLight.cpp
+    ../Tempest/C2Vector.cpp
+    ../Tempest/C4Plane.cpp
     ../Tempest/CiRect.cpp
     ../Tempest/CRect.cpp
     ../Gx/Portable/GlContext.cpp
