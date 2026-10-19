@@ -348,6 +348,10 @@ void LegacyStrings() {
     enabled = 0; CHECK(StormSetOption(STORM_OPTION_ORDERED_PRINTF_ENABLED, &enabled, sizeof(enabled)));
     ReusePublicFormatArguments(128, "%s:%d:%.1f", "shader", 23, 0.5);
     ReusePublicFormatArguments(STORM_MAX_STR, "%s:%d:%.1f", "shader", 23, 0.5);
+    CHECK(SStrPrintf(output, sizeof(output), "%016I64X:%I64d", uint64_t(0x123456789ABCDEF0), INT64_MIN) == 37);
+    CHECK(!std::strcmp(output, "123456789ABCDEF0:-9223372036854775808"));
+    CHECK(SStrPrintf(output, STORM_MAX_STR, "I64 literal/%%I64u/%I64u/%.3s", UINT64_MAX, "shader") == 42);
+    CHECK(!std::strcmp(output, "I64 literal/%I64u/18446744073709551615/sha"));
     CHECK(SStrPrintf(guard.data, sizeof(guard.data), "%s", "abcdef") == 4);
     CHECK(!std::strcmp(guard.data, "abcd") && guard.before == 'L' && guard.after == 'R');
     std::puts("Legacy Storm names, hash-cache ownership and bounded native formatting checks passed.");

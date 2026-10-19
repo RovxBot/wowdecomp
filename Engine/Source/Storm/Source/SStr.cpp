@@ -6,6 +6,10 @@
 #include <cstring>
 #include "SOption.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <string>
+#include <type_traits>
+#endif
 
 // WOWDECOMP_PORTABLE_RUNTIME branches adapt the native ABI. Historical VERIFY
 // annotations describe the separately selected original Windows bodies.
@@ -611,6 +615,28 @@ static size_t ISStrVPrintf(char* dest, size_t maxchars, const char* format, va_l
     if (!maxchars) {
         return 0;
     }
+
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Existing achievement/chat/link callers use MSVC's I64 spelling even when
+    // ordered formatting is disabled. Translate directive lengths, not literal
+    // text, to the host spelling for the original fixed-width argument type.
+    std::string nativeFormat;
+    if (!g_opt.orderedprintfenabled && strstr(format, "I64")) {
+        for (const char* curr = format; *curr;) {
+            char ch = *curr++;
+            nativeFormat += ch;
+            if (ch != '%' || !*curr) continue;
+            while (*curr && strchr(" #+-0.123456789*", *curr)) nativeFormat += *curr++;
+            if (curr[0] == 'I' && curr[1] == '6' && curr[2] == '4' &&
+                curr[3] && strchr("diouxX", curr[3])) {
+                nativeFormat += std::is_same<int64_t, long>::value ? "l" : "ll";
+                curr += 3;
+            }
+            if (*curr) nativeFormat += *curr++;
+        }
+        format = nativeFormat.c_str();
+    }
+#endif
 
     if (maxchars == STORM_MAX_STR) {
         if (g_opt.orderedprintfenabled) {

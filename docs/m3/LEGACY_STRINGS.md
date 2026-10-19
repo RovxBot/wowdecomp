@@ -21,7 +21,11 @@ The original ordered formatter retains up to 64 arguments/specifiers, explicit
 `snprintf`, and converts the original `I64` spelling to `ll` while passing the
 matching native `long long` type. Truncation returns bytes actually retained,
 always leaving room for the terminator. Regular bounded formatting uses host
-`vsnprintf` with the same retained-byte return convention.
+`vsnprintf` with the same retained-byte return convention. In ordinary bounded
+and unbounded formats, original `I64` integer directive lengths map to the host
+length for `int64_t` (LP64 `long` or LLP64 `long long`); literal `I64` text and
+escaped percent signs are preserved. This covers existing achievement and GUID
+link/chat callers without enabling global ordered formatting.
 
 Native ordered formats reject argument indices outside 1..64, gaps, conflicting
 argument classes, overflowing numeric fields, excessive specifier lengths and
@@ -57,6 +61,9 @@ argument slot was rejected only after earlier variadic fetches, and misplaced
 ordering markers could drop a length modifier while formatting. Native parsing
 and full argument preflight now reject those cases; focused hosted fixtures also
 cover truncated modifiers, invalid grammar and ordinary public `va_list` reuse.
+Caller review also found original `I64` achievement/GUID formats in ordinary
+mode; native directive translation and signed/unsigned high-bit fixtures retain
+their fixed-width values without changing the default global option.
 These changes need fresh hosted qualification; the earlier pass does not qualify
 the corrected source. Local Python checks passed (32 passed, one unavailable
 CMake check skipped); no client or dependency compiled locally.
