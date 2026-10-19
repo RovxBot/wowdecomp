@@ -11,13 +11,38 @@ add_library(WowNativeGl STATIC
     ../Tempest/C33Matrix.cpp
 )
 target_link_libraries(WowNativeGl PUBLIC WowNativeWindow)
+
+# Bundled product FreeType in the native ABI; keep the Windows freetype target
+# separately selected. Sources/version remain product-pinned, no system lookup.
+add_library(WowNativeFonts STATIC
+    ../Gxu/Portable/FontFace.cpp
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftsystem.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftinit.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftdebug.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/base/ftbase.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/raster/raster.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/sfnt/sfnt.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/smooth/smooth.c
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src/truetype/truetype.c
+ )
+target_include_directories(WowNativeFonts PRIVATE
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Gxu/Portable/FreeTypeConfig
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include
+    ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src)
+target_link_libraries(WowNativeFonts PUBLIC WowCoreServices)
+
 add_executable(NativeGlCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/main.cpp)
-target_link_libraries(NativeGlCheck PRIVATE WowNativeGl)
+target_link_libraries(NativeGlCheck PRIVATE WowNativeGl WowNativeFonts)
 if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(WowNativeGl PRIVATE -g1)
     target_compile_options(NativeGlCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_executable(NativeFontsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts.cpp)
+    target_link_libraries(NativeFontsCheck PRIVATE WowNativeFonts)
+    target_include_directories(NativeFontsCheck PRIVATE ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include)
+    add_test(NAME native-original-font-raster COMMAND NativeFontsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/tiny.ttf)
+    set_tests_properties(native-original-font-raster PROPERTIES TIMEOUT 30)
     add_executable(GlTexturesCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/textures.cpp)
     target_link_libraries(GlTexturesCheck PRIVATE WowNativeGl)
     if(WOWDECOMP_CORE_SANITIZERS)

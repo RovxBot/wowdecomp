@@ -368,14 +368,25 @@
     FT_Outline*  current = &loader->current.outline;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* Rewind also adjusts an empty loader, before these arrays exist. */
+    current->points   = base->points   ? base->points   + base->n_points : 0;
+    current->tags     = base->tags     ? base->tags     + base->n_points : 0;
+    current->contours = base->contours ? base->contours + base->n_contours : 0;
+#else
     current->points   = base->points   + base->n_points;
     current->tags     = base->tags     + base->n_points;
     current->contours = base->contours + base->n_contours;
+#endif
 
     /* handle extra points table - if any */
     if ( loader->use_extra )
       loader->current.extra_points =
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        loader->base.extra_points ? loader->base.extra_points + base->n_points : 0;
+#else
         loader->base.extra_points + base->n_points;
+#endif
   }
 
 
@@ -404,7 +415,11 @@
     FT_GlyphLoad* current = &loader->current;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    current->subglyphs = base->subglyphs ? base->subglyphs + base->num_subglyphs : 0;
+#else
     current->subglyphs = base->subglyphs + base->num_subglyphs;
+#endif
   }
 
 
@@ -976,6 +991,14 @@
   }
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+  static void wow_native_destroy_size( FT_Memory memory, void* size, void* driver )
+  { destroy_size( memory, (FT_Size)size, (FT_Driver)driver ); }
+#define WOW_FT_DESTROY_SIZE wow_native_destroy_size
+#else
+#define WOW_FT_DESTROY_SIZE destroy_size
+#endif
+
   /* destructor for faces list */
   static
   void  destroy_face( FT_Memory  memory,
@@ -996,7 +1019,7 @@
 
     /* Discard all sizes for this face */
     FT_List_Finalize( &face->sizes_list,
-                     (FT_List_Destructor)destroy_size,
+                     (FT_List_Destructor)WOW_FT_DESTROY_SIZE,
                      memory,
                      driver );
     face->size = 0;
@@ -1020,11 +1043,19 @@
   }
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+  static void wow_native_destroy_face( FT_Memory memory, void* face, void* driver )
+  { destroy_face( memory, (FT_Face)face, (FT_Driver)driver ); }
+#define WOW_FT_DESTROY_FACE wow_native_destroy_face
+#else
+#define WOW_FT_DESTROY_FACE destroy_face
+#endif
+
   static
   void  Destroy_Driver( FT_Driver  driver )
   {
     FT_List_Finalize( &driver->faces_list,
-                      (FT_List_Destructor)destroy_face,
+                      (FT_List_Destructor)WOW_FT_DESTROY_FACE,
                       driver->root.memory,
                       driver );
 
@@ -1240,7 +1271,14 @@
             goto Success;
 
           if ( error != FT_Err_Unknown_File_Format )
+          {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            /* open_face already destroyed its rejected face; this stream is
+               still owned here, including malformed-memory-font failures. */
+            ft_done_stream( &stream, external_stream );
+#endif
             goto Fail;
+          }
         }
       }
 

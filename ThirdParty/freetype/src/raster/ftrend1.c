@@ -213,6 +213,15 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+  /* Native ABI: invoke derived implementation through a correctly typed call. */
+  static FT_Error wow_native_ft_raster1_init( FT_Module module )
+  { return ft_raster1_init( (FT_Renderer)module ); }
+#define WOW_FT_RASTER_INIT wow_native_ft_raster1_init
+#else
+#define WOW_FT_RASTER_INIT ft_raster1_init
+#endif
+
   FT_CALLBACK_TABLE_DEF
   const FT_Renderer_Class  ft_raster1_renderer_class =
   {
@@ -226,7 +235,7 @@
 
       0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_raster1_init,
+      (FT_Module_Constructor)WOW_FT_RASTER_INIT,
       (FT_Module_Destructor) 0,
       (FT_Module_Requester)  0
     },
@@ -259,7 +268,7 @@
 
       0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_raster1_init,
+      (FT_Module_Constructor)WOW_FT_RASTER_INIT,
       (FT_Module_Destructor) 0,
       (FT_Module_Requester)  0
     },

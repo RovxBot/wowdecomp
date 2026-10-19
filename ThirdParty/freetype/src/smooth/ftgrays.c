@@ -180,19 +180,25 @@
 #define PIXEL_BITS  8
 
 #define ONE_PIXEL       ( 1L << PIXEL_BITS )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define PIXEL_MASK      ( ~( ONE_PIXEL - 1 ) )
+#define WOW_FT_SCALE( x, bits ) ( (x) * ( 1L << (bits) ) )
+#else
 #define PIXEL_MASK      ( -1L << PIXEL_BITS )
+#define WOW_FT_SCALE( x, bits ) ( (x) << (bits) )
+#endif
 #define TRUNC( x )      ( (x) >> PIXEL_BITS )
-#define SUBPIXELS( x )  ( (x) << PIXEL_BITS )
+#define SUBPIXELS( x )  WOW_FT_SCALE( x, PIXEL_BITS )
 #define FLOOR( x )      ( (x) & -ONE_PIXEL )
 #define CEILING( x )    ( ( (x) + ONE_PIXEL - 1 ) & -ONE_PIXEL )
 #define ROUND( x )      ( ( (x) + ONE_PIXEL / 2 ) & -ONE_PIXEL )
 
 #if PIXEL_BITS >= 6
-#define UPSCALE( x )    ( (x) << ( PIXEL_BITS - 6 ) )
+#define UPSCALE( x )    WOW_FT_SCALE( x, PIXEL_BITS - 6 )
 #define DOWNSCALE( x )  ( (x) >> ( PIXEL_BITS - 6 ) )
 #else
 #define UPSCALE( x )    ( (x) >> ( 6 - PIXEL_BITS ) )
-#define DOWNSCALE( x )  ( (x) << ( 6 - PIXEL_BITS ) )
+#define DOWNSCALE( x )  WOW_FT_SCALE( x, 6 - PIXEL_BITS )
 #endif
 
   /* Define this if you want to use a more compact storage scheme.  This   */
@@ -713,10 +719,10 @@
     FT_Vector*  arc;
 
 
-    dx = DOWNSCALE( ras.x ) + to->x - ( control->x << 1 );
+    dx = DOWNSCALE( ras.x ) + to->x - WOW_FT_SCALE( control->x, 1 );
     if ( dx < 0 )
       dx = -dx;
-    dy = DOWNSCALE( ras.y ) + to->y - ( control->y << 1 );
+    dy = DOWNSCALE( ras.y ) + to->y - WOW_FT_SCALE( control->y, 1 );
     if ( dy < 0 )
       dy = -dy;
     if ( dx < dy )
@@ -849,10 +855,10 @@
     FT_Vector*  arc;
 
 
-    dx = DOWNSCALE( ras.x ) + to->x - ( control1->x << 1 );
+    dx = DOWNSCALE( ras.x ) + to->x - WOW_FT_SCALE( control1->x, 1 );
     if ( dx < 0 )
       dx = -dx;
-    dy = DOWNSCALE( ras.y ) + to->y - ( control1->y << 1 );
+    dy = DOWNSCALE( ras.y ) + to->y - WOW_FT_SCALE( control1->y, 1 );
     if ( dy < 0 )
       dy = -dy;
     if ( dx < dy )
@@ -961,7 +967,7 @@
   /* a macro comparing two cell pointers.  Returns true if a <= b. */
 #if 1
 
-#define PACK( a )          ( ( (long)(a)->y << 16 ) + (a)->x )
+#define PACK( a )          ( WOW_FT_SCALE( (long)(a)->y, 16 ) + (a)->x )
 #define LESS_THAN( a, b )  ( PACK( a ) < PACK( b ) )
 
 #else /* 1 */
@@ -1491,7 +1497,7 @@
                              void*                    user )
   {
 #undef SCALED
-#define SCALED( x )  ( ( (x) << shift ) - delta )
+#define SCALED( x )  ( WOW_FT_SCALE( x, shift ) - delta )
 
     FT_Vector   v_last;
     FT_Vector   v_control;
@@ -1695,16 +1701,31 @@
   } TBand;
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME) && !defined(_STANDALONE_)
+  /* The public outline callback ABI uses void*, not FT_Raster. */
+  static int wow_native_Move_To( FT_Vector* to, void* user )
+  { return Move_To( to, (FT_Raster)user ); }
+  static int wow_native_Line_To( FT_Vector* to, void* user )
+  { return Line_To( to, (FT_Raster)user ); }
+  static int wow_native_Conic_To( FT_Vector* control, FT_Vector* to, void* user )
+  { return Conic_To( control, to, (FT_Raster)user ); }
+  static int wow_native_Cubic_To( FT_Vector* a, FT_Vector* b, FT_Vector* to, void* user )
+  { return Cubic_To( a, b, to, (FT_Raster)user ); }
+#define WOW_FT_OUTLINE_CB(name) wow_native_ ## name
+#else
+#define WOW_FT_OUTLINE_CB(name) name
+#endif
+
   static
   int  grays_convert_glyph( RAS_ARG_ FT_Outline*  outline )
   {
     static
     const FT_Outline_Funcs  interface =
     {
-      (FT_Outline_MoveTo_Func) Move_To,
-      (FT_Outline_LineTo_Func) Line_To,
-      (FT_Outline_ConicTo_Func)Conic_To,
-      (FT_Outline_CubicTo_Func)Cubic_To,
+      (FT_Outline_MoveTo_Func) WOW_FT_OUTLINE_CB(Move_To),
+      (FT_Outline_LineTo_Func) WOW_FT_OUTLINE_CB(Line_To),
+      (FT_Outline_ConicTo_Func)WOW_FT_OUTLINE_CB(Conic_To),
+      (FT_Outline_CubicTo_Func)WOW_FT_OUTLINE_CB(Cubic_To),
       0,
       0
     };
@@ -1831,6 +1852,11 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME) && !defined(_STANDALONE_)
+  static void wow_native_grays_render_span( int y, int count, FT_Span* spans, void* user )
+  { grays_render_span( y, count, spans, (PRaster)user ); }
+#endif
+
   extern
   int  grays_raster_render( PRaster            raster,
                             FT_Raster_Params*  params )
@@ -1869,7 +1895,11 @@
     if ( target_map )
       ras.target = *target_map;
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME) && !defined(_STANDALONE_)
+    ras.render_span      = wow_native_grays_render_span;
+#else
     ras.render_span      = (FT_Raster_Span_Func)grays_render_span;
+#endif
     ras.render_span_data = &ras;
 
     if ( params->flags & ft_raster_flag_direct )
@@ -1958,14 +1988,26 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME) && !defined(_STANDALONE_)
+  static int wow_native_grays_new( void* memory, FT_Raster* output )
+  { return grays_raster_new( (FT_Memory)memory, output ); }
+  static void wow_native_grays_reset( FT_Raster raster, unsigned char* pool, unsigned long size )
+  { grays_raster_reset( raster, (const char*)pool, (long)size ); }
+  static int wow_native_grays_render( FT_Raster raster, FT_Raster_Params* params )
+  { return grays_raster_render( (PRaster)raster, params ); }
+#define WOW_FT_GRAYS_CB(name) wow_native_grays_ ## name
+#else
+#define WOW_FT_GRAYS_CB(name) grays_raster_ ## name
+#endif
+
   const FT_Raster_Funcs  ft_grays_raster =
   {
     ft_glyph_format_outline,
 
-    (FT_Raster_New_Func)     grays_raster_new,
-    (FT_Raster_Reset_Func)   grays_raster_reset,
+    (FT_Raster_New_Func)     WOW_FT_GRAYS_CB(new),
+    (FT_Raster_Reset_Func)   WOW_FT_GRAYS_CB(reset),
     (FT_Raster_Set_Mode_Func)0,
-    (FT_Raster_Render_Func)  grays_raster_render,
+    (FT_Raster_Render_Func)  WOW_FT_GRAYS_CB(render),
     (FT_Raster_Done_Func)    grays_raster_done
   };
 

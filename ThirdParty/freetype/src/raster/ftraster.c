@@ -361,7 +361,12 @@
 #define CEILING( x )  ( ( (x) + ras.precision - 1 ) & -ras.precision )
 #define TRUNC( x )    ( (signed long)(x) >> ras.precision_bits )
 #define FRAC( x )     ( (x) & ( ras.precision - 1 ) )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+/* Native signed coordinates can be negative; multiplication preserves scale. */
+#define SCALED( x )   ( (x) * ( 1L << ras.scale_shift ) - ras.precision_half )
+#else
 #define SCALED( x )   ( ( (x) << ras.scale_shift ) - ras.precision_half )
+#endif
 
   /* Note that I have moved the location of some fields in the */
   /* structure to ensure that the most used variables are used */
@@ -3279,14 +3284,35 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME) && !defined(_STANDALONE_)
+  static int wow_native_black_new( void* memory, FT_Raster* output )
+  {
+    TRaster_Instance* raster = 0;
+    int error = ft_black_new( (FT_Memory)memory, &raster );
+    *output = (FT_Raster)raster;
+    return error;
+  }
+  static void wow_native_black_reset( FT_Raster raster, unsigned char* pool, unsigned long size )
+  { ft_black_reset( (TRaster_Instance*)raster, (const char*)pool, (long)size ); }
+  static int wow_native_black_set_mode( FT_Raster raster, unsigned long mode, void* palette )
+  { ft_black_set_mode( (TRaster_Instance*)raster, mode, (const char*)palette ); return 0; }
+  static int wow_native_black_render( FT_Raster raster, FT_Raster_Params* params )
+  { return ft_black_render( (TRaster_Instance*)raster, params ); }
+  static void wow_native_black_done( FT_Raster raster )
+  { ft_black_done( (TRaster_Instance*)raster ); }
+#define WOW_FT_BLACK_CB(name) wow_native_black_ ## name
+#else
+#define WOW_FT_BLACK_CB(name) ft_black_ ## name
+#endif
+
   const FT_Raster_Funcs  ft_standard_raster =
   {
     ft_glyph_format_outline,
-    (FT_Raster_New_Func)     ft_black_new,
-    (FT_Raster_Reset_Func)   ft_black_reset,
-    (FT_Raster_Set_Mode_Func)ft_black_set_mode,
-    (FT_Raster_Render_Func)  ft_black_render,
-    (FT_Raster_Done_Func)    ft_black_done
+    (FT_Raster_New_Func)     WOW_FT_BLACK_CB(new),
+    (FT_Raster_Reset_Func)   WOW_FT_BLACK_CB(reset),
+    (FT_Raster_Set_Mode_Func)WOW_FT_BLACK_CB(set_mode),
+    (FT_Raster_Render_Func)  WOW_FT_BLACK_CB(render),
+    (FT_Raster_Done_Func)    WOW_FT_BLACK_CB(done)
   };
 
 

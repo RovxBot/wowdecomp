@@ -181,7 +181,8 @@ it does not turn a documentation request into authorization to start the whole p
   or gameplay. No new physical-input/server acceptance is recorded; preserve the
   external tag/embedded-revision distinction. M3 remains open.
 - M3 texture [PR #23](https://github.com/RovxBot/wowdecomp/pull/23) selected
-  implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` is qualified.
+  implementation `8e4fcde51d7962411d27c462655ad677f95aa23c` is merged as
+  `365016e226547f7f3867f419988ccdf6b3182f25`.
   Read [texture contracts](docs/m3/TEXTURES.md) and
   [validation](docs/m3/texture-validation.json). All eight PR workflows passed;
   both Linux GL configurations passed 19 CTest checks, and full Windows x64
@@ -205,6 +206,21 @@ it does not turn a documentation request into authorization to start the whole p
   were verified. This adapts original `CDataStore`, ARC4 and SHA1/HMAC in the native
   ABI, not socket dispatch or authentication. M3 remains incomplete; preserve the
   external server revision discrepancy and interactive user sign-in preference.
+- M3 original-font [PR #24](https://github.com/RovxBot/wowdecomp/pull/24) is
+  qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd`. Read
+  [font contracts](docs/m3/FONTS.md), [validation](docs/m3/font-validation.json)
+  and the [legacy Gx audit](docs/m3/LEGACY_GX.md). Nine PR workflows passed;
+  Linux release/strict sanitizer configurations passed 20 CTest checks each.
+  Full Windows x64 compilation used separate merge checkout
+  `528822b509acfb57869cb65591edea824ddd09e9`. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak checks passed one/three
+  original Friz Quadrata font/UI-shader cycles and three cycles of each resource
+  fixture, with empty stderr and zero workers. Native-only bundled FreeType
+  callback/scaling/empty-array/stream cleanup corrections retain prior failures
+  and the original Windows paths. An authored font program covers size-time
+  interpreter execution even with unhinted glyphs. Original HFACE/Gxu layout/cache,
+  global legacy device/async integration, actual login, networking and gameplay
+  remain open. No new operator acceptance/server session; M3 is incomplete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

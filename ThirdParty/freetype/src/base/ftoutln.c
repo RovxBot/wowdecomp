@@ -49,7 +49,11 @@
                                void*                    user )
   {
 #undef SCALED
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define SCALED( x )  ( (x) * ( 1L << shift ) - delta )
+#else
 #define SCALED( x )  ( ( (x) << shift ) - delta )
+#endif
 
     FT_Vector   v_last;
     FT_Vector   v_control;

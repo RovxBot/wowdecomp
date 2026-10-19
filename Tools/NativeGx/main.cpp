@@ -4,6 +4,7 @@
 #include "Engine/Source/Gx/Portable/GlRenderTargets.h"
 #include "Engine/Source/Gx/Portable/GlTransforms.h"
 #include "Engine/Source/Gx/Portable/GlBuffers.h"
+#include "Engine/Source/Gxu/Portable/FontFace.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
@@ -111,12 +112,18 @@ struct Probe {
     std::unique_ptr<Gx::Native::GlProgram> vertex, fragment;
     Gx::Native::GlRenderTargets targets;
     Gx::Native::GlTransforms transforms;
-    Gx::Native::GlBuffers buffers;
+    Gx::Native::GlBuffers buffers, fontBuffers;
     Gx::Native::GlBuffer quadVertices, quadIndices;
     Gx::Native::GlTarget target;
     Gx::Native::GlTexture texture;
+    struct FontVertex { float x, y, z; uint8_t color[4]; float u, v; };
+    static_assert(sizeof(FontVertex) == 24, "Original font PCT vertex size");
+    std::vector<FontVertex> fontPixels;
+    Gx::Native::GlTexture fontAtlas;
+    Gx::Native::GlBuffer fontGeometry;
+    int fontSampleX = -1, fontSampleY = -1;
     bool originalUi = false;
-    explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets), buffers(owner) {
+    explicit Probe(GlContext &owner) : context(owner), targets(owner), transforms(owner, targets), buffers(owner), fontBuffers(owner) {
         quadVertices = buffers.Create({GxPoolTarget_Vertex, GxPoolUsage_Stream, 24, 4});
         quadIndices = buffers.Create({GxPoolTarget_Index, GxPoolUsage_Static, 2, 6});
         const uint16_t indices[] = {0, 1, 2, 0, 2, 3};
@@ -191,6 +198,77 @@ struct Probe {
         write.Commit();
         buffers.Draw(GxPrim_Triangles, 0, 6, true);
     }
+    void Font(Bytes bytes) {
+        Gxu::Native::FontFace face(std::move(bytes));
+        const std::string text = "World of Warcraft 3.3.5a - Native Linux";
+        std::vector<uint16_t> atlas(256 * 256);
+        uint32_t atlasX = 1, atlasY = 1, rowHeight = 0;
+        float pen = 16;
+        for (size_t i = 0; i < text.size(); ++i) {
+            auto glyph = face.Raster(static_cast<uint8_t>(text[i]), 24);
+            if (glyph.width && glyph.height) {
+                if (atlasX + glyph.width + 1 > 256) { atlasX = 1; atlasY += rowHeight + 1; rowHeight = 0; }
+                Require(atlasY + glyph.height + 1 <= 256, "Original font sample atlas exhausted");
+                for (uint32_t y = 0; y < glyph.height; ++y) for (uint32_t x = 0; x < glyph.width; ++x) {
+                    auto coverage = glyph.coverage[size_t(y) * glyph.width + x];
+                    // Original TEXTURECACHE::PasteGlyphNonOutlinedAA nibble encoding.
+                    atlas[(atlasY + y) * 256 + atlasX + x] = uint16_t((coverage << 8) | 0xFFF);
+                    if (fontSampleX < 0 && coverage >= 240) {
+                        fontSampleX = int(pen) + glyph.bearing + int(x);
+                        fontSampleY = 40 - glyph.top + int(y);
+                    }
+                }
+                float x0 = pen + glyph.bearing, y0 = 40 - glyph.top;
+                float x1 = x0 + glyph.width, y1 = y0 + glyph.height;
+                float u0 = atlasX / 256.0f, u1 = (atlasX + glyph.width) / 256.0f;
+                float v0 = atlasY / 256.0f, v1 = (atlasY + glyph.height) / 256.0f;
+                const FontVertex quad[] = {
+                    {x0,y0,0,{255,255,255,255},u0,v0}, {x1,y0,0,{255,255,255,255},u1,v0},
+                    {x1,y1,0,{255,255,255,255},u1,v1}, {x0,y0,0,{255,255,255,255},u0,v0},
+                    {x1,y1,0,{255,255,255,255},u1,v1}, {x0,y1,0,{255,255,255,255},u0,v1}};
+                fontPixels.insert(fontPixels.end(), std::begin(quad), std::end(quad));
+                atlasX += glyph.width + 1;
+                rowHeight = std::max(rowHeight, glyph.height);
+            }
+            pen += i + 1 < text.size() ? face.Step(static_cast<uint8_t>(text[i]), static_cast<uint8_t>(text[i + 1]), 24) : glyph.advance;
+        }
+        Require(!fontPixels.empty() && fontSampleX >= 0, "Original font sample has no opaque glyph pixels");
+        fontAtlas = targets.Create({GxTex_2d, 256, 256, Gx::Native::GlTargetFormat::Rgba4, false, 1, false});
+        targets.Upload(fontAtlas, {0,0,0,0,256,256}, GxTex_Argb4444, atlas.data(), atlas.size() * sizeof(uint16_t), 512);
+        fontGeometry = fontBuffers.Create({GxPoolTarget_Vertex, GxPoolUsage_Stream, sizeof(FontVertex), uint32_t(fontPixels.size())});
+        const Gx::Native::GlVertexBinding fields[] = {{fontGeometry,0,4,0,sizeof(FontVertex)},
+            {fontGeometry,4,0,12,sizeof(FontVertex)}, {fontGeometry,6,3,16,sizeof(FontVertex)}};
+        fontBuffers.VertexFormat(fields, std::size(fields));
+        auto checkTarget = targets.Create({GxTex_2d,512,64});
+        targets.Bind({checkTarget});
+        ClearColor(0,0,0,1); Clear(GL_COLOR_BUFFER_BIT);
+        DrawFont(512,64);
+        std::array<uint8_t,4> pixel{};
+        // Original offscreen projection flips Y: top-down sample pixels map
+        // directly to FBO readback rows here, as in original UI pixel fixtures.
+        ReadPixels(fontSampleX,fontSampleY,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel.data());
+        Require(pixel[0] >= 254 && pixel[1] >= 254 && pixel[2] >= 254, "Original font/UI shader glyph pixel mismatch");
+        Check("Original font/UI shader pixel readback");
+        targets.Bind();
+        std::cout << "original-font-family=" << face.Family() << '\n'
+                  << "original-font-raster-argb4444-buffered-ui-shader-pixel=passed\n";
+    }
+    void DrawFont(int width, int height) {
+        transforms.Sync();
+        auto constants = transforms.UiConstants();
+        for (uint32_t i = 0; i < 4; ++i) {
+            float value[4]; std::copy(constants[i].begin(), constants[i].end(), value);
+            vertex->Constant(i, value);
+        }
+        vertex->Bind(); fragment->Bind();
+        Enable(GL_VERTEX_PROGRAM_ARB); Enable(GL_FRAGMENT_PROGRAM_ARB);
+        Disable(GL_DEPTH_TEST); Disable(GL_CULL_FACE); Enable(GL_BLEND); BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        targets.Sample(0,fontAtlas);
+        auto vertices = fontPixels;
+        for (auto& v : vertices) { v.x = 2 * v.x / width - 1; v.y = 1 - 2 * v.y / height; }
+        fontBuffers.Upload(fontGeometry,vertices.data(),uint32_t(vertices.size() * sizeof(FontVertex)));
+        fontBuffers.Draw(GxPrim_Triangles,0,uint32_t(vertices.size()));
+    }
     void Draw(int width, int height, bool synthetic) {
         auto view = targets.View();
         Require(view.width == width && view.height == height, "Draw extent differs from bound target");
@@ -222,7 +300,8 @@ struct Probe {
         // failed.
         if (synthetic)
             Quad(0.5f, 0.5f);
-        Check("ARB textured depth/blend draw");
+        if (!fontPixels.empty()) DrawFont(width, height);
+        Check("ARB textured depth/blend/font draw");
     }
     void Initialize() {
         vertex = std::make_unique<Gx::Native::GlProgram>(context, Gx::Native::ShaderStage::Vertex, Record(
@@ -300,6 +379,8 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
             "Cannot configure separate read-only data and user roots");
     Blizzard::Assets::Image image{};
     Gx::Native::ShaderPackage vertexShaders, fragmentShaders;
+    Bytes fontBytes;
+    bool fontSigned = false;
     bool vertexSigned = false, fragmentSigned = false;
     size_t signatures = 0;
     std::string failure;
@@ -317,6 +398,9 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
             auto fs = packages->Read("Shaders\\Pixel\\arbfp1\\UI.bls", 64 * 1024 * 1024);
             vertexSigned = vs.signedFile;
             fragmentSigned = fs.signedFile;
+            auto font = packages->Read("Fonts\\FRIZQT__.TTF", 32 * 1024 * 1024);
+            fontSigned = font.signedFile;
+            fontBytes = std::move(font.bytes);
             vertexShaders = Gx::Native::DecodeShaderPackage(vs.bytes, 2);
             fragmentShaders = Gx::Native::DecodeShaderPackage(fs.bytes, 1);
             return Services::Native::ReadResult{};
@@ -362,6 +446,8 @@ void OriginalImage(const Options &options, GlContext &context, Probe &probe) {
     probe.transforms.Set(GxXform_View, C44Matrix());
     std::cout << "original-ui-shader-transformed-fbo-pixel=passed\n";
     probe.targets.Bind();
+    probe.Font(std::move(fontBytes));
+    std::cout << "original-font=Fonts/FRIZQT__.TTF registered-md5=" << fontSigned << '\n';
     probe.Image(probe.texture, image);
     std::cout << "original-ui-shaders=0x10003 vertex-permutations=2 fragment-permutations=1"
               << " vertex-md5=" << vertexSigned << " fragment-md5=" << fragmentSigned << '\n'

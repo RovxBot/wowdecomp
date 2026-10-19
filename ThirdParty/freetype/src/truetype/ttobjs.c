@@ -63,6 +63,16 @@
 
 #ifdef TT_CONFIG_OPTION_BYTECODE_INTERPRETER
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+  /* TT_Interpreter accepts void*, while TT_RunIns takes TT_ExecContext.
+   * Calling through a cast between those function types is undefined. */
+  static FT_Error
+  wow_native_tt_run_ins( void*  context )
+  {
+    return TT_RunIns( (TT_ExecContext)context );
+  }
+#endif
+
   /*************************************************************************/
   /*                                                                       */
   /*                       GLYPH ZONE FUNCTIONS                            */
@@ -374,7 +384,11 @@
       face->interpreter = (TT_Interpreter)
                             library->debug_hooks[FT_DEBUG_HOOK_TRUETYPE];
       if ( !face->interpreter )
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        face->interpreter = wow_native_tt_run_ins;
+#else
         face->interpreter = (TT_Interpreter)TT_RunIns;
+#endif
     }
 
     /* Fine, now execute the font program! */

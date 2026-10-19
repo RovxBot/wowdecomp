@@ -189,6 +189,15 @@
   }
 
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+  /* Native ABI: invoke derived implementation through a correctly typed call. */
+  static FT_Error wow_native_ft_smooth_init( FT_Module module )
+  { return ft_smooth_init( (FT_Renderer)module ); }
+#define WOW_FT_SMOOTH_INIT wow_native_ft_smooth_init
+#else
+#define WOW_FT_SMOOTH_INIT ft_smooth_init
+#endif
+
   FT_CALLBACK_TABLE_DEF
   const FT_Renderer_Class  ft_smooth_renderer_class =
   {
@@ -202,7 +211,7 @@
 
       0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_smooth_init,
+      (FT_Module_Constructor)WOW_FT_SMOOTH_INIT,
       (FT_Module_Destructor) 0,
       (FT_Module_Requester)  0
     },

@@ -44,6 +44,13 @@
 #undef  FT_COMPONENT
 #define FT_COMPONENT  trace_ttgload
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+/* A reflected composite can carry a negative F2Dot14 transform coefficient. */
+#define WOW_TT_F2DOT14() ( (FT_Fixed)GET_Short() * 4 )
+#else
+#define WOW_TT_F2DOT14() ( (FT_Fixed)GET_Short() << 2 )
+#endif
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -188,10 +195,18 @@
   {
     zone->n_points   = load->outline.n_points - start_point;
     zone->n_contours = load->outline.n_contours - start_contour;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* Unhinted loads need no extra points; empty glyph arrays can be absent. */
+    zone->org        = load->extra_points ? load->extra_points + start_point : 0;
+    zone->cur        = load->outline.points ? load->outline.points + start_point : 0;
+    zone->tags       = load->outline.tags ? (FT_Byte*)load->outline.tags + start_point : 0;
+    zone->contours   = load->outline.contours ? (FT_UShort*)load->outline.contours + start_contour : 0;
+#else
     zone->org        = load->extra_points + start_point;
     zone->cur        = load->outline.points + start_point;
     zone->tags       = (FT_Byte*)load->outline.tags + start_point;
     zone->contours   = (FT_UShort*)load->outline.contours + start_contour;
+#endif
   }
 
 
@@ -469,20 +484,20 @@
 
       if ( subglyph->flags & WE_HAVE_A_SCALE )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
         yy = xx;
       }
       else if ( subglyph->flags & WE_HAVE_AN_XY_SCALE )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
-        yy = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
+        yy = WOW_TT_F2DOT14();
       }
       else if ( subglyph->flags & WE_HAVE_A_2X2 )
       {
-        xx = (FT_Fixed)GET_Short() << 2;
-        xy = (FT_Fixed)GET_Short() << 2;
-        yx = (FT_Fixed)GET_Short() << 2;
-        yy = (FT_Fixed)GET_Short() << 2;
+        xx = WOW_TT_F2DOT14();
+        xy = WOW_TT_F2DOT14();
+        yx = WOW_TT_F2DOT14();
+        yy = WOW_TT_F2DOT14();
       }
 
       subglyph->transform.xx = xx;

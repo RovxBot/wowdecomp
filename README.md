@@ -55,6 +55,9 @@ original fonts/login, networking and observed gameplay remain open; M3 is incomp
 The [texture owner](docs/m3/TEXTURES.md) now also handles ordinary sampled assets,
 packed font-atlas formats, mip/cube uploads and DXT resources with qualified
 hosted/GPU checks. Its synthetic atlas fixture is separate from original text.
+The [original font preview](docs/m3/FONTS.md) now renders unchanged Friz Quadrata
+glyphs through the original UI shaders, with qualified hosted and real-GPU
+release/sanitizer checks. Full legacy Gx/Gxu, login UI and gameplay remain open.
 
 ## Progress
 

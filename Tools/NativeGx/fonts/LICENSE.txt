@@ -1,0 +1,9 @@
+The tiny.ttf geometric test font and its shape definitions were authored for
+wowdecomp's native font fixtures. They contain simple triangles, curves, a reflected component and blank glyphs,
+and an authored one-instruction font program, not game font data or copied glyph
+designs. They are dedicated to the public
+domain under CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+
+make_font_fixture.py uses fontTools only to regenerate this fixture. fontTools
+is not a client or CI runtime dependency. The committed font has deterministic
+metadata and can be used directly by the hosted checks.

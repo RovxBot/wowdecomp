@@ -196,7 +196,8 @@ The [sampled-texture work](TEXTURES.md) now extends the same owner to bounded
 mip/face/rectangle uploads, packed font-atlas formats and DXT resources, and
 removes raw texture allocation/upload from the probe. It is qualified at
 `8e4fcde51d7962411d27c462655ad677f95aa23c` in
-[PR #23](https://github.com/RovxBot/wowdecomp/pull/23). The
+[PR #23](https://github.com/RovxBot/wowdecomp/pull/23), merged as
+`365016e226547f7f3867f419988ccdf6b3182f25`. The
 [texture record](texture-validation.json) retains all eight passing PR workflows,
 19 CTest passes per Linux GL configuration, separate Windows compilation identity,
 verified artifacts and exact-source RX 7900 XTX release/sanitizer resource and
@@ -204,6 +205,20 @@ original-data shader cycles. These passed with empty stderr and zero workers.
 The atlas fixture is synthetic; legacy texture callbacks/cache and original
 font/login rendering remain open. The user will sign in interactively when
 native authentication becomes available.
+
+The [original font work](FONTS.md) adds an owner-thread memory face using the
+bundled FreeType sources and a bounded ARGB4444/PCT text preview through original
+UI shaders. It is qualified at `16c111a5f36864530a2109ff7228a78f68fb17fd` in
+[PR #24](https://github.com/RovxBot/wowdecomp/pull/24), with
+[durable evidence](font-validation.json) for nine passing PR workflows, 20 CTest
+checks per Linux GL configuration, full Windows x64 compilation at separate
+merge checkout `528822b509acfb57869cb65591edea824ddd09e9`, and verified artifacts.
+Exact-source RX 7900 XTX release/strict sanitizer original-data font/shader cycles
+passed one/three times with empty stderr and zero workers. Resource fixtures
+passed three cycles each in both modes; the release text capture was inspected.
+The prior FreeType failures and native-only corrections remain recorded, including
+font-program execution despite unhinted glyph flags. This does not complete
+legacy HFACE/Gxu cache/layout, [global Gx dispatch](LEGACY_GX.md) or GlueXML/login.
 
 The [packet prerequisite package](PACKETS.md) prepares original `CDataStore`,
 ARC4 and SHA1/HMAC code for native transport integration, with explicit unaligned
