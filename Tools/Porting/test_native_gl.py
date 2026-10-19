@@ -77,6 +77,24 @@ class NativeGlLauncherTests(unittest.TestCase):
         path.write_text(json.dumps(manifest))
         return binary
 
+    def test_legacy_probe_uses_its_own_verified_binary(self):
+        self.script('raise SystemExit("independent preview must not execute")\n')
+        self.target_script('import sys\nassert sys.argv[1:] == []\nprint("legacy-dispatch-passed")\n', 'LegacyGxCheck')
+        result = self.run_wrapper('--legacy-device')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['probe'], 'LegacyGxCheck')
+        self.assertEqual(record['stdout'], ['legacy-dispatch-passed'])
+
+    def test_legacy_probe_cannot_reuse_preview_hash(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('raise SystemExit("legacy must not execute")\n', 'LegacyGxCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--legacy-device')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_target_failure_is_recorded_separately_and_fails_combined_run(self):
         self.script('print("probe-passed")\n')
         self.target_script('print("target-failed")\nraise SystemExit(9)\n')

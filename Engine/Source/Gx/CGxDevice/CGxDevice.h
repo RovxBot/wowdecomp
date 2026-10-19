@@ -290,6 +290,7 @@ class CGxDevice {
     // before deleting the actual legacy CPU object. No Windows vtable change.
     virtual void NativeBufDestroy(CGxBuf* buf) = 0;
     virtual void NativeSyncTransforms() = 0;
+    virtual void NativeCheckOwner() const = 0;
 #endif
     CGxDevice();
     CGxBuf* BufCreate(CGxPool* pool, uint32_t itemSize, uint32_t itemCount, uint32_t index);
