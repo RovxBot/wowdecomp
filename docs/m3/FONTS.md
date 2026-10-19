@@ -98,3 +98,11 @@ After a strict sanitizer failure, Actions may run the same font binary once with
 UBSan recovery solely to collect additional findings. The preceding strict check
 still fails the workflow; recovery output never qualifies a build. ASan/leak
 detection remain enabled and fatal. Final qualification requires strict clean runs.
+Implementation `f2da4a3494fd57ff1dba50f1e6a0993fae09498e` failed strict cleanup
+of an absent SBit table (`ttsbit.c:601`), in
+[run 39179790976](https://github.com/RovxBot/wowdecomp/actions/runs/39179790976).
+Its unqualified recovery diagnostics also identified the `destroy_size` list
+callback signature and a 381-byte/three-allocation malformed-face stream leak.
+Native cleanup now preserves absent SBit arrays, uses typed face/size list
+adapters and releases streams when driver decoding fails before face ownership
+transfers. None of these diagnostic runs is a clean sanitizer result.

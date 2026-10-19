@@ -12,7 +12,8 @@ For the native 12340 font preview, changes guarded by
   grayscale outline/span callbacks; defined scaling of negative coordinates.
 - `src/base/ftoutln.c`, `src/base/ftcalc.c`: defined signed coordinate scaling.
 - `src/base/ftobjs.c`: preserve null glyph-loader arrays when adjusting an empty
-  loader; no pointer arithmetic before allocation.
+  loader; typed face/size list destructors; release streams when a driver rejects
+  a malformed face before ownership transfers.
 - `src/truetype/ttgload.c`: scale signed F2Dot14 composite coefficients by
   multiplication, including reflected components; preserve absent zone arrays
   for unhinted and empty glyph loads.
@@ -21,6 +22,7 @@ For the native 12340 font preview, changes guarded by
   full width of little-endian getter results.
 - `src/sfnt/ttload.c`: reject incomplete long metrics and skip an absent short
   metrics array when all glyphs already have long metrics.
+- `src/sfnt/ttsbit.c`: preserve absent strike/range arrays during cleanup.
 
 The Windows paths retain their original expressions and callback selection.
 The native target's separate module list selects TrueType/SFNT and grayscale/

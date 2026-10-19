@@ -598,7 +598,11 @@
   {
     FT_Memory        memory       = face->root.memory;
     TT_SBit_Strike*  strike       = face->sbit_strikes;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    TT_SBit_Strike*  strike_limit = strike ? strike + face->num_sbit_strikes : 0;
+#else
     TT_SBit_Strike*  strike_limit = strike + face->num_sbit_strikes;
+#endif
 
 
     if ( strike )
@@ -606,7 +610,11 @@
       for ( ; strike < strike_limit; strike++ )
       {
         TT_SBit_Range*  range       = strike->sbit_ranges;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        TT_SBit_Range*  range_limit = range ? range + strike->num_ranges : 0;
+#else
         TT_SBit_Range*  range_limit = range + strike->num_ranges;
+#endif
 
 
         if ( range )
