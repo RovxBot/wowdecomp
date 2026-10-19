@@ -146,9 +146,16 @@
 #define NEXT_Byte( buffer )            \
           ( (unsigned char)*buffer++ )
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+/* Native: preserve signed disk values without shifting a negative operand. */
+#define WOW_FT_STREAM_HIGH( value, bits ) ( (long)(signed char)(value) * ( 1L << (bits) ) )
+#else
+#define WOW_FT_STREAM_HIGH( value, bits ) ( (long)(signed char)(value) << (bits) )
+#endif
+
 #define NEXT_Short( buffer )                              \
           ( buffer += 2,                                  \
-            ( (short)( (signed   char)buffer[-2] << 8 ) | \
+            ( (short)WOW_FT_STREAM_HIGH( buffer[-2], 8 ) | \
                        (unsigned char)buffer[-1]        ) )
 
 #define NEXT_UShort( buffer )                      \
@@ -156,7 +163,7 @@
 
 #define NEXT_Offset( buffer )                             \
           ( buffer += 3,                                  \
-            ( ( (long)(signed   char)buffer[-3] << 16 ) | \
+            ( WOW_FT_STREAM_HIGH( buffer[-3], 16 ) | \
               ( (long)(unsigned char)buffer[-2] <<  8 ) | \
                 (long)(unsigned char)buffer[-1]         ) )
 
@@ -165,18 +172,22 @@
 
 #define NEXT_Long( buffer )                               \
           ( buffer += 4,                                  \
-            ( ( (long)(signed   char)buffer[-4] << 24 ) | \
+            ( WOW_FT_STREAM_HIGH( buffer[-4], 24 ) | \
               ( (long)(unsigned char)buffer[-3] << 16 ) | \
               ( (long)(unsigned char)buffer[-2] <<  8 ) | \
                 (long)(unsigned char)buffer[-1]         ) )
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define NEXT_ULong( buffer ) ( (FT_ULong)(FT_UInt32)NEXT_Long( buffer ) )
+#else
 #define NEXT_ULong( buffer )                     \
           ( (unsigned long)NEXT_Long( buffer ) )
+#endif
 
 
 #define NEXT_ShortLE( buffer )                            \
           ( buffer += 2,                                  \
-            ( (short)( (signed   char)buffer[-1] << 8 ) | \
+            ( (short)WOW_FT_STREAM_HIGH( buffer[-1], 8 ) | \
                        (unsigned char)buffer[-2]        ) )
 
 #define NEXT_UShortLE( buffer )                      \
@@ -184,7 +195,7 @@
 
 #define NEXT_OffsetLE( buffer )                           \
           ( buffer += 3,                                  \
-            ( ( (long)(signed   char)buffer[-1] << 16 ) | \
+            ( WOW_FT_STREAM_HIGH( buffer[-1], 16 ) | \
               ( (long)(unsigned char)buffer[-2] <<  8 ) | \
                 (long)(unsigned char)buffer[-3]         ) )
 
@@ -194,13 +205,17 @@
 
 #define NEXT_LongLE( buffer )                             \
           ( buffer += 4,                                  \
-            ( ( (long)(signed   char)buffer[-1] << 24 ) | \
+            ( WOW_FT_STREAM_HIGH( buffer[-1], 24 ) | \
               ( (long)(unsigned char)buffer[-2] << 16 ) | \
               ( (long)(unsigned char)buffer[-3] <<  8 ) | \
                 (long)(unsigned char)buffer[-4]         ) )
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define NEXT_ULongLE( buffer ) ( (FT_ULong)(FT_UInt32)NEXT_LongLE( buffer ) )
+#else
 #define NEXT_ULongLE( buffer )                     \
           ( (unsigned long)NEXT_LongLE( buffer ) )
+#endif
 
 
   /*************************************************************************/
@@ -216,13 +231,23 @@
 #define GET_Offset()    FT_GET_MACRO( FT_Get_Offset, FT_Long )
 #define GET_UOffset()   FT_GET_MACRO( FT_Get_Offset, FT_ULong )
 #define GET_Long()      FT_GET_MACRO( FT_Get_Long, FT_Long )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define GET_ULong()     ( (FT_ULong)FT_GET_MACRO( FT_Get_Long, FT_UInt32 ) )
+#define GET_Tag4()      GET_ULong()
+#else
 #define GET_ULong()     FT_GET_MACRO( FT_Get_Long, FT_ULong )
 #define GET_Tag4()      FT_GET_MACRO( FT_Get_Long, FT_ULong )
+#endif
 
 #define GET_ShortLE()   FT_GET_MACRO( FT_Get_ShortLE, FT_Short )
 #define GET_UShortLE()  FT_GET_MACRO( FT_Get_ShortLE, FT_UShort )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define GET_LongLE()    FT_GET_MACRO( FT_Get_LongLE, FT_Long )
+#define GET_ULongLE()   ( (FT_ULong)FT_GET_MACRO( FT_Get_LongLE, FT_UInt32 ) )
+#else
 #define GET_LongLE()    FT_GET_MACRO( FT_Get_LongLE, FT_Short )
 #define GET_ULongLE()   FT_GET_MACRO( FT_Get_LongLE, FT_Short )
+#endif
 
 #define FT_READ_MACRO( func, type, var )        \
           ( var = (type)func( stream, &error ), \
@@ -235,12 +260,20 @@
 #define READ_Offset( var )    FT_READ_MACRO( FT_Read_Offset, FT_Long, var )
 #define READ_UOffset( var )   FT_READ_MACRO( FT_Read_Offset, FT_ULong, var )
 #define READ_Long( var )      FT_READ_MACRO( FT_Read_Long, FT_Long, var )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define READ_ULong( var )     FT_READ_MACRO( FT_Read_Long, FT_UInt32, var )
+#else
 #define READ_ULong( var )     FT_READ_MACRO( FT_Read_Long, FT_ULong, var )
+#endif
 
 #define READ_ShortLE( var )   FT_READ_MACRO( FT_Read_ShortLE, FT_Short, var )
 #define READ_UShortLE( var )  FT_READ_MACRO( FT_Read_ShortLE, FT_UShort, var )
 #define READ_LongLE( var )    FT_READ_MACRO( FT_Read_LongLE, FT_Long, var )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define READ_ULongLE( var )   FT_READ_MACRO( FT_Read_LongLE, FT_UInt32, var )
+#else
 #define READ_ULongLE( var )   FT_READ_MACRO( FT_Read_LongLE, FT_ULong, var )
+#endif
 
 
   FT_BASE( void )      FT_New_Memory_Stream( FT_Library  library,

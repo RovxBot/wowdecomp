@@ -80,3 +80,9 @@ The next implementation `33217d10f26e280b6f1eaefbccef29d82c5309cb`
 passed release checks but reached a null glyph-loader offset at `ftobjs.c:371` in
 [run 39110748627](https://github.com/RovxBot/wowdecomp/actions/runs/39110748627).
 Native empty loaders now preserve null arrays before allocation.
+Implementation `a60039007985750360b0bf11d993e17056f48b47` then reached signed
+font-stream extraction (`ftstream.c:350`, negative left shift) in
+[run 39111226416](https://github.com/RovxBot/wowdecomp/actions/runs/39111226416).
+Native extraction now scales signed high bytes by multiplication and explicitly
+converts unsigned 32-bit words before widening to host `long`. Focused checks
+retain signed big/little-endian values, unsigned high-bit words and 24-bit offsets.

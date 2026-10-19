@@ -1,5 +1,6 @@
 #include "Engine/Source/Gxu/Portable/FontFace.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include <freetype/internal/ftstream.h>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -13,10 +14,28 @@ template<class E,class F> void Reject(F f) {
     bool rejected=false;try {f();} catch(const E&){rejected=true;}
     Require(rejected,"Invalid font operation accepted");
 }
+void StreamChecks() {
+    FT_Byte big[]={0xDE,0xAD,0xBE,0xEF}, little[]={0xEF,0xBE,0xAD,0xDE};
+    FT_Byte negative[]={0xFF,0xDF}, offset[]={0x80,0x00,0x00};
+    FT_Byte* p=big; Require(NEXT_Long(p)==-559038737L && p==big+4,"Signed big-endian font word changed");
+    p=big; Require(NEXT_ULong(p)==0xDEADBEEFUL,"Unsigned font word sign-extended to host long width");
+    p=little; Require(NEXT_LongLE(p)==-559038737L && p==little+4,"Signed little-endian font word changed");
+    p=little; Require(NEXT_ULongLE(p)==0xDEADBEEFUL,"Unsigned little-endian font word changed");
+    p=negative; Require(NEXT_Short(p)==-33,"Signed font short changed");
+    p=offset; Require(NEXT_Offset(p)==-8388608L,"Signed 24-bit font offset changed");
+    FT_StreamRec record{}; FT_Stream stream=&record;
+    record.cursor=big; record.limit=big+4;
+    Require(GET_ULong()==0xDEADBEEFUL,"Framed unsigned font word changed");
+    record.cursor=little; record.limit=little+4;
+    Require(GET_LongLE()==-559038737L,"Framed little-endian font word was truncated");
+    record.base=big;record.size=4;record.pos=0;
+    FT_Error error=0;FT_ULong value=0;
+    Require(!READ_ULong(value) && value==0xDEADBEEFUL,"Read unsigned font word changed");
+}
 }
 int main(int argc,char**argv) {
     try {
-        Require(argc==2,"Font fixture path required"); StormRtlInitialize();
+        Require(argc==2,"Font fixture path required"); StormRtlInitialize(); StreamChecks();
         std::ifstream input(argv[1],std::ios::binary);
         std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(input)),{});
         Require(!bytes.empty(),"Font fixture unreadable");

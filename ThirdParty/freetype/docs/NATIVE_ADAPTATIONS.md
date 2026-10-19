@@ -15,6 +15,9 @@ For the native 12340 font preview, changes guarded by
   loader; no pointer arithmetic before allocation.
 - `src/truetype/ttgload.c`: scale signed F2Dot14 composite coefficients by
   multiplication, including reflected components.
+- `include/freetype/internal/ftstream.h`: defined signed big/little-endian
+  extraction; keep unsigned 32-bit words at disk width on LP64 and retain the
+  full width of little-endian getter results.
 
 The Windows paths retain their original expressions and callback selection.
 The native target's separate module list selects TrueType/SFNT and grayscale/
