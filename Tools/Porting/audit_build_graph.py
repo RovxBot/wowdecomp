@@ -22,7 +22,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
+        expected |= {'WowNativeGxu', 'LegacyGxuCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -119,6 +119,19 @@ def audit(targets, mode, target_os, cpu):
                        'ShellSettingsCheck': ['Tools/PortableWindow/settings.cpp']}[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
+        if mode == 'gl' and target['name'] in {'WowNativeGxu', 'LegacyGxuCheck'}:
+            allowed = (['Engine/Source/Gxu/' + name + '.cpp' for name in [
+                'Portable/LegacyFonts', 'Portable/FontTexture', 'Gxu', 'GxuFontFace',
+                'GxuFontFont', 'GxuFontMain', 'GxuFontString', 'GxuFontTextureCache',
+                'GxuFontMiscClasses', 'GxuFontUtil', 'IGxuFontGlyph']] +
+                ['Engine/Source/Base/' + name + '.cpp' for name in
+                 ['Handle', 'Status', 'Coordinate', 'ConvertUTF']] +
+                ['Engine/Source/Tempest/C3Vector.cpp', 'Engine/Source/Tempest/C4Vector.cpp']
+                if target['name'] == 'WowNativeGxu' else ['Tools/NativeGx/gxu.cpp'])
+            if (len(sources) != len(allowed) or
+                    any(not any(s.endswith(p) for s in sources) for p in allowed) or
+                    'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
+                errors.append(f"{target['name']}: unexpected native Gxu provider/ABI")
         if mode == 'gl' and target['name'] == 'WowNativeFonts':
             allowed = ['Engine/Source/Gxu/Portable/FontFace.cpp'] + [
                 'ThirdParty/freetype/src/' + name + '.c' for name in [

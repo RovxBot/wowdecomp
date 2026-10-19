@@ -199,6 +199,9 @@ void CGxFont::HandleScreenSizeChange() {
 // VERIFY: 4ab2e948 manual
 // OFFSET: 0x006C39A0
 CGxFont::CGxFont() : m_cellHeight(0), m_pixelsPerUnit(0.0f) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_fontFaceHandle = nullptr;
+#endif
 }
 
 // VERIFY: b72018df manual

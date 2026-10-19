@@ -19,7 +19,13 @@ const char* CHandleObject::GetObjectName() {
 // VERIFY: baa00fb6 auto
 // OFFSET: 0x0047BF20
 int32_t HandleCompare(HOBJECT a, HOBJECT b) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Native handles are unrelated object addresses; pointer subtraction is UB.
+    auto left = reinterpret_cast<uintptr_t>(a), right = reinterpret_cast<uintptr_t>(b);
+    return (left > right) - (left < right);
+#else
     return static_cast<int32_t>(a - b);
+#endif
 }
 
 // VERIFY: 436d38d9 manual

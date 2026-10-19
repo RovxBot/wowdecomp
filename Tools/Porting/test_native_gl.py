@@ -60,6 +60,24 @@ class NativeGlGraphTests(unittest.TestCase):
             modified['compileGroups'][0]['defines'].append({'define': definition})
             self.assertIn(message, audit([modified], 'gl', 'LINUX', 'X86_64'))
 
+    def test_gxu_rejects_full_legacy_file_and_texture_services(self):
+        message = 'WowNativeGxu: unexpected native Gxu provider/ABI'
+        target = self.target('WowNativeGxu', 'Engine/Source/Gxu/Portable/LegacyFonts.cpp')
+        target['sources'] = [{'path': 'Engine/Source/Gxu/' + name + '.cpp'} for name in [
+            'Portable/LegacyFonts', 'Portable/FontTexture', 'Gxu', 'GxuFontFace',
+            'GxuFontFont', 'GxuFontMain', 'GxuFontString', 'GxuFontTextureCache',
+            'GxuFontMiscClasses', 'GxuFontUtil', 'IGxuFontGlyph']]
+        target['sources'] += [{'path': 'Engine/Source/Base/' + name + '.cpp'} for name in
+                              ['Handle', 'Status', 'Coordinate', 'ConvertUTF']]
+        target['sources'] += [{'path': 'Engine/Source/Tempest/' + name + '.cpp'} for name in
+                              ['C3Vector', 'C4Vector']]
+        self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
+        for source in ['Engine/Source/Services/Texture.cpp',
+                       'Engine/Source/BlizzardCore/Source/SFile.cpp']:
+            modified = copy.deepcopy(target)
+            modified['sources'].append({'path': source})
+            self.assertIn(message, audit([modified], 'gl', 'LINUX', 'X86_64'))
+
 
 @unittest.skipUnless(platform.system() == 'Linux' and platform.machine() == 'x86_64',
                      'Linux runtime wrapper')
@@ -112,6 +130,15 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
+
+    def test_gxu_probe_uses_its_own_manifest_hash(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        self.target_script('print("original-gxu-passed")\n', 'LegacyGxuCheck')
+        result = self.run_wrapper('--legacy-gxu')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads(self.output.read_text())
+        self.assertEqual(record['probe'], 'LegacyGxuCheck')
+        self.assertEqual(record['stdout'], ['original-gxu-passed'])
 
     def test_target_failure_is_recorded_separately_and_fails_combined_run(self):
         self.script('print("probe-passed")\n')

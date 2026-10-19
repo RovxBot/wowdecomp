@@ -1,7 +1,12 @@
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Gxu/GxuFontFace.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#include <memory>
+#else
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Storm/H/storm.h"
 
 // STATIC: 0x00C7D2FC
@@ -10,6 +15,9 @@ TSHashTable<FACEDATA, HASHKEY_STRI> s_faceHash;
 // VERIFY: e0237d01 auto
 // OFFSET: 0x006C8080
 FT_Face FontFaceGetFace(HFACE handle) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!handle) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
@@ -21,6 +29,9 @@ FT_Face FontFaceGetFace(HFACE handle) {
 // VERIFY: 5082eae0 auto
 // OFFSET: 0x006C80A0
 void FontFaceCloseHandle(HFACE handle) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!handle) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -40,6 +51,9 @@ void FontFaceCloseHandle(HFACE handle) {
 // VERIFY: c0728d10 auto
 // OFFSET: 0x006C80E0
 const char* FontFaceGetFontName(HFACE handle) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!handle) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
@@ -53,6 +67,9 @@ const char* FontFaceGetFontName(HFACE handle) {
 FACEDATA::FACEDATA() {
     this->m_data = nullptr;
     this->m_face = nullptr;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_selfReference = nullptr;
+#endif
 }
 
 // VERIFY: 263b0e27 manual
@@ -62,14 +79,21 @@ FACEDATA::~FACEDATA() {
         FT_Done_Face(this->m_face);
     }
 
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
     if (this->m_data) {
         SFile::Unload(this->m_data);
     }
+#endif
 }
 
 // VERIFY: 45a8d799 auto
 // OFFSET: 0x006C8AE0
 HFACE FontFaceGetHandle(const char* fileName, FT_Library library) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Adapted native ABI: original cache/refcounts, retained bytes and library.
+    // Original VERIFY/OFFSET apply to the Windows body, not this adaptation.
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!library || !fileName || !*fileName) {
         return nullptr;
     }
@@ -80,6 +104,21 @@ HFACE FontFaceGetHandle(const char* fileName, FT_Library library) {
         return reinterpret_cast<HFACE>(HandleDuplicate(existing->m_selfReference));
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    auto face = std::make_unique<FACEDATA>();
+    face->m_nativeBytes = Gxu::Native::ReadFontBytes(fileName);
+    if (FT_New_Memory_Face(library, face->m_nativeBytes.data(),
+            static_cast<FT_Long>(face->m_nativeBytes.size()), 0, &face->m_face) ||
+        !face->m_face || FT_Select_Charmap(face->m_face, ft_encoding_unicode) ||
+        !FT_IS_SCALABLE(face->m_face) || !face->m_face->units_per_EM)
+        return nullptr;
+    face->m_data = face->m_nativeBytes.data();
+    s_faceHash.Insert(face.get(), fileName);
+    face->m_selfReference = HandleCreate(face.get(), "HFACE");
+    HFACE handle = reinterpret_cast<HFACE>(HandleDuplicate(face->m_selfReference));
+    face.release();
+    return handle;
+#else
     HFACE handle = nullptr;
     void* data = nullptr;
     uint32_t size;
@@ -108,4 +147,5 @@ HFACE FontFaceGetHandle(const char* fileName, FT_Library library) {
     }
 
     return handle;
+#endif
 }
