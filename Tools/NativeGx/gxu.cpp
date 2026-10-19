@@ -139,6 +139,15 @@ std::vector<CImVector> Pixels(LegacyDevice& device) {
     device.DeviceReadPixels(rect, pixels);
     return {pixels.Ptr(), pixels.Ptr() + pixels.m_count};
 }
+void SamePixels(const std::vector<CImVector>& before, const std::vector<CImVector>& after, const char* why) {
+    Require(before.size() == after.size(), "Gxu readback size changed");
+    for (size_t i = 0; i < before.size(); ++i) if (std::memcmp(&before[i], &after[i], 4)) {
+        std::cerr << "gxu-pixel-difference x=" << i % 640 << " y=" << i / 640
+                  << " before=" << int(before[i].r) << ',' << int(before[i].g) << ',' << int(before[i].b)
+                  << " after=" << int(after[i].r) << ',' << int(after[i].g) << ',' << int(after[i].b) << '\n';
+        throw std::runtime_error(why);
+    }
+}
 void Snapshot(const std::string& path, const std::vector<CImVector>& pixels) {
     if (path.empty()) return;
     std::ofstream out(path, std::ios::binary);
@@ -152,6 +161,7 @@ void Snapshot(const std::string& path, const std::vector<CImVector>& pixels) {
 }
 void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     LegacyDevice device(context, [&](const std::string& path) { return assets.shaders.at(path); });
+    Require(device.Caps().m_pixelCenterOnEdge == 1, "Native Gxu requires original OpenGL pixel-center semantics");
     GxRsSet(GxRs_Lighting, 0);
     GxRsSet(GxRs_Fog, 0);
     int reads = 0;
@@ -226,8 +236,7 @@ void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     }
     Require(red > 4 && white > 4, "Original Gxu layout/atlas/batch shader colors missing");
     auto second = render();
-    Require(first.size() == second.size() && !std::memcmp(first.data(), second.data(), first.size()*4),
-            "Cached original Gxu rendering changed pixels");
+    SamePixels(first, second, "Cached original Gxu rendering changed pixels");
     Snapshot(snapshot, first);
     Require(!face.value->m_textureCache[0].m_anyDirtyGlyphs, "Atlas upload did not clear dirty state");
     size_t glyphs = 0;
@@ -238,13 +247,11 @@ void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     if (!assets.original) Require(glyphs == 2048 && text.value->m_textureEvicted,
                                   "Authored eight-page LRU eviction was not exercised");
     auto regenerated = render();
-    Require(!std::memcmp(first.data(), regenerated.data(), first.size()*4),
-            "Evicted string cache did not regenerate identical pixels");
+    SamePixels(first, regenerated, "Evicted string cache did not regenerate identical pixels");
     // Clear glyphs while the string remains live, matching resize invalidation.
     face.value->HandleScreenSizeChange();
     auto rebuilt = render();
-    Require(!std::memcmp(first.data(), rebuilt.data(), first.size()*4),
-            "Font-size/cache invalidation changed original string pixels");
+    SamePixels(first, rebuilt, "Font-size/cache invalidation changed original string pixels");
     // Both original outline paths and mono/gray/space/negative-bearing raster data.
     for (uint32_t flags : {1u, 2u, 3u, 8u, 10u}) {
         Font variant;
