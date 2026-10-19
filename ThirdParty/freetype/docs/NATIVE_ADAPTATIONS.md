@@ -7,6 +7,8 @@ For the native 12340 font preview, changes guarded by
 `WOWDECOMP_PORTABLE_RUNTIME` adapt these original files:
 
 - `src/truetype/ttdriver.c`: correctly typed module and driver callbacks.
+- `src/truetype/ttobjs.c`: typed default bytecode-interpreter callback, also
+  needed for font-program execution during unhinted size initialization.
 - `src/raster/ftrend1.c`, `src/smooth/ftsmooth.c`: typed renderer constructors.
 - `src/raster/ftraster.c`, `src/smooth/ftgrays.c`: typed raster callbacks;
   grayscale outline/span callbacks; defined scaling of negative coordinates.

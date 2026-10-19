@@ -5,6 +5,7 @@ from pathlib import Path
 from fontTools.fontBuilder import FontBuilder
 from fontTools.ttLib import newTable
 from fontTools.ttLib.tables._k_e_r_n import KernTable_format_0
+from fontTools.ttLib.tables.ttProgram import Program
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 
 def shape(points):
@@ -36,6 +37,11 @@ builder.setupNameTable({'familyName':'Native Geometric Fixture', 'styleName':'Re
     'psName':'NativeGeometricFixture', 'version':'Version 1.0'})
 builder.setupOS2(sTypoAscender=800, sTypoDescender=-200, usWinAscent=800, usWinDescent=200)
 builder.setupPost(); builder.setupMaxp()
+# Size initialization executes fpgm even for unhinted glyph loads. This authored
+# zero-stack instruction exercises the interpreter callback without retail code.
+fpgm = newTable('fpgm'); fpgm.program = Program()
+fpgm.program.fromBytecode([0x00])  # SVTCA[y]: no stack operands or point access.
+builder.font['fpgm'] = fpgm
 kern = newTable('kern'); kern.version = 0
 pairs = KernTable_format_0(); pairs.version = 0; pairs.coverage = 1
 pairs.kernTable = {('A', 'V'):-100}; kern.kernTables = [pairs]
