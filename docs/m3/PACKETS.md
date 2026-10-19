@@ -52,3 +52,10 @@ permitted; local client/dependency compilation is prohibited. Full Windows
 compilation remains a separate regression check. Successful packet fixtures do
 not establish portable networking or observed GrimGuzzler compatibility. The
 [external server revision discrepancy](SERVER_IDENTITY.md) remains unchanged.
+
+The first implementation `ca01de61500b235b619a5942b51210e729730d12`
+failed Clang compilation because the cache `DetachBuffer` declaration named a
+parameter `size`, shadowing its template parameter, in
+[run 39179683191](https://github.com/RovxBot/wowdecomp/actions/runs/39179683191).
+The declaration now uses the definition's existing `size_` name; no ABI or
+runtime behavior changes follow from this spelling correction.
