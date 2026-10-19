@@ -196,6 +196,34 @@
       "cacheVariables": {
         "WOWDECOMP_CORE_SANITIZERS": "ON"
       }
+    },
+    {
+      "name": "linux-packets",
+      "inherits": "linux-core",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_PACKETS": "ON"
+      }
+    },
+    {
+      "name": "linux-packets-asan",
+      "inherits": "linux-core-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_PACKETS": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-packets",
+      "inherits": "macos-arm64-core",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_PACKETS": "ON"
+      }
+    },
+    {
+      "name": "windows-packets",
+      "inherits": "windows-core",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_PACKETS": "ON"
+      }
     }
   ]
 }

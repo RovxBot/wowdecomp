@@ -58,6 +58,9 @@ hosted/GPU checks. Its synthetic atlas fixture is separate from original text.
 
 ## Progress
 
+Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
+separate hosted Linux, ARM64 macOS and Windows checks. They do not provide sockets or login.
+
 The percentages below measure how much of the original binary has a counterpart in this source tree. They do
 **not** say how much of the game works, and the missing part is not missing gameplay: the client builds into a
 complete executable and the game is 100% playable. Bugs could still be hiding, though; a ported function can behave differently

@@ -274,6 +274,28 @@ and source inspection are different evidence levels.
 - Validation: hosted compilation/semantic/sanitizer and original-data GPU checks
   pending; native login/world, Windows runtime and macOS font/render coverage open.
 
+## NP-011 — Native 12340 packet prerequisites
+
+- Status: qualified at `6d1a9c209410d42f4351e71645c44edbe891cfb2` in
+  [PR #25](https://github.com/RovxBot/wowdecomp/pull/25); see
+  [packet contracts](m3/PACKETS.md) and [evidence](m3/packet-validation.json).
+- Source: product main `365016e226547f7f3867f419988ccdf6b3182f25`, 12340
+  `Base/CDataStore*`, `Storm/Source/SArc4.cpp`, BlizzardCore `Util/SHA1.cpp`
+  and existing WowServices HMAC callers. No donor body/address is imported.
+- Adaptation: native-only explicit little-endian/unaligned scalar operations,
+  bounded buffer ownership, original scalar ARC4, incremental SHA1 without
+  invalid input-pointer arithmetic and aligned digest compression scratch.
+  Original OFFSET/VERIFY comments do not qualify these native adaptations.
+- Assets/defaults: authored byte fixtures only; no data, credentials, protocol,
+  signature-policy, server-policy or optional-effect change.
+- Validation: all nine implementation PR workflows passed. Linux release and
+  ASan/UBSan/leak, actual ARM64 macOS and Windows native configurations each
+  passed five CTest checks/three packet cycles. Full Windows x64 compiled at
+  separate merge checkout `9a2bcc9d247cb93361dcc3fc26bbc8c85dc5ddff` with
+  signatures enabled. All five archive digests and 19 packaged binary hashes/types
+  were verified. Local Python checks: 32 passed, one CMake check unavailable.
+  No local compilation or sockets/login/gameplay observation.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

@@ -14,6 +14,7 @@ void SARC4ProcessBuffer(uint8_t* data, uint32_t length, const SARC4Key* inKey, S
     uint8_t y = outKey->m_y;
     uint32_t i = 0;
 
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
     for (; i < (length & ~3u); i += 4) {
         uint8_t swap;
 
@@ -48,6 +49,9 @@ void SARC4ProcessBuffer(uint8_t* data, uint32_t length, const SARC4Key* inKey, S
         *reinterpret_cast<uint32_t*>(data + i) ^= stream;
     }
 
+#endif
+    // Native 12340 packets may start at any byte offset. The scalar tail is the
+    // same cipher and state transition, without aligned/aliased uint32 access.
     for (; i < length; i++) {
         x++;
         y += state[x];
@@ -66,7 +70,11 @@ void SARC4ProcessBuffer(uint8_t* data, uint32_t length, const SARC4Key* inKey, S
 // VERIFY: 765600fe manual
 // OFFSET: 0x00775040
 void SARC4PrepareKey(const void* key, uint32_t length, SARC4Key* outKey) {
-    if (!key) {
+    if (!key
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        || !length || !outKey
+#endif
+    ) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
     }
