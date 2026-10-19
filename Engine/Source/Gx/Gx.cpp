@@ -118,12 +118,19 @@ static int (*s_drawListSorters[GxuSorts_Last])(const void*, const void*) = { Dra
 // VERIFY: 0b88acbc auto
 // OFFSET: 0x008C8DE0
 EGxApi GxDefaultApi() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    return GxApi_OpenGl;
+#else
     return GxApi_D3d9;
+#endif
 }
 
 // VERIFY: cef2b995 auto
 // OFFSET: 0x006811D0
 int32_t GxApiSupported(EGxApi api) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    return api == GxApi_OpenGl;
+#else
     switch (api) {
         case GxApi_OpenGl:
         case GxApi_D3d9:
@@ -133,6 +140,7 @@ int32_t GxApiSupported(EGxApi api) {
         default:
             return 0;
     }
+#endif
 }
 
 // VERIFY: 619cba02 auto

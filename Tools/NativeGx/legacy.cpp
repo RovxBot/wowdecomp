@@ -297,6 +297,8 @@ void Cycle(GlContext &context, Assets &assets) {
         // Render the atlas's first 32x32 texels across the 32x32 fixture target.
         auto vertices = std::vector<Vertex>(std::begin(quad), std::end(quad));
         for (auto &v : vertices) {
+            v.y =
+                -v.y; // Top-down glyph rows map to bottom-up FBO readback after the original projection flip.
             v.u *= 32.0f / 256;
             v.v *= 32.0f / 256;
         }
@@ -356,6 +358,8 @@ int main(int argc, char **argv) {
                           << "\ngl-version=" << context.Info().version << '\n';
                 auto assets = Load(context, data, settings, cache);
                 Cycle(context, assets);
+                auto *shutdownDevice = new LegacyDevice(context, {});
+                GxDevDestroy(shutdownDevice); // Actual legacy consumer shutdown route.
                 Require(!g_theGxDevicePtr, "Legacy device remained installed after teardown");
             }
             Require(!OsLiveThreadCount(), "Worker remained after legacy device shutdown");

@@ -55,7 +55,7 @@ class LegacyDevice final : public CGxDevice {
         Unavailable("Native context is caller-owned");
         return 0;
     }
-    void DeviceDestroy() override { Unavailable("Destroy the native device before its context"); }
+    void DeviceDestroy() override;
     int32_t DeviceSetFormat(const CGxFormat &) override {
         Unavailable("Native format recreation unavailable");
         return 0;

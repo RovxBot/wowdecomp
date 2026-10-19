@@ -93,6 +93,10 @@ LegacyDevice::LegacyDevice(GlContext &context, ShaderBytes shaders) {
         throw std::logic_error("A legacy Gx device is already installed");
     state = std::make_unique<State>(context, std::move(shaders));
     m_api = GxApi_OpenGl;
+    CapsWindowSize(m_defWindowRect);
+    m_curWindowRect = m_defWindowRect;
+    m_format = CGxFormat(true, {int32_t(m_defWindowRect.maxX), int32_t(m_defWindowRect.maxY)},
+                         CGxFormat::Fmt_Argb8888, CGxFormat::Fmt_Ds248, 0, 0, false, false, false, true, 0);
     m_caps.m_colorFormat = GxCF_rgba;
     m_caps.m_numTmus = 1; // First UI contract; other units fail visibly.
     m_caps.m_numStreams = GxVAs_Last;
@@ -607,6 +611,10 @@ void LegacyDevice::SceneClear(uint32_t mask, CImVector color) {
     state->ColorMask(colorWrite[0], colorWrite[1], colorWrite[2], colorWrite[3]);
     state->Error("Legacy scene clear");
 }
+void LegacyDevice::DeviceDestroy() {
+    Check();
+    CGxDevice::DeviceDestroy(); // SDL/context lifetime remains with the host.
+}
 void LegacyDevice::ScenePresent() {
     Check();
     state->context.Present();
@@ -659,7 +667,11 @@ int32_t LegacyDevice::DeviceWM(EGxWM wm, uintptr_t, uintptr_t) {
     Check();
     switch (wm) {
     case GxWM_Size:
-        state->targets.Bind();
+        CapsWindowSize(m_defWindowRect);
+        if (!m_textureTarget[GxBuffers_Color].m_texture) {
+            state->targets.Bind();
+            m_curWindowRect = m_defWindowRect;
+        }
         m_viewportDirty = 1;
         return 1;
     case GxWM_SetFocus:
