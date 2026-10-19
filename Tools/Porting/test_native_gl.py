@@ -64,7 +64,7 @@ class NativeGlGraphTests(unittest.TestCase):
         message = 'WowNativeGxu: unexpected native Gxu provider/ABI'
         target = self.target('WowNativeGxu', 'Engine/Source/Gxu/Portable/LegacyFonts.cpp')
         target['sources'] = [{'path': 'Engine/Source/Gxu/' + name + '.cpp'} for name in [
-            'Portable/LegacyFonts', 'Portable/FontTexture', 'Gxu', 'GxuFontFace',
+            'Portable/LegacyFonts', 'Portable/FontTexture', 'Portable/FontMath', 'Gxu', 'GxuFontFace',
             'GxuFontFont', 'GxuFontMain', 'GxuFontString', 'GxuFontTextureCache',
             'GxuFontMiscClasses', 'GxuFontUtil', 'IGxuFontGlyph']]
         target['sources'] += [{'path': 'Engine/Source/Base/' + name + '.cpp'} for name in

@@ -52,6 +52,7 @@ target_link_libraries(WowNativeFonts PUBLIC WowCoreServices)
 add_library(WowNativeGxu STATIC
     ../Gxu/Portable/LegacyFonts.cpp
     ../Gxu/Portable/FontTexture.cpp
+    ../Gxu/Portable/FontMath.cpp
     ../Gxu/Gxu.cpp
     ../Gxu/GxuFontFace.cpp
     ../Gxu/GxuFontFont.cpp

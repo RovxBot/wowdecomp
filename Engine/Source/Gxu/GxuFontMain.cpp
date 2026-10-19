@@ -959,7 +959,13 @@ int32_t GxuFontCreateFont(const char* name, float fontHeight, CGxFont*& face, ui
         flags |= 1;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    int32_t result;
+    try { result = newFace->Initialize(name, flags, fontHeight); }
+    catch (...) { g_fonts.DeleteNode(newFace); throw; }
+#else
     int32_t result = newFace->Initialize(name, flags, fontHeight);
+#endif
 
     if (!result) {
         g_fonts.DeleteNode(newFace);

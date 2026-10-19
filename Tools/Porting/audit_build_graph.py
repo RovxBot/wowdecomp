@@ -121,7 +121,7 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
         if mode == 'gl' and target['name'] in {'WowNativeGxu', 'LegacyGxuCheck'}:
             allowed = (['Engine/Source/Gxu/' + name + '.cpp' for name in [
-                'Portable/LegacyFonts', 'Portable/FontTexture', 'Gxu', 'GxuFontFace',
+                'Portable/LegacyFonts', 'Portable/FontTexture', 'Portable/FontMath', 'Gxu', 'GxuFontFace',
                 'GxuFontFont', 'GxuFontMain', 'GxuFontString', 'GxuFontTextureCache',
                 'GxuFontMiscClasses', 'GxuFontUtil', 'IGxuFontGlyph']] +
                 ['Engine/Source/Base/' + name + '.cpp' for name in

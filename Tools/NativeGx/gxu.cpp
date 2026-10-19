@@ -10,6 +10,7 @@
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Tempest/CMath.h"
 #include <algorithm>
 #include <cfenv>
 #include <chrono>
@@ -19,6 +20,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <limits>
 #include <thread>
 using namespace Gx::Native;
 using Bytes = std::vector<uint8_t>;
@@ -182,6 +184,13 @@ void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     auto* a = face.value->NewCodeDesc('A');
     auto* v = face.value->NewCodeDesc('V');
     Require(a && v && face.value->NewCodeDesc('A') == a, "Glyph hash/LRU reuse failed");
+    rejected = false;
+    std::thread wrongCache([&] {
+        try { face.value->NewCodeDesc('A'); }
+        catch (const std::logic_error&) { rejected = true; }
+    });
+    wrongCache.join();
+    Require(rejected, "Off-thread cached glyph mutation accepted");
     Require(face.value->ComputeStep('A','V') <= a->m_bitmapData.m_glyphAdvance,
             "Original kerning cache increased AV spacing");
     float extent = 0, marked = 0;
@@ -269,6 +278,12 @@ int main(int argc, char** argv) {
         }
         Require(!std::fesetenv(FE_DFL_ENV) && !std::fesetround(FE_TONEAREST), "FP startup failed");
         StormRtlInitialize(); OsTimeStartup(OsTimeManager::BestAvailable); started = true;
+        Require(CMath::fint_n(0.5f) == 1 && CMath::fint_n(-0.5f) == -1 &&
+                CMath::fuint_pi(0.25f) == 1 && CMath::fuint_pi(-0.25f) == 0 &&
+                CeilToInt64(3.0f) == 3 && CeilToInt64(0.00001f) == 0,
+                "Original pixel rounding/epsilon changed");
+        Reject([] { CMath::fint_n(std::numeric_limits<float>::infinity()); });
+        Reject([] { CMath::fuint_pi(std::numeric_limits<float>::quiet_NaN()); });
         for (int cycle = 0; cycle < 3; ++cycle) {
             {
                 GlContext context("Original Gxu integration fixture", 640, 480, true);
