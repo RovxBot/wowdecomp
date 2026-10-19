@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-18. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-19. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -344,6 +344,15 @@ verified artifacts and strict original-data GPU font/UI-shader cycles. Original
 Friz Quadrata rasterization is now observed; full legacy Gx/Gxu cache/layout and
 GlueXML/login are still open. The [legacy integration audit](docs/m3/LEGACY_GX.md)
 maps those remaining dispatch and ownership dependencies. M3 remains incomplete.
+
+The [Storm string/cache prerequisite](docs/m3/LEGACY_STRINGS.md) in
+[PR #26](https://github.com/RovxBot/wowdecomp/pull/26) adapts original hash/name
+allocation and ordered formatting to the native ABI. Review also preserves
+ordinary fixed-width `I64` GUID/achievement formats and caller-owned `va_list`
+reuse. [Qualification](docs/m3/string-validation.json) at `2d94646` retains nine
+passing PR workflows, verified artifacts and exact-source GPU regressions. Full
+legacy device/Gxu dispatch, original login, transport and the observed world-session
+exit criterion below remain open.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

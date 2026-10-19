@@ -53,7 +53,33 @@ ordered mixed integer/string/double arguments, repeated 64-bit arguments,
 `va_list` reuse, exact bounded truncation and invalid formats with no arguments
 to fetch. Existing Linux, strict sanitizer, actual ARM64 macOS and Windows core
 jobs cover the native ABI; full Windows client compilation covers the separately
-selected legacy bodies. Hosted qualification is pending.
+selected legacy bodies.
+
+Qualified implementation: `2d946465e52d7ccfb43722d844d76a4fa4cd038b` in
+[PR #26](https://github.com/RovxBot/wowdecomp/pull/26). The
+[durable record](string-validation.json) retains nine passing implementation PR
+workflows, four native packet/core configurations with five CTest checks each,
+20 CTest checks per Linux GL configuration and a separately identified full
+Windows x64 merge-checkout build with signatures enabled. All seven archive
+digests and 45 packaged binary hashes/types were verified; actual ARM64 macOS
+execution is corroborated by the host and Mach-O identity.
+
+Exact-source downloaded Linux core fixtures passed three release and three
+strict ASan/UBSan/leak executions. Existing allocation-overflow fixtures emit
+their expected diagnostics; the qualified executions have no sanitizer finding.
+A first sandboxed sanitizer attempt could not complete LeakSanitizer because
+of ptrace instrumentation; it remains a failed/unavailable execution, separately
+from the clean repeats outside that tracing sandbox. No detector was disabled.
+
+The exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 original-data font/UI-shader
+regression passed one release and three strict sanitizer cycles, with empty
+stderr and zero workers. Texture, buffer, target and transform fixtures each
+passed three cycles in both modes. The 960x640 release capture was inspected:
+legible Friz Quadrata title and the original loading-bar fill. The original font
+and both UI shader members lack registered MD5 records; original-key signaturefile
+authentication (28,948 records) and selective MD5 enforcement remain enabled.
+These are regressions of the existing resource preview, without new legacy-device,
+login, physical-input or gameplay acceptance.
 
 The initial `cdba9ff59010e753f9da7df6b01d545fdcb68044` implementation passed
 all nine PR workflows. Follow-up source review found that a later missing
@@ -64,8 +90,8 @@ cover truncated modifiers, invalid grammar and ordinary public `va_list` reuse.
 Caller review also found original `I64` achievement/GUID formats in ordinary
 mode; native directive translation and signed/unsigned high-bit fixtures retain
 their fixed-width values without changing the default global option.
-These changes need fresh hosted qualification; the earlier pass does not qualify
-the corrected source. Local Python checks passed (32 passed, one unavailable
+The earlier pass does not qualify the corrected source; final qualification
+is attached to `2d94646` above. Local Python checks passed (32 passed, one unavailable
 CMake check skipped); no client or dependency compiled locally.
 
 No original game data, credentials, server requests or dependency downloads are

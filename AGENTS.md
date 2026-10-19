@@ -222,6 +222,18 @@ it does not turn a documentation request into authorization to start the whole p
   interpreter execution even with unhinted glyphs. Original HFACE/Gxu layout/cache,
   global legacy device/async integration, actual login, networking and gameplay
   remain open. No new operator acceptance/server session; M3 is incomplete.
+- M3 Storm string/cache [PR #26](https://github.com/RovxBot/wowdecomp/pull/26)
+  is qualified at `2d946465e52d7ccfb43722d844d76a4fa4cd038b`. Read
+  [string contracts](docs/m3/LEGACY_STRINGS.md) and
+  [validation](docs/m3/string-validation.json). Nine implementation PR workflows
+  passed, including full Windows x64 compilation; actual ARM64 macOS, Windows and
+  Linux native fixtures passed. Seven archive digests and 45 packaged binary
+  hashes/types were verified. Original-data GPU font/UI-shader release/strict
+  sanitizer regressions passed one/three cycles with empty stderr and zero workers.
+  Preserve original hashes, native format argument preflight/ownership and ordinary
+  `I64` integer values without enabling global ordered formatting. Ordered UTF-16
+  formats remain visibly unavailable. Actual legacy device/Gxu/login, transport
+  and observed gameplay remain open; M3 is incomplete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

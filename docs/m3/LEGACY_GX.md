@@ -61,5 +61,7 @@ GrimGuzzler session still remain. The user will sign in interactively, and the
 
 The next [legacy string prerequisites](LEGACY_STRINGS.md) select the original
 Storm hash/name/ordered-format code for the native ABI and exercise actual
-hash-cache allocation/lifetimes. Hosted qualification is pending; this does not
-change the device/async/login qualification boundary above.
+hash-cache allocation/lifetimes. It is qualified at `2d946465e52d7ccfb43722d844d76a4fa4cd038b`
+in PR #26; [durable evidence](string-validation.json) records hosted, binary and
+original-data regression checks. This does not change the device/async/login
+qualification boundary above.
