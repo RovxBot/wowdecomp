@@ -22,8 +22,8 @@ Lock/Latch/Unlock callbacks supply a whole-image origin and row stride; dirty
 rectangles are translated to native subregion uploads while borrowed bytes remain
 locked. Render-target callbacks retain their notification sequence without uploading source
 texels. A completed Lock receives exactly one Unlock even when Latch or validation
-fails. Failures retain dirty status for retry. Reentrant update/destruction is
-rejected. A legacy callback supplies no allocation byte count, so the callback
+fails. Failures retain dirty status for retry. Callbacks must not mutate their texture. Reentrant immediate uploads and
+destruction are rejected. A legacy callback supplies no allocation byte count, so the callback
 retains responsibility for the declared full-image extent. Mips, compressed
 callback sources/conversion, rectangle/cube targets and automatic mips are
 explicitly unavailable in this first adapter, despite the underlying native
@@ -35,7 +35,7 @@ through authenticated original-key package reads on the retained worker. Bounded
 `0x10003` decode and ARB upload finish before publishing cache entries; full member
 path, requested permutation count and index form each cache key. A partially
 released permutation set is repaired without duplicating surviving entries. Only arbvp1 and
-arbfp1 UI coverage and the existing 94-register limit are qualified candidates.
+arbfp1 UI coverage within the existing 94-register limit is qualified here.
 Uploaded stereo permutations do not establish rendered stereo.
 
 Legacy buffer lock pointers refer to retained native staging storage. Invalid
@@ -62,11 +62,35 @@ worker, then checks an original glyph rendered through legacy texture callbacks
 and PCT batches. This uses the qualified native rasterizer, not original Gxu
 layout or the original login UI.
 
-Compilation and runtime qualification are pending. Local source-audit Python
-checks pass (34 passed, one unavailable CMake check skipped); no local client or
-dependency compilation was performed. Historical qualification records remain
-unchanged. M3 remains incomplete, with transport/authentication, interactive
-sign-in, character selection and an observed GrimGuzzler world session still open.
+Qualified implementation: `6ef31f4a94cef0d1b1947f46e4e35d716568b520` in
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on PR #26. The
+[durable record](legacy-device-validation.json) retains all nine passing
+implementation PR workflows, 21 CTest checks per Linux GL configuration, three
+verified archive digests and all 31 packaged binary hashes/types. Full Windows
+x64 compilation used separate PR merge checkout `d319ec4bef5ed042ce8b45fb62923b5f927ecd60`;
+its tree matches the selected implementation, with signature checks enabled.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict
+ASan/UBSan/leak checks each passed three original-data legacy Gx cycles, including
+actual global dispatch, source callback failure/retry, dirty-region FBO pixels,
+original Friz Quadrata glyphs through original UI shaders and repeated consumer/
+resource/context teardown. Each execution had empty stderr and zero probe workers.
+The independent original-data preview passed one release and three sanitizer
+cycles; target, transform, buffer and texture fixtures each passed three cycles
+in both modes. Its inspected 960x640 capture remains separate from the legacy
+fixture's FBO readback and from original Gxu/login or physical-input acceptance.
+Both UI shader members and the original font lack registered MD5 entries;
+original-key signature authentication (28,948 records) and selective MD5 policy
+remain enabled.
+
+The initial scalar-link omission, below-minimum authored texture fixture and
+missing abstract draw-list RTTI link failures remain recorded. Native empty
+interface destructor definitions retain UBSan vptr instrumentation; no detector
+was disabled. Local source checks passed (34 passed, one unavailable CMake check
+skipped); no client or dependency compiled locally. M3 remains incomplete, with
+original Gxu handle/layout/cache and texture-service consumers, GlueXML/login,
+transport/authentication, interactive sign-in and observed GrimGuzzler world entry
+still open. No server request or policy change was made.
 
 For downloaded, hash-verified Linux artifacts, run three original-data legacy
 fixture cycles without compiling locally:

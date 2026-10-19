@@ -59,7 +59,8 @@ The [original font preview](docs/m3/FONTS.md) now renders unchanged Friz Quadrat
 glyphs through the original UI shaders, with qualified hosted and real-GPU
 release/sanitizer checks. The next [legacy Gx UI adapter](docs/m3/LEGACY_DEVICE.md)
 connects actual global dispatch, texture callbacks, shader caches and streamed
-batches to the native resource owners; qualification is pending. Original Gxu
+batches to the native resource owners, with qualified hosted and original-data
+GPU release/strict sanitizer checks. Original Gxu
 layout/cache, login UI and gameplay remain open.
 
 ## Progress

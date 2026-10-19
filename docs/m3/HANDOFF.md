@@ -254,15 +254,23 @@ prerequisite does not connect legacy device dispatch or render the original logi
 The [legacy UI dispatch adapter](LEGACY_DEVICE.md) in
 [PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on still-open PR #26,
 now connects actual common Gx state/cache/resource objects to the native owners.
-Final implementation qualification is pending. This bounded 2D/UI step does not
+It is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`. The
+[record](legacy-device-validation.json) retains nine passing implementation PR
+workflows, 21 CTest checks per Linux GL configuration, separate full Windows x64
+compilation, three verified archives and 31 packaged binary hashes/types.
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer
+checks each passed three original-data legacy callback/PCT/font/UI-shader cycles,
+with empty stderr and zero probe workers. Existing preview/resource regressions
+also passed; the independent preview capture was inspected. The initial source/
+fixture/RTTI link failures remain recorded without disabling sanitizers. This bounded 2D/UI step does not
 export original Gxu HFACE/layout/cache or render the original login UI. Its
 single-mip/format/state limits remain explicit instead of advertising the full
 underlying native resource surface as a completed legacy adapter.
 
 Next dependencies, in order:
 
-1. Qualify the bounded concrete Gx UI adapter, then connect original Gxu
-   HFACE/font/string/atlas cache and batched rendering to its actual resource
+1. Connect original Gxu HFACE/font/string/atlas cache, texture-service handles
+   and batched rendering to the qualified concrete Gx UI adapter and its resource
    objects. Extend remaining device/state/mip/texture contracts as their callers
    require them; audit texture/texgen delivery and legacy async callers.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
