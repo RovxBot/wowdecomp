@@ -272,6 +272,16 @@ void ReuseFormatArguments(const char* format, ...) {
     va_end(args);
     CHECK(!std::strcmp(first, second));
 }
+void ReusePublicFormatArguments(size_t size, const char* format, ...) {
+    char first[128], second[128];
+    va_list args;
+    va_start(args, format);
+    CHECK(SStrVPrintf(first, size, format, args) > 0);
+    CHECK(SStrVPrintf(second, size, format, args) > 0);
+    va_end(args);
+    CHECK(!std::strcmp(first, second));
+    CHECK(!std::strcmp(first, "shader:23:0.5"));
+}
 struct CachedName : TSHashObject<CachedName, HASHKEY_STRI> { int value = 0; };
 void LegacyStrings() {
     // These are the original Gx/Gxu key/hash callers, rather than a replacement
@@ -313,6 +323,8 @@ void LegacyStrings() {
     CHECK(!std::strcmp(output, "font:0007:1.25:%"));
     CHECK(Ordered(output, sizeof(output), "%1$I64d/%1$lld", int64_t(-9223372036854775807LL)) == 41);
     CHECK(!std::strcmp(output, "-9223372036854775807/-9223372036854775807"));
+    CHECK(Ordered(output, sizeof(output), "%1$#08X/%2$-5.3s/%3$I64u", 42u, "shader", UINT64_MAX) == 35);
+    CHECK(!std::strcmp(output, "0X00002A/sha  /18446744073709551615"));
     ReuseFormatArguments("%2$s:%1$d:%3$f", 23, "shader", 0.5);
     struct Guard { char before = 'L'; char data[5]; char after = 'R'; } guard;
     CHECK(Ordered(guard.data, sizeof(guard.data), "%s", "abcdef") == 4);
@@ -320,7 +332,9 @@ void LegacyStrings() {
     CHECK(Ordered(guard.data, 1, "%s", "abcdef") == 0 && !guard.data[0]);
     guard.data[0] = 'x';
     CHECK(Ordered(guard.data, 0, "%s", "abcdef") == 0 && guard.data[0] == 'x');
-    for (const char* bad : {"%65$d", "%214748364800$d", "%2$d", "%1$d %1$s", "%lls", "%n", "%S", "%C", "%"}) {
+    for (const char* bad : {"%65$d", "%214748364800$d", "%2$d", "%1$s %3$d", "%1$d %1$s",
+            "%lls", "%n", "%S", "%C", "%", "%I", "%I6", "%ll", "%ll1$d", "%1$2$d",
+            "%1$ll2$d", "%1$1.2.3f", "%1$*d", "%1$.*s", "%1$llc", "%1$I64f", "%1$%"}) {
         SErrSetLastError(0);
         CHECK(Ordered(output, sizeof(output), bad) == 0 && !output[0]);
         CHECK(SErrGetLastError() == STORM_ERROR_INVALID_PARAMETER);
@@ -329,7 +343,11 @@ void LegacyStrings() {
     CHECK(StormSetOption(STORM_OPTION_ORDERED_PRINTF_ENABLED, &enabled, sizeof(enabled)));
     CHECK(SStrPrintf(output, sizeof(output), "%2$s:%1$d", 42, "shader") == 9);
     CHECK(!std::strcmp(output, "shader:42"));
+    ReusePublicFormatArguments(128, "%2$s:%1$d:%3$.1f", 23, "shader", 0.5);
+    ReusePublicFormatArguments(STORM_MAX_STR, "%2$s:%1$d:%3$.1f", 23, "shader", 0.5);
     enabled = 0; CHECK(StormSetOption(STORM_OPTION_ORDERED_PRINTF_ENABLED, &enabled, sizeof(enabled)));
+    ReusePublicFormatArguments(128, "%s:%d:%.1f", "shader", 23, 0.5);
+    ReusePublicFormatArguments(STORM_MAX_STR, "%s:%d:%.1f", "shader", 23, 0.5);
     CHECK(SStrPrintf(guard.data, sizeof(guard.data), "%s", "abcdef") == 4);
     CHECK(!std::strcmp(guard.data, "abcd") && guard.before == 'L' && guard.after == 'R');
     std::puts("Legacy Storm names, hash-cache ownership and bounded native formatting checks passed.");

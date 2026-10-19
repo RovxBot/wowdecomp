@@ -673,7 +673,17 @@ size_t SStrVPrintf(char* dest, size_t maxchars, const char* format, va_list argl
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Preserve the original caller-owned list on array-based native va_list ABIs
+    // for both ordered and ordinary (bounded or unbounded) formatting.
+    va_list copy;
+    va_copy(copy, arglist);
+    size_t result = ISStrVPrintf(dest, maxchars, format, copy);
+    va_end(copy);
+    return result;
+#else
     return ISStrVPrintf(dest, maxchars, format, arglist);
+#endif
 }
 
 // VERIFY: 79f69ad9 manual

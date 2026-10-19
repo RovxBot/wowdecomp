@@ -27,6 +27,11 @@ Native ordered formats reject argument indices outside 1..64, gaps, conflicting
 argument classes, overflowing numeric fields, excessive specifier lengths and
 unsupported conversions before fetching missing arguments. An invalid ordered
 format returns an empty string and sets the Storm invalid-parameter error.
+All argument gaps are checked before any variadic fetch. The native parser
+requires ordering before flags/width/precision/length and a matching conversion;
+misplaced markers cannot discard a length modifier before libc dispatch.
+The public `SStrVPrintf` preserves its caller's argument list in both ordinary
+and ordered modes, including the original unbounded entry point.
 Ordered UTF-16 `%S`/`%C` are explicitly unavailable pending an encoding adapter;
 they are not reinterpreted using Linux's 32-bit `wchar_t`. Star width/precision,
 single-`l` and `%n` remain outside the original ordered dialect. Ordinary host
@@ -45,6 +50,16 @@ ordered mixed integer/string/double arguments, repeated 64-bit arguments,
 to fetch. Existing Linux, strict sanitizer, actual ARM64 macOS and Windows core
 jobs cover the native ABI; full Windows client compilation covers the separately
 selected legacy bodies. Hosted qualification is pending.
+
+The initial `cdba9ff59010e753f9da7df6b01d545fdcb68044` implementation passed
+all nine PR workflows. Follow-up source review found that a later missing
+argument slot was rejected only after earlier variadic fetches, and misplaced
+ordering markers could drop a length modifier while formatting. Native parsing
+and full argument preflight now reject those cases; focused hosted fixtures also
+cover truncated modifiers, invalid grammar and ordinary public `va_list` reuse.
+These changes need fresh hosted qualification; the earlier pass does not qualify
+the corrected source. Local Python checks passed (32 passed, one unavailable
+CMake check skipped); no client or dependency compiled locally.
 
 No original game data, credentials, server requests or dependency downloads are
 added. The [legacy Gx audit](LEGACY_GX.md) remains the next integration boundary.
