@@ -23,7 +23,7 @@ void StreamChecks() {
     p=little; Require(NEXT_ULongLE(p)==0xDEADBEEFUL,"Unsigned little-endian font word changed");
     p=negative; Require(NEXT_Short(p)==-33,"Signed font short changed");
     p=offset; Require(NEXT_Offset(p)==-8388608L,"Signed 24-bit font offset changed");
-    FT_StreamRec record{}; FT_Stream stream=&record;
+    FT_StreamRec_ record{}; FT_Stream stream=&record;
     record.cursor=big; record.limit=big+4;
     Require(GET_ULong()==0xDEADBEEFUL,"Framed unsigned font word changed");
     record.cursor=little; record.limit=little+4;
