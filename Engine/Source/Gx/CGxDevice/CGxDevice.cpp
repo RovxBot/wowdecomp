@@ -5,7 +5,11 @@
 #include <cstring>
 #include <new>
 #include "Engine/Source/Storm/H/storm.h"
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#else
+#include <stdexcept>
+#endif
 #include "Engine/Source/Gx/Buffer.h"
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxDevice/CGxShader.h"
@@ -780,6 +784,9 @@ int32_t CGxDevice::NeedsUpdate(uint32_t app, uint32_t hw, uint32_t appDisables, 
 // VERIFY: 30703cd8 auto
 // OFFSET: 0x006831A0
 void CGxDevice::BufSizeSet(CGxBuf* buf, uint32_t itemSize, uint32_t itemCount) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!buf || !itemSize || itemCount > uint32_t(INT32_MAX) / itemSize) throw std::invalid_argument("Invalid native buffer extent");
+#endif
     buf->m_itemSize = itemSize;
     buf->m_itemCount = itemCount;
     buf->m_size = itemCount * itemSize;
@@ -845,6 +852,9 @@ void CGxDevice::ShaderConstantsClear() {
 // VERIFY: 4ce72d69 manual
 // OFFSET: 0x006833E0
 void CGxDevice::ShaderConstantsSet(EGxShTarget target, uint32_t index, const float* constants, uint32_t count) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index || (count && !constants)) throw std::out_of_range("Native shader constant range");
+#endif
     ShadowConstants& shadow = s_shadowConstants[target ? 0 : 1];
     float* dest = &shadow.constants[index * 4];
 
@@ -882,6 +892,10 @@ float* CGxDevice::ShaderConstantsLock(EGxShTarget target) {
 // VERIFY: 636e6d3d manual
 // OFFSET: 0x00683580
 void CGxDevice::ShaderConstantsUnlock(EGxShTarget target, uint32_t index, uint32_t count) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index) throw std::out_of_range("Native shader constant range");
+    if (!count) return;
+#endif
     ShadowConstants& shadow = s_shadowConstants[target ? 0 : 1];
 
     if (shadow.dirtyMin > index) {
@@ -993,6 +1007,10 @@ void CGxDevice::ClipPlaneSet(uint32_t index, const C4Plane& plane) {
 // VERIFY: dba46566 auto
 // OFFSET: 0x006844C0
 void CGxDevice::PrimVertexFormat(CGxBuf* buf, const CGxVertexAttrib* attribs, uint32_t count) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!buf || (count && !attribs)) throw std::invalid_argument("Invalid native vertex format");
+    for (uint32_t i = 0; i < count; ++i) if (uint32_t(attribs[i].m_attrib) >= GxVAs_Last) throw std::out_of_range("Invalid native vertex attribute");
+#endif
     for (uint32_t i = 0; i < count; i++) {
         const CGxVertexAttrib& attrib = attribs[i];
         CGxVertexAttrib& current = this->m_primVertexFormatAttrib[attrib.m_attrib];
@@ -1026,6 +1044,9 @@ void CGxDevice::LightSet(uint32_t index, const CGxLight& light, const C3Vector& 
 // VERIFY: 97a9c89d manual
 // OFFSET: 0x00684850
 CGxBuf* CGxDevice::BufStream(EGxPoolTarget target, uint32_t itemSize, uint32_t itemCount) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (uint32_t(target) >= 2 || !itemSize || !itemCount || itemCount > uint32_t(INT32_MAX) / itemSize) throw std::invalid_argument("Invalid native stream extent");
+#endif
     CGxBuf* buf = this->m_streamBufs[target];
     CGxPool* pool = buf->m_pool;
 
@@ -1125,6 +1146,9 @@ void CGxDevice::BufDestroy(CGxBuf*& buf) {
         return;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeBufDestroy(buf);
+#endif
     if (buf->m_pool) {
         buf->m_pool->UnlinkBuf(buf);
     }
@@ -1137,6 +1161,9 @@ void CGxDevice::BufDestroy(CGxBuf*& buf) {
 // VERIFY: e4c51956 auto
 // OFFSET: 0x00682EE0
 void CGxDevice::PrimVertexPtr(CGxBuf* buf, EGxVertexBufferFormat format) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (uint32_t(format) >= GxVertexBufferFormats_Last) throw std::out_of_range("Invalid native vertex format");
+#endif
     this->m_primVertexFormat = format;
     this->m_primVertexBuf = buf;
     this->m_primVertexSize = Buffer::s_vertexBufDesc[format].size;
@@ -1219,7 +1246,12 @@ void CGxDevice::IRsSync(int32_t force) {
         CGxStateBom& hw = this->m_hwRenderStates[which];
 
         if (state.m_dirty) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+            // Native cache compares pointer bits without signed subtraction UB.
+            if (memcmp(&state.m_value, &hw, sizeof(hw)) != 0) {
+#else
             if ((state.m_value.m_data.i[0] - hw.m_data.i[0]) | (state.m_value.m_data.i[1] - hw.m_data.i[1]) | (state.m_value.m_data.i[2] - hw.m_data.i[2]) | (state.m_value.m_filler - hw.m_filler)) {
+#endif
                 this->IRsSendToHw(which);
             }
         }
@@ -1333,6 +1365,9 @@ void CGxDevice::RsSet(EGxRenderState which, void* value) {
 // VERIFY: cbb13905 manual
 // OFFSET: 0x00685FB0
 void CGxDevice::RsPop() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!m_stackOffsets.Count()) throw std::logic_error("Gx render-state stack underflow");
+#endif
     uint32_t offset = this->m_stackOffsets[this->m_stackOffsets.Count() - 1];
 
     for (uint32_t i = this->m_pushedStates.Count(); i > offset; i--) {
@@ -1425,11 +1460,15 @@ void CGxDevice::XformSetView(const C44Matrix& matrix) {
 // VERIFY: b93f77d5 auto
 // OFFSET: 0x00683670
 void CGxDevice::LogOpen() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    throw std::logic_error("Native Gx logging requires an explicit writable log path");
+#else
     if (!CGxDevice::m_log) {
         OsCreateDirectory("Logs", 0);
         SLogCreate("Logs\\gx.log", 0, &CGxDevice::m_log);
         CGxDevice::m_logBytes = 0;
     }
+#endif
 }
 
 // VERIFY: 1023b26f auto
@@ -1492,7 +1531,11 @@ void CGxDevice::Log(const char* format, va_list args) {
     }
 
     char buffer[2048];
+    #if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    vsnprintf(buffer, sizeof(buffer), format, args);
+#else
     _vsnprintf(buffer, sizeof(buffer), format, args);
+#endif
 
     if (CGxDevice::m_logBytes < 0x200000) {
         SLogWrite(CGxDevice::m_log, buffer);
@@ -1546,7 +1589,11 @@ CGxDevice::CGxDevice() : m_defWindowRect(), m_curWindowRect(), m_viewport(), m_s
     this->m_primType = GxPrims_Last;
     this->m_api = GxApis_Last;
     this->m_windowProc = nullptr;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_cpuFeatures = 0; // Scalar native ABI; pointer width does not imply SSE.
+#else
     this->m_cpuFeatures = OsGetProcessorFeatures();
+#endif
     memset(&this->m_caps, 0, sizeof(this->m_caps));
     this->m_baseMipLevel = 0;
     this->m_caps.m_maxTexAnisotropy = 1;
@@ -1631,7 +1678,14 @@ CGxDevice::~CGxDevice() {
 // VERIFY: aaaa19ed manual
 // OFFSET: 0x00687660
 CGxBuf* CGxDevice::BufCreate(CGxPool* pool, uint32_t itemSize, uint32_t itemCount, uint32_t index) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!pool || (itemSize && itemCount > uint32_t(INT32_MAX) / itemSize)) throw std::invalid_argument("Invalid native buffer extent");
+#endif
     CGxBuf* buf = new (SMemAlloc(sizeof(CGxBuf), __FILE__, __LINE__, 0)) CGxBuf(pool, itemSize, itemCount, index);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // TSLinkedNode has one link. The pool owns the buffer; a second owning list
+    // would corrupt both lists. NativeBufDestroy clears all derived references.
+#endif
     pool->m_bufList.LinkToTail(buf);
     buf->m_pool = pool;
     return buf;
@@ -1640,6 +1694,9 @@ CGxBuf* CGxDevice::BufCreate(CGxPool* pool, uint32_t itemSize, uint32_t itemCoun
 // VERIFY: f38621c0 manual
 // OFFSET: 0x006876D0
 CGxPool* CGxDevice::PoolCreate(EGxPoolTarget target, EGxPoolUsage usage, int32_t size, EGxPoolHintBits hint, const char* name) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (uint32_t(target) >= 2 || uint32_t(usage) >= GxPoolUsages_Last || size < 0) throw std::invalid_argument("Invalid native pool");
+#endif
     CGxPool* pool = new (SMemAlloc(sizeof(CGxPool), __FILE__, __LINE__, 0)) CGxPool(target, usage, size, hint, name);
     this->m_poolList.LinkToTail(pool);
     return pool;
@@ -1649,6 +1706,9 @@ CGxPool* CGxDevice::PoolCreate(EGxPoolTarget target, EGxPoolUsage usage, int32_t
 // OFFSET: 0x00688340
 void CGxDevice::PoolDestroy(CGxPool* pool) {
     if (pool) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        while (auto* buf = pool->m_bufList.Head()) this->BufDestroy(buf);
+#endif
         this->m_poolList.UnlinkNode(pool);
         delete pool;
     }
@@ -1671,6 +1731,9 @@ void CGxDevice::DeviceCreatePools() {
 // VERIFY: 3ce50085 manual
 // OFFSET: 0x00684970
 void CGxDevice::IShaderLoad(CGxShader** shaders, EGxShTarget target, const char* path, const char* name, uint32_t permutations) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    throw std::logic_error("Native shader loading requires the authenticated byte provider");
+#else
     int32_t profile = this->m_caps.m_shaderTargets[target];
 
     if (profile <= 0) {
@@ -1748,6 +1811,7 @@ void CGxDevice::IShaderLoad(CGxShader** shaders, EGxShTarget target, const char*
             return;
         }
     }
+#endif
 }
 
 // VERIFY: 9b12ed92 manual

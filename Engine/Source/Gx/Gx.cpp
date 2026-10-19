@@ -1,6 +1,9 @@
 #include <cstdarg>
 #include <cstdint>
 #include <cstdlib>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#endif
 #include "Engine/Source/Gx/Buffer.h"
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxPool.h"
@@ -177,6 +180,9 @@ int32_t GxVertexHasAttrib(EGxVertexBufferFormat format, EGxVertexAttrib attrib) 
 // VERIFY: ca53a8f5 auto
 // OFFSET: 0x00681290
 CGxDevice* CreateGxDevice(EGxApi api, GxWindowProc windowProc, const CGxFormat& format) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    throw std::logic_error("Install the native Gx device on its SDL-owned context");
+#else
     CGxDevice* device;
 
     switch (api) {
@@ -209,6 +215,7 @@ CGxDevice* CreateGxDevice(EGxApi api, GxWindowProc windowProc, const CGxFormat& 
     }
 
     return nullptr;
+#endif
 }
 
 // VERIFY: 930fa88b manual
@@ -259,6 +266,9 @@ void GxXformViewProjNativeTranspose(C44Matrix& matrix) {
     C44Matrix proj;
 
     view = device->m_xforms[GxXform_View].m_mtx[device->m_xforms[GxXform_View].m_level];
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    device->NativeSyncTransforms();
+#endif
     proj = device->m_projNative;
 
     if (device->DeviceApi() == GxApi_OpenGl) {
@@ -923,7 +933,11 @@ void GxLogCrashInfo(char* buffer, uint32_t size) {
 // VERIFY: a9e848ff auto
 // OFFSET: 0x006C42B0
 void GxBufDestroy(CGxBuf* buf) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (buf && buf != g_theGxDevicePtr->m_streamBufs[buf->m_pool->m_target]) {
+#else
     if (buf && buf != g_theGxDevicePtr->BufStream(buf->m_pool->m_target, 0, 0)) {
+#endif
         g_theGxDevicePtr->BufDestroy(buf);
     }
 }

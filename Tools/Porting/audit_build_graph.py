@@ -22,7 +22,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'}
+        expected |= {'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -131,13 +131,14 @@ def audit(targets, mode, target_os, cpu):
         if mode == 'gl' and target['name'] == 'NativeFontsCheck':
             if len(sources) != 1 or not sources[0].endswith('Tools/NativeGx/fonts.cpp'):
                 errors.append('NativeFontsCheck: unexpected font fixture')
-        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'}:
+        if mode == 'gl' and target['name'] in {'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}:
             allowed = {'WowNativeGl': ['Engine/Source/Gx/Portable/' + name + '.cpp'
                                       for name in ['GlContext', 'GlBuffers', 'GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']] +
                                       ['Engine/Source/Gx/CGxMatrixStack.cpp',
                                        'Engine/Source/Tempest/C44Matrix.cpp',
-                                       'Engine/Source/Tempest/C33Matrix.cpp'],
+                                       'Engine/Source/Tempest/C33Matrix.cpp'] + ['Engine/Source/Gx/Portable/LegacyDevice.cpp', 'Engine/Source/Gx/Gx.cpp', 'Engine/Source/Gx/Buffer.cpp', 'Engine/Source/Gx/CGxDevice/CGxDevice.cpp', 'Engine/Source/Gx/CGxDevice/CGxShader.cpp', 'Engine/Source/Gx/CGxDevice/EmergencyMem.cpp', 'Engine/Source/Gx/CGxTex.cpp', 'Engine/Source/Gx/CGxTexFlags.cpp', 'Engine/Source/Gx/CGxPool.cpp', 'Engine/Source/Gx/CGxBuf.cpp', 'Engine/Source/Gx/CGxFormat.cpp', 'Engine/Source/Gx/CGxGammaRamp.cpp', 'Engine/Source/Tempest/CiRect.cpp', 'Engine/Source/Tempest/CRect.cpp'],
                        'NativeGlCheck': ['Tools/NativeGx/main.cpp'],
+                       'LegacyGxCheck': ['Tools/NativeGx/legacy.cpp'],
                        'GlRenderTargetsCheck': ['Tools/NativeGx/targets.cpp'],
                        'GlTransformsCheck': ['Tools/NativeGx/transforms.cpp'],
                        'GlTexturesCheck': ['Tools/NativeGx/textures.cpp'],

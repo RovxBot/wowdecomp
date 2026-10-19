@@ -1,4 +1,9 @@
 #include <cstdint>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#else
+#include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxDevice/CGxShader.h"
 
@@ -19,6 +24,9 @@ int32_t CGxShader::Valid() {
 // VERIFY: 0031218a manual
 // OFFSET: 0x00689A70
 void CGxShader::Load(SFileImpl* file) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    throw std::logic_error("Legacy SFile shader handles are unavailable in the native ABI");
+#else
     SFileReadFile(file, &this->unk_003C, 4, nullptr, nullptr, 0);
     SFileReadFile(file, &this->unk_0040, 4, nullptr, nullptr, 0);
     SFileReadFile(file, &this->unk_0044, 2, nullptr, nullptr, 0);
@@ -31,6 +39,7 @@ void CGxShader::Load(SFileImpl* file) {
 
     uint8_t padding[4];
     SFileReadFile(file, padding, ((codeSize + 3) & ~3u) - codeSize, nullptr, nullptr, 0);
+#endif
 }
 
 // VERIFY: 73c2698b auto

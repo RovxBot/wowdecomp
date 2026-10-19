@@ -19,14 +19,14 @@ class NativeGlGraphTests(unittest.TestCase):
                         ['WOWDECOMP_OS_LINUX=1', 'WOWDECOMP_CPU_X86_64=1',
                          'WOWDECOMP_ARCH_64=1', 'WOWDECOMP_PORTABLE_RUNTIME=1']]}])
 
-    def test_gl_rejects_legacy_device_sources_and_abi(self):
+    def test_gl_selects_common_legacy_dispatch_and_rejects_wgl(self):
         message = 'WowNativeGl: unexpected native Gx context provider/ABI'
         target = self.target('WowNativeGl', 'Engine/Source/Gx/Portable/GlContext.cpp')
         target['sources'] += [{'path': 'Engine/Source/Gx/Portable/' + name + '.cpp'}
                               for name in ['GlBuffers', 'GlProgram', 'GlRenderTargets', 'GlTransforms', 'ShaderPackage']]
         target['sources'] += [{'path': path} for path in [
             'Engine/Source/Gx/CGxMatrixStack.cpp', 'Engine/Source/Tempest/C44Matrix.cpp',
-            'Engine/Source/Tempest/C33Matrix.cpp']]
+            'Engine/Source/Tempest/C33Matrix.cpp'] + ['Engine/Source/Gx/Portable/LegacyDevice.cpp', 'Engine/Source/Gx/Gx.cpp', 'Engine/Source/Gx/Buffer.cpp', 'Engine/Source/Gx/CGxDevice/CGxDevice.cpp', 'Engine/Source/Gx/CGxDevice/CGxShader.cpp', 'Engine/Source/Gx/CGxDevice/EmergencyMem.cpp', 'Engine/Source/Gx/CGxTex.cpp', 'Engine/Source/Gx/CGxTexFlags.cpp', 'Engine/Source/Gx/CGxPool.cpp', 'Engine/Source/Gx/CGxBuf.cpp', 'Engine/Source/Gx/CGxFormat.cpp', 'Engine/Source/Gx/CGxGammaRamp.cpp', 'Engine/Source/Tempest/CiRect.cpp', 'Engine/Source/Tempest/CRect.cpp']]
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         legacy = copy.deepcopy(target)
         legacy['sources'].append({'path': 'Engine/Source/Gx/CGxDeviceOpenGL/CGxDeviceOpenGl.cpp'})

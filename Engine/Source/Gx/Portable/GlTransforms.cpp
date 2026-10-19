@@ -208,6 +208,10 @@ void GlTransforms::Sync() {
     s.syncedView = target;
     s.synced = true;
 }
+C44Matrix GlTransforms::NativeProjection() const {
+    (void)UiConstants(); // Same current-context/synchronization validation.
+    return state->nativeProjection;
+}
 GlUiConstants GlTransforms::UiConstants() const {
     auto& s = *state;
     s.context.CheckCurrent();

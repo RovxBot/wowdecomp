@@ -56,6 +56,7 @@ public:
     // undoes the native projection's Z row conversion before transposition.
     // Call Sync first, including after a target/projection/view change.
     GlUiConstants UiConstants() const;
+    C44Matrix NativeProjection() const;
 private:
     struct State;
     std::unique_ptr<State> state;
