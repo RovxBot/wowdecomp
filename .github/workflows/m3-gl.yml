@@ -103,6 +103,17 @@ jobs:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1
         run: xvfb-run -a -s "-screen 0 1280x1024x24 +extension GLX" ${{ matrix.python }} Tools/Porting/run_core_checks.py --preset ${{ matrix.preset }}
+      # The preceding strict check still fails the workflow. Recovery here only
+      # gathers additional UBSan findings from that same binary; never qualifies it.
+      - name: Collect unqualified font recovery diagnostics after failure
+        if: failure() && matrix.preset == 'linux-gl-asan'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=0:print_stacktrace=1
+        run: |
+          if test -x build/linux-gl-asan/bin/NativeFontsCheck; then
+            build/linux-gl-asan/bin/NativeFontsCheck Tools/NativeGx/fonts/tiny.ttf 2>&1 | tee artifacts/linux-gl-asan/font-recovery-diagnostics.log
+          fi
       - name: Preserve OpenGL context evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

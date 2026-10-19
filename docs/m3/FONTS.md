@@ -90,3 +90,11 @@ Implementation `6948a3802102878b4163f18135080ec8643e5bb3` then reached the valid
 empty short-metrics array in `sfnt/ttload.c:744`, in
 [run 39178927442](https://github.com/RovxBot/wowdecomp/actions/runs/39178927442).
 Native table loading skips that absent array and rejects truncated long metrics.
+Implementation `29021839fff784b237e8877053d4c934eab63977` then reached an absent
+unhinted zone array in `ttgload.c:198`, in
+[run 39179303022](https://github.com/RovxBot/wowdecomp/actions/runs/39179303022).
+Native zone setup now preserves absent arrays without pointer arithmetic.
+After a strict sanitizer failure, Actions may run the same font binary once with
+UBSan recovery solely to collect additional findings. The preceding strict check
+still fails the workflow; recovery output never qualifies a build. ASan/leak
+detection remain enabled and fatal. Final qualification requires strict clean runs.

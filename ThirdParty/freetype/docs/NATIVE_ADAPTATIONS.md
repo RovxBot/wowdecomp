@@ -14,7 +14,8 @@ For the native 12340 font preview, changes guarded by
 - `src/base/ftobjs.c`: preserve null glyph-loader arrays when adjusting an empty
   loader; no pointer arithmetic before allocation.
 - `src/truetype/ttgload.c`: scale signed F2Dot14 composite coefficients by
-  multiplication, including reflected components.
+  multiplication, including reflected components; preserve absent zone arrays
+  for unhinted and empty glyph loads.
 - `include/freetype/internal/ftstream.h`: defined signed big/little-endian
   extraction; keep unsigned 32-bit words at disk width on LP64 and retain the
   full width of little-endian getter results.

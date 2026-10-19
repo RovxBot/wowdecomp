@@ -195,10 +195,18 @@
   {
     zone->n_points   = load->outline.n_points - start_point;
     zone->n_contours = load->outline.n_contours - start_contour;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    /* Unhinted loads need no extra points; empty glyph arrays can be absent. */
+    zone->org        = load->extra_points ? load->extra_points + start_point : 0;
+    zone->cur        = load->outline.points ? load->outline.points + start_point : 0;
+    zone->tags       = load->outline.tags ? (FT_Byte*)load->outline.tags + start_point : 0;
+    zone->contours   = load->outline.contours ? (FT_UShort*)load->outline.contours + start_contour : 0;
+#else
     zone->org        = load->extra_points + start_point;
     zone->cur        = load->outline.points + start_point;
     zone->tags       = (FT_Byte*)load->outline.tags + start_point;
     zone->contours   = (FT_UShort*)load->outline.contours + start_contour;
+#endif
   }
 
 
