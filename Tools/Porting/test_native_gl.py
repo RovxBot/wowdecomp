@@ -71,6 +71,7 @@ class NativeGlGraphTests(unittest.TestCase):
                               ['Handle', 'Status', 'Coordinate', 'ConvertUTF']]
         target['sources'] += [{'path': 'Engine/Source/Tempest/' + name + '.cpp'} for name in
                               ['C3Vector', 'C4Vector']]
+        target['sources'].append({'path': 'Engine/Source/Services/TextBlock.cpp'})
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         for source in ['Engine/Source/Services/Texture.cpp',
                        'Engine/Source/BlizzardCore/Source/SFile.cpp']:

@@ -126,7 +126,8 @@ def audit(targets, mode, target_os, cpu):
                 'GxuFontMiscClasses', 'GxuFontUtil', 'IGxuFontGlyph']] +
                 ['Engine/Source/Base/' + name + '.cpp' for name in
                  ['Handle', 'Status', 'Coordinate', 'ConvertUTF']] +
-                ['Engine/Source/Tempest/C3Vector.cpp', 'Engine/Source/Tempest/C4Vector.cpp']
+                ['Engine/Source/Tempest/C3Vector.cpp', 'Engine/Source/Tempest/C4Vector.cpp',
+                 'Engine/Source/Services/TextBlock.cpp']
                 if target['name'] == 'WowNativeGxu' else ['Tools/NativeGx/gxu.cpp'])
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or

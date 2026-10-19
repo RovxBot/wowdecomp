@@ -1,11 +1,24 @@
 #include <cstdint>
 #include "Engine/Source/Base/Handle.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#endif
 
 // INLINED
 CHandleObject::CHandleObject() {
     this->m_refcount = 0;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_nativeOwner = std::this_thread::get_id();
+#endif
 }
+
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+void CHandleObject::NativeCheckOwner() const {
+    if (this->m_nativeOwner != std::this_thread::get_id())
+        throw std::logic_error("Native handle requires its owner thread");
+}
+#endif
 
 // INLINED
 CHandleObject::~CHandleObject() {
@@ -46,12 +59,19 @@ HOBJECT HandleCreate(CHandleObject* ptr, const char* handleName) {
         return nullptr;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    ptr->NativeCheckOwner();
+#endif
     ptr->m_refcount++;
     return reinterpret_cast<HOBJECT>(ptr);
 }
 
 // INLINED
 CHandleObject* HandleDereference(HOBJECT handle) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!handle) throw std::invalid_argument("Null native handle");
+    reinterpret_cast<CHandleObject*>(handle)->NativeCheckOwner();
+#endif
     return reinterpret_cast<CHandleObject*>(handle);
 }
 

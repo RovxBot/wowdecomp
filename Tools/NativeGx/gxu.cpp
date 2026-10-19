@@ -9,6 +9,8 @@
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
+#include "Engine/Source/Services/TextBlock.h"
+#include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Tempest/CMath.h"
 #include <algorithm>
@@ -125,6 +127,10 @@ struct String {
 struct Batch {
     CGxStringBatch* value = GxuFontCreateBatch(false, false);
     ~Batch() { GxuFontDestroyBatch(value); }
+};
+struct Handle {
+    HOBJECT value;
+    ~Handle() { if (value) HandleClose(value); }
 };
 std::vector<CImVector> Pixels(LegacyDevice& device) {
     CiRect rect{};
@@ -245,6 +251,41 @@ void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
         Require(GxuFontCreateFont(name, height, variant.value, flags), "Font style creation failed");
         for (uint32_t code : {'A', 'Q', ' '}) Require(variant.value->NewCodeDesc(code), "Styled glyph failed");
         for (auto& page : variant.value->m_textureCache) page.UpdateDirty();
+    }
+    {
+        // Actual Services handles used by Frame font/string consumers.
+        float ddcHeight = NDCToDDCHeight(height);
+        Handle serviceFont{reinterpret_cast<HOBJECT>(TextBlockGenerateFont(name, 0, ddcHeight))};
+        Handle duplicate{reinterpret_cast<HOBJECT>(TextBlockGenerateFont(name, 0, ddcHeight))};
+        Require(serviceFont.value && serviceFont.value == duplicate.value &&
+                HandleDereference(serviceFont.value)->m_refcount == 2, "HTEXTFONT cache/refcounts failed");
+        rejected = false;
+        std::thread wrongHandle([&] {
+            try { HandleClose(serviceFont.value); }
+            catch (const std::logic_error&) { rejected = true; }
+        });
+        wrongHandle.join();
+        Require(rejected && HandleDereference(serviceFont.value)->m_refcount == 2,
+                "Off-thread handle close changed ownership");
+        auto hfont = reinterpret_cast<HTEXTFONT>(serviceFont.value);
+        Require(TextBlockGetFontPtr(hfont)->m_fontFaceHandle == face.value->m_fontFaceHandle,
+                "Services font did not share original HFACE");
+        Handle block{reinterpret_cast<HOBJECT>(TextBlockCreate(hfont, "AV", CImVector(255,255,255,255),
+            C3Vector(0.1f,0.1f,0), ddcHeight, 0.4f, 0.4f, 0x21, 0, 0, 1))};
+        Require(block.value, "HTEXTBLOCK creation failed");
+        auto hblock = reinterpret_cast<HTEXTBLOCK>(block.value);
+        float serviceExtent = 0;
+        TextBlockGetTextExtent(hfont, "AV", 2, ddcHeight, &serviceExtent, 0, 1, 0, 0);
+        Require(std::abs(serviceExtent - NDCToDDCWidth(extent)) < 0.00001f,
+                "Services text coordinate conversion changed extent");
+        Batch serviceBatch;
+        GxuFontAddToBatch(serviceBatch.value, TextBlockGetStringPtr(hblock));
+        GxSceneClear(GxBufferBit_Color, CImVector(0,0,0,255));
+        GxuFontRenderBatch(serviceBatch.value);
+        auto servicePixels = Pixels(device);
+        Require(std::count_if(servicePixels.begin(), servicePixels.end(), [](const CImVector& p) {
+            return p.r > 240 && p.g > 240 && p.b > 240;
+        }) > 4, "Services handles did not render through original Gxu");
     }
     GxuFontClearBatch(batch.value);
     GxuFontAddToBatch(batch.value, text.value);

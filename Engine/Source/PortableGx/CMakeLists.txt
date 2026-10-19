@@ -62,6 +62,7 @@ add_library(WowNativeGxu STATIC
     ../Gxu/GxuFontMiscClasses.cpp
     ../Gxu/GxuFontUtil.cpp
     ../Gxu/IGxuFontGlyph.cpp
+    ../Services/TextBlock.cpp
     ../Base/Handle.cpp
     ../Base/Status.cpp
     ../Base/Coordinate.cpp
