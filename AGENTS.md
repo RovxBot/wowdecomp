@@ -194,10 +194,17 @@ it does not turn a documentation request into authorization to start the whole p
   glyph rasterization. Original font/login, device/cache/callback/async and
   networking/world work remain open. The user will sign in interactively when
   native login is ready. Preserve server revision discrepancies. M3 is incomplete.
-- M3 native packet prerequisites are being qualified separately. Read
-  [packet contracts](docs/m3/PACKETS.md) before extending transport. This adapts
-  original `CDataStore`, ARC4 and SHA1/HMAC in the native ABI, not socket dispatch
-  or authentication. Preserve the distinction from observed GrimGuzzler sessions.
+- M3 packet prerequisites [PR #25](https://github.com/RovxBot/wowdecomp/pull/25)
+  are qualified at `6d1a9c209410d42f4351e71645c44edbe891cfb2`. Read
+  [packet contracts](docs/m3/PACKETS.md) and [validation](docs/m3/packet-validation.json)
+  before extending transport. All nine implementation PR workflows passed;
+  Linux release and ASan/UBSan/leak, actual ARM64 macOS and Windows native builds
+  each passed five CTest checks/three packet cycles. Full Windows x64 compiled at
+  separate merge checkout `9a2bcc9d247cb93361dcc3fc26bbc8c85dc5ddff` with
+  signatures enabled; all five archive digests and 19 packaged binary hashes/types
+  were verified. This adapts original `CDataStore`, ARC4 and SHA1/HMAC in the native
+  ABI, not socket dispatch or authentication. M3 remains incomplete; preserve the
+  external server revision discrepancy and interactive user sign-in preference.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

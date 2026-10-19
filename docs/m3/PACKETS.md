@@ -20,8 +20,9 @@ unchanged Windows paths. They do not verify the guarded native adaptations.
 Native serialized fields keep their fixed widths. Runtime objects retain host ABI;
 the code does not impose original Windows packing on pointers, locks or classes.
 The selected Windows client bodies remain behind the existing non-native paths.
-The digest/HMAC checks cover the legacy caller's short keys (20/32 bytes), not a
-new general-purpose cryptography interface.
+The HMAC fixture uses a 20-byte key and retains the existing template's
+at-most-64-byte key precondition. It is not an observed authentication exchange
+or a new general-purpose cryptography interface.
 
 `WowConnection` requires more than the Os IOCP transport. Its current Win64
 implementation performs partial `send`/`recv` and framed header encryption, while
@@ -47,11 +48,22 @@ parity/input preservation. All three lifetime cycles run with ASan/UBSan and lea
 detection enabled in the Linux sanitizer configuration. Ordinary CI uses authored
 bytes only, with no game data, credentials or server connection.
 
-Hosted qualification is pending. Local Python/source and whitespace checks are
-permitted; local client/dependency compilation is prohibited. Full Windows
-compilation remains a separate regression check. Successful packet fixtures do
-not establish portable networking or observed GrimGuzzler compatibility. The
-[external server revision discrepancy](SERVER_IDENTITY.md) remains unchanged.
+Qualified implementation: `6d1a9c209410d42f4351e71645c44edbe891cfb2` in
+[PR #25](https://github.com/RovxBot/wowdecomp/pull/25). The
+[durable record](packet-validation.json) preserves all nine successful PR
+workflows, all four native artifact digests/manifests and five CTest passes per
+configuration, including three packet cycles each. The macOS runner and Mach-O
+binaries are ARM64. Linux ASan/UBSan/leak checks passed without suppressions.
+Full Windows x64 compilation passed at separate merge checkout
+`9a2bcc9d247cb93361dcc3fc26bbc8c85dc5ddff`, with signatures enabled and all
+three packaged PE AMD64 binaries hash-verified. All 19 packaged binaries across
+the five artifacts were verified against their manifests and archive digests.
+
+Local checks discovered 33 Python tests: 32 passed, one CMake selection check
+was unavailable locally. Documentation/JSON/whitespace checks passed. No client
+or dependency compiled locally. These CPU fixtures do not establish sockets,
+authentication, a new Windows gameplay session or native macOS desktop behavior.
+The [external server revision discrepancy](SERVER_IDENTITY.md) remains unchanged.
 
 The first implementation `ca01de61500b235b619a5942b51210e729730d12`
 failed Clang compilation because the cache `DetachBuffer` declaration named a
