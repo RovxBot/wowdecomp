@@ -57,7 +57,11 @@ packed font-atlas formats, mip/cube uploads and DXT resources with qualified
 hosted/GPU checks. Its synthetic atlas fixture is separate from original text.
 The [original font preview](docs/m3/FONTS.md) now renders unchanged Friz Quadrata
 glyphs through the original UI shaders, with qualified hosted and real-GPU
-release/sanitizer checks. Full legacy Gx/Gxu, login UI and gameplay remain open.
+release/sanitizer checks. The next [legacy Gx UI adapter](docs/m3/LEGACY_DEVICE.md)
+connects actual global dispatch, texture callbacks, shader caches and streamed
+batches to the native resource owners, with qualified hosted and original-data
+GPU release/strict sanitizer checks. Original Gxu
+layout/cache, login UI and gameplay remain open.
 
 ## Progress
 

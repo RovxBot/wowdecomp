@@ -66,7 +66,11 @@ struct CGxAppRenderState {
     /* 0014 */ int32_t m_dirty;
 };
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+using GxDeviceCallback = void (*)();
+#else
 typedef void (__fastcall* GxDeviceCallback)();
+#endif
 
 class CGxDevice {
     public:
@@ -281,6 +285,13 @@ class CGxDevice {
     static void ClampRectTop(CiRect& windowRect);
     static void ICursorUpdate(EGxTexCommand command, uint32_t width, uint32_t height, uint32_t face, uint32_t level, void* userArg, uint32_t& texelStrideInBytes, const void*& texels);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Native lifetime hook: common BufDestroy must retire derived GPU bindings
+    // before deleting the actual legacy CPU object. No Windows vtable change.
+    virtual void NativeBufDestroy(CGxBuf* buf) = 0;
+    virtual void NativeSyncTransforms() = 0;
+    virtual void NativeCheckOwner() const = 0;
+#endif
     CGxDevice();
     CGxBuf* BufCreate(CGxPool* pool, uint32_t itemSize, uint32_t itemCount, uint32_t index);
     void BufDestroy(CGxBuf*& buf);

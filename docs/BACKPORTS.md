@@ -332,6 +332,38 @@ and source inspection are different evidence levels.
   check unavailable. All compilation ran in Actions. Actual device/Gxu/login,
   transport and observed gameplay remain open.
 
+## NP-013 — Native legacy Gx UI dispatch
+
+- Status: implementation in [PR #27](https://github.com/RovxBot/wowdecomp/pull/27),
+  stacked on still-open PR #26; qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`.
+- Source: product 12340 Storm-string handoff
+  `7f4ca29b95379505f07ae74f4834ff5f99ec0693`. Select the existing `Gx.cpp`,
+  `CGxDevice`, shader, texture/flags, pool/buffer, format/gamma/light and required
+  scalar Tempest sources in the native ABI. No donor implementation/address,
+  new dependency or new binary-verification claim is imported. Existing VERIFY
+  annotations describe historical Windows bodies, not guarded native adaptations.
+- Benefit/adaptation: concrete SDL-context-owned native UI device beneath actual
+  Gx dispatch, original render-state stack/cache and resource objects. Typed owner
+  markers preserve texture readiness without GLuint/pointer aliasing; callbacks
+  retain borrowed bytes through exactly one Unlock after completed Lock. Native
+  buffer retirement clears bindings before deletion; shader cache admission is
+  bounded and handles partial permutation reuse. Native-only state comparison,
+  scalar integer delivery and owner checks retain the original Windows paths.
+- Assets/defaults: unchanged `0x10003` UI shaders and original font bytes remain
+  behind authenticated original-key/registered-MD5 package reads on the retained
+  worker. No enhancement, credentials, server traffic or policy change. This is
+  a single-mip 2D/UI adapter, not original Gxu HFACE/layout/cache or login/world.
+- Validation: all nine implementation PR workflows passed; both Linux GL
+  configurations passed 21 CTest checks and full Windows x64 compiled at a separate
+  matching-tree merge checkout. Three archive digests and 31 packaged binary
+  hashes/types were verified. Exact-source RX 7900 XTX original-data release and
+  strict ASan/UBSan/leak legacy dispatch/font/UI-shader checks passed three cycles
+  each, with empty stderr and zero probe workers; existing preview/resource
+  regressions passed too. Initial failures and exact identities remain in
+  [the record](m3/legacy-device-validation.json). Local Python: 34 passed, one
+  unavailable CMake check skipped. All compilation ran in Actions. Original Gxu
+  layout/cache, login, transport and observed gameplay remain open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

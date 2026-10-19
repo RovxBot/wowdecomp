@@ -234,6 +234,26 @@ it does not turn a documentation request into authorization to start the whole p
   `I64` integer values without enabling global ordered formatting. Ordered UTF-16
   formats remain visibly unavailable. Actual legacy device/Gxu/login, transport
   and observed gameplay remain open; M3 is incomplete.
+- M3 legacy Gx UI dispatch [PR #27](https://github.com/RovxBot/wowdecomp/pull/27)
+  is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`, stacked on PR #26.
+  Read [device contracts](docs/m3/LEGACY_DEVICE.md) and
+  [validation](docs/m3/legacy-device-validation.json). Nine implementation PR
+  workflows passed, with 21 CTest checks per Linux GL configuration and full
+  Windows x64 compilation at separate matching-tree checkout
+  `d319ec4bef5ed042ce8b45fb62923b5f927ecd60`. Three archive digests and 31 packaged binary
+  hashes/types were verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11
+  release and strict ASan/UBSan/leak checks each passed three original-data
+  callback/PCT/font/UI-shader cycles; existing preview/resource regressions also
+  passed, with empty stderr and zero probe workers. Concrete native CGxDevice now
+  owns actual global Gx state/cache/resources through the qualified native
+  services. Preserve owner-thread mutations, typed readiness markers, exactly
+  one Unlock after completed Lock, partial shader-permutation cache repair and
+  derived-before-base GPU/binding teardown. Keep native draw-list key destructors
+  so UBSan vptr checks remain enabled. This is a bounded single-mip 2D/UI adapter,
+  not original Gxu HFACE/texture-service/layout/string/glyph-cache integration or
+  full world-device coverage. Original Gxu/login, transport/authentication and
+  observed gameplay remain open. No new physical-input or server acceptance;
+  preserve the external server revision discrepancy. M3 is incomplete.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

@@ -6,10 +6,13 @@ gameplay. Source reference: combined font/packet tree
 `da1451336d49be27e391be09b7b829ff7e4306ca`.
 
 The native `GlContext`, program, target/texture, transform and buffer services
-already exercise the original UI shader path. The legacy `Gx.cpp` entry points
-still dispatch through `g_theGxDevicePtr`; neither those entry points nor a
-concrete native `CGxDevice` are in the native GL allowlist. Drawing another
-independent preview does not connect that dispatch.
+exercise the original UI shader path. At the audit reference above, the legacy
+`Gx.cpp` entry points still dispatched through `g_theGxDevicePtr` outside the native
+allowlist. The subsequent [bounded legacy device adapter](LEGACY_DEVICE.md) in
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27) now selects those entry points
+and the common device/resource objects, with a concrete native UI adapter.
+Its qualification is recorded separately; the full device, original Gxu caches
+and login integration requirements below remain broader than that UI subset.
 
 | Existing source/callers | Required adaptation |
 | --- | --- |

@@ -354,6 +354,16 @@ passing PR workflows, verified artifacts and exact-source GPU regressions. Full
 legacy device/Gxu dispatch, original login, transport and the observed world-session
 exit criterion below remain open.
 
+The [bounded legacy Gx UI dispatch adapter](docs/m3/LEGACY_DEVICE.md) in
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on PR #26, connects
+common device/state/cache and actual texture/buffer/shader objects to the native
+owners. It is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520` with
+[nine passing implementation workflows](docs/m3/legacy-device-validation.json),
+21 CTest checks per Linux GL configuration, full Windows x64 compilation and
+exact-source original-data GPU release/strict sanitizer checks. Original Gxu
+handle/layout/cache, remaining full-device contracts and the login/network/world
+gates remain open.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

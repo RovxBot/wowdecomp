@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--artifact', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--snapshot', type=Path)
+    parser.add_argument('--legacy-device', action='store_true', help='Run the actual legacy Gx dispatch fixture (three cycles)')
     parser.add_argument('--frames', type=int, default=120)
     parser.add_argument('--cycles', type=int, default=1)
     parser.add_argument('--timeout', type=int, default=120)
@@ -46,9 +47,12 @@ def main():
     manifest = json.loads((args.artifact / 'manifest.json').read_text())
     if manifest['preset'] not in {'linux-gl', 'linux-gl-asan'} or manifest['target_os'] != 'LINUX':
         parser.error('Expected a Linux M3 OpenGL Actions artifact')
-    binary = args.artifact / 'bin/NativeGlCheck'
+    probe_name = 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
+    if args.legacy_device and args.snapshot:
+        parser.error('The legacy fixture currently records pixels, without a snapshot')
+    binary = args.artifact / 'bin' / probe_name
     actual = hashlib.sha256(binary.read_bytes()).hexdigest()
-    expected = next(item['sha256'] for item in manifest['binaries'] if item['name'] == 'NativeGlCheck')
+    expected = next(item['sha256'] for item in manifest['binaries'] if item['name'] == probe_name)
     if actual != expected:
         raise SystemExit('Hosted OpenGL binary hash does not match the manifest')
     binary.chmod(0o755)
@@ -73,13 +77,19 @@ def main():
     environment.update(SDL_VIDEODRIVER='x11', EGL_PLATFORM='x11')
     if args.sanitizers or manifest['preset'].endswith('-asan'):
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1')
-    command = [str(binary.resolve()), '--frames', str(args.frames), '--cycles', str(args.cycles)]
+    command = [str(binary.resolve())]
+    if not args.legacy_device:
+        command += ['--frames', str(args.frames), '--cycles', str(args.cycles)]
     if args.snapshot:
         args.snapshot.unlink(missing_ok=True)
         command += ['--snapshot', str(args.snapshot.resolve())]
     if args.data:
         command += ['--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
-                    '--cache', str(args.cache.resolve()), '--locale', args.locale]
+                    '--cache', str(args.cache.resolve())]
+        if not args.legacy_device:
+            command += ['--locale', args.locale]
+        elif args.locale != 'enUS':
+            parser.error('The legacy original-data fixture currently uses enUS')
     started = datetime.now(timezone.utc).isoformat()
     def execute(arguments):
         try:
@@ -103,7 +113,7 @@ def main():
     print(result.stderr, end='')
     record = dict(schema_version=1, scope='M3 SDL3/Gx context and asset probe; no original login UI or gameplay',
                   started_at=started, completed_at=datetime.now(timezone.utc).isoformat(),
-                  source_commit=manifest['source_commit'], workflow_run=manifest['workflow_run'],
+                  probe=probe_name, source_commit=manifest['source_commit'], workflow_run=manifest['workflow_run'],
                   binary_sha256=actual, preset=manifest['preset'], os=platform.platform(),
                   machine=platform.machine(), sdl3=manifest.get('sdl3'), video='x11',
                   original_data_requested=bool(args.data), locale=args.locale if args.data else None,

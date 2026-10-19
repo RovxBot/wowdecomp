@@ -1,5 +1,22 @@
-# Separate native ABI; no legacy Gx/CGxDevice, WGL, D3D or vendor SDK linkage.
+# Native ABI with selected common legacy Gx dispatch; no WGL/D3D/vendor SDK linkage.
 add_library(WowNativeGl STATIC
+    ../Gx/Portable/LegacyDevice.cpp
+    ../Gx/Gx.cpp
+    ../Gx/Buffer.cpp
+    ../Gx/CGxDevice/CGxDevice.cpp
+    ../Gx/CGxDevice/CGxShader.cpp
+    ../Gx/CGxDevice/EmergencyMem.cpp
+    ../Gx/CGxTex.cpp
+    ../Gx/CGxTexFlags.cpp
+    ../Gx/CGxPool.cpp
+    ../Gx/CGxBuf.cpp
+    ../Gx/CGxFormat.cpp
+    ../Gx/CGxGammaRamp.cpp
+    ../Gx/CGxLight.cpp
+    ../Tempest/C2Vector.cpp
+    ../Tempest/C4Plane.cpp
+    ../Tempest/CiRect.cpp
+    ../Tempest/CRect.cpp
     ../Gx/Portable/GlContext.cpp
     ../Gx/Portable/GlBuffers.cpp
     ../Gx/Portable/GlProgram.cpp
@@ -37,7 +54,14 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(WowNativeGl PRIVATE -g1)
     target_compile_options(NativeGlCheck PRIVATE -g1)
 endif()
+add_executable(LegacyGxCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/legacy.cpp)
+target_link_libraries(LegacyGxCheck PRIVATE WowNativeGl WowNativeFonts)
+if(WOWDECOMP_CORE_SANITIZERS)
+    target_compile_options(LegacyGxCheck PRIVATE -g1)
+endif()
 if(BUILD_TESTING)
+    add_test(NAME native-legacy-gx-dispatch COMMAND LegacyGxCheck)
+    set_tests_properties(native-legacy-gx-dispatch PROPERTIES TIMEOUT 60 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_executable(NativeFontsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts.cpp)
     target_link_libraries(NativeFontsCheck PRIVATE WowNativeFonts)
     target_include_directories(NativeFontsCheck PRIVATE ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include)

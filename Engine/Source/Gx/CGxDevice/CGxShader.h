@@ -3,7 +3,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+class SFileImpl;
+#else
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Storm/H/stpl.h"
 
 class CGxShader : public TSHashObject<CGxShader, HASHKEY_STRI> {

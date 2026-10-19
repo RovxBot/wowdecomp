@@ -1,6 +1,9 @@
 #include <cstdarg>
 #include <cstdint>
 #include <cstdlib>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#endif
 #include "Engine/Source/Gx/Buffer.h"
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxPool.h"
@@ -115,12 +118,19 @@ static int (*s_drawListSorters[GxuSorts_Last])(const void*, const void*) = { Dra
 // VERIFY: 0b88acbc auto
 // OFFSET: 0x008C8DE0
 EGxApi GxDefaultApi() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    return GxApi_OpenGl;
+#else
     return GxApi_D3d9;
+#endif
 }
 
 // VERIFY: cef2b995 auto
 // OFFSET: 0x006811D0
 int32_t GxApiSupported(EGxApi api) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    return api == GxApi_OpenGl;
+#else
     switch (api) {
         case GxApi_OpenGl:
         case GxApi_D3d9:
@@ -130,6 +140,7 @@ int32_t GxApiSupported(EGxApi api) {
         default:
             return 0;
     }
+#endif
 }
 
 // VERIFY: 619cba02 auto
@@ -177,6 +188,9 @@ int32_t GxVertexHasAttrib(EGxVertexBufferFormat format, EGxVertexAttrib attrib) 
 // VERIFY: ca53a8f5 auto
 // OFFSET: 0x00681290
 CGxDevice* CreateGxDevice(EGxApi api, GxWindowProc windowProc, const CGxFormat& format) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    throw std::logic_error("Install the native Gx device on its SDL-owned context");
+#else
     CGxDevice* device;
 
     switch (api) {
@@ -209,6 +223,7 @@ CGxDevice* CreateGxDevice(EGxApi api, GxWindowProc windowProc, const CGxFormat& 
     }
 
     return nullptr;
+#endif
 }
 
 // VERIFY: 930fa88b manual
@@ -259,6 +274,9 @@ void GxXformViewProjNativeTranspose(C44Matrix& matrix) {
     C44Matrix proj;
 
     view = device->m_xforms[GxXform_View].m_mtx[device->m_xforms[GxXform_View].m_level];
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    device->NativeSyncTransforms();
+#endif
     proj = device->m_projNative;
 
     if (device->DeviceApi() == GxApi_OpenGl) {
@@ -319,6 +337,9 @@ void GxXformPush(EGxXform xf) {
 // VERIFY: 42304661 manual
 // OFFSET: 0x0057C420
 void GxXformPop(EGxXform xf) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->NativeCheckOwner();
+#endif
     CGxMatrixStack& stack = g_theGxDevicePtr->m_xforms[xf];
     stack.m_dirty = 1;
 
@@ -330,6 +351,9 @@ void GxXformPop(EGxXform xf) {
 // VERIFY: 25db6ccb manual
 // OFFSET: 0x0057C4A0
 void GxXformTranslate(EGxXform xf, const C3Vector& move) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->NativeCheckOwner();
+#endif
     CGxMatrixStack& stack = g_theGxDevicePtr->m_xforms[xf];
     stack.m_dirty = 1;
     stack.m_flags[stack.m_level] &= ~CGxMatrixStack::F_Identity;
@@ -339,6 +363,9 @@ void GxXformTranslate(EGxXform xf, const C3Vector& move) {
 // VERIFY: b3c95c9e manual
 // OFFSET: 0x0057C4F0
 void GxXformScale(EGxXform xf, const C3Vector& scale) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->NativeCheckOwner();
+#endif
     CGxMatrixStack& stack = g_theGxDevicePtr->m_xforms[xf];
     stack.m_dirty = 1;
     stack.m_flags[stack.m_level] &= ~CGxMatrixStack::F_Identity;
@@ -826,6 +853,9 @@ void GxRsSet(EGxRenderState which, void* value) {
 // VERIFY: 194fac0e auto
 // OFFSET: 0x00408BF0
 void GxRsSet(EGxRenderState which, int32_t value) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->RsSet(which,value);
+#else
     if (!g_theGxDevicePtr->m_context) {
         return;
     }
@@ -836,11 +866,15 @@ void GxRsSet(EGxRenderState which, int32_t value) {
         g_theGxDevicePtr->IRsDirty(which);
         state.m_value.m_data.p = reinterpret_cast<void*>(static_cast<intptr_t>(value));
     }
+#endif
 }
 
 // VERIFY: d06b58a9 manual
 // OFFSET: 0x00408C30
 void GxUpdateAlphaRef(EGxRenderState which) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->NativeCheckOwner();
+#endif
     if (which != GxRs_AlphaRef || !g_theGxDevicePtr->m_context) {
         return;
     }
@@ -857,6 +891,9 @@ void GxUpdateAlphaRef(EGxRenderState which) {
 // VERIFY: 3f036f15 auto
 // OFFSET: 0x00763C70
 void GxRsSet(EGxRenderState which, float value) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->RsSet(which,value);
+#else
     if (!g_theGxDevicePtr->m_context) {
         return;
     }
@@ -867,6 +904,7 @@ void GxRsSet(EGxRenderState which, float value) {
         g_theGxDevicePtr->IRsDirty(which);
         state.m_value.m_data.f[0] = value;
     }
+#endif
 }
 
 // VERIFY: d54d4b83 auto
@@ -923,7 +961,11 @@ void GxLogCrashInfo(char* buffer, uint32_t size) {
 // VERIFY: a9e848ff auto
 // OFFSET: 0x006C42B0
 void GxBufDestroy(CGxBuf* buf) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (buf && buf != g_theGxDevicePtr->m_streamBufs[buf->m_pool->m_target]) {
+#else
     if (buf && buf != g_theGxDevicePtr->BufStream(buf->m_pool->m_target, 0, 0)) {
+#endif
         g_theGxDevicePtr->BufDestroy(buf);
     }
 }
@@ -951,6 +993,9 @@ void GxRenderTargetSet(EGxBuffer buffer, CGxTex* texture, uint32_t plane) {
 // VERIFY: 9ee00156 manual
 // OFFSET: 0x0057C450
 void GxXformSet(EGxXform xf, const C44Matrix& matrix) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    g_theGxDevicePtr->NativeCheckOwner();
+#endif
     CGxMatrixStack& stack = g_theGxDevicePtr->m_xforms[xf];
     stack.m_dirty = 1;
     stack.m_flags[stack.m_level] &= ~CGxMatrixStack::F_Identity;
