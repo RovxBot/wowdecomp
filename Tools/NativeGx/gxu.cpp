@@ -161,7 +161,8 @@ void Snapshot(const std::string& path, const std::vector<CImVector>& pixels) {
 }
 void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     LegacyDevice device(context, [&](const std::string& path) { return assets.shaders.at(path); });
-    Require(device.Caps().m_pixelCenterOnEdge == 1, "Native Gxu requires original OpenGL pixel-center semantics");
+    Require(device.Caps().m_pixelCenterOnEdge == 1 && device.Caps().m_texelCenterOnEdge == 1,
+            "Native Gxu requires original OpenGL pixel/texel-center semantics");
     GxRsSet(GxRs_Lighting, 0);
     GxRsSet(GxRs_Fog, 0);
     int reads = 0;

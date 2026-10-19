@@ -3,14 +3,17 @@
 This work follows merged PR #26 (`c3ef9fd989d15beb4af2695ea0cc08865e23bd19`)
 and PR #27 (`6dae38e729a44c8df2424a0f27d6b892fcac7b0f`). It selects the
 product's original Gxu face, font, layout/string, glyph/kerning/row caches and
-batched consumers into a separate native ABI target. It does not establish
+batched consumers plus original Services HTEXTFONT/HTEXTBLOCK wrappers into a
+separate native ABI target. It does not establish
 GlueXML/FrameXML login, networking, authentication or gameplay. M3 stays open.
 
 `WowNativeGxu` explicitly selects the original sources and scalar Base/Tempest
 dependencies. `LegacyFonts` requires the installed native device and its current
 main-thread context. Destroy strings/batches and close external HFACE references
-before the font owner, then destroy the device/context. Native public Gxu font
-entry points reject foreign-thread calls before touching global caches.
+before the font owner, then destroy the device/context. Keep a Services font
+handle alive until its text blocks are closed, matching the original Frame
+caller contract. Native public Gxu/Services font entry points, direct font/string
+cache mutation and handle refcount changes reject foreign threads before mutation.
 
 The native face provider returns completed font reads, bounded to 32 MiB. In an
 application those bytes come from authenticated original-key packages on the
@@ -28,6 +31,12 @@ raster ownership validates atlas bounds and copies signed-pitch rows before
 FreeType reuses its slot. The scratch atlas clears between pages. Original
 Windows bodies and their historical provenance are retained; native adaptations
 make no new OFFSET/VERIFY claim or donor attribution.
+
+The concrete adapter now binds the initial drawable before original consumers
+submit and reports original OpenGL `ISetCaps` pixel/texel-center semantics.
+The three required scalar pixel conversions retain the original float epsilon
+and rounding expressions, with bounds checks before native integer conversion.
+They do not select the broader, unaudited Tempest soft-float implementation.
 
 `LegacyGxuCheck` runs the actual public Gxu API and original consumer methods.
 Synthetic CI uses authored geometric fonts/shaders, with a separate Unicode-alias
