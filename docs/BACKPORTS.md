@@ -495,8 +495,11 @@ and source inspection are different evidence levels.
 
 ## NP-018 — Authored native image mip chains and local readiness
 
-- Status: implementation awaiting hosted/runtime qualification; see
-  [contracts](m3/IMAGE_MIPS.md). M3 remains open.
+- Status: qualified at `41c0a78e7f25bf6a040a59560c5f33502297d6f9` in
+  [PR #37](https://github.com/RovxBot/wowdecomp/pull/37), merged as
+  `0d90dcdd741e43418016aaeeb15a66c23be2f1f8`; see
+  [contracts](m3/IMAGE_MIPS.md) and [evidence](m3/image-mip-validation.json).
+  M3 remains open.
 - Source: product main `9bcf7bc` after qualified image Services PR #35/closeout
   PR #36. Adapt original 12340 `CGxDeviceOpenGl::ITexMarkAsUpdated` mip callback
   traversal, `TextureGetGxTex` local wait-2 semantics and `CreateBlpAsync` UI read
@@ -511,9 +514,15 @@ and source inspection are different evidence levels.
   shaders, with separate authored level-color/callback fixtures. Original-key
   package authentication and registered MD5 checks remain enabled. No protocol,
   optional effect, server-policy or credential change; Frame/login remain open.
-- Validation: local source-audit Python suite passes (43 passed, one platform
-  skip). Compilation and release/strict sanitizer fixtures run only in Actions;
-  new qualification is pending and does not inherit PR #35 runtime evidence.
+- Validation: all seven triggered implementation PR workflows passed, with 23
+  CTest checks per Linux GL configuration and full Windows x64 compilation with
+  signatures enabled. Three archive digests and all 35 packaged executable
+  hashes/types were verified. Exact-source RX 7900 XTX release/strict sanitizer
+  authored/original-data mip, Gxu/Gx/preview/resource executions passed: eighteen
+  runs, empty stderr, zero probe workers. Original loading-bar captures match each
+  other and prior qualification; original terrain mip checks are FBO telemetry,
+  not world rendering. Local source audit: 43 passed, one platform skip. All
+  compilation ran in Actions. PR #35 identities/failures remain historical.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 

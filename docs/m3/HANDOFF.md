@@ -376,14 +376,33 @@ does not yet accept Frame's `0x17` flags, wait mode 2, atlas/TGA/streaming calle
 or render original Frame/GlueXML/login. No new physical-input, Windows runtime,
 macOS graphics or server acceptance is implied. M3 remains open.
 
+The subsequent [authored mip/readiness extension](IMAGE_MIPS.md) in
+[PR #37](https://github.com/RovxBot/wowdecomp/pull/37) is qualified at
+`41c0a78e7f25bf6a040a59560c5f33502297d6f9`, merged as
+`0d90dcdd741e43418016aaeeb15a66c23be2f1f8`. Its
+[record](image-mip-validation.json) retains all seven passing triggered PR
+workflows, 23 CTest checks per Linux GL configuration and full Windows x64
+compilation with signatures enabled at matching-tree checkout
+`6c2521c2a897f9e4d192404b118139f784b7e22b`. Three archive digests and all 35
+packaged executable hashes/types were verified. Exact-source RX 7900 XTX release
+and strict ASan/UBSan/leak execution passed three authored and three original-data
+image cycles each, including minified original Elwynn authored mip chains through
+Services/Gx/UI shaders. Gxu/Gx/preview/resource regressions passed; all eighteen
+executions exited 0 with empty stderr and zero probe workers. Loading-bar capture
+hashes match the prior qualification. No new terrain/world capture, physical-input,
+Windows runtime, macOS graphics or server acceptance is implied.
+
+The service now accepts explicit authored mip filters, local wait 2 and UI priority
+0x10, retaining exactly-once Unlock and a shared pixel budget. Frame 0x17 still
+requires disk/atlas adaptation; TGA/default-policy/streaming and actual original
+Frame/GlueXML/login remain open. The PR #35 identities above remain historical.
+
 Next dependencies, in order:
 
-The [authored image mip/readiness extension](IMAGE_MIPS.md) is the next bounded
-implementation: full BLP2 mip filters, local wait mode 2 and UI read priority.
-Its qualification is pending; the PR #35 identities above remain historical.
-
 1. Connect original Frame font/string consumers and factories to the qualified
-   Gxu/Services owners. Adapt actual Frame image callers to the bounded image
+   Gxu/Services owners, beginning with original layout/anchor ownership and the
+   [concrete source prerequisites](IMAGE_MIPS.md#next-original-frame-callers).
+   Adapt actual Frame image callers to the bounded image
    service; retain their flags/readiness/atlas contracts. Extend device/state/
    mip/texture contracts as their callers require them; audit texture/texgen
    delivery and legacy async callers. Wire SDL size events to font invalidation.

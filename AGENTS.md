@@ -368,6 +368,27 @@ it does not turn a documentation request into authorization to start the whole p
   Frame factories/GlueXML/login remain open. No new physical-input, Windows runtime,
   macOS graphics or server acceptance. M3 remains open; signatures, server revision
   discrepancies and interactive user sign-in remain intact.
+- M3 authored image mips/readiness [PR #37](https://github.com/RovxBot/wowdecomp/pull/37)
+  is qualified at `41c0a78e7f25bf6a040a59560c5f33502297d6f9`, merged as
+  `0d90dcdd741e43418016aaeeb15a66c23be2f1f8`. Read [mip contracts/next Frame callers](docs/m3/IMAGE_MIPS.md)
+  and [validation](docs/m3/image-mip-validation.json). All seven triggered PR
+  workflows passed; both Linux GL configurations passed 23 CTest checks. Full
+  Windows x64 compiled with signatures enabled at matching-tree checkout
+  `6c2521c2a897f9e4d192404b118139f784b7e22b`. Three archive digests and all 35
+  packaged executable hashes/types were verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak binaries each passed three
+  authored and three original-data image cycles, including original 256x256 Elwynn
+  authored mip-chain minification through Services/Gx/UI shaders. Gxu/Gx/preview/
+  resource regressions passed; all eighteen executions exited 0 with empty stderr
+  and zero probe workers. Loading-bar capture hashes match prior qualification;
+  no new terrain/world capture is claimed. Preserve one Lock/Unlock around
+  increasing Latch levels, complete authored chains, dirty retry, immutable mip
+  allocation classes, local-only wait 2 and UI priority 129/ordinary 130. Retained
+  pixels share a 256 MiB budget. Frame 0x17 disk/atlas flags remain rejected;
+  actual Frame layout/factories, TGA/streaming, original GlueXML/login, transport
+  and gameplay remain open. No new physical-input, Windows runtime, macOS graphics
+  or server acceptance. M3 remains incomplete; signatures, server revision
+  discrepancies and interactive user sign-in stay intact.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
