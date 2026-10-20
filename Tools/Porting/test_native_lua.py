@@ -11,13 +11,13 @@ class NativeLuaPolicyTests(unittest.TestCase):
     def test_driver_refuses_local_compilation(self):
         env=os.environ.copy();env.pop('GITHUB_ACTIONS',None)
         result=subprocess.run([sys.executable,str(ROOT/'Tools/Porting/run_lua_checks.py'),
-            '--preset','linux-luas'],env=env,capture_output=True,text=True)
+            '--preset','linux-lua'],env=env,capture_output=True,text=True)
         self.assertNotEqual(result.returncode,0)
         self.assertIn('compilation must run in GitHub Actions',result.stderr)
 
     def test_lua_presets_keep_client_gate(self):
         presets={r['name']:r for r in json.loads((ROOT/'CMakePresets.json').read_text())['configurePresets']}
-        for name in ['linux-luas','linux-luas-asan','macos-arm64-luas','windows-luas']:
+        for name in ['linux-lua','linux-lua-asan','macos-arm64-lua','windows-lua']:
             merged={};current=presets[name]
             while current:
                 merged={**current.get('cacheVariables',{}),**merged}
