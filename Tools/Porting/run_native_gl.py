@@ -14,6 +14,8 @@ def main():
     parser.add_argument('--artifact', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--snapshot', type=Path)
+    parser.add_argument('--legacy-gxu', action='store_true', help='Run original Gxu handles/layout/cache/batches (three cycles)')
+    parser.add_argument('--font', type=Path, help='Authored cache font for synthetic Gxu checks')
     parser.add_argument('--legacy-device', action='store_true', help='Run the actual legacy Gx dispatch fixture (three cycles)')
     parser.add_argument('--frames', type=int, default=120)
     parser.add_argument('--cycles', type=int, default=1)
@@ -47,7 +49,10 @@ def main():
     manifest = json.loads((args.artifact / 'manifest.json').read_text())
     if manifest['preset'] not in {'linux-gl', 'linux-gl-asan'} or manifest['target_os'] != 'LINUX':
         parser.error('Expected a Linux M3 OpenGL Actions artifact')
-    probe_name = 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
+    if args.legacy_device and args.legacy_gxu:
+        parser.error('Select one legacy fixture')
+    legacy = args.legacy_device or args.legacy_gxu
+    probe_name = 'LegacyGxuCheck' if args.legacy_gxu else 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
     if args.legacy_device and args.snapshot:
         parser.error('The legacy fixture currently records pixels, without a snapshot')
     binary = args.artifact / 'bin' / probe_name
@@ -78,15 +83,19 @@ def main():
     if args.sanitizers or manifest['preset'].endswith('-asan'):
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1')
     command = [str(binary.resolve())]
-    if not args.legacy_device:
+    if not legacy:
         command += ['--frames', str(args.frames), '--cycles', str(args.cycles)]
+    if args.font:
+        if not args.legacy_gxu or args.data:
+            parser.error('--font is only for synthetic Gxu checks')
+        command += ['--font', str(args.font.resolve())]
     if args.snapshot:
         args.snapshot.unlink(missing_ok=True)
         command += ['--snapshot', str(args.snapshot.resolve())]
     if args.data:
         command += ['--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
                     '--cache', str(args.cache.resolve())]
-        if not args.legacy_device:
+        if not legacy:
             command += ['--locale', args.locale]
         elif args.locale != 'enUS':
             parser.error('The legacy original-data fixture currently uses enUS')

@@ -2,7 +2,14 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#include "Engine/Source/Gxu/GxuFontFace.h"
+#include <stdexcept>
+#include <vector>
+#else
 #include <malloc.h>
+#endif
 #include <typeinfo>
 #include <freetype/ftmodule.h>
 #include "Engine/Source/Gxu/GxuFont.h"
@@ -128,6 +135,9 @@ static float GetAverageFrameRate() {
 // VERIFY: 0aa83fdc manual
 // OFFSET: 0x006BCDD0
 const char* GxuFontGetFontName(CGxFont* face) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!face) {
         return nullptr;
     }
@@ -138,6 +148,9 @@ const char* GxuFontGetFontName(CGxFont* face) {
 // VERIFY: a0187b65 manual
 // OFFSET: 0x006BCDF0
 uint32_t GxuFontGetFontFlags(CGxFont* face) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!face) {
         return 0;
     }
@@ -148,6 +161,9 @@ uint32_t GxuFontGetFontFlags(CGxFont* face) {
 // VERIFY: 44a249e9 auto
 // OFFSET: 0x006BCE10
 int32_t GxuFontAddToBatch(CGxStringBatch* batch, CGxString* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!batch || !string) {
         return 0;
     }
@@ -160,6 +176,9 @@ int32_t GxuFontAddToBatch(CGxStringBatch* batch, CGxString* string) {
 // VERIFY: c5694029 auto
 // OFFSET: 0x006BCE40
 void GxuFontRenderBatch(CGxStringBatch* batch) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (batch) {
         batch->RenderBatch();
     }
@@ -168,23 +187,37 @@ void GxuFontRenderBatch(CGxStringBatch* batch) {
 // VERIFY: 3a236d08 auto
 // OFFSET: 0x006BCE60
 void GxuFontGetTextExtent(CGxFont* face, const char* text, uint32_t numBytes, float fontHeight, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     InternalGetTextExtent(face, text, numBytes, fontHeight, extent, flags, shadowWidth, scale);
 }
 
 // VERIFY: b1cd8666 auto
 // OFFSET: 0x006BCEA0
 uint32_t GxuFontGetMaxCharsWithinWidth(CGxFont* face, const char* text, float fontHeight, float maxWidth, uint32_t numBytes, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     return InternalGetMaxCharsWithinWidth(face, text, fontHeight, maxWidth, numBytes, extent, flags, shadowWidth, scale, nullptr, nullptr);
 }
 
 // VERIFY: 92aa6c25 manual
 // OFFSET: 0x006BCEF0
 uint32_t GxuFontGetMaxCharsWithinWidthFromEnd(CGxFont* face, const char* text, float fontHeight, float maxWidth, uint32_t numBytes, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!text || !*text || !numBytes || maxWidth == 0.0f) {
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::vector<float> widths(numBytes);
+    float* widthArray = widths.data();
+#else
     float* widthArray = static_cast<float*>(alloca(sizeof(float) * numBytes));
+#endif
     float totalWidth;
     uint32_t bytesInString;
     uint32_t numChars = InternalGetMaxCharsWithinWidth(face, text, fontHeight, 10000.0f, numBytes, &totalWidth, flags, shadowWidth, scale, &bytesInString, widthArray);
@@ -219,6 +252,9 @@ uint32_t GxuFontGetMaxCharsWithinWidthFromEnd(CGxFont* face, const char* text, f
 // VERIFY: f1a25b15 auto
 // OFFSET: 0x006BD020
 float GxuFontGetOneToOneHeight(CGxFont* face) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!face) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0.0f;
@@ -230,6 +266,9 @@ float GxuFontGetOneToOneHeight(CGxFont* face) {
 // VERIFY: 1ebc6f2b auto
 // OFFSET: 0x006BD070
 int32_t GxuFontSetStringColor(CGxString* string, const CImVector& color) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -243,6 +282,9 @@ int32_t GxuFontSetStringColor(CGxString* string, const CImVector& color) {
 // VERIFY: 4d7d4971 auto
 // OFFSET: 0x006BD0A0
 void GxuFontSetStringPosition(CGxString* string, const C3Vector& position) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -254,6 +296,9 @@ void GxuFontSetStringPosition(CGxString* string, const C3Vector& position) {
 // VERIFY: 96cf026e auto
 // OFFSET: 0x006BD0C0
 void GxuFontAddShadow(CGxString* string, const CImVector& color, const C2Vector& offset) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (string && !(string->m_flags & 0x80)) {
         string->AddShadow(offset, color);
     }
@@ -262,6 +307,9 @@ void GxuFontAddShadow(CGxString* string, const CImVector& color, const C2Vector&
 // VERIFY: bfef3566 auto
 // OFFSET: 0x006BD0E0
 void GxuFontRemoveShadow(CGxString* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (string) {
         string->RemoveShadow();
     }
@@ -270,6 +318,9 @@ void GxuFontRemoveShadow(CGxString* string) {
 // VERIFY: 6fa02ff0 auto
 // OFFSET: 0x006BD100
 uint32_t GxuFontStringHyperLinkInfo(CGxString* string, const GXUFONTHYPERLINKINFO*& info) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         return 0;
     }
@@ -280,6 +331,9 @@ uint32_t GxuFontStringHyperLinkInfo(CGxString* string, const GXUFONTHYPERLINKINF
 // VERIFY: 210ab3c4 auto
 // OFFSET: 0x006BD120
 uint32_t GxuFontStringEmbeddedTextureInfo(CGxString* string, const GXUEMBEDDEDTEXTUREINFO*& info) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         return 0;
     }
@@ -290,6 +344,9 @@ uint32_t GxuFontStringEmbeddedTextureInfo(CGxString* string, const GXUEMBEDDEDTE
 // VERIFY: c2cd8ba9 auto
 // OFFSET: 0x006BD140
 int32_t GxuFontStringSetGradient(CGxString* string, int32_t start, int32_t length) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         return -1;
     }
@@ -379,6 +436,9 @@ static void InitializeFrameGraph() {
 // VERIFY: 1ffd4bc1 manual
 // OFFSET: 0x006BD390
 uint32_t GxuFontGetMaxCharsWithinWidthAndHeight(CGxFont* face, const char* text, float fontHeight, float blockWidth, float blockHeight, uint32_t numBytes, float shadowWidth, float scale, float spacing, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     uint32_t numChars = 0;
 
     if (!face) {
@@ -435,6 +495,9 @@ uint32_t GxuFontGetMaxCharsWithinWidthAndHeight(CGxFont* face, const char* text,
 // VERIFY: 985bcc6b auto
 // OFFSET: 0x006BD550
 C3Vector GxuFontGetStringPosition(CGxString* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     C3Vector position = string ? string->m_position : C3Vector(0.0f, 0.0f, 0.0f);
 
     return position;
@@ -649,6 +712,9 @@ QUOTEDCODE GxuDetermineQuotedCode(const char* text, int32_t& advance, CImVector*
 // VERIFY: f492d0d9 manual
 // OFFSET: 0x006BD900
 float GxuFontGetWrappedTextHeight(CGxFont* face, const char* text, float fontHeight, float blockWidth, const C2Vector& shadowOffset, float scale, float spacing, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     uint32_t numLines = 0;
 
     if (!face) {
@@ -727,6 +793,9 @@ float GxuFontGetWrappedTextHeight(CGxFont* face, const char* text, float fontHei
 // VERIFY: c0427aaf auto
 // OFFSET: 0x006BDB10
 uint32_t GxuFontWrapText(CGxFont* face, const char* text, uint32_t textLength, float fontHeight, float blockWidth, uint32_t* lineStarts, uint32_t maxLines, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!text || !*text || !textLength || fontHeight == 0.0f || blockWidth == 0.0f) {
         return 0;
     }
@@ -788,6 +857,9 @@ uint32_t GxuFontWrapText(CGxFont* face, const char* text, uint32_t textLength, f
 // VERIFY: cdaa59a6 manual
 // OFFSET: 0x006BDC50
 const char* GxuFontStripEscapeCodes(const char* text, uint32_t textLength, uint32_t flags, char* buffer, uint32_t bufferSize) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     *buffer = '\0';
 
     if (!text || !*text || !textLength) {
@@ -860,6 +932,9 @@ const char* GxuFontStripEscapeCodes(const char* text, uint32_t textLength, uint3
 // VERIFY: 15022de8 auto
 // OFFSET: 0x006BDE80
 int32_t GxuFontCreateFont(const char* name, float fontHeight, CGxFont*& face, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!name) {
         DebugValidate("name");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -884,7 +959,13 @@ int32_t GxuFontCreateFont(const char* name, float fontHeight, CGxFont*& face, ui
         flags |= 1;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    int32_t result;
+    try { result = newFace->Initialize(name, flags, fontHeight); }
+    catch (...) { g_fonts.DeleteNode(newFace); throw; }
+#else
     int32_t result = newFace->Initialize(name, flags, fontHeight);
+#endif
 
     if (!result) {
         g_fonts.DeleteNode(newFace);
@@ -899,10 +980,17 @@ int32_t GxuFontCreateFont(const char* name, float fontHeight, CGxFont*& face, ui
 // VERIFY: 96f05107 auto
 // OFFSET: 0x006BDF90
 void GxuFontDestroyFont(CGxFont*& face) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (face) {
         CGxFont* ptr = face;
         ptr->~CGxFont();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        SMemFree(ptr, typeid(CGxFont).name(), SLOG_OBJECT, 0);
+#else
         SMemFree(ptr, typeid(CGxFont).raw_name(), SLOG_OBJECT, 0);
+#endif
     }
 
     face = nullptr;
@@ -911,6 +999,9 @@ void GxuFontDestroyFont(CGxFont*& face) {
 // VERIFY: ddb1d650 auto
 // OFFSET: 0x006BDFC0
 void GxuFontDestroyString(CGxString*& string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (string) {
         string->m_link.Unlink();
         string->Recycle();
@@ -921,6 +1012,9 @@ void GxuFontDestroyString(CGxString*& string) {
 // VERIFY: d017d2a4 manual
 // OFFSET: 0x006BE020
 void GxuFontWindowSizeChanged() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     static CRect s_currentRect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     CRect rect = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -948,12 +1042,21 @@ void GxuFontWindowSizeChanged() {
 // VERIFY: c5d92c78 auto
 // OFFSET: 0x006BE230
 void GxuFontInitialize() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+    if (g_FTLibrary) throw std::logic_error("Gxu fonts already initialized");
+#endif
     g_theGxDevicePtr->ShaderCreate(g_fontVertexShader, GxSh_Vertex, "Shaders\\Vertex", "UI", 2);
     g_theGxDevicePtr->ShaderCreate(&g_fontPixelShader, GxSh_Pixel, "Shaders\\Pixel", "UI", 1);
 
     BATCHEDRENDERFONTDESC::Initialize();
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (FT_New_Library(&s_GxuMemoryRecord, &g_FTLibrary))
+        throw std::runtime_error("Create original Gxu FreeType library failed");
+#else
     FT_New_Library(&s_GxuMemoryRecord, &g_FTLibrary);
+#endif
     FT_Add_Default_Modules(g_FTLibrary);
 
     GxuFontWindowSizeChanged();
@@ -963,6 +1066,9 @@ void GxuFontInitialize() {
 // VERIFY: 57f9dc07 manual
 // OFFSET: 0x006BE2B0
 int32_t GxuFontCreateString(CGxFont* face, const char* text, float fontHeight, const C3Vector& position, float blockWidth, float blockHeight, float spacing, CGxString*& string, EGxFontVJusts vertJust, EGxFontHJusts horzJust, uint32_t flags, const CImVector& color, float unused, float scale) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!face) {
         DebugValidate("face");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -1008,6 +1114,9 @@ int32_t GxuFontCreateString(CGxFont* face, const char* text, float fontHeight, c
 // VERIFY: 2dfebcd7 auto
 // OFFSET: 0x006BE390
 int32_t GxuFontClearBatch(CGxStringBatch* batch) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!batch) {
         return 0;
     }
@@ -1020,6 +1129,9 @@ int32_t GxuFontClearBatch(CGxStringBatch* batch) {
 // VERIFY: c7f3f7d3 auto
 // OFFSET: 0x006BE3B0
 int32_t GxuFontDestroyBatch(CGxStringBatch* batch) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!batch) {
         return 0;
     }
@@ -1033,6 +1145,9 @@ int32_t GxuFontDestroyBatch(CGxStringBatch* batch) {
 // VERIFY: 86ae417d manual
 // OFFSET: 0x006BE3E0
 void GxuFontUpdate() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     for (CGxString* string = g_strings.Head(); string; string = g_strings.Next(string)) {
         string->Tick();
     }
@@ -1138,12 +1253,19 @@ void GxuFontUpdate() {
 // VERIFY: 4345db69 manual
 // OFFSET: 0x006BF160
 CGxStringBatch* GxuFontCreateBatch(bool billboarded, bool worldSpace) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     CGxStringBatch* batch = s_freeBatches.Head();
 
     if (batch) {
         s_freeBatches.UnlinkNode(batch);
     } else {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        batch = new (SMemAlloc(sizeof(CGxStringBatch), typeid(CGxStringBatch).name(), SLOG_OBJECT, SMEM_FLAG_ZEROMEMORY)) CGxStringBatch;
+#else
         batch = new (SMemAlloc(sizeof(CGxStringBatch), typeid(CGxStringBatch).raw_name(), SLOG_OBJECT, SMEM_FLAG_ZEROMEMORY)) CGxStringBatch;
+#endif
     }
 
     if (billboarded) {
@@ -1164,6 +1286,9 @@ CGxStringBatch* GxuFontCreateBatch(bool billboarded, bool worldSpace) {
 // VERIFY: 4ee8bc9c manual
 // OFFSET: 0x006BF2D0
 void GxuFontShutdown() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     g_strings.Clear();
     g_fonts.Clear();
     s_freeBatches.Clear();
@@ -1172,6 +1297,10 @@ void GxuFontShutdown() {
     TEXTLINETEXTURE::Shutdown();
     BATCHEDRENDERFONTDESC::Shutdown();
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (s_faceHash.m_fulllist.Head())
+        throw std::logic_error("Close external Gxu face handles before font shutdown");
+#endif
     if (g_FTLibrary) {
         FT_Done_Library(g_FTLibrary);
     }

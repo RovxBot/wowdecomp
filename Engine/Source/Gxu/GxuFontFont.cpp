@@ -1,4 +1,7 @@
 #include <cmath>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -60,6 +63,9 @@ float CGxFont::FindNearestFixedSize(FT_Face face, float height) {
 // VERIFY: d7c70ac7 manual
 // OFFSET: 0x006C22F0
 int32_t CGxFont::UpdateDimensions() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     FT_Face face = FontFaceGetFace(this->m_fontFaceHandle);
 
     float height = this->FindNearestFixedSize(face, this->m_fontHeight);
@@ -176,6 +182,9 @@ float CGxFont::GetGlyphAdvance(uint32_t code) {
 // VERIFY: a8a8859d manual
 // OFFSET: 0x006C3710
 void CGxFont::ClearGlyphs() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     for (uint32_t i = 0; i < 8; i++) {
         this->m_textureCache[i].Destroy();
     }
@@ -188,6 +197,9 @@ void CGxFont::ClearGlyphs() {
 // VERIFY: 9be95581 manual
 // OFFSET: 0x006C3960
 void CGxFont::HandleScreenSizeChange() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->ClearGlyphs();
     this->UpdateDimensions();
 
@@ -199,6 +211,9 @@ void CGxFont::HandleScreenSizeChange() {
 // VERIFY: 4ab2e948 manual
 // OFFSET: 0x006C39A0
 CGxFont::CGxFont() : m_cellHeight(0), m_pixelsPerUnit(0.0f) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_fontFaceHandle = nullptr;
+#endif
 }
 
 // VERIFY: b72018df manual
@@ -215,6 +230,9 @@ CGxFont::~CGxFont() {
 // VERIFY: 4d729130 auto
 // OFFSET: 0x006C3CB0
 int32_t CGxFont::Initialize(const char* name, uint32_t fontFlags, float fontHeight) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     SStrPrintf(this->m_fontName, sizeof(this->m_fontName), "%s", name);
     this->m_fontHeight = fontHeight;
 
@@ -242,6 +260,9 @@ int32_t CGxFont::Initialize(const char* name, uint32_t fontFlags, float fontHeig
 // VERIFY: 249ead28 manual
 // OFFSET: 0x006C3D40
 float CGxFont::ComputeStep(uint32_t code, uint32_t nextCode) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     KERNINGHASHKEY key;
     key.m_code = (code << 16) | (nextCode & 0xFFFF);
 
@@ -282,6 +303,9 @@ float CGxFont::ComputeStep(uint32_t code, uint32_t nextCode) {
 // VERIFY: 960b7c8a manual
 // OFFSET: 0x006C3E80
 float CGxFont::ComputeStepFixedWidth(uint32_t code, uint32_t nextCode) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     KERNINGHASHKEY key;
     key.m_code = (code << 16) | (nextCode & 0xFFFF);
 
@@ -334,6 +358,9 @@ float CGxFont::ComputeStepFixedWidth(uint32_t code, uint32_t nextCode) {
 // VERIFY: 141d931e manual
 // OFFSET: 0x006C3FC0
 CHARCODEDESC* CGxFont::NewCodeDesc(uint32_t code) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     CHARCODEDESC* desc = this->m_activeCharacters.Ptr(code, HASHKEY_NONE());
 
     if (desc) {

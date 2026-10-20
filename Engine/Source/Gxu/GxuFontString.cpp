@@ -1,4 +1,7 @@
 #include <cmath>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Gxu/GxuFontString.h"
@@ -12,12 +15,18 @@
 // VERIFY: acac9576 auto
 // OFFSET: 0x006C5E60
 void CGxString::RemoveShadow() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->m_flags &= ~1;
 }
 
 // VERIFY: d84bd657 auto
 // OFFSET: 0x006C5E70
 void CGxString::TexturePageEvicted(uint32_t texturePage) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (this->m_texturePagesUsed & (1 << texturePage)) {
         this->m_textureEvicted = 1;
     }
@@ -150,6 +159,9 @@ int32_t CGxString::CalculateVertsNeeded(int32_t texturePage) {
 // VERIFY: 9ad1b804 auto
 // OFFSET: 0x006C6410
 void CGxString::SetStringPosition(const C3Vector& position) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->m_position = position;
     this->InitializeViewTranslation();
 }
@@ -189,6 +201,9 @@ void CGxString::AddEmbeddedTextureParseInfo(GXUEMBEDDEDTEXTUREINFO info) {
 // VERIFY: 40444632 manual
 // OFFSET: 0x006C6B90
 void CGxString::ClearInstanceData() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->m_hyperlinkInfo.SetCount(0);
     this->m_embeddedTextureInfo.SetCount(0);
     this->m_gradientInfo.SetCount(0);
@@ -207,6 +222,9 @@ void CGxString::ClearInstanceData() {
 // VERIFY: 50ba3e99 manual
 // OFFSET: 0x006C6C00
 void CGxString::Tick() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (this->m_numLines && this->m_idleTicks++ > 30) {
         this->ClearInstanceData();
     }
@@ -215,6 +233,9 @@ void CGxString::Tick() {
 // VERIFY: 80d68fb6 manual
 // OFFSET: 0x006C6C30
 void CGxString::SetColor(const CImVector& color) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (*reinterpret_cast<const uint32_t*>(&color) == *reinterpret_cast<const uint32_t*>(&this->m_fontColor)) {
         return;
     }
@@ -230,6 +251,9 @@ void CGxString::SetColor(const CImVector& color) {
 // VERIFY: ef8566ca manual
 // OFFSET: 0x006C6C70
 void CGxString::HandleScreenSizeChange() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (this->m_flags & 4) {
         this->m_requestedFontHeight = GxuFontGetOneToOneHeight(this->m_currentFace);
     }
@@ -557,6 +581,9 @@ void CGxString::InitializeTextLine(const char* text, uint32_t numBytes, CImVecto
 // VERIFY: 3b879ab8 auto
 // OFFSET: 0x006C7440
 void CGxString::AddShadow(const C2Vector& offset, const CImVector& color) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->m_shadowColor = color;
     this->m_shadowColor.a = color.a < this->m_fontColor.a ? color.a : this->m_fontColor.a;
     this->m_shadowOffset = offset;
@@ -570,6 +597,9 @@ void CGxString::AddShadow(const C2Vector& offset, const CImVector& color) {
 // VERIFY: 926a0475 auto
 // OFFSET: 0x006C7480
 int32_t CGxString::CheckGeometry() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (this->m_textureEvicted) {
         if (!this->m_currentFace->CheckStringGlyphs(this->m_text)) {
             this->ClearInstanceData();
@@ -587,6 +617,9 @@ int32_t CGxString::CheckGeometry() {
 // VERIFY: 10d868ef manual
 // OFFSET: 0x006C74D0
 int32_t CGxString::Initialize(float fontHeight, const C3Vector& position, float blockWidth, float blockHeight, CGxFont* face, const char* text, EGxFontVJusts vertJust, EGxFontHJusts horzJust, float spacing, uint32_t flags, const CImVector& color, float scale) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     uint32_t textLen = SStrLen(text) + 1;
 
     if (textLen > this->m_textLen) {
@@ -628,6 +661,9 @@ int32_t CGxString::Initialize(float fontHeight, const C3Vector& position, float 
 // VERIFY: 45504676 manual
 // OFFSET: 0x006C75E0
 void CGxString::Recycle() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     this->m_batchedStringLink.Unlink();
     g_freeStrings.LinkToTail(this);
     this->ClearInstanceData();
@@ -697,6 +733,9 @@ CGxString::~CGxString() {
 // VERIFY: 19f236ba manual
 // OFFSET: 0x006C78F0
 int32_t CGxString::SetGradient(int32_t start, int32_t length) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (start < 0 || length < 0) {
         return 2;
     }
@@ -764,6 +803,9 @@ CGxString* CGxString::GetNewString(int32_t linkOnTop) {
 // VERIFY: 21bb2d06 manual
 // OFFSET: 0x006C7B10
 void CGxString::CreateGeometry() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (this->m_numLines || !this->m_text || !*this->m_text) {
         return;
     }

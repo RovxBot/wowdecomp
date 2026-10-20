@@ -60,8 +60,10 @@ glyphs through the original UI shaders, with qualified hosted and real-GPU
 release/sanitizer checks. The next [legacy Gx UI adapter](docs/m3/LEGACY_DEVICE.md)
 connects actual global dispatch, texture callbacks, shader caches and streamed
 batches to the native resource owners, with qualified hosted and original-data
-GPU release/strict sanitizer checks. Original Gxu
-layout/cache, login UI and gameplay remain open.
+GPU release/strict sanitizer checks. The [original Gxu integration](docs/m3/LEGACY_GXU.md)
+now connects original handles, layout/glyph caches, Services text handles and
+batched font consumers, with hosted and actual-GPU release/strict sanitizer
+evidence. Original Frame/Lua/GlueXML/login, transport and gameplay remain open.
 
 ## Progress
 

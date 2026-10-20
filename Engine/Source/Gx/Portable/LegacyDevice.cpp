@@ -93,6 +93,10 @@ LegacyDevice::LegacyDevice(GlContext &context, ShaderBytes shaders) {
         throw std::logic_error("A legacy Gx device is already installed");
     state = std::make_unique<State>(context, std::move(shaders));
     m_api = GxApi_OpenGl;
+    // Match 12340 OpenGL ISetCaps. Gxu must not apply the D3D half-pixel
+    // offset, which puts nearest atlas samples on unstable texel boundaries.
+    m_caps.m_pixelCenterOnEdge = 1;
+    m_caps.m_texelCenterOnEdge = 1;
     CapsWindowSize(m_defWindowRect);
     m_curWindowRect = m_defWindowRect;
     m_format = CGxFormat(true, {int32_t(m_defWindowRect.maxX), int32_t(m_defWindowRect.maxY)},
@@ -117,6 +121,9 @@ LegacyDevice::LegacyDevice(GlContext &context, ShaderBytes shaders) {
     try {
         DeviceCreatePools();
         DeviceCreateStreamBufs();
+        // Original Gxu renders directly to the drawable before selecting an FBO.
+        // Publish its pixel extent to the native transform owner at installation.
+        state->targets.Bind();
     } catch (...) {
         while (auto *pool = m_poolList.Head())
             PoolDestroy(pool);

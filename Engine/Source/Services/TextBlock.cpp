@@ -1,6 +1,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <new>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#include <memory>
+#endif
 #include "Engine/Source/Services/TextBlock.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Gxu/GxuFont.h"
@@ -76,6 +80,9 @@ static uint32_t ConvertStringFlags(uint32_t flags) {
 // VERIFY: 2b778814 auto
 // OFFSET: 0x004BD900
 int32_t TextBlockSetGradient(HTEXTBLOCK string, int32_t start, int32_t length) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     return GxuFontStringSetGradient(reinterpret_cast<TEXTBLOCK*>(string)->m_string, start, length);
 }
 
@@ -88,6 +95,9 @@ TEXTBLOCK::~TEXTBLOCK() {
 // VERIFY: 1ca29484 auto
 // OFFSET: 0x004BD960
 const char* TextBlockGetFontName(HTEXTFONT font) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
@@ -99,6 +109,9 @@ const char* TextBlockGetFontName(HTEXTFONT font) {
 // VERIFY: 007ea268 auto
 // OFFSET: 0x004BD990
 uint32_t TextBlockGetFontFlags(HTEXTFONT font) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -121,6 +134,9 @@ uint32_t TextBlockGetFontFlags(HTEXTFONT font) {
 // VERIFY: 252921ac auto
 // OFFSET: 0x004BD9D0
 CGxFont* TextBlockGetFontPtr(HTEXTFONT font) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
@@ -132,6 +148,9 @@ CGxFont* TextBlockGetFontPtr(HTEXTFONT font) {
 // VERIFY: 76dd741a auto
 // OFFSET: 0x004BD9F0
 CGxString* TextBlockGetStringPtr(HTEXTBLOCK string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
@@ -143,6 +162,9 @@ CGxString* TextBlockGetStringPtr(HTEXTBLOCK string) {
 // VERIFY: bc267847 auto
 // OFFSET: 0x004BDA10
 void TextBlockAddShadow(HTEXTBLOCK string, CImVector color, const C2Vector& offset) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -156,6 +178,9 @@ void TextBlockAddShadow(HTEXTBLOCK string, CImVector color, const C2Vector& offs
 // VERIFY: 5d029466 auto
 // OFFSET: 0x004BDA70
 void TextBlockRemoveShadow(HTEXTBLOCK string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -167,13 +192,21 @@ void TextBlockRemoveShadow(HTEXTBLOCK string) {
 // VERIFY: e87143c4 manual
 // OFFSET: 0x004BDAA0
 HTEXTBLOCK TextBlockCreate(HTEXTFONT font, const char* text, const CImVector& color, const C3Vector& position, float fontHeight, float blockWidth, float blockHeight, uint32_t flags, float charSpacing, float lineSpacing, float scale) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return nullptr;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    auto ownedBlock = std::make_unique<TEXTBLOCK>();
+    TEXTBLOCK* textBlock = ownedBlock.get();
+#else
     void* mem = SMemAlloc(sizeof(TEXTBLOCK), "HTEXTBLOCK", SLOG_OBJECT, 0);
     TEXTBLOCK* textBlock = mem ? new (mem) TEXTBLOCK : nullptr;
+#endif
 
     C3Vector ndcPosition(0.0f, 0.0f, position.z);
     DDCToNDC(position.x, position.y, &ndcPosition.x, &ndcPosition.y);
@@ -194,7 +227,16 @@ HTEXTBLOCK TextBlockCreate(HTEXTFONT font, const char* text, const CImVector& co
         vertJust = GxVJ_Bottom;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!GxuFontCreateString(reinterpret_cast<FONTHASHOBJ*>(font)->m_font, text,
+            DDCToNDCHeight(fontHeight), ndcPosition, DDCToNDCWidth(blockWidth),
+            DDCToNDCHeight(blockHeight), DDCToNDCHeight(lineSpacing), textBlock->m_string,
+            vertJust, horzJust, ConvertStringFlags(flags), color, DDCToNDCWidth(charSpacing), scale))
+        return nullptr;
+    ownedBlock.release();
+#else
     GxuFontCreateString(reinterpret_cast<FONTHASHOBJ*>(font)->m_font, text, DDCToNDCHeight(fontHeight), ndcPosition, DDCToNDCWidth(blockWidth), DDCToNDCHeight(blockHeight), DDCToNDCHeight(lineSpacing), textBlock->m_string, vertJust, horzJust, ConvertStringFlags(flags), color, DDCToNDCWidth(charSpacing), scale);
+#endif
 
     return reinterpret_cast<HTEXTBLOCK>(HandleCreate(textBlock, "HTEXTBLOCK"));
 }
@@ -202,6 +244,9 @@ HTEXTBLOCK TextBlockCreate(HTEXTFONT font, const char* text, const CImVector& co
 // VERIFY: 3c68977b auto
 // OFFSET: 0x004BDBF0
 void TextBlockSetStringPos(HTEXTBLOCK string, const C3Vector& position) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -215,6 +260,9 @@ void TextBlockSetStringPos(HTEXTBLOCK string, const C3Vector& position) {
 // VERIFY: 7827f7e0 manual
 // OFFSET: 0x004BDC50
 C3Vector TextBlockGetStringPos(HTEXTBLOCK string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     C3Vector ndcPosition = GxuFontGetStringPosition(reinterpret_cast<TEXTBLOCK*>(string)->m_string);
     C3Vector position(0.0f, 0.0f, ndcPosition.z);
     NDCToDDC(ndcPosition.x, ndcPosition.y, &position.x, &position.y);
@@ -225,6 +273,9 @@ C3Vector TextBlockGetStringPos(HTEXTBLOCK string) {
 // VERIFY: 3a46df44 auto
 // OFFSET: 0x004BDCA0
 void TextBlockUpdateColor(HTEXTBLOCK string, const CImVector& color) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!string) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -236,6 +287,9 @@ void TextBlockUpdateColor(HTEXTBLOCK string, const CImVector& color) {
 // VERIFY: 77525dd6 auto
 // OFFSET: 0x004BDCD0
 void TextBlockGetTextExtent(HTEXTFONT font, const char* text, uint32_t numBytes, float fontHeight, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !extent) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -257,6 +311,9 @@ void TextBlockGetTextExtent(HTEXTFONT font, const char* text, uint32_t numBytes,
 // VERIFY: 664108fa manual
 // OFFSET: 0x004BDD80
 float TextBlockGetWrappedTextHeight(HTEXTFONT font, const char* text, float fontHeight, float blockWidth, const C2Vector& shadowOffset, float scale, float spacing, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !reinterpret_cast<FONTHASHOBJ*>(font)->m_font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0.0f;
@@ -273,6 +330,9 @@ float TextBlockGetWrappedTextHeight(HTEXTFONT font, const char* text, float font
 // VERIFY: a9437d87 manual
 // OFFSET: 0x004BDE40
 uint32_t TextBlockGetMaxCharsWithinWidth(HTEXTFONT font, const char* text, float fontHeight, float maxWidth, uint32_t numBytes, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !reinterpret_cast<FONTHASHOBJ*>(font)->m_font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -287,6 +347,9 @@ uint32_t TextBlockGetMaxCharsWithinWidth(HTEXTFONT font, const char* text, float
 // VERIFY: ec57cb90 manual
 // OFFSET: 0x004BDEF0
 uint32_t TextBlockGetMaxCharsWithinWidthAndHeight(HTEXTFONT font, const char* text, float fontHeight, float blockWidth, float blockHeight, uint32_t numBytes, float shadowWidth, float scale, float spacing, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !reinterpret_cast<FONTHASHOBJ*>(font)->m_font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -298,6 +361,9 @@ uint32_t TextBlockGetMaxCharsWithinWidthAndHeight(HTEXTFONT font, const char* te
 // VERIFY: 2166778f manual
 // OFFSET: 0x004BDF90
 uint32_t TextBlockGetMaxCharsWithinWidthFromEnd(HTEXTFONT font, const char* text, float fontHeight, float maxWidth, uint32_t numBytes, float* extent, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !reinterpret_cast<FONTHASHOBJ*>(font)->m_font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -312,6 +378,9 @@ uint32_t TextBlockGetMaxCharsWithinWidthFromEnd(HTEXTFONT font, const char* text
 // VERIFY: db0dc9c8 auto
 // OFFSET: 0x004BE040
 uint32_t TextBlockWrapText(HTEXTFONT font, const char* text, float fontHeight, float blockWidth, uint32_t* lineStarts, uint32_t maxLines, float shadowWidth, float scale, float unused, uint32_t flags) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!font || !text || !reinterpret_cast<FONTHASHOBJ*>(font)->m_font) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return 0;
@@ -331,6 +400,9 @@ FONTHASHOBJ::~FONTHASHOBJ() {
 // VERIFY: e00f1e9e manual
 // OFFSET: 0x004BE9C0
 HTEXTFONT TextBlockGenerateFont(const char* fontName, uint32_t fontFlags, float fontHeight) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    Gxu::Native::RequireFontOwner();
+#endif
     if (!fontName) {
         DebugValidate("fontName");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -370,7 +442,14 @@ HTEXTFONT TextBlockGenerateFont(const char* fontName, uint32_t fontFlags, float 
         gxFlags |= 0x2;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    int32_t created;
+    try { created = GxuFontCreateFont(fontName, height, hashObj->m_font, gxFlags); }
+    catch (...) { s_fontHash.Delete(hashObj); throw; }
+    if (created) {
+#else
     if (GxuFontCreateFont(fontName, height, hashObj->m_font, gxFlags)) {
+#endif
         return reinterpret_cast<HTEXTFONT>(HandleCreate(hashObj, "HTEXTFONT"));
     }
 

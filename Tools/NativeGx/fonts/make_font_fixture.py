@@ -48,3 +48,8 @@ pairs.kernTable = {('A', 'V'):-100}; kern.kernTables = [pairs]
 builder.font['kern'] = kern
 builder.font['head'].created = builder.font['head'].modified = 2082844800
 builder.save(Path(__file__).with_name('tiny.ttf'))
+# Separate cache-stress fixture retains the small historical raster fixture.
+# These Unicode aliases deliberately share the authored triangle glyph.
+builder.setupCharacterMap({32:'space', 65:'A', 86:'V', 81:'curve', 0x100:'reflected',
+                           **{code:'A' for code in range(0x400, 0xC00)}})
+builder.save(Path(__file__).with_name('cache.ttf'))

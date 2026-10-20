@@ -48,6 +48,41 @@ target_include_directories(WowNativeFonts PRIVATE
     ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/src)
 target_link_libraries(WowNativeFonts PUBLIC WowCoreServices)
 
+# Original Gxu consumers in the native ABI; no legacy SFile/async service objects.
+add_library(WowNativeGxu STATIC
+    ../Gxu/Portable/LegacyFonts.cpp
+    ../Gxu/Portable/FontTexture.cpp
+    ../Gxu/Portable/FontMath.cpp
+    ../Gxu/Gxu.cpp
+    ../Gxu/GxuFontFace.cpp
+    ../Gxu/GxuFontFont.cpp
+    ../Gxu/GxuFontMain.cpp
+    ../Gxu/GxuFontString.cpp
+    ../Gxu/GxuFontTextureCache.cpp
+    ../Gxu/GxuFontMiscClasses.cpp
+    ../Gxu/GxuFontUtil.cpp
+    ../Gxu/IGxuFontGlyph.cpp
+    ../Services/TextBlock.cpp
+    ../Base/Handle.cpp
+    ../Base/Status.cpp
+    ../Base/Coordinate.cpp
+    ../Base/ConvertUTF.cpp
+    ../Tempest/C3Vector.cpp
+    ../Tempest/C4Vector.cpp
+)
+target_include_directories(WowNativeGxu PUBLIC ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include)
+target_link_libraries(WowNativeGxu PUBLIC WowNativeGl WowNativeFonts)
+add_executable(LegacyGxuCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/gxu.cpp)
+target_link_libraries(LegacyGxuCheck PRIVATE WowNativeGxu)
+if(WOWDECOMP_CORE_SANITIZERS)
+    target_compile_options(WowNativeGxu PRIVATE -g1)
+    target_compile_options(LegacyGxuCheck PRIVATE -g1)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME native-legacy-gxu-fonts COMMAND LegacyGxuCheck --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/cache.ttf)
+    set_tests_properties(native-legacy-gxu-fonts PROPERTIES TIMEOUT 60 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
+endif()
+
 add_executable(NativeGlCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/main.cpp)
 target_link_libraries(NativeGlCheck PRIVATE WowNativeGl WowNativeFonts)
 if(WOWDECOMP_CORE_SANITIZERS)
