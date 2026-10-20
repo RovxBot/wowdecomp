@@ -8,7 +8,7 @@
 namespace FrameXML { namespace Native {
 namespace {
 bool installed = false;
-size_t trees = 0;
+size_t trees = 0, consumers = 0;
 TraversalStats last;
 }
 Runtime::Runtime() {
@@ -19,6 +19,7 @@ Runtime::Runtime() {
 }
 Runtime::~Runtime() {
     try {
+        RequireNoConsumers();
         RequireNoTrees();
         XMLTree_Cleanup();
         CStringManager::DestroyManager();
@@ -31,6 +32,14 @@ void RequireOwner() {
     // reading any of our owner-thread globals.
     FrameScript::Native::RequireOwner();
     if (!installed) throw std::logic_error("Native XML runtime is not installed");
+}
+OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
+OwnerLease::~OwnerLease() {
+    try { RequireOwner(); --consumers; } catch (...) { std::terminate(); }
+}
+void RequireNoConsumers() {
+    RequireOwner();
+    if (consumers) throw std::logic_error("Close XML consumers before the XML runtime");
 }
 void RequireNoTrees() {
     RequireOwner();

@@ -312,6 +312,38 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_XML": "ON"
       }
+    },
+    {
+      "name": "linux-layout",
+      "inherits": "linux-xml",
+      "binaryDir": "${sourceDir}/build/linux-layout",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON"
+      }
+    },
+    {
+      "name": "linux-layout-asan",
+      "inherits": "linux-xml-asan",
+      "binaryDir": "${sourceDir}/build/linux-layout-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-layout",
+      "inherits": "macos-arm64-xml",
+      "binaryDir": "${sourceDir}/build/macos-arm64-layout",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON"
+      }
+    },
+    {
+      "name": "windows-layout",
+      "inherits": "windows-xml",
+      "binaryDir": "${sourceDir}/build/windows-layout",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON"
+      }
     }
   ]
 }

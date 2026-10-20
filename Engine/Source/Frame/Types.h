@@ -9,7 +9,11 @@ class CScriptRegionAnimGroupNode;
 class CSimpleFrame;
 struct SIMPLEFRAMENODE;
 
-enum FRAMEPOINT {
+enum FRAMEPOINT
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    : uint32_t
+#endif
+{
     FRAMEPOINT_TOPLEFT = 0,
     FRAMEPOINT_TOP = 1,
     FRAMEPOINT_TOPRIGHT = 2,

@@ -2,6 +2,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <stdexcept>
+#endif
 #include "Engine/Source/Frame/CLayoutFrame.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Status.h"
@@ -11,6 +14,10 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Tempest/C2Vector.h"
 #include "Engine/Source/Tempest/CMath.h"
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Runtime.h"
+#endif
 
 // STATIC: 0x009EA83C
 static const FRAMEPOINT s_centerXPoints[3] = { FRAMEPOINT_TOP, FRAMEPOINT_CENTER, FRAMEPOINT_BOTTOM };
@@ -99,6 +106,9 @@ void GetRectFramePoints(const CRect& rect, C2Vector* points) {
 // VERIFY: 25624977 auto
 // OFFSET: 0x00482AC0
 int32_t CLayoutFrame::HasAnyFramepoints() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (int32_t i = 0; i < FRAMEPOINT_NUMPOINTS; i++) {
         if (this->m_framePoints[i] && !(this->m_framePoints[i]->m_flags & 8)) {
             return 1;
@@ -111,24 +121,36 @@ int32_t CLayoutFrame::HasAnyFramepoints() {
 // VERIFY: 831ecd27 auto
 // OFFSET: 0x00488CF0
 uint32_t CLayoutFrame::IsResizePending() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return (this->m_layoutFlags >> 8) & 4;
 }
 
 // VERIFY: b2f05c63 auto
 // OFFSET: 0x00488D00
 float CLayoutFrame::GetHeight() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return this->m_height;
 }
 
 // VERIFY: 1de866bd auto
 // OFFSET: 0x00488D10
 float CLayoutFrame::GetWidth() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return this->m_width;
 }
 
 // VERIFY: 1c8a97fb auto
 // OFFSET: 0x00488D20
 void CLayoutFrame::GetClampRectInsets(float& left, float& right, float& top, float& bottom) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     bottom = 0.0f;
     top = 0.0f;
     right = 0.0f;
@@ -138,6 +160,10 @@ void CLayoutFrame::GetClampRectInsets(float& left, float& right, float& top, flo
 // VERIFY: 72c4914d manual
 // OFFSET: 0x00488D90
 CFramePoint* CLayoutFrame::GetFramePoint(FRAMEPOINT point) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequirePoint(static_cast<uint32_t>(point));
+#endif
     CFramePoint* framePoint = this->m_framePoints[point];
 
     if (!framePoint || (framePoint->m_flags & 8)) {
@@ -150,6 +176,13 @@ CFramePoint* CLayoutFrame::GetFramePoint(FRAMEPOINT point) {
 // VERIFY: 06c5e7a8 auto
 // OFFSET: 0x00488DB0
 int32_t CLayoutFrame::GetFramePointX(const FRAMEPOINT* points, int32_t count, float& x) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    if (count < 0 || count > FRAMEPOINT_NUMPOINTS || (count && !points))
+        throw std::invalid_argument("Invalid layout point array");
+    for (int32_t i = 0; i < count; ++i)
+        Frame::Native::RequirePoint(static_cast<uint32_t>(points[i]));
+#endif
     for (int32_t i = 0; i < count; i++) {
         CFramePoint* framePoint = this->m_framePoints[points[i]];
 
@@ -175,6 +208,13 @@ int32_t CLayoutFrame::GetFramePointX(const FRAMEPOINT* points, int32_t count, fl
 // VERIFY: 95667f26 auto
 // OFFSET: 0x00488E40
 int32_t CLayoutFrame::GetFramePointY(const FRAMEPOINT* points, int32_t count, float& y) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    if (count < 0 || count > FRAMEPOINT_NUMPOINTS || (count && !points))
+        throw std::invalid_argument("Invalid layout point array");
+    for (int32_t i = 0; i < count; ++i)
+        Frame::Native::RequirePoint(static_cast<uint32_t>(points[i]));
+#endif
     for (int32_t i = 0; i < count; i++) {
         CFramePoint* framePoint = this->m_framePoints[points[i]];
 
@@ -200,6 +240,9 @@ int32_t CLayoutFrame::GetFramePointY(const FRAMEPOINT* points, int32_t count, fl
 // VERIFY: 5e4d38f8 manual
 // OFFSET: 0x00488ED0
 void CLayoutFrame::GetHorizontalFramePoint(const FRAMEPOINT* points, int32_t count, float& x) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (int32_t i = 0; i < 10; i++) {
         if (this->GetFramePointX(points, count, x)) {
             break;
@@ -210,6 +253,9 @@ void CLayoutFrame::GetHorizontalFramePoint(const FRAMEPOINT* points, int32_t cou
 // VERIFY: acf15f93 manual
 // OFFSET: 0x00488F10
 void CLayoutFrame::GetVerticalFramePoint(const FRAMEPOINT* points, int32_t count, float& y) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (int32_t i = 0; i < 10; i++) {
         if (this->GetFramePointY(points, count, y)) {
             break;
@@ -220,6 +266,9 @@ void CLayoutFrame::GetVerticalFramePoint(const FRAMEPOINT* points, int32_t count
 // VERIFY: c011784f auto
 // OFFSET: 0x00488F50
 float CLayoutFrame::CenterX() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_CENTER_X) {
         return CFramePoint::UNDEFINED;
     }
@@ -242,6 +291,9 @@ float CLayoutFrame::CenterX() {
 // VERIFY: f498aaa3 auto
 // OFFSET: 0x00488FE0
 float CLayoutFrame::CenterY() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_CENTER_Y) {
         return CFramePoint::UNDEFINED;
     }
@@ -264,6 +316,9 @@ float CLayoutFrame::CenterY() {
 // VERIFY: 894aac46 auto
 // OFFSET: 0x00489070
 float CLayoutFrame::Right() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_RIGHT) {
         return CFramePoint::UNDEFINED;
     }
@@ -286,6 +341,9 @@ float CLayoutFrame::Right() {
 // VERIFY: ff84563d auto
 // OFFSET: 0x00489100
 float CLayoutFrame::Bottom() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_BOTTOM) {
         return CFramePoint::UNDEFINED;
     }
@@ -308,6 +366,9 @@ float CLayoutFrame::Bottom() {
 // VERIFY: 0129a128 auto
 // OFFSET: 0x00489190
 void CLayoutFrame::ProtectFramepoints(uint32_t flag) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (int32_t i = 0; i < FRAMEPOINT_NUMPOINTS; i++) {
         CFramePoint* framePoint = this->m_framePoints[i];
 
@@ -320,6 +381,9 @@ void CLayoutFrame::ProtectFramepoints(uint32_t flag) {
 // VERIFY: 88709e27 auto
 // OFFSET: 0x004891D0
 int32_t CLayoutFrame::IsResizeDependency(CLayoutFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     CLayoutFrame* checked = nullptr;
 
     for (int32_t i = 0; i < FRAMEPOINT_NUMPOINTS; i++) {
@@ -348,6 +412,9 @@ int32_t CLayoutFrame::IsResizeDependency(CLayoutFrame* frame) {
 // VERIFY: 98ff2ba2 auto
 // OFFSET: 0x00489230
 int32_t CLayoutFrame::GetRect(CRect* rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;
     }
@@ -360,12 +427,18 @@ int32_t CLayoutFrame::GetRect(CRect* rect) {
 // VERIFY: 9bc456e9 auto
 // OFFSET: 0x00489270
 int32_t CLayoutFrame::PtInFrameRect(const C2Vector& point) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return (this->m_layoutFlags & 0x100) && this->m_rect.IsPointInside(point);
 }
 
 // VERIFY: 879cc61f auto
 // OFFSET: 0x004892A0
 float CLayoutFrame::Left() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_LEFT) {
         return CFramePoint::UNDEFINED;
     }
@@ -388,6 +461,9 @@ float CLayoutFrame::Left() {
 // VERIFY: 14eff9b6 auto
 // OFFSET: 0x00489330
 float CLayoutFrame::Top() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_guard & GUARD_TOP) {
         return CFramePoint::UNDEFINED;
     }
@@ -410,6 +486,9 @@ float CLayoutFrame::Top() {
 // VERIFY: c42a053f auto
 // OFFSET: 0x004893C0
 int32_t CLayoutFrame::CalculateRect(CRect* rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     rect->minX = this->Left();
 
     if (CFramePoint::UNDEFINED == rect->minX) {
@@ -434,6 +513,10 @@ int32_t CLayoutFrame::CalculateRect(CRect* rect) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(rect->minX) || !std::isfinite(rect->maxX) ||
+        !std::isfinite(rect->minY) || !std::isfinite(rect->maxY)) return 0;
+#endif
     if (!(this->m_layoutFlags & 0x1000)) {
         return 1;
     }
@@ -475,10 +558,20 @@ int32_t CLayoutFrame::CalculateRect(CRect* rect) {
 // VERIFY: cabf5ddd auto
 // OFFSET: 0x00489570
 int32_t CLayoutFrame::OnFrameResize() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::ResizeScope resizeScope;
+#endif
     CRect rect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (!this->CalculateRect(&rect)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        bool hadRect = (this->m_layoutFlags & 0x100) != 0;
+#endif
         this->m_layoutFlags = (this->m_layoutFlags & ~0x900u) | 0x800;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (hadRect) this->OnFrameSizeChanged(this->m_rect);
+#endif
         return 0;
     }
 
@@ -499,6 +592,9 @@ int32_t CLayoutFrame::OnFrameResize() {
 // VERIFY: ebe958b5 auto
 // OFFSET: 0x00489690
 void CLayoutFrame::SetProtected() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     this->m_layoutFlags = (this->m_layoutFlags & ~0x70000u) | 0x10000;
     this->PropagateProtectFlagToParent(0x200);
     this->ProtectFramepoints(0x200);
@@ -507,6 +603,9 @@ void CLayoutFrame::SetProtected() {
 // VERIFY: 194662d5 manual
 // OFFSET: 0x004896C0
 void CLayoutFrame::SetProtectFlag(uint32_t flag) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_layoutFlags & 0x90000) {
         return;
     }
@@ -520,6 +619,9 @@ void CLayoutFrame::SetProtectFlag(uint32_t flag) {
 // VERIFY: 1461f17f manual
 // OFFSET: 0x00489710
 void CLayoutFrame::AddToResizeList() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (s_resizePendingList.IsLinked(this)) {
         return;
     }
@@ -549,6 +651,10 @@ void CLayoutFrame::AddToResizeList() {
 // VERIFY: dfeb387c manual
 // OFFSET: 0x004898B0
 void CLayoutFrame::ResizePending() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::ResizeScope resizeScope;
+#endif
     for (uint32_t loops = 0; s_resizePendingList.Head() && loops < 32; loops++) {
         CLayoutFrame* frame = s_resizePendingList.Head();
 
@@ -574,7 +680,12 @@ void CLayoutFrame::ResizePending() {
 // VERIFY: d89d6f35 auto
 // OFFSET: 0x00489980
 CLayoutFrame::CLayoutFrame() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FrameCreated(this);
+    this->m_layoutFlags = 0;
+#else
     this->m_layoutFlags &= 0xFF0000FF;
+#endif
     this->m_rect = { 0.0f, 0.0f, 0.0f, 0.0f };
     this->m_width = 0.0f;
     this->m_height = 0.0f;
@@ -592,12 +703,18 @@ CLayoutFrame::CLayoutFrame() {
 // VERIFY: 1a39cb37 auto
 // OFFSET: 0x004899F0
 int32_t CLayoutFrame::AreChildrenProtected(int32_t& deferred) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return 0;
 }
 
 // VERIFY: 57f5064c auto
 // OFFSET: 0x00489A00
 void CLayoutFrame::OnProtectedAttach(CLayoutFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_layoutFlags & 0x40000) {
         frame->SetProtectFlag(0x400);
     }
@@ -610,6 +727,9 @@ void CLayoutFrame::OnProtectedAttach(CLayoutFrame* frame) {
 // VERIFY: f675f0e3 auto
 // OFFSET: 0x00489A40
 void CLayoutFrame::OnProtectedDetach(CLayoutFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_layoutFlags & 0x70000) {
         frame->SetProtectFlag(0x400);
     }
@@ -618,6 +738,9 @@ void CLayoutFrame::OnProtectedDetach(CLayoutFrame* frame) {
 // VERIFY: 7f53a330 manual
 // OFFSET: 0x00489B50
 int32_t CLayoutFrame::AreDependentsProtected(int32_t& deferred) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (CLayoutFrame::FRAMENODE* node = this->m_resizeList.Head(); node; node = this->m_resizeList.Next(node)) {
         if (node->m_frame->m_layoutFlags & 0x80000) {
             deferred = 1;
@@ -632,6 +755,9 @@ int32_t CLayoutFrame::AreDependentsProtected(int32_t& deferred) {
 // VERIFY: 6c195430 manual
 // OFFSET: 0x00489BB0
 uint32_t CLayoutFrame::IsProtected() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (this->m_layoutFlags & 0x40000) {
         this->m_layoutFlags |= 0x80000;
 
@@ -654,6 +780,9 @@ uint32_t CLayoutFrame::IsProtected() {
 // VERIFY: c9d23c46 manual
 // OFFSET: 0x00489C30
 void CLayoutFrame::RegisterResize(CLayoutFrame* frame, uint32_t dependency) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (CLayoutFrame::FRAMENODE* node = this->m_resizeList.Head(); node; node = this->m_resizeList.Next(node)) {
         if (node->m_frame == frame) {
             node->m_dependency |= dependency;
@@ -677,6 +806,9 @@ void CLayoutFrame::RegisterResize(CLayoutFrame* frame, uint32_t dependency) {
 // VERIFY: a0d5b2b8 manual
 // OFFSET: 0x00489D70
 void CLayoutFrame::UnregisterResize(CLayoutFrame* frame, uint32_t dependency) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     CLayoutFrame::FRAMENODE* node = this->m_resizeList.Head();
 
     while (node) {
@@ -703,6 +835,9 @@ void CLayoutFrame::UnregisterResize(CLayoutFrame* frame, uint32_t dependency) {
 // VERIFY: a6f4615d manual
 // OFFSET: 0x00489DE0
 void CLayoutFrame::Resize(int32_t force) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (force && !(this->m_layoutFlags & 0x800) && this->OnFrameResize()) {
         if (s_resizePendingList.IsLinked(this)) {
             s_resizePendingList.UnlinkNode(this);
@@ -730,6 +865,11 @@ void CLayoutFrame::Resize(int32_t force) {
 // VERIFY: 2a588003 manual
 // OFFSET: 0x00489E90
 bool CLayoutFrame::SetLayoutScale(float scale, bool force) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireFinite(scale);
+    if (scale <= 0.0f) throw std::invalid_argument("Nonpositive layout scale");
+#endif
     if (scale == 0.0f) {
         DebugValidate("scale");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -750,6 +890,10 @@ bool CLayoutFrame::SetLayoutScale(float scale, bool force) {
 // VERIFY: f0599e98 auto
 // OFFSET: 0x00489F20
 bool CLayoutFrame::SetLayoutDepth(float depth, bool force) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireFinite(depth);
+#endif
     if (!force && fabs(depth - this->m_layoutDepth) < 0.00000023841858f) {
         return false;
     }
@@ -768,6 +912,10 @@ bool CLayoutFrame::SetLayoutDepth(float depth, bool force) {
 // VERIFY: 56b128ef manual
 // OFFSET: 0x00489F80
 void CLayoutFrame::SetWidth(float width) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireDimension(width);
+#endif
     this->m_layoutFlags &= ~0x800u;
     this->m_width = width;
     this->Resize(0);
@@ -776,6 +924,10 @@ void CLayoutFrame::SetWidth(float width) {
 // VERIFY: cd16a710 manual
 // OFFSET: 0x00489FA0
 void CLayoutFrame::SetHeight(float height) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireDimension(height);
+#endif
     this->m_layoutFlags &= ~0x800u;
     this->m_height = height;
     this->Resize(0);
@@ -784,6 +936,11 @@ void CLayoutFrame::SetHeight(float height) {
 // VERIFY: a65146a7 auto
 // OFFSET: 0x00489FC0
 void CLayoutFrame::SetSize(float width, float height) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireDimension(width);
+    Frame::Native::RequireDimension(height);
+#endif
     this->m_layoutFlags &= ~0x800u;
     this->m_width = width;
     this->m_height = height;
@@ -793,6 +950,9 @@ void CLayoutFrame::SetSize(float width, float height) {
 // VERIFY: da7ad489 manual
 // OFFSET: 0x00489FF0
 void CLayoutFrame::GetSize(float& width, float& height, int32_t ignoreRect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     width = this->GetWidth();
     height = this->GetHeight();
 
@@ -813,6 +973,9 @@ void CLayoutFrame::GetSize(float& width, float& height, int32_t ignoreRect) {
 // VERIFY: a3e1dea1 manual
 // OFFSET: 0x0048A130
 void CLayoutFrame::SetClampedToScreen(int32_t clamped) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (clamped) {
         this->m_layoutFlags |= 0x1000;
     } else {
@@ -825,6 +988,9 @@ void CLayoutFrame::SetClampedToScreen(int32_t clamped) {
 // VERIFY: e34ecf75 auto
 // OFFSET: 0x0048A160
 int32_t CLayoutFrame::CanBeAnchorFor(CLayoutFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (!frame->IsProtected()) {
         return 1;
     }
@@ -843,6 +1009,9 @@ int32_t CLayoutFrame::CanBeAnchorFor(CLayoutFrame* frame) {
 // VERIFY: 60982474 manual
 // OFFSET: 0x0048A1D0
 void CLayoutFrame::OnFrameSizeChanged(const CRect& rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (CLayoutFrame::FRAMENODE* node = this->m_resizeList.Head(); node; node = this->m_resizeList.Next(node)) {
         node->m_frame->Resize(0);
     }
@@ -851,6 +1020,9 @@ void CLayoutFrame::OnFrameSizeChanged(const CRect& rect) {
 // VERIFY: c3610066 auto
 // OFFSET: [0x0048A200, 0x0048A510]
 void CLayoutFrame::MarkFramePointsUnused() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     for (int32_t i = 0; i < FRAMEPOINT_NUMPOINTS; i++) {
         CFramePoint* framePoint = this->m_framePoints[i];
 
@@ -867,6 +1039,14 @@ void CLayoutFrame::MarkFramePointsUnused() {
 // VERIFY: ba8eaac3 manual
 // OFFSET: 0x0048A260
 void CLayoutFrame::SetPoint(FRAMEPOINT point, CLayoutFrame* relative, FRAMEPOINT relativePoint, float offsetX, float offsetY, int32_t doResize) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequirePoint(static_cast<uint32_t>(relativePoint));
+    Frame::Native::RequireFinite(offsetX);
+    Frame::Native::RequireFinite(offsetY);
+    Frame::Native::RequireAnchor(this, relative);
+    Frame::Native::RequirePoint(static_cast<uint32_t>(point));
+#endif
     if (!relative) {
         DebugValidate("relative");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -919,6 +1099,10 @@ void CLayoutFrame::SetPoint(FRAMEPOINT point, CLayoutFrame* relative, FRAMEPOINT
 // VERIFY: b715a4ff manual
 // OFFSET: 0x0048A3E0
 void CLayoutFrame::SetAllPoints(CLayoutFrame* relative, int32_t doResize) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireAnchor(this, relative);
+#endif
     if (!relative) {
         DebugValidate("relative");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -960,6 +1144,9 @@ void CLayoutFrame::SetAllPoints(CLayoutFrame* relative, int32_t doResize) {
 // VERIFY: 155a7ca0 manual
 // OFFSET: 0x0048A520
 void CLayoutFrame::SetDeferredResize(int32_t deferred) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (deferred) {
         this->m_layoutFlags |= 0x200;
 
@@ -980,6 +1167,14 @@ void CLayoutFrame::SetDeferredResize(int32_t deferred) {
 // VERIFY: b8ad80b2 manual
 // OFFSET: 0x0048A5F0
 int32_t CLayoutFrame::FlattenFrame(CLayoutFrame* relative, float width, float height, float offsetX, float offsetY) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireDimension(width);
+    Frame::Native::RequireDimension(height);
+    Frame::Native::RequireFinite(offsetX);
+    Frame::Native::RequireFinite(offsetY);
+    Frame::Native::RequireAnchor(this, relative);
+#endif
     if (this->IsResizePending()) {
         this->Resize(1);
     }
@@ -1023,6 +1218,10 @@ int32_t CLayoutFrame::FlattenFrame(CLayoutFrame* relative, float width, float he
 // VERIFY: 1e35598c manual
 // OFFSET: 0x0048A840
 int32_t CLayoutFrame::UnflattenFrame(CLayoutFrame* relative) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireAnchor(this, relative);
+#endif
     if (this->IsResizePending()) {
         this->Resize(1);
     }
@@ -1074,6 +1273,13 @@ int32_t CLayoutFrame::UnflattenFrame(CLayoutFrame* relative) {
 // VERIFY: d18d2b15 manual
 // OFFSET: 0x0048ABD0
 int32_t CLayoutFrame::DragBy(CLayoutFrame* relative, float offsetX, float offsetY, FRAMEPOINT point) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequirePoint(static_cast<uint32_t>(point));
+    Frame::Native::RequireFinite(offsetX);
+    Frame::Native::RequireFinite(offsetY);
+    Frame::Native::RequireAnchor(this, relative);
+#endif
     float width = this->GetWidth();
     float height = this->GetHeight();
     float newOffsetX;
@@ -1292,6 +1498,10 @@ int32_t CLayoutFrame::DragBy(CLayoutFrame* relative, float offsetX, float offset
 // VERIFY: 6d735449 manual
 // OFFSET: 0x0048B130
 void CLayoutFrame::DestroyLayout() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireDestroyable();
+#endif
     for (int32_t i = 0; i < FRAMEPOINT_NUMPOINTS; i++) {
         CFramePoint* framePoint = this->m_framePoints[i];
 
@@ -1317,6 +1527,9 @@ void CLayoutFrame::DestroyLayout() {
         }
 
         frame->m_layoutFlags &= ~0x800u;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        frame->Resize(0);
+#endif
     }
 
     this->m_resizeList.Clear();
@@ -1327,11 +1540,17 @@ void CLayoutFrame::DestroyLayout() {
 // OFFSET: [0x0048B240, 0x0048B510]
 CLayoutFrame::~CLayoutFrame() {
     this->DestroyLayout();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FrameDestroyed(this);
+#endif
 }
 
 // VERIFY: 9b1f7ce5 auto
 // OFFSET: 0x0048B2D0
 void CLayoutFrame::LoadXML(XMLNode* node, CStatus* status) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     XMLNode* sizeNode = node->GetChildByName("Size");
     float x;
     float y;
@@ -1420,20 +1639,35 @@ void CLayoutFrame::LoadXML(XMLNode* node, CStatus* status) {
 }
 
 CLayoutFrame* CLayoutFrame::GetLayoutParent() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return nullptr;
 }
 
 void CLayoutFrame::PropagateProtectFlagToParent(uint32_t flag) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
 }
 
 int32_t CLayoutFrame::IsAttachmentOrigin() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return 0;
 }
 
 CLayoutFrame* CLayoutFrame::GetLayoutFrameByName(const char* name) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return nullptr;
 }
 
 int32_t CLayoutFrame::IsObjectLoaded() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     return 1;
 }

@@ -20,6 +20,13 @@ public:
 private:
     FrameScript::Native::Execution lifetime;
 };
+struct OwnerLease final {
+    OwnerLease();
+    ~OwnerLease();
+    OwnerLease(const OwnerLease&) = delete;
+    OwnerLease& operator=(const OwnerLease&) = delete;
+};
+void RequireNoConsumers();
 void RequireOwner();
 void RequireNoTrees();
 void TreeCreated();

@@ -7,6 +7,10 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Tempest/CRect.h"
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Runtime.h"
+#endif
+
 // STATIC: 0x00AC147C
 float CFramePoint::UNDEFINED = std::numeric_limits<float>::infinity();
 
@@ -15,11 +19,20 @@ CDataAllocator CFramePoint::s_framePointHeap(sizeof(CFramePoint), 0x1000);
 
 // INLINED
 void* CFramePoint::operator new(size_t bytes) noexcept {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // noexcept allocation: reject foreign access before touching the pool.
+    try { Frame::Native::RequireOwner(); } catch (...) { return nullptr; }
+    return CFramePoint::s_framePointHeap.GetData(1, typeid(CFramePoint).name(), SLOG_OBJECT);
+#else
     return CFramePoint::s_framePointHeap.GetData(0, typeid(CFramePoint).raw_name(), SLOG_OBJECT);
+#endif
 }
 
 // INLINED
 void CFramePoint::operator delete(void* ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     if (ptr) {
         CFramePoint::s_framePointHeap.PutData(ptr, nullptr, 0);
     }
@@ -28,6 +41,15 @@ void CFramePoint::operator delete(void* ptr) {
 // VERIFY: 494f351d manual
 // OFFSET: 0x0049C7B0
 void CFramePoint::SetRelative(CLayoutFrame* relative, FRAMEPOINT framePoint, float x, float y) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFrame(relative);
+    Frame::Native::RequirePoint(static_cast<uint32_t>(framePoint));
+    Frame::Native::RequireFinite(x);
+    Frame::Native::RequireFinite(y);
+#endif
     this->m_x = x;
     this->m_framePoint = framePoint;
     this->m_y = y;
@@ -44,6 +66,9 @@ void CFramePoint::SetRelative(CLayoutFrame* relative, FRAMEPOINT framePoint, flo
 // VERIFY: 49ad92da manual
 // OFFSET: 0x0049C7F0
 void CFramePoint::MarkUnused() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
     this->m_framePoint = FRAMEPOINT_NUMPOINTS;
     this->m_x = 0.0f;
     this->m_y = 0.0f;
@@ -60,6 +85,12 @@ void CFramePoint::MarkUnused() {
 // VERIFY: 6d9e350f manual
 // OFFSET: 0x0049C830
 int32_t CFramePoint::GetRelativeRect(CRect& rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!this->m_relative || (this->m_flags & 8)) return 0;
+#endif
     uint32_t busy = this->m_flags & 2;
     int32_t result = 0;
 
@@ -96,6 +127,10 @@ int32_t CFramePoint::GetRelativeRect(CRect& rect) {
 // VERIFY: 5879b0bd auto
 // OFFSET: 0x0049C900
 float CFramePoint::X(float scale) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireFinite(scale);
+#endif
     CRect rect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (!this->GetRelativeRect(rect)) {
@@ -126,6 +161,10 @@ float CFramePoint::X(float scale) {
 // VERIFY: 73d76a03 auto
 // OFFSET: 0x0049C9A0
 float CFramePoint::Y(float scale) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireFinite(scale);
+#endif
     CRect rect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (!this->GetRelativeRect(rect)) {
@@ -156,6 +195,14 @@ float CFramePoint::Y(float scale) {
 // VERIFY: 9e24f527 manual
 // OFFSET: 0x0049CA40
 CFramePoint::CFramePoint(CLayoutFrame* relative, FRAMEPOINT framePoint, float x, float y) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireOwner();
+    Frame::Native::RequireFrame(relative);
+    Frame::Native::RequirePoint(static_cast<uint32_t>(framePoint));
+    Frame::Native::RequireFinite(x);
+    Frame::Native::RequireFinite(y);
+    this->m_flags = 0;
+#endif
     this->m_x = x;
     this->m_framePoint = framePoint;
     this->m_y = y;
@@ -167,4 +214,11 @@ CFramePoint::CFramePoint(CLayoutFrame* relative, FRAMEPOINT framePoint, float x,
     if (busy) {
         this->m_flags |= 6;
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::PointCreated();
+#endif
 }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+CFramePoint::~CFramePoint() { Frame::Native::PointDestroyed(); }
+#endif
