@@ -74,7 +74,7 @@ typedef struct GCUsage {
 
 typedef struct GCTime {
   const char *tag;
-  __int64 time;
+  int64_t time;
   struct GCTime *next;
 } GCTime;
 
@@ -171,8 +171,13 @@ union GCObject {
 #define gco2h(o)	check_exp((o)->gch.tt == LUA_TTABLE, &((o)->h))
 #define gco2p(o)	check_exp((o)->gch.tt == LUA_TPROTO, &((o)->p))
 #define gco2uv(o)	check_exp((o)->gch.tt == LUA_TUPVAL, &((o)->uv))
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+/* Native adaptation: null list terminators must not form a union-member lvalue. */
+#define ngcotouv(o) ((o) == NULL ? NULL : gco2uv(o))
+#else
 #define ngcotouv(o) \
 	check_exp((o) == NULL || (o)->gch.tt == LUA_TUPVAL, &((o)->uv))
+#endif
 #define gco2th(o)	check_exp((o)->gch.tt == LUA_TTHREAD, &((o)->th))
 
 /* macro to convert any Lua object into a GCObject */

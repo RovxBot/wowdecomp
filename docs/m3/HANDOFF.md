@@ -295,6 +295,10 @@ physical-input, macOS graphics, Windows runtime or server acceptance is implied.
 
 Next dependencies, in order:
 
+The [product Lua runtime prerequisite](LUA.md) now has a separate native target
+and authored semantic fixtures under development. Hosted qualification is pending;
+this does not select FrameScript/Frame/XML or establish original login rendering.
+
 1. Connect original Frame font/string consumers and file-backed image services
    to the qualified Gxu/Services handle boundary. Extend remaining device/state/
    mip/texture contracts as their callers require them; audit texture/texgen

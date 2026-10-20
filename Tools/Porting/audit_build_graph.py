@@ -11,6 +11,8 @@ def audit(targets, mode, target_os, cpu):
     build_utilities = {t['id'] for t in targets if t['type'] == 'UTILITY' and 'id' in t}
     names = {t['name'] for t in compiled}
     expected = {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}
+    if mode == 'lua':
+        expected |= {'WowNativeLua', 'NativeLuaCheck'}
     if mode == 'packets':
         expected |= {'WowNativePackets', 'NativePacketCheck'}
     if mode in {'files', 'assets', 'async', 'window', 'gl'}:
@@ -23,7 +25,7 @@ def audit(targets, mode, target_os, cpu):
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
         expected |= {'WowNativeGxu', 'LegacyGxuCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
-    if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets'} and names != expected:
+    if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')
@@ -41,13 +43,13 @@ def audit(targets, mode, target_os, cpu):
             errors.append(f"{target['name']}: portable runtime ABI leaked into the legacy client")
         for source in sources:
             parts = Path(source).parts
-            if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
+            if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
                                    or source.endswith(('.rc', '.def', '.lib'))):
                 errors.append(f"{target['name']}: Windows source in core: {source}")
             if mode == 'windows' and (('Win32' in parts and expected_platform != 'Win32')
                                       or ('Win64' in parts and expected_platform != 'Win64')):
                 errors.append(f"{target['name']}: wrong Windows source: {source}")
-        if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets'}:
+        if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua'}:
             forbidden = {'_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
             if target_os != 'WINDOWS':
                 forbidden |= {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
@@ -189,6 +191,18 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native packet source/ABI")
+        if mode == 'lua' and target['name'] in {'WowNativeLua', 'NativeLuaCheck'}:
+            allowed = (['Engine/Source/lua-5.1/src/' + name + '.c' for name in
+                ['lapi', 'lauxlib', 'lbaselib', 'lbitlib', 'lcode', 'ldebug', 'ldo', 'ldump',
+                 'lfunc', 'lgc', 'llex', 'lmathlib', 'lmem', 'lobject', 'lopcodes', 'lparser',
+                 'lstate', 'lstring', 'lstrlib', 'ltable', 'ltablib', 'ltm', 'lundump', 'lvm', 'lzio']] +
+                ['Engine/Source/lua-5.1/src/lmemPool.cpp', 'Engine/Source/Base/ConvertUTF.cpp',
+                 'Engine/Source/Os/Portable/FunctionPointer.cpp']
+                if target['name'] == 'WowNativeLua' else ['Tools/NativeLua/main.cpp'])
+            if (len(sources) != len(allowed) or
+                    any(not any(s.endswith(p) for s in sources) for p in allowed) or
+                    'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
+                errors.append(f"{target['name']}: unexpected native Lua source/ABI")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):
                 errors.append(f"{target['name']}: selected Windows entry missing")
@@ -211,7 +225,7 @@ def read_targets(build_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, required=True)
-    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'windows'], required=True)
+    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'windows'], required=True)
     parser.add_argument('--os', required=True)
     parser.add_argument('--cpu', required=True)
     parser.add_argument('--output', type=Path, required=True)

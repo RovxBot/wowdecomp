@@ -866,17 +866,35 @@ static int str_format (lua_State *L) {
       strfrmt = e;
       switch (*strfrmt++) {
         case 'c': {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+          int value;
+          lua_number2int(value, luaL_checknumber(L, arg));
+          sprintf(buff, form, value);
+#else
           sprintf(buff, form, (int)luaL_checknumber(L, arg));
+#endif
           break;
         }
         case 'd':  case 'i': {
           addintlen(form);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+          int value;
+          lua_number2int(value, luaL_checknumber(L, arg));
+          sprintf(buff, form, value);
+#else
           sprintf(buff, form, (LUA_INTFRM_T)luaL_checknumber(L, arg));
+#endif
           break;
         }
         case 'o':  case 'u':  case 'x':  case 'X': {
           addintlen(form);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+          lua_Integer value;
+          lua_number2integer(value, luaL_checknumber(L, arg));
+          sprintf(buff, form, (unsigned int)value);
+#else
           sprintf(buff, form, (unsigned LUA_INTFRM_T)luaL_checknumber(L, arg));
+#endif
           break;
         }
         case 'e':  case 'E': case 'f':
