@@ -11,6 +11,10 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
+
+/* Portability: profile clocks retain signed 64-bit width on every native ABI.
+ * Existing VERIFY/OFFSET comments describe the original implementation. */
 
 
 #include "luaconf.h"

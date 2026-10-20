@@ -39,7 +39,14 @@ int32_t MemPool::MemFree(void* ptr) {
     for (uint32_t i = 0; i < this->m_chunks.Count(); i++) {
         MemChunk* chunk = this->m_chunks[i];
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        // Native adaptation: order addresses without comparing unrelated C++ pointers.
+        const auto address = reinterpret_cast<uintptr_t>(ptr);
+        const auto base = reinterpret_cast<uintptr_t>(chunk->m_memblocks);
+        if (address >= base && address - base < chunk->m_size) {
+#else
         if (ptr >= chunk->m_memblocks && ptr < static_cast<char*>(chunk->m_memblocks) + chunk->m_size) {
+#endif
             *static_cast<void**>(ptr) = chunk->m_free;
             chunk->m_numBlocks++;
             chunk->m_free = ptr;
@@ -165,6 +172,11 @@ void* luaM_reallocPool(void* ud, void* ptr, size_t osize, size_t nsize) {
     }
 
     void* newptr = newpool < 0 ? SMemAlloc(nsize, __FILE__, __LINE__, 0) : pools[newpool]->MemAlloc();
+
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Recoverable allocation failure must leave the old Lua allocation alive.
+    if (!newptr) return nullptr;
+#endif
 
     if (ptr) {
         memcpy(newptr, ptr, osize < nsize ? osize : nsize);
