@@ -26,10 +26,13 @@ failure through the original status boundary. File traversal feeds original MD5
 bytes before execution. Original TOC/RSA interface signature traversal is separate
 FrameXML work; this file provider does not qualify interface signatures.
 
-The original saved-variable environment, SavedVariables taint, serializer,
+The original saved-variable environment, SavedVariables closure taint, serializer,
 script registrations, compatibility aliases, securecall/hooksecurefunc and
 event globals remain selected. Native writes retry partial progress and report
-failed or zero-progress writes. Nested event dispatch defers listener changes
+failed or zero-progress writes. The saved-variable loader labels closures
+created while executing that chunk; it does not blanket-taint scalar/table values.
+The initial authored fixture incorrectly expected table-value taint; the original
+VM and loader establish the narrower closure contract, now checked explicitly. Nested event dispatch defers listener changes
 until the outermost signal; object teardown removes registrations and invalidates
 the Lua object table before VM destruction. Native error handlers recover their
 mode after a failing user handler. The native helper branch bounds replacement
@@ -51,7 +54,11 @@ legacy this/event/arg restoration, profile counters, object invalidation, foreig
 thread rejection, digest ordering, read failures, saved-variable round trips and
 write failures, then repeated Flush/Destroy with profiling off/on. This is not
 original GlueXML execution, GPU rendering, physical input or server acceptance.
-Hosted results and exact identities will be recorded after qualification.
+An optional `--original-data DATA SETTINGS CACHE` mode authenticates the original
+signaturefile and executes unchanged `Interface\FrameXML\GlobalStrings.lua`
+through this provider, checking localized token lookup. This is a standalone
+source check; it does not traverse the interface TOC or render a frame. Hosted
+results and exact identities will be recorded after qualification.
 
 Next are original Frame/XML factories and file-backed image/async Services,
 interface signatures, GlueXML startup and actual original login rendering.

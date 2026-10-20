@@ -4,6 +4,7 @@
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Storm/Source/MD5.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
+#include "Engine/Source/lua-5.1/src/lstate.h"
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -80,7 +81,7 @@ static void LibraryCheck() {
         assert(type(time{year=2020,month=2,day=29,hour=12})=='number')
         debugprofilestart(); assert(debugprofilestop()>=0)
         local x,y,z=scrub(1,{},'x'); assert(x==1 and y==nil and z=='x')
-        assert(type(debugstack())=='string')
+        assert(type(debugstack())=='string' and not pcall(debugstack,1/0) and not pcall(debugstack,-1))
     )lua");
 }
 static void SecurityCheck() {
@@ -171,7 +172,12 @@ static void FileCheck(const std::filesystem::path& directory) {
     Check(lua_gettop(s_context)==0, "file failure changed Lua stack");
     Check(FrameScript_LoadVariables("saved.lua", &status), "saved variable environment");
     Run("assert(Saved.value==73 and Saved.text=='hello')");
-    Run("local ok,who=issecurevariable('Saved'); assert(not ok and who=='SavedVariables')");
+    // The original loader tags newly created closures, not the Saved table value.
+    Run("local ok,who=issecurevariable('Saved'); assert(ok and who==nil and Saved.callback()==42)");
+    lua_getglobal(s_context,"Saved"); lua_getfield(s_context,-1,"callback");
+    auto* closure=clvalue(s_context->top-1);
+    Check(closure->l.taint && !std::strcmp(closure->l.taint,"SavedVariables"),"saved-variable closure taint");
+    lua_pop(s_context,2);
     Run("Saved={value=73,text='a\\000b\\n\\\"',array={1,2},bad=0/0}; Saved.self=Saved");
     auto output = (directory/"serialized.lua").u8string();
     auto file = OsCreateFile(output.c_str(), OS_GENERIC_WRITE, 0, OS_CREATE_ALWAYS, OS_FILE_ATTRIBUTE_NORMAL, 0);
@@ -236,7 +242,7 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(directory);
         struct Cleanup { std::filesystem::path path; ~Cleanup() { std::filesystem::remove_all(path); } } cleanup{directory};
         { std::ofstream file(directory/"fixture.lua"); file << "fromFile=37"; }
-        { std::ofstream file(directory/"saved.lua"); file << "Saved={value=73,text='hello'}"; }
+        { std::ofstream file(directory/"saved.lua"); file << "Saved={value=73,text='hello',callback=function() return 42 end}"; }
         { std::ofstream file(directory/"empty.lua"); }
         for (int cycle=0;cycle<3;++cycle) for (int profile=0;profile<2;++profile) {
             {

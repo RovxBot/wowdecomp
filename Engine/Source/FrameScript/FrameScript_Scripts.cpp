@@ -641,17 +641,35 @@ static int32_t Script_debugstack(lua_State* L) {
     }
 
     if (lua_isnumber(L, 1)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        const double value = lua_tonumber(L, 1);
+        if (!(value >= 0 && value <= 2147483647.0)) return luaL_argerror(L,1,"stack level out of range");
+        level = static_cast<uint32_t>(value);
+#else
         level = lua_tonumber(L, 1);
+#endif
         lua_remove(L, 1);
     }
 
     if (lua_isnumber(L, 1)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        const double value = lua_tonumber(L, 1);
+        if (!(value >= 0 && value <= 2147483647.0)) return luaL_argerror(L,1,"stack level out of range");
+        levels1 = static_cast<uint32_t>(value);
+#else
         levels1 = lua_tonumber(L, 1);
+#endif
         lua_remove(L, 1);
     }
 
     if (lua_isnumber(L, 1)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        const double value = lua_tonumber(L, 1);
+        if (!(value >= 0 && value <= 2147483647.0)) return luaL_argerror(L,1,"stack level out of range");
+        levels2 = static_cast<uint32_t>(value);
+#else
         levels2 = lua_tonumber(L, 1);
+#endif
         lua_remove(L, 1);
     }
 

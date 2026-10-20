@@ -46,7 +46,6 @@ def main():
         cache=(build/'CMakeCache.txt').read_text()
         manifest['toolchain_cache']=[line for line in cache.splitlines() if line.startswith(('CMAKE_C_COMPILER:','CMAKE_CXX_COMPILER:','CMAKE_BUILD_TYPE:','CMAKE_GENERATOR:','WOWDECOMP_'))]
         run('build',['cmake','--build',str(build),'--config','Release','--parallel','2'])
-        run('tests',['ctest','--test-dir',str(build),'-C','Release','--output-on-failure','--no-tests=error'])
         (evidence/'bin').mkdir(exist_ok=True);manifest['binaries']=[]
         for name in ['NativeFrameScriptCheck','NativeLuaCheck','NativeCore','CoreServicesCheck','PortableCoreCheck',
                      'FileServicesCheck','PackageServicesCheck','AssetDecodersCheck','NativeAssetCheck','AsyncFileCheck']:
@@ -55,6 +54,7 @@ def main():
             if len(found)!=1:raise RuntimeError('Expected one packaged '+actual)
             destination=evidence/'bin'/actual;shutil.copy2(found[0],destination)
             manifest['binaries'].append(dict(name=actual,sha256=hashlib.sha256(destination.read_bytes()).hexdigest()))
+        run('tests',['ctest','--test-dir',str(build),'-C','Release','--output-on-failure','--no-tests=error'])
         manifest['status']='Hosted original FrameScript semantics passed; transport/authentication/gameplay remain open'
     except Exception as error:
         manifest['failed_phase']=manifest['status'];manifest['status']='failed';manifest['failure']=str(error);raise
