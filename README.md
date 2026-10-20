@@ -74,8 +74,11 @@ remain open. The [original XML/signature integration](docs/m3/XML.md) now adds
 owner-thread original trees and filename-bound interface verification. Hosted
 Linux, actual ARM64 macOS and Windows fixtures pass; downloaded Linux release
 and strict sanitizer binaries authenticate original GlueXML/FrameXML content
-and parse AccountLogin XML. Actual Frame factories/image Services and original
-login execution/rendering remain open, followed by transport and gameplay.
+and parse AccountLogin XML. The [file-backed image Services](docs/m3/IMAGES.md)
+now deliver bounded BLP2 images through retained reads and original CTexture/Gx
+handles, with hosted and actual-GPU release/strict sanitizer evidence. Actual
+Frame factories/layout, broader image/async contracts and original login
+execution/rendering remain open, followed by transport and gameplay.
 
 ## Progress
 
