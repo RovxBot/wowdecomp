@@ -46,8 +46,7 @@ available prefix. Results retain original values: 0 missing/unavailable sidecar,
 ASan/UBSan/leak, actual ARM64 macOS and Windows native fixtures. It audits the
 explicit source graph and retains binaries, CTest detail, hashes and Lua/Expat
 notices. The separate Windows baseline remains the full-client compilation check.
-All compilation runs in Actions. Qualification identities/results will be recorded
-after the checks complete.
+All compilation runs in Actions. Exact qualification is recorded below.
 
 `NativeXMLCheck` exercises authored independent RSA/digest vectors, repeated and
 relative references, filename binding, corruption, missing children/extra input,
@@ -55,6 +54,50 @@ cycles, owner affinity, mixed-content offsets, tree/user-data recycling, parser
 recovery and wide sibling lists. Its optional original-data mode authenticates
 the retail signaturefile, verifies original GlueXML and FrameXML sidecars/content
 and parses original AccountLogin XML, without executing that UI or its Lua.
+
+## Qualification
+
+[PR #33](https://github.com/RovxBot/wowdecomp/pull/33) is qualified at
+`c79cd56a6854ab15e9cf89de47c4c2a3a7663b04`, merged as `c4ee06549c7f5cc5b6093a7d3189c8c6d1dac6bf`.
+The [durable record](xml-validation.json) retains all twelve passing implementation
+PR workflows, 14 CTest checks/three authored XML cycles per native configuration,
+five verified archives and all 47 packaged executable hashes/types. Native
+Windows, actual ARM64 macOS, Linux release and strict sanitizer fixtures passed.
+The full Windows x64 client compiled with signatures enabled at separate
+matching-tree PR checkout `f7c2de912a17e55ef9196379b50c097c00dfbc8d`.
+
+Downloaded Linux release and strict ASan/UBSan/leak binaries each passed three
+authored cycles and three original-data cycles, with empty stderr and zero workers.
+Both original 276-byte interface sidecars authenticated under the original
+InterfaceKey; content traversal produced:
+
+| Original interface | File visits (including duplicates) | Bytes | Content MD5 |
+| --- | ---: | ---: | --- |
+| GlueXML | 60 | 776,106 | `b44247235136edcfbbc314797eb2c705` |
+| FrameXML plus final raw Bindings.xml | 267 | 5,076,247 | `51b264400410d3409c4e79f6f4257711` |
+
+Original AccountLogin XML parsed into the actual tree. These checks authenticate
+these signed traversals and parse that source; they do not execute frames/Lua,
+render login or establish that every archive is stock. MPQ signaturefile
+original-key authentication (28,948 records) and registered-MD5 policy remained
+active. No new GPU, physical-input, Windows runtime, macOS desktop or server
+acceptance is claimed.
+
+The first compiler attempt exposed MSVC-only allocator RTTI naming; the second
+exposed a nonexistent Paths constructor in the diagnostic, corrected to
+ConfigurePaths with separate user-root validation. Those failed jobs remain in
+the record. A local restricted execution failed LeakSanitizer's ptrace check;
+the same hash-verified binary passed outside tracing with ASan/UBSan/leak checks
+unchanged. This is not a suppression or a clean restricted-executor leak pass.
+
+## Next original callers
+
+| Caller | Required integration |
+| --- | --- |
+| `FrameXML.cpp::FrameXML_ProcessFile`, `FrameXML_CreateFrames` | Connect actual Frame/Font factories, retained virtual-template ownership and FrameScript execution. Preserve ordered execution reads and the second computed digest comparison in `CGlueMgr::Resume` before FRAMES_LOADED. Signature scanning alone does not provide these consumers. |
+| `Frame/CLayoutFrame`, `CSimpleRegion`, `CSimpleFrame`, text consumers | Adapt original anchors/layout, script objects, input/event dispatch and Services handle lifetimes to the qualified Gx/Gxu owners; wire SDL size changes to font/layout invalidation. |
+| `Services/Texture.cpp`, Frame texture consumers | Adapt file-backed image/decode/cache ownership and legacy async cancellation; retain actual supported formats/mips/callback lifetimes. The glyph callback bridge and native ticket API do not implement those caller contracts. |
+| `CGlueMgr::Initialize`/`Resume`, `InitializeClient` | Connect real script/service registrations, agreements, model/material, audio/movie and login initialization in bounded packages. Keep unavailable required behavior visible and render actual original login before interactive sign-in. |
 
 After downloading and verifying the selected Actions package, run without local
 compilation:

@@ -325,6 +325,28 @@ it does not turn a documentation request into authorization to start the whole p
   GlueXML/login rendering, transport and gameplay remain open. No new GPU,
   physical-input, Windows runtime, macOS desktop or server acceptance. Preserve
   server revision discrepancies and interactive user sign-in. M3 remains open.
+- M3 original XML/signatures [PR #33](https://github.com/RovxBot/wowdecomp/pull/33)
+  is qualified at `c79cd56a6854ab15e9cf89de47c4c2a3a7663b04`, merged as
+  `c4ee06549c7f5cc5b6093a7d3189c8c6d1dac6bf`. Read [XML contracts/next callers](docs/m3/XML.md)
+  and [validation](docs/m3/xml-validation.json). All twelve implementation PR
+  workflows passed, with 14 CTest checks/three authored cycles per native
+  configuration, actual ARM64 execution and full Windows x64 compilation at
+  matching-tree checkout `f7c2de912a17e55ef9196379b50c097c00dfbc8d`.
+  Five archives and all 47 packaged executable hashes/types were verified.
+  Downloaded Linux release/strict ASan/UBSan/leak binaries each passed three
+  authored and three original-data cycles with empty stderr/zero workers.
+  Original InterfaceKey authenticated GlueXML (60 visits, MD5
+  `b44247235136edcfbbc314797eb2c705`) and FrameXML plus Bindings (267 visits, MD5
+  `51b264400410d3409c4e79f6f4257711`); AccountLogin XML parsed. Preserve native
+  pointer alignment, borrowed nodes until tree close, XML-before-VM shutdown,
+  raw manifest order and the second digest comparison after actual frame creation.
+  The initial native tree dialect rejects DTD and UTF-16/32; it is not general
+  addon/language qualification. Compiler failures and the restricted-executor
+  LeakSanitizer ptrace failure remain recorded; the same binary passed outside
+  tracing with all detectors unchanged. Frame factories/image Services and actual
+  GlueXML/login execution/rendering remain open, followed by transport/gameplay.
+  No new GPU, physical-input, Windows runtime, macOS desktop or server acceptance;
+  M3 stays open, signatures/server discrepancies/interactive sign-in remain intact.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
