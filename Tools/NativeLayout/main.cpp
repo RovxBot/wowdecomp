@@ -102,7 +102,9 @@ static void Dependencies() {
     CLayoutFrame::ResizePending();Rect(child,0,0,0.7f,0.5f);
     // Child resolving the deferred relative forces the actual original resize.
     Check(!(middle.m_layoutFlags&0x200),"deferred relative not resolved");
+    CFramePoint standalone(root.get(),FRAMEPOINT_CENTER,0,0);
     root.reset();CLayoutFrame::ResizePending();
+    Check(standalone.X(1)==CFramePoint::UNDEFINED,"standalone point retained destroyed origin");
     Check(!middle.HasAnyFramepoints() && middle.m_resizeList.Head()!=nullptr,"destroyed origin anchor retained");
     CRect rect;Check(!middle.GetRect(&rect),"destroyed anchor kept stale rectangle");
     Check(!child.GetRect(&rect),"transitive invalidation retained stale rectangle");

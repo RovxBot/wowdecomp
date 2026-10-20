@@ -43,8 +43,6 @@ void CFramePoint::operator delete(void* ptr) {
 void CFramePoint::SetRelative(CLayoutFrame* relative, FRAMEPOINT framePoint, float x, float y) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireOwner();
-#endif
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireFrame(relative);
     Frame::Native::RequirePoint(static_cast<uint32_t>(framePoint));
     Frame::Native::RequireFinite(x);
@@ -87,8 +85,6 @@ void CFramePoint::MarkUnused() {
 int32_t CFramePoint::GetRelativeRect(CRect& rect) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireOwner();
-#endif
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
     if (!this->m_relative || (this->m_flags & 8)) return 0;
 #endif
     uint32_t busy = this->m_flags & 2;
@@ -215,10 +211,10 @@ CFramePoint::CFramePoint(CLayoutFrame* relative, FRAMEPOINT framePoint, float x,
         this->m_flags |= 6;
     }
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::PointCreated();
+    Frame::Native::PointCreated(this);
 #endif
 }
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-CFramePoint::~CFramePoint() { Frame::Native::PointDestroyed(); }
+CFramePoint::~CFramePoint() { Frame::Native::PointDestroyed(this); }
 #endif

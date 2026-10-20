@@ -11,7 +11,8 @@ namespace Frame { namespace Native {
 namespace {
 bool installed = false;
 std::unordered_set<CLayoutFrame*> frames;
-size_t resizing = 0, points = 0;
+size_t resizing = 0;
+std::unordered_set<CFramePoint*> points;
 // Initial bounded layout surface; larger graphs require separate qualification.
 constexpr size_t MaxFrames = 1024, MaxDepth = 64;
 size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
@@ -43,6 +44,7 @@ Runtime::~Runtime() {
         RequireNoObjects();
         CFramePoint::s_framePointHeap.Clear(nullptr, 0, 1);
         std::unordered_set<CLayoutFrame*>().swap(frames);
+        std::unordered_set<CFramePoint*>().swap(points);
         installed = false;
     } catch (...) { std::terminate(); }
 }
@@ -52,7 +54,7 @@ void RequireOwner() {
 }
 void RequireNoObjects() {
     RequireOwner();
-    if (!frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || points)
+    if (!frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 void FrameCreated(CLayoutFrame* frame) {
@@ -60,9 +62,16 @@ void FrameCreated(CLayoutFrame* frame) {
     if (frames.size() >= MaxFrames) throw std::length_error("Native layout frame limit");
     frames.insert(frame);
 }
-void PointCreated() { RequireOwner(); ++points; }
-void PointDestroyed() { RequireOwner(); --points; }
-void FrameDestroyed(CLayoutFrame* frame) { RequireOwner(); frames.erase(frame); }
+void PointCreated(CFramePoint* point) { RequireOwner(); points.insert(point); }
+void PointDestroyed(CFramePoint* point) { RequireOwner(); points.erase(point); }
+void FrameDestroyed(CLayoutFrame* frame) {
+    RequireOwner();
+    // Owned dependent anchors were retired by DestroyLayout. Standalone points
+    // have no resize-list registration, but must not retain a dangling origin.
+    for (auto* point : points)
+        if (point->m_relative == frame) point->MarkUnused();
+    frames.erase(frame);
+}
 void RequireFrame(CLayoutFrame* frame) {
     RequireOwner();
     if (!frame || !frames.count(frame)) throw std::invalid_argument("Layout anchor is not a live frame");

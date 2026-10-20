@@ -38,7 +38,7 @@ def main():
             if process.wait():raise RuntimeError(name+' failed')
     try:
         if cpu=='ARM64' and (platform.machine()!='arm64' or os.environ.get('RUNNER_ARCH')!='ARM64'):
-            raise RuntimeError('XML qualification requires an actual ARM64 macOS runner.')
+            raise RuntimeError('Layout qualification requires an actual ARM64 macOS runner.')
         query=build/'.cmake/api/v1/query/codemodel-v2';query.parent.mkdir(parents=True,exist_ok=True);query.touch()
         run('cmake-version',['cmake','--version']);run('configure',['cmake','--preset',args.preset])
         targets=read_targets(build);errors=audit(targets,'layout',target_os,cpu)

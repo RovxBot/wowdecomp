@@ -94,12 +94,12 @@ jobs:
           persist-credentials: false
       - name: Check source-selection and graph-audit fixtures
         run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
-      - name: Compile and check original XML runtime
+      - name: Compile and check original Frame layout
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
         run: ${{ matrix.python }} Tools/Porting/run_layout_checks.py --preset ${{ matrix.preset }}
-      - name: Retain XML qualification evidence
+      - name: Retain layout qualification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
