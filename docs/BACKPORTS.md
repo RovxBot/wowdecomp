@@ -493,6 +493,28 @@ and source inspection are different evidence levels.
   failures remain in [evidence](m3/xml-validation.json); no detector was disabled.
   Local Python: 43 passed, one unavailable-CMake skip. All compilation in Actions.
 
+## NP-018 — Authored native image mip chains and local readiness
+
+- Status: implementation awaiting hosted/runtime qualification; see
+  [contracts](m3/IMAGE_MIPS.md). M3 remains open.
+- Source: product main `9bcf7bc` after qualified image Services PR #35/closeout
+  PR #36. Adapt original 12340 `CGxDeviceOpenGl::ITexMarkAsUpdated` mip callback
+  traversal, `TextureGetGxTex` local wait-2 semantics and `CreateBlpAsync` UI read
+  priority. No donor body, new address/VERIFY claim or dependency import.
+- Adaptation: native immutable mip storage and retained complete authored BLP2
+  levels; explicit mip filters, one Lock/Unlock around increasing Latch levels,
+  dirty failure/retry and whole-chain updates. Retained pixels share a bounded
+  budget. UI option 0x10 retains priority/duplicate cache ownership. Remote
+  streaming, disk/atlas flags, automatic mip generation and incompatible sampler
+  allocation changes remain visibly unavailable.
+- Assets/defaults: unchanged authenticated original images and `0x10003` UI
+  shaders, with separate authored level-color/callback fixtures. Original-key
+  package authentication and registered MD5 checks remain enabled. No protocol,
+  optional effect, server-policy or credential change; Frame/login remain open.
+- Validation: local source-audit Python suite passes (43 passed, one platform
+  skip). Compilation and release/strict sanitizer fixtures run only in Actions;
+  new qualification is pending and does not inherit PR #35 runtime evidence.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

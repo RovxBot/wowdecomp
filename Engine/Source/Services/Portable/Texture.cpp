@@ -1,5 +1,5 @@
 // Native adaptation of product 12340 Services/Texture.cpp file/cache ownership.
-// This bounded first consumer delivers mip zero of BLP2 through the qualified
+// This bounded consumer delivers original BLP2 mip chains through the qualified
 // decoder and actual legacy callback/Gx objects. No donor ABI or loose fallback.
 #include "Texture.h"
 #include "Engine/Source/Services/Texture.h"
@@ -16,6 +16,7 @@ namespace Services { namespace Native {
 namespace {
 std::atomic<TextureService*> active{nullptr};
 constexpr size_t MaxTextures = 32, MaxPixels = 2 * 1024 * 1024, MaxSource = 32 * 1024 * 1024;
+struct PixelBudget { std::atomic<size_t> bytes{0}; };
 struct Key {
     std::string name;
     uint32_t filter, u, v;
@@ -27,16 +28,36 @@ struct Image {
     Key key;
     CTexture* texture = nullptr; // Only the owner thread reads or changes this.
     Ticket ticket;
-    Blizzard::Assets::Image pixels{}; // Worker publishes before completion.
+    std::vector<Blizzard::Assets::Image> levels; // Worker publishes before completion.
+    std::shared_ptr<PixelBudget> budget;
+    size_t heldBytes = 0;
     bool done = false;
+    ~Image() { ClearPixels(); }
+    void ClearPixels() {
+        levels.clear();
+        if (heldBytes) budget->bytes.fetch_sub(heldBytes);
+        heldBytes = 0;
+    }
+    void Retain(std::vector<Blizzard::Assets::Image> pixels) {
+        size_t bytes = 0;
+        for (const auto& level : pixels) bytes += level.rgba.size();
+        auto used = budget->bytes.load();
+        do {
+            if (bytes > 256 * 1024 * 1024 - used)
+                throw std::out_of_range("Native image retained-pixel budget exceeded");
+        } while (!budget->bytes.compare_exchange_weak(used, used + bytes));
+        heldBytes = bytes;
+        levels = std::move(pixels);
+    }
     static void Source(EGxTexCommand command, uint32_t width, uint32_t height,
                        uint32_t face, uint32_t level, void* user, uint32_t& stride, const void*& bytes) {
         auto& image = *static_cast<Image*>(user);
-        if (width != image.pixels.width || height != image.pixels.height || face || level)
+        if (level >= image.levels.size() || face || width != image.levels[level].width ||
+            height != image.levels[level].height)
             throw std::logic_error("Unavailable file-image callback extent/mip/face");
         if (command == GxTex_Latch) {
             stride = width * 4;
-            bytes = image.pixels.rgba.data();
+            bytes = image.levels[level].rgba.data();
         }
     }
 };
@@ -64,6 +85,7 @@ struct TextureService::State {
     std::map<Key, std::shared_ptr<Image>> cache;
     std::map<CTexture*, std::shared_ptr<Image>> handles;
     std::vector<Ticket> requests;
+    std::shared_ptr<PixelBudget> budget = std::make_shared<PixelBudget>();
     bool closing = false;
     State(FileQueue& q, Reader r) : queue(q), reader(std::move(r)), device(g_theGxDevicePtr) {}
     void Prune() {
@@ -117,15 +139,16 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
     auto& service = Owner();
     auto& s = *service.state;
     if (s.closing) throw std::logic_error("Native image service is closing");
-    // Explicit sampler (bit 0), optional exact BLP suffix (bit 3). Default
-    // mip policy, legacy flags/atlas/streaming and other formats stay unavailable.
-    if (!status || !(options & 1) || (options & ~9u) || flags.m_filter > GxTex_Linear ||
+    // Explicit sampler (bit 0), exact BLP suffix (bit 3), UI priority (bit 4).
+    // Disk lookup, atlas eligibility, streaming and other formats stay unavailable.
+    if (!status || !(options & 1) || (options & ~0x19u) || flags.m_filter > GxTex_LinearMipLinear ||
         flags.m_forceMipTracking || flags.m_generateMipMaps || flags.m_renderTarget || flags.m_bit8 ||
         flags.m_maxAnisotropy != 1 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 || flags.m_bit31)
         throw std::invalid_argument("Unavailable native file texture options/sampler");
     Key key{Filename(filename), flags.m_filter, flags.m_wrapU, flags.m_wrapV};
     auto cached = s.cache.find(key);
     if (cached != s.cache.end()) {
+        if (options & 0x10) s.queue.Promote(cached->second->ticket, 129);
         HandleDuplicate(reinterpret_cast<HOBJECT>(cached->second->texture));
         return cached->second->texture;
     }
@@ -134,6 +157,7 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
         throw std::out_of_range("Native image service capacity exceeded");
     auto image = std::make_shared<Image>();
     image->key = key;
+    image->budget = s.budget;
     auto texture = std::make_unique<CTexture>();
     texture->m_gxTexFlags = flags;
     SStrCopy(texture->m_filename, key.name.c_str(), sizeof(texture->m_filename));
@@ -153,9 +177,16 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             if (bytes.size() < 148 || bytes.size() > MaxSource) throw std::out_of_range("File image source extent");
             auto u32 = [&](size_t o) { return uint32_t(bytes[o]) | uint32_t(bytes[o+1]) << 8 |
                 uint32_t(bytes[o+2]) << 16 | uint32_t(bytes[o+3]) << 24; };
-            if (uint64_t(u32(12)) * u32(16) > MaxPixels) throw std::out_of_range("File image pixel budget");
+            auto width = u32(12), height = u32(16);
+            if (width < 8 || height < 8 || (width & (width - 1)) || (height & (height - 1)) ||
+                uint64_t(width) * height > MaxPixels) throw std::out_of_range("File image dimensions/pixel budget");
             auto levels = Blizzard::Assets::DecodeBlp(bytes);
-            image->pixels = std::move(levels.front()); // Decode validates the entire supplied chain.
+            if (image->key.filter >= GxTex_NearestMipNearest) {
+                size_t count = 1;
+                for (auto extent = std::max(width, height); extent > 1; extent >>= 1) ++count;
+                if (levels.size() != count) throw std::invalid_argument("Mipped file texture requires a complete authored chain");
+            } else levels.resize(1); // Decode still validates every supplied level.
+            image->Retain(std::move(levels));
             result.file.bytes.clear();
             result.file.bytes.shrink_to_fit();
             return result;
@@ -164,18 +195,19 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             auto* texture = image->texture;
             image->done = true;
             if (result.status != ReadStatus::Success) {
-                image->pixels = {};
+                image->ClearPixels();
                 texture->m_status.Add(STATUS_ERROR, "Image %s: %s", texture->m_filename,
                     result.status == ReadStatus::Cancelled ? "read cancelled" : result.error.c_str());
                 return;
             }
             try {
-                texture->m_gxWidth = image->pixels.width;
-                texture->m_gxHeight = image->pixels.height;
+                texture->m_gxWidth = image->levels.front().width;
+                texture->m_gxHeight = image->levels.front().height;
                 texture->m_dataFormat = texture->m_gxTexFormat = GxTex_Abgr8888;
                 bool opaque = true;
-                for (size_t i = 3; i < image->pixels.rgba.size(); i += 4)
-                    if (image->pixels.rgba[i] != 255) { opaque = false; break; }
+                for (const auto& level : image->levels)
+                    for (size_t i = 3; i < level.rgba.size(); i += 4)
+                        if (level.rgba[i] != 255) { opaque = false; break; }
                 texture->m_flags = opaque ? 1 : 0;
                 texture->m_alphaBits = opaque ? 0 : 8;
                 if (!GxTexCreate(GxTex_2d, texture->m_gxWidth, texture->m_gxHeight, 0,
@@ -185,9 +217,9 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             } catch (const std::exception& error) {
                 if (texture->m_gxTex) { GxTexDestroy(texture->m_gxTex); texture->m_gxTex = nullptr; }
                 texture->m_status.Add(STATUS_ERROR, "Image %s: %s", texture->m_filename, error.what());
-                image->pixels = {};
+                image->ClearPixels();
             }
-        });
+        }, options & 0x10 ? 129 : 130);
         s.requests.push_back(image->ticket);
     } catch (...) {
         s.handles.erase(texture.get()); s.cache.erase(key); throw;
@@ -212,7 +244,9 @@ void ReleaseFileTexture(CTexture* texture) {
 CGxTex* GetFileTexture(CTexture* texture, int32_t wait, CStatus* status) {
     if (!texture) return nullptr;
     texture->NativeCheckOwner();
-    if (wait < 0 || wait > 1) throw std::invalid_argument("Native file texture wait must be 0 or 1");
+    // Original wait 2 only avoids blocking for remote streaming (m_char24).
+    // Native retained readers deliver local data; streaming remains unavailable.
+    if (wait < 0 || wait > 2) throw std::invalid_argument("Native file texture wait must be 0, 1 or 2");
     auto* service = active.load();
     if (service) {
         service->Check();

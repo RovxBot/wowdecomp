@@ -9,6 +9,7 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
+#include <algorithm>
 #include <cfenv>
 #include <chrono>
 #include <cstring>
@@ -72,6 +73,56 @@ struct Source {
         bytes = s.pixels.data();
     }
 };
+struct MipSource {
+    std::vector<uint16_t> pixels = std::vector<uint16_t>(16 * 8, 0xFFFF);
+    std::vector<uint32_t> visits;
+    int locks = 0, unlocks = 0, failLevel = 2;
+    static void Callback(EGxTexCommand command, uint32_t width, uint32_t height, uint32_t face,
+                         uint32_t level, void* user, uint32_t& stride, const void*& bytes) {
+        auto& source = *static_cast<MipSource*>(user);
+        Require(!face, "2D callback received a cube face");
+        if (command == GxTex_Lock || command == GxTex_Unlock) {
+            Require(width == 16 && height == 8 && !level, "Mip lock/unlock lost original extent");
+            if (command == GxTex_Lock) ++source.locks; else ++source.unlocks;
+        } else {
+            Require(level < 5 && width == std::max(1u, 16u >> level) && height == std::max(1u, 8u >> level),
+                    "Nonsquare mip callback dimensions/order failed");
+            source.visits.push_back(level);
+            if (int(level) == source.failLevel) throw std::runtime_error("Injected lower-mip latch failure");
+        }
+        stride = width * 2; bytes = source.pixels.data();
+    }
+};
+void CheckMipCallbacks() {
+    MipSource source;
+    auto flags = CGxTexFlags(GxTex_LinearMipLinear);
+    CGxTex* texture = nullptr;
+    Require(GxTexCreate(GxTex_2d, 16, 8, 0, GxTex_Argb4444, GxTex_Argb4444, flags,
+                       &source, MipSource::Callback, "authored callback mips", texture), "Mip texture create failed");
+    struct Cleanup { CGxTex* texture; ~Cleanup() { GxTexDestroy(texture); } } cleanup{texture};
+    Reject([&] { GxTexUpdate(texture, 0, 0, 16, 8, 1); }, "Lower-mip latch failure was hidden");
+    Require(source.locks == 1 && source.unlocks == 1 && texture->m_needsUpdate &&
+            source.visits == std::vector<uint32_t>{0,1,2}, "Failed mip upload lost unlock/retry ownership");
+    source.failLevel = -1; source.visits.clear();
+    GxTexUpdate(texture, 0, 0, 16, 8, 1);
+    Require(source.locks == 2 && source.unlocks == 2 && !texture->m_needsUpdate &&
+            source.visits == std::vector<uint32_t>{0,1,2,3,4}, "Mip upload retry did not refresh the chain");
+    source.visits.clear();
+    GxTexUpdate(texture, 2, 2, 4, 4, 1);
+    Require(source.locks == 3 && source.unlocks == 3 && source.visits == std::vector<uint32_t>{0,1,2,3,4},
+            "Partial mipped update did not refresh original whole-chain callbacks");
+    auto noMips = CGxTexFlags(GxTex_Linear);
+    GxTexSetFlags(texture, noMips);
+    Reject([&] { g_theGxDevicePtr->ITexMarkAsUpdated(texture); }, "Sampler change silently reused incompatible mip storage");
+    GxTexSetFlags(texture, flags); g_theGxDevicePtr->ITexMarkAsUpdated(texture);
+    flags.m_renderTarget = 1;
+    CGxTex* rejected = nullptr;
+    Reject([&] { GxTexCreate(GxTex_2d, 16, 8, 0, GxTex_Argb4444, GxTex_Argb4444, flags,
+                            &source, MipSource::Callback, "unsupported mip target", rejected); },
+           "Mipped legacy render target was admitted");
+    Require(!rejected, "Rejected mip target published an object");
+    std::cout << "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed\n";
+}
 struct Vertex {
     float x, y, z;
     uint8_t color[4];
@@ -183,6 +234,7 @@ void Cycle(GlContext &context, Assets &assets) {
     device.ShaderDestroy(cached[0]);
     GxRsSet(GxRs_VertexShader, vertex[0]);
     GxRsSet(GxRs_PixelShader, fragment);
+    CheckMipCallbacks();
     Source source;
     CGxTex *texture = nullptr;
     CGxTex *target = nullptr;

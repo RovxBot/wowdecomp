@@ -8,6 +8,7 @@
 #include <atomic>
 #include <algorithm>
 #include <cfenv>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -52,6 +53,18 @@ Bytes Raw() {
         pixels.insert(pixels.end(), bgra, bgra + 4);
     }
     return Blp(3, 8, 0, 8, 8, pixels);
+}
+Bytes Mipped() {
+    // Each authored level has a different color; minification must use it.
+    auto out = Blp(3, 8, 0, 8, 8, {});
+    const uint8_t bgra[][4]{{0,0,255,255}, {0,255,0,255}, {255,0,0,255}, {0,255,255,128}};
+    for (uint32_t level = 0; level < 4; ++level) {
+        const auto side = 8u >> level;
+        Word(out, 20 + level*4, uint32_t(out.size())); Word(out, 84 + level*4, side*side*4);
+        for (uint32_t i = 0; i < side*side; ++i) out.insert(out.end(), bgra[level], bgra[level] + 4);
+    }
+    out[11] = 1;
+    return out;
 }
 Bytes Palette() {
     Bytes pixels(96); std::fill(pixels.begin() + 64, pixels.end(), 0xFF);
@@ -103,7 +116,7 @@ struct Target {
     }
     ~Target() { device.DeviceSetRenderTarget(GxBuffers_Color, nullptr, 0); GxTexDestroy(value); }
 };
-std::vector<CImVector> Draw(LegacyDevice& device, CTexture* texture) {
+std::vector<CImVector> Draw(LegacyDevice& device, CTexture* texture, float repeat = 1) {
     GxRsSet(GxRs_Texture0, TextureGetGxTex(texture, 1, nullptr));
     GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_DepthTest, 0);
     GxRsSet(GxRs_Culling, 0); GxRsSet(GxRs_BlendingMode, GxBlend_Opaque);
@@ -112,8 +125,8 @@ std::vector<CImVector> Draw(LegacyDevice& device, CTexture* texture) {
                         matrix.c0,matrix.c1,matrix.c2,matrix.c3,matrix.d0,matrix.d1,matrix.d2,matrix.d3};
     GxShaderConstantsSet(GxSh_Vertex, 0, constants, 4);
     struct Vertex { float x,y,z; uint8_t color[4]; float u,v; };
-    const Vertex quad[] = {{-1,-1,0,{255,255,255,255},0,0}, {1,-1,0,{255,255,255,255},1,0},
-                           {1,1,0,{255,255,255,255},1,1}, {-1,1,0,{255,255,255,255},0,1}};
+    const Vertex quad[] = {{-1,-1,0,{255,255,255,255},0,0}, {1,-1,0,{255,255,255,255},repeat,0},
+                           {1,1,0,{255,255,255,255},repeat,repeat}, {-1,1,0,{255,255,255,255},0,repeat}};
     auto* buffer = GxBufStream(GxPoolTarget_Vertex, sizeof(Vertex), 4);
     std::memcpy(GxBufLock(buffer), quad, sizeof(quad)); GxBufUnlock(buffer, 0);
     GxPrimVertexPtr(buffer, GxVBF_PCT);
@@ -140,12 +153,16 @@ void WaitEntered(std::atomic<bool>& entered) {
 void Fixture(LegacyDevice& device, FileQueue& queue) {
     const std::map<std::string, Bytes> files{{"INTERFACE\\RAW.BLP", Raw()}, {"INTERFACE\\PALETTE.BLP", Palette()},
         {"INTERFACE\\DXT1.BLP", Dxt(0)}, {"INTERFACE\\DXT3.BLP", Dxt(1)}, {"INTERFACE\\DXT5.BLP", Dxt(7)},
+        {"INTERFACE\\MIPPED.BLP", Mipped()},
+        {"INTERFACE\\FIRST.BLP", Raw()}, {"INTERFACE\\UI.BLP", Raw()}, {"INTERFACE\\PROMOTED.BLP", Raw()},
         {"INTERFACE\\BROKEN.BLP", Bytes(148)}, {"INTERFACE\\SLOW.BLP", Raw()}};
     std::atomic<unsigned> reads{0};
     std::atomic<bool> entered{false}, release{false};
+    std::vector<std::string> readOrder;
     // Always unblock a worker during fixture unwinding, before service teardown.
     TextureService service(queue, [&](const std::string& name, const Cancellation& cancel) {
         ++reads;
+        readOrder.push_back(name);
         if (name == "INTERFACE\\SLOW.BLP") {
             entered = true;
             while (!release && !cancel.Requested()) std::this_thread::yield();
@@ -188,6 +205,26 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     Handle linear(create("Interface/raw", CGxTexFlags(GxTex_Linear)));
     Require(wrap.value != raw.value && linear.value != raw.value, "Sampler keys aliased file texture cache");
     Require(TextureGetGxTex(wrap.value, 1, nullptr) && TextureGetGxTex(linear.value, 1, nullptr), "Sampler variant load failed");
+    for (auto filter : {GxTex_NearestMipNearest, GxTex_LinearMipNearest, GxTex_LinearMipLinear}) {
+        Handle mipped(create("Interface/mipped", CGxTexFlags(filter, 1, 1), 0x11));
+        Require(TextureGetGxTex(mipped.value, 2, nullptr), "Local-only wait 2 did not finish authored mips");
+        Require(!TextureIsOpaque(mipped.value), "Lower-level alpha was discarded from opacity");
+        Pixel(Draw(device, mipped.value), 16,16,255,0,0,255);
+        Pixel(Draw(device, mipped.value, 8), 16,16,0,255,0,255);
+        Pixel(Draw(device, mipped.value, 16), 16,16,0,0,255,255);
+        Pixel(Draw(device, mipped.value, 32), 16,16,255,255,0,128);
+        if (filter == GxTex_LinearMipLinear) {
+            const auto p = Draw(device, mipped.value, 11.3137085f).at(16*32+16);
+            Require(p.r <= 2 && std::abs(int(p.g)-128) <= 3 && std::abs(int(p.b)-128) <= 3 && p.a == 255,
+                    "Trilinear sampling did not blend authored mip levels");
+        }
+    }
+    {
+        Handle incomplete(create("Interface/raw", CGxTexFlags(GxTex_LinearMipLinear)));
+        CStatus errors;
+        Require(!TextureGetGxTex(incomplete.value, 2, &errors) && !errors.IsEmpty(),
+                "Missing authored mip levels fabricated a complete image");
+    }
     for (auto name : {"Interface/broken", "Interface/missing", "Interface/percent%s%d%n"}) {
         Handle failed(create(name)); CStatus errors;
         Require(!TextureGetGxTex(failed.value, 1, &errors) && !errors.IsEmpty() && !TextureIsLoaded(failed.value),
@@ -200,9 +237,10 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         Require(errors.GetErrorStrLen(STATUS_INFO, " ") == entries, "Status self-copy appended diagnostics");
     }
     Reject([&] { create("../escape"); }); Reject([&] { create("Interface/raw.tga"); });
-    Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_LinearMipLinear)); });
+    Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_Anisotropic)); });
     Reject([&] { create("Interface/raw", CGxTexFlags(), 0x17); });
-    Reject([&] { TextureGetGxTex(raw.value, 2, nullptr); });
+    Reject([&] { TextureGetGxTex(raw.value, 3, nullptr); });
+    Reject([&] { TextureGetGxTex(raw.value, -1, nullptr); });
     {
         Handle slow(create("Interface/slow")); WaitEntered(entered);
         // Close during the actual worker read, then recreate the same cache key.
@@ -221,18 +259,30 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         }, [](const ReadResult&) {});
         struct Release { std::atomic<bool>& value; ~Release() { value = true; } } cleanup{blockerRelease};
         WaitEntered(blockerEntered);
+        Handle first(create("Interface/first"));
+        Handle promoted(create("Interface/promoted"));
+        Handle ui(create("Interface/ui", CGxTexFlags(GxTex_Nearest), 0x19));
+        Handle priorityDuplicate(create("Interface/promoted", CGxTexFlags(GxTex_Nearest), 0x11));
+        Require(priorityDuplicate.value == promoted.value, "Priority request split cache/handle identity");
         Handle queued(create("Interface/palette"));
         auto before = reads.load();
+        auto orderStart = readOrder.size(); // Worker remains inside the blocker.
+        Require(!TextureGetGxTex(first.value, 0, nullptr), "Query waited for a queued image");
         Require(service.Cancel(queued.value), "Queued image cancellation failed");
         blockerRelease = true;
         CStatus errors;
         Require(!TextureGetGxTex(queued.value, 1, &errors) && !errors.IsEmpty(), "Cancellation fabricated GPU image");
-        Require(queue.Wait(blocker, std::chrono::seconds(5)) && reads == before, "Cancelled queued read executed");
+        Require(queue.WaitAll(std::chrono::seconds(5)) && queue.Wait(blocker, std::chrono::seconds(5)) && reads == before+3,
+                "Queued priority/cancel reads did not finish once each");
+        Require(readOrder.size() == orderStart+3 && readOrder[orderStart] == "INTERFACE\\PROMOTED.BLP" &&
+                readOrder[orderStart+1] == "INTERFACE\\UI.BLP" && readOrder[orderStart+2] == "INTERFACE\\FIRST.BLP",
+                "Original UI priority or cached priority promotion was lost");
     }
     duplicate.Close(); raw.Close(); wrap.Close(); linear.Close();
     Require(queue.WaitAll(std::chrono::seconds(5)), "Image fixture callbacks did not drain");
     service.Poll(); service.RequireIdle();
-    std::cout << "image-cache-read-cancel-failure-pct-fbo=passed reads=" << reads << '\n';
+    std::cout << "image-cache-read-cancel-failure-pct-fbo=passed reads=" << reads << '\n'
+              << "image-authored-mips-filters-local-wait2-priority=passed\n";
 }
 void Snapshot(const std::string& name, const std::vector<CImVector>& pixels) {
     if (name.empty()) return;
@@ -297,6 +347,18 @@ int main(int argc, char** argv) {
                         Snapshot(cycle ? "" : snapshot, first);
                         std::cout << "original-services-blp-pct-shader-fbo=passed width=" << texture.value->m_gxWidth
                                   << " height=" << texture.value->m_gxHeight << '\n';
+                        Handle terrain(TextureCreate("Tileset\\Elwynn\\ElwynnDirtBase.blp",
+                            CGxTexFlags(GxTex_LinearMipLinear, 1, 1), &status, 0x19));
+                        Require(TextureGetGxTex(terrain.value, 2, &status) && status.IsEmpty(),
+                                "Original authored mip-chain image failed");
+                        auto minified = Draw(device, terrain.value, 8);
+                        Require(std::any_of(minified.begin(), minified.end(), [](const CImVector& p) { return p.r || p.g || p.b; }),
+                                "Original minified mip-chain image rendered black");
+                        auto repeated = Draw(device, terrain.value, 8);
+                        Require(!std::memcmp(minified.data(), repeated.data(), minified.size()*sizeof(CImVector)),
+                                "Original minified mip-chain pixels changed");
+                        std::cout << "original-services-authored-mips-trilinear-local-wait2=passed width="
+                                  << terrain.value->m_gxWidth << " height=" << terrain.value->m_gxHeight << '\n';
                     }
                 }
                 queue.Shutdown();
