@@ -400,6 +400,37 @@ and source inspection are different evidence levels.
   not original GlueXML/login, general Services image/async loading, full device/
   world coverage or observed gameplay. See [contracts](m3/LEGACY_GXU.md).
 
+## NP-015 — Product-modified Lua runtime in the native ABI
+
+- Status: qualified at `33ef88fdd742b6b2a4484f3c86c013642f977837` in
+  [PR #29](https://github.com/RovxBot/wowdecomp/pull/29), merged as
+  `f1726d9628bd15d09f8acee4442fff5976dac81f`.
+- Source: product 12340 after qualified Gxu implementation `ade47622` and its
+  closeout `a620c7b`, now merged in PR #28 as
+  `d07e289755d303accd0f97d7d49bcfe21b84d538`. Explicitly select original
+  `lua-5.1/src`, the product Storm pool and Base UTF-8 helpers. No donor import,
+  dependency update or new original-address/VERIFY claim.
+- Benefit/adaptation: preserve the product three-argument state creation,
+  process-global taint, profile VM and addon memory/time APIs required by
+  `FrameScript_Initialize`. Use signed 64-bit clocks, main executable-image
+  callback validation on ELF/Mach-O/PE, native address membership and retained
+  allocation ownership. Native number conversion, 32-bit parsing/formatting and
+  x86 shift behavior avoid LP64/ARM64 drift and undefined C++ operations. Native
+  integer-remainder overflow fails visibly. Original Windows bodies remain.
+- Assets/defaults: asset-free authored fixtures; no host Lua or optional effect.
+  Keep MPQ/TOC signatures, protocol and addon APIs. This does not select
+  FrameScript/XML, load GlueXML/login, authenticate or enter the world.
+- Validation: all ten implementation PR workflows passed; four native
+  configurations passed six CTest checks and six Lua cycles each, including
+  actual ARM64 and strict Linux ASan/UBSan/leak checks. Four archive digests,
+  16 native executable hashes/types and original licenses were verified; the
+  separate full Windows compilation archive and three PE x64 hashes were also
+  verified. Downloaded Linux release/strict sanitizer execution passed six cycles
+  each with expected allocation-overflow diagnostics and no sanitizer finding.
+  Link, bytecode-fixture and inherited UB failures remain recorded. Local Python:
+  38 passed, one unavailable-CMake skip. All compilation ran in Actions. See
+  [contracts](m3/LUA.md) and [evidence](m3/lua-validation.json).
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

@@ -50,7 +50,8 @@ separate evidence. Font styling is not full UI/world/material coverage.
 
 All client/dependency compilation runs in M3 Actions. Implementation
 `ade47622c9023fee38fce1b6346be2f8be51fce4` is qualified in
-[PR #28](https://github.com/RovxBot/wowdecomp/pull/28). The
+[PR #28](https://github.com/RovxBot/wowdecomp/pull/28), merged as
+`d07e289755d303accd0f97d7d49bcfe21b84d538`. The
 [durable record](gxu-validation.json) retains nine passing implementation PR
 workflows, 22 CTest checks per Linux GL configuration, three verified archives
 and 33 packaged binary hashes/types. Full Windows x64 compilation used separate

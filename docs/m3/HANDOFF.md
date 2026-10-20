@@ -272,7 +272,8 @@ and `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`. Their historical implementation
 and build identities above are unchanged. The following
 [original Gxu integration](LEGACY_GXU.md) in
 [PR #28](https://github.com/RovxBot/wowdecomp/pull/28) is qualified at
-`ade47622c9023fee38fce1b6346be2f8be51fce4`. Its [record](gxu-validation.json)
+`ade47622c9023fee38fce1b6346be2f8be51fce4`, merged as
+`d07e289755d303accd0f97d7d49bcfe21b84d538`. Its [record](gxu-validation.json)
 retains all nine passing implementation workflows, 22 CTest checks per Linux GL
 configuration, full Windows x64 compilation at matching-tree PR merge checkout
 `ca7e229e536c5434c3e9c6d26f6c8bf03494eb6a`, three verified archives and all
@@ -293,11 +294,25 @@ original OpenGL pixel/texel centers and scalar epsilon, main-thread mutation,
 retained face bytes and consumers-before-font/device/context teardown. No new
 physical-input, macOS graphics, Windows runtime or server acceptance is implied.
 
-Next dependencies, in order:
+The [product Lua runtime prerequisite](LUA.md) in
+[PR #29](https://github.com/RovxBot/wowdecomp/pull/29) is qualified at
+`33ef88fdd742b6b2a4484f3c86c013642f977837`, merged as
+`f1726d9628bd15d09f8acee4442fff5976dac81f`. Its four native configurations are
+Linux release/strict ASan/UBSan/leak, actual ARM64 macOS and Windows x64.
+Each passed six CTest checks and three Lua cycles with profiling disabled and
+three enabled. The original pool, modified VM, five libraries, taint/accounting
+and profiling APIs are selected; executable callbacks remain restricted to the
+main image. LP64 parsing/formatting and x86 bit shifts retain Windows widths.
+Original source-only loading remains enforced. Full FrameScript/Frame/XML,
+file/event/secure-handler ownership and original login rendering remain open.
+The [record](lua-validation.json) retains all ten passing implementation PR
+workflows, five verified archives/19 binary hashes and the separate matching-tree
+Windows checkout `3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3`. Downloaded Linux
+release/strict sanitizer executions passed six cycles each, with expected
+allocation-overflow diagnostics and no sanitizer finding. No new GPU, physical
+input, Windows runtime, macOS desktop or server acceptance is implied.
 
-The [product Lua runtime prerequisite](LUA.md) now has a separate native target
-and authored semantic fixtures under development. Hosted qualification is pending;
-this does not select FrameScript/Frame/XML or establish original login rendering.
+Next dependencies, in order:
 
 1. Connect original Frame font/string consumers and file-backed image services
    to the qualified Gxu/Services handle boundary. Extend remaining device/state/
@@ -305,7 +320,7 @@ this does not select FrameScript/Frame/XML or establish original login rendering
    delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
-2. Bring up the product's modified Lua, XML/Frame factories, GlueXML/FrameXML
+2. Connect the product Lua runtime to original FrameScript, XML/Frame factories, GlueXML/FrameXML
    and separate interface/addon signatures, following the [caller audit](LEGACY_GXU.md#next-original-login-consumers).
    Render the actual original login UI; extend unchanged 12340 `0x10003` shader
    and full model/material coverage as required by its callers.
