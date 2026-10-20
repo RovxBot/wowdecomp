@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-19. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-20. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -382,8 +382,17 @@ The [product-modified Lua runtime](docs/m3/LUA.md) in
 [PR #29](https://github.com/RovxBot/wowdecomp/pull/29) provides native pool-backed
 states, the original five libraries, taint and profiling prerequisites. The
 Linux release/strict sanitizer, actual ARM64 macOS and Windows native fixtures
-pass six CTest checks each. Original FrameScript ownership, files/events/secure
-handlers, Frame/XML and login rendering remain separate integration work.
+pass six CTest checks each. At that prerequisite checkpoint, original FrameScript
+ownership, files/events/secure handlers, Frame/XML and login rendering remained
+separate integration work.
+
+The [original FrameScript integration](docs/m3/FRAMESCRIPT.md) in
+[PR #31](https://github.com/RovxBot/wowdecomp/pull/31) now qualifies owner-thread
+execution/events/secure handlers, retained source reads and saved-variable
+serialization. Four native configurations pass 12 CTest checks each; downloaded
+Linux release/strict sanitizer binaries execute unchanged original GlobalStrings
+in six cycles each. This source check does not qualify interface TOC signatures,
+Frame/XML factories, file-backed image services or original login rendering.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

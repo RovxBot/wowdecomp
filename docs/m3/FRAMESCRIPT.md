@@ -58,10 +58,47 @@ An optional `--original-data DATA SETTINGS CACHE` mode authenticates the origina
 signaturefile and executes unchanged `Interface\FrameXML\GlobalStrings.lua`
 through this provider, checking localized token lookup. This is a standalone
 source check; it does not traverse the interface TOC or render a frame. Hosted
-results and exact identities will be recorded after qualification.
+results and exact identities are recorded below.
 
 Next are original Frame/XML factories and file-backed image/async Services,
 interface signatures, GlueXML startup and actual original login rendering.
 Networking/authentication, character selection and observed GrimGuzzler world
 entry follow. M3 remains open. The user will sign in interactively when ready;
 signatures and the external server revision discrepancy remain unchanged.
+
+## Qualification
+
+The original FrameScript integration in
+[PR #31](https://github.com/RovxBot/wowdecomp/pull/31) is qualified at
+`d49efe426d6fc590dc570b05d2bddb3bf4a36b38`, merged as `872ca9d962e73095a04ec7e5d816f27c59df35cb`.
+The [record](framescript-validation.json) retains all eleven passing implementation
+PR workflows, 12 CTest checks per native configuration, four verified native
+archives/40 executable hashes and the separate full Windows compilation archive
+and three PE x64 identities. The matching-tree hosted checkout is
+`95ef62bd82e4accbd1655f6e89fe50933e706369`. Original execution, event listeners,
+compatibility helpers, secure calls/hooks, profiling, saved-variable closure taint
+and serializer now consume the qualified Lua runtime under an owner-thread VM
+lifecycle. Nested execution and live FrameScript objects prevent VM reset.
+
+Downloaded release and strict ASan/UBSan/leak binaries each passed six authored
+cycles and six unchanged original `GlobalStrings.lua` cycles with empty stderr
+and zero workers. Original-key signaturefile authentication and registered-MD5
+policy remain enabled; this Lua member has no registered MD5 entry. TOC/interface
+signature traversal and actual Frame/XML/GlueXML/login rendering remain open.
+The initial fixture's mistaken table-value taint expectation is retained as failed
+evidence; the original contract marks newly created closures instead. No new GPU,
+physical-input, Windows runtime, macOS desktop or server acceptance is implied.
+
+Run the downloaded, hash-verified Linux binary without local compilation:
+
+```sh
+NativeFrameScriptCheck
+NativeFrameScriptCheck --original-data /mnt/games/3.3.5aClean/Data \
+  /tmp/wowdecomp-framescript-settings /tmp/wowdecomp-framescript-cache
+```
+
+Use separate user/output roots for the sanitizer artifact and retain
+`ASAN_OPTIONS=detect_leaks=1:halt_on_error=1` and
+`UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`. The optional original-data
+mode performs six cycles, three each with profiling off/on; its data and settings
+roots must be separate. Never upload original source/data to hosted CI.
