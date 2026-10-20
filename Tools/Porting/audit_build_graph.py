@@ -196,7 +196,8 @@ def audit(targets, mode, target_os, cpu):
                 ['lapi', 'lauxlib', 'lbaselib', 'lbitlib', 'lcode', 'ldebug', 'ldo', 'ldump',
                  'lfunc', 'lgc', 'llex', 'lmathlib', 'lmem', 'lobject', 'lopcodes', 'lparser',
                  'lstate', 'lstring', 'lstrlib', 'ltable', 'ltablib', 'ltm', 'lundump', 'lvm', 'lzio']] +
-                ['Engine/Source/lua-5.1/src/lmemPool.cpp', 'Engine/Source/Os/Portable/FunctionPointer.cpp']
+                ['Engine/Source/lua-5.1/src/lmemPool.cpp', 'Engine/Source/Base/ConvertUTF.cpp',
+                 'Engine/Source/Os/Portable/FunctionPointer.cpp']
                 if target['name'] == 'WowNativeLua' else ['Tools/NativeLua/main.cpp'])
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or

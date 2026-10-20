@@ -10,7 +10,7 @@ foreach(name IN LISTS lua_sources)
 endforeach()
 set_source_files_properties(${lua_paths} PROPERTIES LANGUAGE CXX)
 add_library(WowNativeLua STATIC ${lua_paths}
-    ../lua-5.1/src/lmemPool.cpp ../Os/Portable/FunctionPointer.cpp)
+    ../lua-5.1/src/lmemPool.cpp ../Base/ConvertUTF.cpp ../Os/Portable/FunctionPointer.cpp)
 target_link_libraries(WowNativeLua PUBLIC WowCoreServices PRIVATE ${CMAKE_DL_LIBS})
 if(WOWDECOMP_OS STREQUAL "WINDOWS")
     target_compile_definitions(WowNativeLua PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)

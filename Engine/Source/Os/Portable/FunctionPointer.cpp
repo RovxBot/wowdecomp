@@ -1,6 +1,7 @@
 #include "Engine/Source/Os/System.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include <cstdint>
+#include <cstdio>
 #include <vector>
 #if defined(WOWDECOMP_OS_LINUX)
 #include <link.h>
@@ -63,5 +64,7 @@ void OsValidateFunctionPointer(const void* pointer) {
     const auto address = reinterpret_cast<uintptr_t>(pointer);
     for (const auto& range : TextRanges())
         if (address >= range.begin && address - range.begin < range.size) return;
-    SErrDisplayAppFatal("Invalid function pointer: %p", pointer);
+    char message[96];
+    std::snprintf(message, sizeof(message), "Invalid function pointer: %p", pointer);
+    SErrDisplayAppFatalMessage(message, __FILE__, __LINE__);
 }

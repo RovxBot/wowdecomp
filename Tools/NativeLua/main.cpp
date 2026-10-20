@@ -96,6 +96,7 @@ int main(int argc, char** argv) {
             local values={3,1,2}; table.sort(values)
             assert(table.concat(values,',')=='1,2,3')
             assert(string.gsub('abc123','(%d+)','[%1]')=='abc[123]')
+            assert(string.lower('ABC')=='abc' and string.upper('abc')=='ABC')
             assert(math.floor(3.9)==3 and bit.band(7,3)==3)
             assert(bit.bnot(0)==4294967295 and bit.lshift(1,30)==1073741824)
             assert(bit.lshift(1,31)==2147483648 and bit.lshift(1,32)==1)
