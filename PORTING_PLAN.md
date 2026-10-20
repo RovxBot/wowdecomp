@@ -355,7 +355,7 @@ legacy device/Gxu dispatch, original login, transport and the observed world-ses
 exit criterion below remain open.
 
 The [bounded legacy Gx UI dispatch adapter](docs/m3/LEGACY_DEVICE.md) in
-[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on PR #26, connects
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), originally stacked on PR #26, connects
 common device/state/cache and actual texture/buffer/shader objects to the native
 owners. It is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520` with
 [nine passing implementation workflows](docs/m3/legacy-device-validation.json),
@@ -363,6 +363,20 @@ owners. It is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520` with
 exact-source original-data GPU release/strict sanitizer checks. Original Gxu
 handle/layout/cache, remaining full-device contracts and the login/network/world
 gates remain open.
+
+PRs #26 and #27 are merged as `c3ef9fd989d15beb4af2695ea0cc08865e23bd19`
+and `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`. The subsequent
+[original Gxu package](docs/m3/LEGACY_GXU.md) in
+[PR #28](https://github.com/RovxBot/wowdecomp/pull/28) is qualified at
+`ade47622c9023fee38fce1b6346be2f8be51fce4`. Original HFACE, Services text
+handles, layout/markup, glyph/kerning/row/string caches and batched rendering now
+use the concrete native adapter. Its [record](docs/m3/gxu-validation.json) retains
+nine passing implementation workflows, 22 CTest checks per Linux GL configuration,
+separate full Windows compilation and exact-source RX 7900 XTX release/strict
+sanitizer cycles. Original-font output and authored eight-page eviction pressure
+are separate evidence. Frame/Lua/XML/GlueXML, general image/async services,
+transport/authentication, full world rendering and observed gameplay remain open.
+M3 is not complete.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

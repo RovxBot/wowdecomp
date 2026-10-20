@@ -252,7 +252,7 @@ remain separate from the historical font and packet evidence above. This
 prerequisite does not connect legacy device dispatch or render the original login UI.
 
 The [legacy UI dispatch adapter](LEGACY_DEVICE.md) in
-[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), stacked on still-open PR #26,
+[PR #27](https://github.com/RovxBot/wowdecomp/pull/27), originally stacked on PR #26,
 now connects actual common Gx state/cache/resource objects to the native owners.
 It is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`. The
 [record](legacy-device-validation.json) retains nine passing implementation PR
@@ -267,16 +267,44 @@ export original Gxu HFACE/layout/cache or render the original login UI. Its
 single-mip/format/state limits remain explicit instead of advertising the full
 underlying native resource surface as a completed legacy adapter.
 
+PRs #26 and #27 are merged as `c3ef9fd989d15beb4af2695ea0cc08865e23bd19`
+and `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`. Their historical implementation
+and build identities above are unchanged. The following
+[original Gxu integration](LEGACY_GXU.md) in
+[PR #28](https://github.com/RovxBot/wowdecomp/pull/28) is qualified at
+`ade47622c9023fee38fce1b6346be2f8be51fce4`. Its [record](gxu-validation.json)
+retains all nine passing implementation workflows, 22 CTest checks per Linux GL
+configuration, full Windows x64 compilation at matching-tree PR merge checkout
+`ca7e229e536c5434c3e9c6d26f6c8bf03494eb6a`, three verified archives and all
+33 packaged binary hashes/types. Original HFACE, CGxFont/CGxString,
+HTEXTFONT/HTEXTBLOCK, layout/markup/kerning, glyph/row/string caches and batched
+rendering now consume actual native-backed legacy objects. File-backed Services
+textures/async callers and original Frame/Lua/GlueXML are not included.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict
+ASan/UBSan/leak checks each passed three original-data Gxu/Services cycles and
+three authored cache-pressure cycles, with empty stderr and zero workers.
+The inspected 640x480 capture shows original red/white Friz Quadrata glyphs.
+Friz has no glyphs in the tested stress range, so authored 2,048-glyph LRU
+eviction/regeneration is separate from original-data rendering. Prior legacy
+Gx, independent font preview and all four resource regressions passed too.
+Initial link, drawable and pixel-center failures remain recorded. Preserve
+original OpenGL pixel/texel centers and scalar epsilon, main-thread mutation,
+retained face bytes and consumers-before-font/device/context teardown. No new
+physical-input, macOS graphics, Windows runtime or server acceptance is implied.
+
 Next dependencies, in order:
 
-1. Connect original Gxu HFACE/font/string/atlas cache, texture-service handles
-   and batched rendering to the qualified concrete Gx UI adapter and its resource
-   objects. Extend remaining device/state/mip/texture contracts as their callers
-   require them; audit texture/texgen delivery and legacy async callers.
+1. Connect original Frame font/string consumers and file-backed image services
+   to the qualified Gxu/Services handle boundary. Extend remaining device/state/
+   mip/texture contracts as their callers require them; audit texture/texgen
+   delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
-2. Extend unchanged 12340 `0x10003` shader coverage beyond UI; bring up original
-   fonts, Lua, GlueXML/FrameXML and addon verification. Render the actual original login UI.
+2. Bring up the product's modified Lua, XML/Frame factories, GlueXML/FrameXML
+   and separate interface/addon signatures, following the [caller audit](LEGACY_GXU.md#next-original-login-consumers).
+   Render the actual original login UI; extend unchanged 12340 `0x10003` shader
+   and full model/material coverage as required by its callers.
    The Windows OpenGL warped-scene failure remains a known comparison failure;
    obtain fixed D3D9 and OpenGL captures before claiming visual parity.
 3. Replace IOCP beneath the original network interfaces, with framing, partial

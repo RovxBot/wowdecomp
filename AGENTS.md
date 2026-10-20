@@ -223,7 +223,8 @@ it does not turn a documentation request into authorization to start the whole p
   global legacy device/async integration, actual login, networking and gameplay
   remain open. No new operator acceptance/server session; M3 is incomplete.
 - M3 Storm string/cache [PR #26](https://github.com/RovxBot/wowdecomp/pull/26)
-  is qualified at `2d946465e52d7ccfb43722d844d76a4fa4cd038b`. Read
+  is qualified at `2d946465e52d7ccfb43722d844d76a4fa4cd038b`, merged as
+  `c3ef9fd989d15beb4af2695ea0cc08865e23bd19`. Read
   [string contracts](docs/m3/LEGACY_STRINGS.md) and
   [validation](docs/m3/string-validation.json). Nine implementation PR workflows
   passed, including full Windows x64 compilation; actual ARM64 macOS, Windows and
@@ -235,7 +236,8 @@ it does not turn a documentation request into authorization to start the whole p
   formats remain visibly unavailable. Actual legacy device/Gxu/login, transport
   and observed gameplay remain open; M3 is incomplete.
 - M3 legacy Gx UI dispatch [PR #27](https://github.com/RovxBot/wowdecomp/pull/27)
-  is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`, stacked on PR #26.
+  is qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`, originally stacked
+  on PR #26 and merged as `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`.
   Read [device contracts](docs/m3/LEGACY_DEVICE.md) and
   [validation](docs/m3/legacy-device-validation.json). Nine implementation PR
   workflows passed, with 21 CTest checks per Linux GL configuration and full
@@ -254,6 +256,28 @@ it does not turn a documentation request into authorization to start the whole p
   full world-device coverage. Original Gxu/login, transport/authentication and
   observed gameplay remain open. No new physical-input or server acceptance;
   preserve the external server revision discrepancy. M3 is incomplete.
+- M3 original Gxu [PR #28](https://github.com/RovxBot/wowdecomp/pull/28) is
+  qualified at `ade47622c9023fee38fce1b6346be2f8be51fce4`, following merged
+  PRs #26/#27. Read [Gxu contracts and next callers](docs/m3/LEGACY_GXU.md) and
+  [validation](docs/m3/gxu-validation.json). Nine implementation PR workflows
+  passed, with 22 CTest checks per Linux GL configuration and full Windows x64
+  compilation at separate matching-tree checkout
+  `ca7e229e536c5434c3e9c6d26f6c8bf03494eb6a`. Three archive digests and all 33
+  packaged binary hashes/types were verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak execution passed three
+  original-data Gxu/Services text-handle cycles and three authored cache-pressure
+  cycles each, with empty stderr and zero workers. Prior Gx/preview/resource
+  regressions passed. Original HFACE, HTEXTFONT/HTEXTBLOCK, layout/markup/kerning,
+  glyph/row/string caches and batched consumers now use the native Gx adapter.
+  Preserve font bytes through FT_Done_Face, owner-thread handle/cache mutation,
+  fonts until text-block destruction, original OpenGL pixel/texel centers and
+  original rounding epsilon. Close consumers before the font owner/device/context.
+  The original Friz face has no glyphs in the tested stress range; eight-page
+  eviction/regeneration is separate authored evidence. This does not qualify all
+  styles/languages/stereo/world-space rendering, general Services image/async
+  loading, original Frame/Lua/GlueXML/login or gameplay. No new physical-input,
+  Windows runtime or macOS graphics acceptance; keep signatures and server
+  revision discrepancies intact. The user will sign in interactively when ready.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

@@ -335,7 +335,9 @@ and source inspection are different evidence levels.
 ## NP-013 — Native legacy Gx UI dispatch
 
 - Status: implementation in [PR #27](https://github.com/RovxBot/wowdecomp/pull/27),
-  stacked on still-open PR #26; qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`.
+  originally stacked on PR #26; qualified at `6ef31f4a94cef0d1b1947f46e4e35d716568b520`.
+  PR #26 merged as `c3ef9fd989d15beb4af2695ea0cc08865e23bd19`; PR #27 merged
+  as `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`.
 - Source: product 12340 Storm-string handoff
   `7f4ca29b95379505f07ae74f4834ff5f99ec0693`. Select the existing `Gx.cpp`,
   `CGxDevice`, shader, texture/flags, pool/buffer, format/gamma/light and required
@@ -363,6 +365,40 @@ and source inspection are different evidence levels.
   [the record](m3/legacy-device-validation.json). Local Python: 34 passed, one
   unavailable CMake check skipped. All compilation ran in Actions. Original Gxu
   layout/cache, login, transport and observed gameplay remain open.
+
+## NP-014 — Original Gxu handles, layout and caches in the native ABI
+
+- Status: qualified at `ade47622c9023fee38fce1b6346be2f8be51fce4` in
+  [PR #28](https://github.com/RovxBot/wowdecomp/pull/28).
+- Source: product 12340 main `6dae38e729a44c8df2424a0f27d6b892fcac7b0f`,
+  following merged PRs #26/#27. Select original `GxuFontFace/Font/Main/String/Util`,
+  `GxuFontTextureCache`, `GxuFontMiscClasses`, `IGxuFontGlyph`, Gxu transforms,
+  Services `TextBlock` and required scalar Base/Tempest dependencies.
+  No donor import, new original-address claim or binary revalidation. Existing
+  annotations describe retained Windows bodies; native branches are adaptations.
+- Benefit/adaptation: actual HFACE and HTEXTFONT/HTEXTBLOCK ownership, original
+  layout/markup/wrapping, glyph/kerning/LRU/atlas and streamed batch consumers use
+  the concrete native Gx device. Completed font reads remain owned through face
+  teardown; native raster bounds/signed pitch and callback CTexture ownership
+  preserve live source bytes. Native handles and caches reject foreign-thread
+  mutations before changing refcounts or state. Initial drawable binding and
+  original OpenGL `CGxDeviceOpenGl::ISetCaps` pixel/texel-center flags complete
+  the direct-window font submission boundary. Three original pixel conversions
+  retain their epsilon while rejecting unsafe integer conversions.
+- Assets/defaults: unchanged original font and `0x10003` UI shader members,
+  original-key authentication and selective registered MD5s. Separate authored
+  geometric/Unicode-alias cache fixtures are CC0; they are not application assets.
+  No enhancement, server request, policy change or credential handling.
+- Validation: nine implementation PR workflows passed, with 22 CTest checks per
+  Linux GL configuration and full Windows x64 compilation. Three archive digests
+  and all 33 packaged binary hashes/types were verified. Exact-source RX 7900 XTX
+  release and strict ASan/UBSan/leak runs passed three original-data Gxu/Services
+  cycles and three authored eviction/regeneration cycles each. Prior Gx/preview/
+  resource regressions passed. Local Python: 36 passed, one unavailable CMake
+  check skipped. Scalar link, initial drawable and atlas sampling failures remain
+  failures in the [record](m3/gxu-validation.json); all detectors stayed enabled. This is
+  not original GlueXML/login, general Services image/async loading, full device/
+  world coverage or observed gameplay. See [contracts](m3/LEGACY_GXU.md).
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 
