@@ -62,6 +62,10 @@ struct Traversal {
     }
     bool File(std::string name, const std::string& base) {
         if (name.empty() || name.front() == '\\' || name.front() == '/' || name.find(':') != name.npos) return false;
+        // Original ProcessFileForMakeSign detects the suffix on the caller's
+        // name, while trimming spaces only on the path used for the read.
+        size_t dot = name.find_last_of('.');
+        std::string extension = dot == name.npos ? "" : Upper(name.substr(dot));
         while (!name.empty() && name.back() == ' ') name.pop_back();
         if (name.empty() || active.size() >= 64 || stats.files >= 16384) return false;
         Bytes bytes; std::string path;
@@ -72,8 +76,6 @@ struct Traversal {
         if (!Feed(bytes)) return false;
         size_t slash = path.find_last_of('\\');
         std::string directory = slash == path.npos ? "" : path.substr(0, slash+1);
-        size_t dot = name.find_last_of('.');
-        std::string extension = dot == name.npos ? "" : Upper(name.substr(dot));
         if (extension != ".TOC" && extension != ".XML") return true;
         // Original text readers are NUL terminated. Embedded NUL is rejected
         // instead of silently leaving bytes outside the manifest traversal.

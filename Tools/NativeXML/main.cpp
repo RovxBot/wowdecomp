@@ -143,7 +143,8 @@ static void Signatures(const std::filesystem::path& directory) {
 static void Original(const char* data, const char* settings, const char* cache) {
     for (int cycle=0;cycle<3;++cycle) {
         {
-            Blizzard::File::Native::Paths paths(data,settings,cache);
+            Blizzard::File::Native::Paths paths;
+            Check(Blizzard::File::Native::ConfigurePaths(data,settings,cache,paths),"separate data/settings/cache roots");
             std::shared_ptr<Blizzard::Mopaq::Native::Packages> packages;
             FileQueue queue;
             auto open=queue.Submit([&](const Cancellation&) {
