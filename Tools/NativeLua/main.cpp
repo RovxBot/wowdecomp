@@ -159,11 +159,12 @@ int main(int argc, char** argv) {
         std::vector<char> bytecode;
         Require(lua_dump(state, Dump, &bytecode) == 0 && !bytecode.empty(), "native bytecode dump");
         lua_pop(state, 1);
-        Require(luaL_loadbuffer(state, bytecode.data(), bytecode.size(), "@native-roundtrip") == 0, "native bytecode reload");
-        lua_pushnumber(state, 10);
-        Require(lua_pcall(state, 1, 1, 0) == 0 && lua_tonumber(state, -1) == 55, "native bytecode execution");
+        // The product deliberately routes every load through luaY_parser, even
+        // though it exports lua_dump. Preserve source-only loading on native.
+        Require(luaL_loadbuffer(state, bytecode.data(), bytecode.size(), "@native-bytecode") == LUA_ERRSYNTAX,
+                "product source-only parser rejects emitted bytecode");
         lua_pop(state, 1);
-        bytecode[6] ^= 1; // foreign endianness in the Lua 5.1 header
+        bytecode[6] ^= 1; // Foreign bytecode is rejected by the same source parser.
         Require(luaL_loadbuffer(state, bytecode.data(), bytecode.size(), "@foreign-header") == LUA_ERRSYNTAX, "foreign bytecode rejection");
         lua_pop(state, 1);
         Require(luaL_loadstring(state, "function broken(") == LUA_ERRSYNTAX, "syntax error"); lua_pop(state, 1);
