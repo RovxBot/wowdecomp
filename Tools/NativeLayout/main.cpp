@@ -16,7 +16,10 @@
 #include <thread>
 using namespace Frame::Native;
 static void Check(bool value, const char* message) { if (!value) throw std::runtime_error(message); }
-static void Near(float actual, float expected) { Check(std::fabs(actual-expected)<0.00001f,"layout coordinate mismatch"); }
+static void Near(float actual, float expected) {
+    if (!(std::fabs(actual-expected)<0.00001f))
+        throw std::runtime_error("layout coordinate mismatch: actual="+std::to_string(actual)+" expected="+std::to_string(expected));
+}
 template<class F> static void Reject(F f) {
     bool rejected=false;
     try { f(); } catch (const std::logic_error&) { rejected=true; }
@@ -38,7 +41,9 @@ struct Layout : CLayoutFrame {
 };
 // A layout root owns its screen rectangle; no synthetic replacement solver.
 static void Root(Layout& root, float w=0.8f, float h=0.6f) {
-    root.m_rect={0,0,w,h};root.m_layoutFlags|=0x100;
+    root.m_rect.minX=0;root.m_rect.minY=0;
+    root.m_rect.maxX=w;root.m_rect.maxY=h;
+    root.m_layoutFlags|=0x100;
 }
 static void Rect(CLayoutFrame& frame,float l,float b,float r,float t) {
     CRect rect;
