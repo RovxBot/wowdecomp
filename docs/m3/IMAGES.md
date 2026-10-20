@@ -14,6 +14,10 @@ cache/handle/GPU changes occur during owner-thread completion. `Poll` and wait
 operations pump the shared file queue, including other consumers' callbacks.
 No ticket is stored in `CTexture::m_asyncObject` or presented as `CAsyncObject`.
 
+The initial qualified surface below describes PR #35. The subsequent
+[authored mip/readiness extension](IMAGE_MIPS.md) adds explicit mip filters,
+local wait mode 2 and UI priority; its qualification is recorded separately.
+
 The initial surface is deliberately bounded:
 
 - BLP2 version 1 palette, raw BGRA and DXT1/3/5 sources use the existing bounded

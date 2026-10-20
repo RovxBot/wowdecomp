@@ -34,6 +34,12 @@ GlTargetFormat Format(uint32_t value) {
         throw std::invalid_argument("Unavailable native legacy texture format");
     }
 }
+uint32_t TextureLevels(uint32_t width, uint32_t height, uint32_t filter) {
+    uint32_t levels = 1;
+    if (filter >= GxTex_NearestMipNearest)
+        for (auto size = std::max(width, height); size > 1; size >>= 1) ++levels;
+    return levels;
+}
 } // namespace
 struct LegacyDevice::State {
     GlContext &context;
@@ -233,20 +239,23 @@ int32_t LegacyDevice::TexCreate(EGxTexTarget target, uint32_t width, uint32_t he
                                 GxTexUserFunc callback, const char *name, CGxTex *&out) {
     Check();
     out = nullptr;
-    // Bounded first adapter: single-mip 2D UI/cache textures, no base-mip aliasing,
-    // automatic mips, compressed conversion or hidden rectangle reinterpretation.
+    // Original 2D callback mip order, without base-mip aliasing, automatic mips,
+    // compressed conversion or hidden rectangle reinterpretation.
     if (target != GxTex_2d || depth || !width || !height || width > m_caps.m_texMaxSize[0] ||
-        height > m_caps.m_texMaxSize[0] || flags.m_filter > GxTex_Linear || flags.m_forceMipTracking ||
+        height > m_caps.m_texMaxSize[0] || flags.m_filter > GxTex_LinearMipLinear || flags.m_forceMipTracking ||
         flags.m_generateMipMaps || flags.m_maxAnisotropy != 1 || flags.m_bit8 || flags.m_bit14 ||
         flags.m_bit15 || flags.m_unk16 || flags.m_bit31 || !callback)
         throw std::invalid_argument("Unavailable legacy native texture contract");
+    if (flags.m_renderTarget && flags.m_filter > GxTex_Linear)
+        throw std::invalid_argument("Native legacy render targets require a nonmip filter");
     if (uint32_t(dataFormat) > GxTex_Rgb565)
         throw std::invalid_argument("Native legacy compressed callback path unavailable");
     Format(dataFormat);
     if (format != dataFormat)
         throw std::invalid_argument("Native legacy texture conversion unavailable");
     auto resource = state->targets.Create({uint32_t(target), width, height, Format(format),
-                                           bool(flags.m_renderTarget), 1, bool(flags.m_renderTarget)});
+                                           bool(flags.m_renderTarget), TextureLevels(width, height, flags.m_filter),
+                                           bool(flags.m_renderTarget)});
     auto tex = std::make_unique<CGxTex>(target, width, height, depth, format, dataFormat, flags, user,
                                         callback, name);
     auto inserted = state->textures.emplace(tex.get(), State::Texture{std::move(resource)});
@@ -267,10 +276,12 @@ void LegacyDevice::ITexMarkAsUpdated(CGxTex *tex) {
     if (item.callback)
         throw std::logic_error("Reentrant legacy texture callback");
     const auto &flags = tex->m_flags;
-    if (flags.m_filter > GxTex_Linear || flags.m_maxAnisotropy != 1 || flags.m_generateMipMaps ||
+    if (flags.m_filter > GxTex_LinearMipLinear || flags.m_maxAnisotropy != 1 || flags.m_generateMipMaps ||
         flags.m_forceMipTracking || flags.m_bit8 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 ||
         flags.m_bit31 || bool(flags.m_renderTarget) != item.resource.Spec().renderable)
         throw std::invalid_argument("Unavailable legacy native sampler flags");
+    if (TextureLevels(tex->m_width, tex->m_height, flags.m_filter) != item.resource.Spec().mipLevels)
+        throw std::invalid_argument("Native legacy sampler change requires a different mip allocation");
     state->targets.Sampling(item.resource,
                             {tex->m_flags.m_filter, tex->m_flags.m_wrapU, tex->m_flags.m_wrapV, 1});
     if (tex->m_needsUpdate) {
@@ -289,22 +300,30 @@ void LegacyDevice::ITexMarkAsUpdated(CGxTex *tex) {
         try {
             callback(GxTex_Lock, tex->m_width, tex->m_height, 0, 0, user, stride, bytes);
             locked = true;
-            callback(GxTex_Latch, tex->m_width, tex->m_height, 0, 0, user, stride, bytes);
-            if (!tex->m_flags.m_renderTarget) {
-                const uint32_t pixelBytes = tex->m_dataFormat <= GxTex_Argb8888 ? 4 : 2;
-                if (!bytes || tex->m_dataFormat > GxTex_Rgb565 ||
-                    uint64_t(stride) < uint64_t(tex->m_width) * pixelBytes)
-                    throw std::invalid_argument("Unavailable/invalid legacy texture source stride");
-                // Legacy callbacks supply a whole-image origin; native Upload accepts
-                // the first texel of the dirty region. Borrowed bytes expire at Unlock.
-                size_t offset = size_t(rect.minY) * stride + size_t(rect.minX) * pixelBytes;
-                size_t extent =
-                    size_t(rect.maxY - rect.minY - 1) * stride + size_t(rect.maxX - rect.minX) * pixelBytes;
-                state->targets.Upload(item.resource,
-                                      {0, 0, uint32_t(rect.minX), uint32_t(rect.minY),
-                                       uint32_t(rect.maxX - rect.minX), uint32_t(rect.maxY - rect.minY)},
-                                      tex->m_dataFormat, static_cast<const uint8_t *>(bytes) + offset, extent,
-                                      stride);
+            for (uint32_t level = 0; level < item.resource.Spec().mipLevels; ++level) {
+                const auto width = std::max(1u, tex->m_width >> level);
+                const auto height = std::max(1u, tex->m_height >> level);
+                callback(GxTex_Latch, width, height, 0, level, user, stride, bytes);
+                if (!tex->m_flags.m_renderTarget) {
+                    const uint32_t pixelBytes = tex->m_dataFormat <= GxTex_Argb8888 ? 4 : 2;
+                    if (!bytes || tex->m_dataFormat > GxTex_Rgb565 ||
+                        uint64_t(stride) < uint64_t(width) * pixelBytes)
+                        throw std::invalid_argument("Unavailable/invalid legacy texture source stride");
+                    // Mipped updates refresh the complete chain, as in original
+                    // OpenGL ITexDownload. Single-level caches retain dirty rectangles.
+                    const CiRect region = item.resource.Spec().mipLevels == 1 ? rect :
+                        CiRect{0, 0, int32_t(height), int32_t(width)};
+                    // Legacy callbacks supply a whole-image origin; native Upload accepts
+                    // the first texel of the dirty region. Borrowed bytes expire at Unlock.
+                    size_t offset = size_t(region.minY) * stride + size_t(region.minX) * pixelBytes;
+                    size_t extent =
+                        size_t(region.maxY - region.minY - 1) * stride + size_t(region.maxX - region.minX) * pixelBytes;
+                    state->targets.Upload(item.resource,
+                                          {level, 0, uint32_t(region.minX), uint32_t(region.minY),
+                                           uint32_t(region.maxX - region.minX), uint32_t(region.maxY - region.minY)},
+                                          tex->m_dataFormat, static_cast<const uint8_t *>(bytes) + offset, extent,
+                                          stride);
+                }
             }
             locked = false; // Unlock is delivered exactly once even if it throws.
             callback(GxTex_Unlock, tex->m_width, tex->m_height, 0, 0, user, stride, bytes);

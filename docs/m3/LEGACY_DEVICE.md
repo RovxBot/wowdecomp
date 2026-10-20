@@ -29,6 +29,10 @@ callback sources/conversion, rectangle/cube targets and automatic mips are
 explicitly unavailable in this first adapter, despite the underlying native
 resource service having broader coverage.
 
+The subsequent [authored mip-chain extension](IMAGE_MIPS.md) expands this original
+qualified surface with explicit mip filters and increasing-level callbacks; its
+qualification is recorded separately from the initial adapter evidence below.
+
 Shader creation accepts an injected completed-byte provider instead of casting
 native package/file tickets to legacy SFile handles. Application bytes must come
 through authenticated original-key package reads on the retained worker. Bounded

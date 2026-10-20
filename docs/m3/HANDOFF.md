@@ -378,6 +378,10 @@ macOS graphics or server acceptance is implied. M3 remains open.
 
 Next dependencies, in order:
 
+The [authored image mip/readiness extension](IMAGE_MIPS.md) is the next bounded
+implementation: full BLP2 mip filters, local wait mode 2 and UI read priority.
+Its qualification is pending; the PR #35 identities above remain historical.
+
 1. Connect original Frame font/string consumers and factories to the qualified
    Gxu/Services owners. Adapt actual Frame image callers to the bounded image
    service; retain their flags/readiness/atlas contracts. Extend device/state/

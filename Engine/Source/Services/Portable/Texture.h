@@ -10,7 +10,8 @@ class CGxTexFlags;
 namespace Services { namespace Native {
 // File-backed original CTexture/HTEXTURE handles on the installed Gx owner.
 // Production reads use authenticated Packages; the explicit reader overload is
-// for embedders/fixtures. Readers execute on the retained file worker.
+// for embedders/fixtures. Readers execute on the retained file worker and must
+// deliver local data; remote streaming has no native wait-2 contract yet.
 // Close all file texture handles, then this service, then device/context/queue.
 // Native tickets never occupy CTexture::m_asyncObject or impersonate CAsyncObject.
 class TextureService final {
