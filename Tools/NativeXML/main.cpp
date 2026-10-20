@@ -83,7 +83,7 @@ static void Signatures(const std::filesystem::path& directory) {
     }
     auto modulus=Load(directory/"modulus.bin"), expected=Load(directory/"expected.bin");
     FileQueue queue;
-    size_t completed=0;
+    auto completed=std::make_shared<size_t>(0);
     auto reader=[&](SourceKind kind, const std::string& path, Bytes& bytes) {
         Check(kind==SourceKind::Interface,"XML attempted saved-variable fallback");
         if (!files.count(path)) return false;
@@ -92,7 +92,7 @@ static void Signatures(const std::filesystem::path& directory) {
         Bytes content=files.at(path);
         auto ticket=queue.Submit([content=std::move(content)](const Cancellation&) {
             ReadResult result; result.file.bytes=content; return result;
-        },[&completed,result](const ReadResult& value) { ++completed; *result=value; });
+        },[completed,result](const ReadResult& value) { ++*completed; *result=value; });
         if (!queue.Wait(ticket,std::chrono::seconds(5))) { queue.Cancel(ticket); return false; }
         bytes=std::move(result->file.bytes); return result->status==ReadStatus::Success;
     };
@@ -109,7 +109,7 @@ static void Signatures(const std::filesystem::path& directory) {
     };
     Check(signature()==3 && std::equal(expected.begin(),expected.end(),digest),"independent signed traversal known answer");
     auto stats=FrameXML::Native::LastTraversal();
-    Check(stats.files==8 && completed==9,"duplicate/include/extra digest ordering");
+    Check(stats.files==8 && *completed==9,"duplicate/include/extra digest ordering");
     Check(signature("Fixture.toc","Bindings.xml",FrameXML::Native::OriginalInterfaceKey())==1,"synthetic key entered application trust anchor");
     Check(signature("Missing.toc",nullptr)==2,"incomplete traversal authenticated a signed prefix");
     Check(signature("Fixture.toc","absent.xml")==2,"missing extra file accepted");

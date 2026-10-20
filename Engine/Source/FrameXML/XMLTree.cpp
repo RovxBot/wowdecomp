@@ -372,7 +372,7 @@ XMLTree* XMLTree_Load(const char* data, uint32_t size) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     FrameXML::Native::RequireOwner();
     if (!data || !size || size > 8 * 1024 * 1024u) return nullptr;
-    // This first native dialect admits UTF-8 interface XML only. Reject DTDs
+    // This first native dialect admits byte-oriented interface XML. Reject DTDs
     // before the old parser can expand entities, including in failed documents.
     // NUL rejection also makes UTF-16/32 visibly unavailable at this boundary.
     std::string_view source(data, size);
