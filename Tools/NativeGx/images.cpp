@@ -44,11 +44,18 @@ Bytes Blp(uint8_t encoding, uint8_t alpha, uint8_t format, uint32_t w, uint32_t 
     out.insert(out.end(), pixels.begin(), pixels.end()); return out;
 }
 Bytes Raw() {
-    // BGRA disk order: red/green, blue/white. Independent expected GPU samples.
-    return Blp(3, 8, 0, 2, 2, {0,0,255,255, 0,255,0,255, 255,0,0,255, 255,255,255,255});
+    // Original Gx requires at least 8x8. BGRA quadrants: red/green, blue/white.
+    Bytes pixels;
+    for (uint32_t y = 0; y < 8; ++y) for (uint32_t x = 0; x < 8; ++x) {
+        const uint8_t bgra[]{uint8_t(y >= 4 ? 255 : 0), uint8_t(x >= 4 ? 255 : 0),
+                             uint8_t((y < 4 && x < 4) || (y >= 4 && x >= 4) ? 255 : 0), 255};
+        pixels.insert(pixels.end(), bgra, bgra + 4);
+    }
+    return Blp(3, 8, 0, 8, 8, pixels);
 }
 Bytes Palette() {
-    auto out = Blp(1, 4, 0, 2, 2, {0,0,0,0,0xFF,0xFF});
+    Bytes pixels(96); std::fill(pixels.begin() + 64, pixels.end(), 0xFF);
+    auto out = Blp(1, 4, 0, 8, 8, pixels);
     out[148] = 23; out[149] = 91; out[150] = 177; return out;
 }
 Bytes Dxt(uint8_t format) {
@@ -58,7 +65,9 @@ Bytes Dxt(uint8_t format) {
     size_t offset = format ? 8 : 0;
     pixels[offset] = 0; pixels[offset+1] = 0xF8; // 565 red endpoint, all indices zero.
     pixels[offset+2] = 0xE0; pixels[offset+3] = 7;
-    return Blp(2, format ? 8 : 0, format, 4, 4, pixels);
+    Bytes blocks;
+    for (int i = 0; i < 4; ++i) blocks.insert(blocks.end(), pixels.begin(), pixels.end());
+    return Blp(2, format ? 8 : 0, format, 8, 8, blocks);
 }
 struct Handle {
     CTexture* value = nullptr;
@@ -159,7 +168,7 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     bool foreign = false;
     std::thread wrong([&] { try { create("Interface/raw"); } catch (const std::logic_error&) { foreign = true; } });
     wrong.join(); Require(foreign, "Foreign image mutation was accepted");
-    Require(TextureGetDimensions(raw.value, &width, &height, 1) && width == 2 && height == 2,
+    Require(TextureGetDimensions(raw.value, &width, &height, 1) && width == 8 && height == 8,
             "File image dimensions failed");
     Require(reads == 1 && TextureIsLoaded(raw.value) && TextureIsOpaque(raw.value), "File image readiness/cache failed");
     auto pixels = Draw(device, raw.value);

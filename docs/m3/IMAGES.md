@@ -17,7 +17,8 @@ No ticket is stored in `CTexture::m_asyncObject` or presented as `CAsyncObject`.
 The initial surface is deliberately bounded:
 
 - BLP2 version 1 palette, raw BGRA and DXT1/3/5 sources use the existing bounded
-  decoder. All supplied mip extents are validated; this service uploads mip zero
+  decoder. Original Gx requires power-of-two dimensions of at least 8x8.
+  All supplied mip extents are validated; this service uploads mip zero
   as RGBA8, retaining pixels for legacy Lock/Latch/Unlock callbacks.
 - Call `TextureCreate` with explicit sampler bit 0, optionally bit 3, and nearest
   or linear filtering. Wrap U/V participate in the cache key. Extensionless names
