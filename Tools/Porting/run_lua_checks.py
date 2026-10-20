@@ -25,6 +25,10 @@ def main():
         workflow_run=f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         target_os=target_os,target_cpu=cpu,host_machine=platform.machine(),runner_arch=os.environ.get('RUNNER_ARCH'),
         runner_image=os.environ.get('ImageVersion'),status='preflight')
+    # Preserve the bundled Lua copyright/license with every executable package.
+    notices=evidence/'notices';notices.mkdir(exist_ok=True)
+    notice=notices/'lua.h';shutil.copy2(root/'Engine/Source/lua-5.1/src/lua.h',notice)
+    manifest['notices']=[dict(path='notices/lua.h',sha256=hashlib.sha256(notice.read_bytes()).hexdigest())]
     def run(name,command):
         manifest['status']=name
         with (evidence/(name+'.log')).open('w') as log:
