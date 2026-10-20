@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <thread>
 
@@ -20,7 +21,7 @@ static void Run(const char* source) {
     CStatus status;
     if (!FrameScript_ExecuteBuffer(source, std::strlen(source), "@authored-framescript", &status, nullptr)) {
         char error[2048]; status.GetErrorStr(error, sizeof(error), STATUS_ERROR, "\n");
-        throw std::runtime_error(error);
+        throw std::runtime_error(std::string(error)+"\nAuthored check: "+source);
     }
     Check(lua_gettop(FrameScript_GetContext()) == 0, "unbalanced FrameScript execution stack");
 }
@@ -181,8 +182,53 @@ static void FileCheck(const std::filesystem::path& directory) {
     Check(FrameScript_LoadVariables("serialized.lua", &status), "serialized variable reload");
     Run("assert(Saved.value==73 and Saved.text=='a\\000b\\n\\\"' and Saved.array[2]==2 and Saved.self==nil and Saved.bad==nil)");
 }
-int main() {
+static void OriginalSourceCheck(const char* data, const char* settings, const char* cache) {
+    Blizzard::File::Native::Paths paths;
+    Check(Blizzard::File::Native::ConfigurePaths(data,settings,cache,paths), "external data/user roots");
+    for (int cycle=0;cycle<3;++cycle) for (int profile=0;profile<2;++profile) {
+        {
+            FileQueue queue;
+            std::shared_ptr<Blizzard::Mopaq::Native::Packages> packages;
+            auto open = queue.Submit([&](const Cancellation&) {
+                packages=Blizzard::Mopaq::Native::Packages::Open12340(paths,"enUS");
+                return ReadResult{};
+            }, [](const ReadResult& result) { Check(result.status==ReadStatus::Success,"original package authentication"); });
+            // Shutdown joins even on timeout, keeping the captured package owner alive.
+            if (!queue.Wait(open,std::chrono::seconds(60))) { queue.Shutdown(); throw std::runtime_error("package authentication timeout"); }
+            std::cout << "original-signaturefile=authenticated records=" << packages->SignatureCount() << '\n';
+            auto reader = [&](SourceKind kind, const std::string& path, std::vector<uint8_t>& bytes) {
+                Check(kind==SourceKind::Interface,"original source fixture requested user data");
+                auto result=std::make_shared<ReadResult>();
+                auto ticket=queue.ReadPackage(packages,path,[result](const ReadResult& completed) { *result=completed; });
+                if (!queue.Wait(ticket,std::chrono::seconds(60))) { queue.Cancel(ticket); return false; }
+                if (result->status!=ReadStatus::Success) return false;
+                std::cout << "original-source=" << path << " bytes=" << result->file.bytes.size()
+                          << " registered-md5=" << result->file.signedFile << " md5=";
+                const char* hex="0123456789abcdef";
+                for (auto byte : Blizzard::Mopaq::Native::Digest(result->file.bytes))
+                    std::cout << hex[byte>>4] << hex[byte&15];
+                std::cout << '\n';
+                bytes=std::move(result->file.bytes); return true;
+            };
+            // Runtime closes before queue/packages; no original file is modified.
+            Runtime runtime(reader,profile);
+            CStatus status;
+            Check(FrameScript_ExecuteFile("Interface\\FrameXML\\GlobalStrings.lua",nullptr,nullptr,&status),"original GlobalStrings execution");
+            Run("assert(type(OKAY)=='string' and #OKAY>0 and type(CANCEL)=='string' and #CANCEL>0)");
+            const char* text=nullptr;
+            Check(FrameScript_GetVariable("OKAY",text) && text && *text,"original localized token lookup");
+            Check(*FrameScript_GetText("CANCEL",1,GENDER_MALE),"original FrameScript text fallback");
+        }
+        Check(!s_context && !OsLiveThreadCount(),"original source worker/VM teardown");
+        std::cout << "original-framescript-cycle=" << cycle << " profile=" << profile << " workers=0\n";
+    }
+}
+int main(int argc, char** argv) {
     try {
+        if (argc==5 && !std::strcmp(argv[1],"--original-data")) {
+            OriginalSourceCheck(argv[2],argv[3],argv[4]); return 0;
+        }
+        if (argc!=1) throw std::invalid_argument("Usage: NativeFrameScriptCheck [--original-data DATA SETTINGS CACHE]");
         bool noOwner = false;
         try { FrameScript_Initialize(0); } catch (const std::logic_error&) { noOwner = true; }
         Check(noOwner, "unowned FrameScript initialization accepted");
@@ -200,13 +246,12 @@ int main() {
                     if (path == "throw.lua") throw std::runtime_error("authored provider failure");
                     if (path == "oversize.lua") { bytes.resize(8*1024*1024u+1); return true; }
                     std::string leaf = path.substr(path.find_last_of('\\')+1);
-                    bool success = false;
-                    auto ticket = queue.ReadHost((directory/leaf).u8string(),0,8*1024*1024u+1,[&](const ReadResult& result) {
-                        success = result.status == ReadStatus::Success;
-                        bytes = result.file.bytes;
-                    });
-                    Check(queue.Wait(ticket,std::chrono::seconds(5)), "retained source read timeout");
-                    return success;
+                    auto result=std::make_shared<ReadResult>();
+                    auto ticket = queue.ReadHost((directory/leaf).u8string(),0,8*1024*1024u+1,
+                        [result](const ReadResult& completed) { *result=completed; });
+                    if (!queue.Wait(ticket,std::chrono::seconds(5))) { queue.Cancel(ticket); return false; }
+                    bytes=std::move(result->file.bytes);
+                    return result->status==ReadStatus::Success;
                 };
                 Runtime runtime(read,profile);
                 Check(FrameScript_GetContext() && lua_gettop(s_context)==0, "original initialization stack");
