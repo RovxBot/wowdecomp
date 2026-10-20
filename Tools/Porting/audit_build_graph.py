@@ -28,7 +28,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeGxu', 'LegacyGxuCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
+        expected |= {'WowNativeGxu', 'LegacyGxuCheck', 'NativeImageCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -125,7 +125,7 @@ def audit(targets, mode, target_os, cpu):
                        'ShellSettingsCheck': ['Tools/PortableWindow/settings.cpp']}[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed) or 'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions:
                 errors.append(f"{target['name']}: unexpected window provider/ABI")
-        if mode == 'gl' and target['name'] in {'WowNativeGxu', 'LegacyGxuCheck'}:
+        if mode == 'gl' and target['name'] in {'WowNativeGxu', 'LegacyGxuCheck', 'NativeImageCheck'}:
             allowed = (['Engine/Source/Gxu/' + name + '.cpp' for name in [
                 'Portable/LegacyFonts', 'Portable/FontTexture', 'Portable/FontMath', 'Gxu', 'GxuFontFace',
                 'GxuFontFont', 'GxuFontMain', 'GxuFontString', 'GxuFontTextureCache',
@@ -133,8 +133,9 @@ def audit(targets, mode, target_os, cpu):
                 ['Engine/Source/Base/' + name + '.cpp' for name in
                  ['Handle', 'Status', 'Coordinate', 'ConvertUTF']] +
                 ['Engine/Source/Tempest/C3Vector.cpp', 'Engine/Source/Tempest/C4Vector.cpp',
-                 'Engine/Source/Services/TextBlock.cpp']
-                if target['name'] == 'WowNativeGxu' else ['Tools/NativeGx/gxu.cpp'])
+                 'Engine/Source/Services/TextBlock.cpp', 'Engine/Source/Services/Portable/Texture.cpp']
+                if target['name'] == 'WowNativeGxu' else
+                ['Tools/NativeGx/images.cpp' if target['name'] == 'NativeImageCheck' else 'Tools/NativeGx/gxu.cpp'])
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):

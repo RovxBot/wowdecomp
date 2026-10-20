@@ -63,6 +63,7 @@ add_library(WowNativeGxu STATIC
     ../Gxu/GxuFontUtil.cpp
     ../Gxu/IGxuFontGlyph.cpp
     ../Services/TextBlock.cpp
+    ../Services/Portable/Texture.cpp
     ../Base/Handle.cpp
     ../Base/Status.cpp
     ../Base/Coordinate.cpp
@@ -72,6 +73,15 @@ add_library(WowNativeGxu STATIC
 )
 target_include_directories(WowNativeGxu PUBLIC ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include)
 target_link_libraries(WowNativeGxu PUBLIC WowNativeGl WowNativeFonts)
+add_executable(NativeImageCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/images.cpp)
+target_link_libraries(NativeImageCheck PRIVATE WowNativeGxu)
+if(WOWDECOMP_CORE_SANITIZERS)
+    target_compile_options(NativeImageCheck PRIVATE -g1)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME native-file-image-services COMMAND NativeImageCheck)
+    set_tests_properties(native-file-image-services PROPERTIES TIMEOUT 120 ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
+endif()
 add_executable(LegacyGxuCheck ${PROJECT_SOURCE_DIR}/Tools/NativeGx/gxu.cpp)
 target_link_libraries(LegacyGxuCheck PRIVATE WowNativeGxu)
 if(WOWDECOMP_CORE_SANITIZERS)

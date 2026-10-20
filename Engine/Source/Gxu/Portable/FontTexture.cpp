@@ -3,6 +3,7 @@
 #include "LegacyFonts.h"
 #include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/Gx/Gx.h"
+#include "Engine/Source/Services/Portable/Texture.h"
 #include <memory>
 #include <stdexcept>
 HASHKEY_TEXTUREFILE::HASHKEY_TEXTUREFILE() : m_filename(nullptr), m_anyTexFlags(0) {}
@@ -10,7 +11,12 @@ CTexture::CTexture() : m_flags(0), m_bestMip(0), m_alphaBits(0), m_asyncObject(n
     m_gxTex(nullptr), m_gxTexTarget(GxTex_2d), m_gxWidth(0), m_gxHeight(0),
     m_gxTexFormat(GxTex_Unknown), m_dataFormat(GxTex_Unknown), m_atlas(nullptr),
     m_atlasBlockIndex(-1) { m_filename[0] = '\0'; }
-CTexture::~CTexture() { if (m_gxTex) GxTexDestroy(m_gxTex); }
+CTexture::~CTexture() {
+    NativeCheckOwner();
+    // Drop native Gx bindings before releasing retained callback pixels.
+    if (m_gxTex) { GxTexDestroy(m_gxTex); m_gxTex = nullptr; }
+    Services::Native::ReleaseFileTexture(this);
+}
 const char* CTexture::GetObjectName() { return m_filename; }
 CTexture* TextureCreate(uint32_t width, uint32_t height, EGxTexFormat format,
     EGxTexFormat dataFormat, CGxTexFlags flags, void* user, GxTexUserFunc callback,
@@ -32,7 +38,6 @@ CTexture* TextureCreate(uint32_t width, uint32_t height, EGxTexFormat format,
     HandleCreate(texture.get(), "HTEXTURE");
     return texture.release();
 }
-CGxTex* TextureGetGxTex(CTexture* texture, int32_t, CStatus*) {
-    Gxu::Native::RequireFontOwner();
-    return texture ? texture->m_gxTex : nullptr;
+CGxTex* TextureGetGxTex(CTexture* texture, int32_t wait, CStatus* status) {
+    return Services::Native::GetFileTexture(texture, wait, status);
 }
