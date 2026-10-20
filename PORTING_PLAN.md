@@ -378,6 +378,13 @@ are separate evidence. Frame/Lua/XML/GlueXML, general image/async services,
 transport/authentication, full world rendering and observed gameplay remain open.
 M3 is not complete.
 
+The [product-modified Lua runtime](docs/m3/LUA.md) in
+[PR #29](https://github.com/RovxBot/wowdecomp/pull/29) provides native pool-backed
+states, the original five libraries, taint and profiling prerequisites. The
+Linux release/strict sanitizer, actual ARM64 macOS and Windows native fixtures
+pass six CTest checks each. Original FrameScript ownership, files/events/secure
+handlers, Frame/XML and login rendering remain separate integration work.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

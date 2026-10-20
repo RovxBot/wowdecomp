@@ -278,6 +278,31 @@ it does not turn a documentation request into authorization to start the whole p
   loading, original Frame/Lua/GlueXML/login or gameplay. No new physical-input,
   Windows runtime or macOS graphics acceptance; keep signatures and server
   revision discrepancies intact. The user will sign in interactively when ready.
+- M3 product Lua [PR #29](https://github.com/RovxBot/wowdecomp/pull/29) is
+  qualified at `33ef88fdd742b6b2a4484f3c86c013642f977837`, merged as
+  `f1726d9628bd15d09f8acee4442fff5976dac81f`, following original Gxu
+  [PR #28](https://github.com/RovxBot/wowdecomp/pull/28), now merged as
+  `d07e289755d303accd0f97d7d49bcfe21b84d538`. Read the
+  [Lua contracts and next callers](docs/m3/LUA.md) and
+  [validation](docs/m3/lua-validation.json). All ten implementation workflows
+  passed; Linux release/strict ASan/UBSan/leak, actual ARM64 macOS and Windows
+  native fixtures each passed six CTest checks and six Lua cycles. Five archives,
+  all 19 packaged binary hashes/types and Lua licenses were verified. Full
+  Windows x64 compiled at separate matching-tree PR checkout
+  `3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3` with signatures enabled.
+  Downloaded exact-source Linux release/strict sanitizer executions passed six
+  cycles each with six expected allocation-overflow diagnostics and no sanitizer
+  finding. Retain the original modified VM, Storm pool, taint/accounting/profile
+  APIs and five libraries; do not substitute host Lua. Native callback validation
+  admits main-image executable ranges only. Preserve Windows numeric widths,
+  original x86 shift behavior and source-only loading: exported `lua_dump` does
+  not imply bytecode loading. Null upvalue terminators and table bounds have
+  native UB corrections; original Windows paths and historical failure evidence
+  remain. Application owner affinity, original FrameScript file/event/secure
+  handlers, Frame/XML/GlueXML, image/async services and login remain open. No new
+  GPU, physical-input, Windows runtime, macOS desktop or server acceptance is
+  recorded. M3 is incomplete; signatures, server revision discrepancies and
+  interactive user sign-in preference remain unchanged.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

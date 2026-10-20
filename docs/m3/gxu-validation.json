@@ -1454,5 +1454,7 @@
     "Native socket/DNS/dispatch/authentication, interactive user sign-in and advertised realm endpoint",
     "Character/world rendering, observed GrimGuzzler gameplay/Warden compatibility, full Linux release",
     "macOS graphics/desktop and new Windows runtime/Win32 coverage"
-  ]
+  ],
+  "merge_commit": "d07e289755d303accd0f97d7d49bcfe21b84d538",
+  "merged_on": "2026-10-20"
 }

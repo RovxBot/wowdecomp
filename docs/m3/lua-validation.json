@@ -1,0 +1,820 @@
+{
+  "schema_version": 1,
+  "milestone": "M3",
+  "recorded_on": "2026-10-20",
+  "reporting_timezone": "Australia/Adelaide",
+  "status": "Product-modified Lua runtime prerequisites qualified; original FrameScript/Frame/XML/login, transport/authentication and observed gameplay remain open.",
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/29",
+  "implementation_head": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+  "implementation_tree": "d4abd820659ee813de7d28da3ff1327e2c0ac84c",
+  "merge_commit": "f1726d9628bd15d09f8acee4442fff5976dac81f",
+  "source_reference": "d07e289755d303accd0f97d7d49bcfe21b84d538",
+  "starting_parent": "a620c7bf655685195a1ed328139f7f882f12fa52",
+  "hosted_pr_workflows": [
+    {
+      "conclusion": "success",
+      "databaseId": 39381501900,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M0 source audit",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501900"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501803,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M2 native asynchronous files",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501803"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501828,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M1 portable core",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501828"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501846,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M3 product Lua runtime",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501846"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501849,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M3 native packet prerequisites",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501849"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501809,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M2 native file services",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501809"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501822,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M2 native asset services",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501822"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501867,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M2 native SDL3 shell",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501867"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501844,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501844"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381501834,
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501834"
+    }
+  ],
+  "hosted_native_push_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648",
+  "configurations": [
+    {
+      "kind": "release",
+      "ctest_passed": 6,
+      "ctest_failed": 0,
+      "lua_cycles": 6,
+      "artifact": {
+        "id": 12246005390,
+        "name": "m3-linux-lua-33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "digest": "sha256:6d30c2fbcf641dcf3aae61f37922ac0a23e101af106d210828e20fdb158e6ae0",
+        "size_in_bytes": 224789
+      },
+      "zip_hash_verified": true,
+      "downloaded_binary_hashes_verified": true,
+      "notices_verified": true,
+      "packaged_binary_types": [
+        {
+          "name": "NativeLuaCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=eb054e461ec7771967b166b23c00afb060db1e58, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeCore",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a5373af6fed27517bb5956db6affc1a34a26ac84, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=f7a014a3ea03ab71e0dcb11df3d61fb92310d0a4, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "PortableCoreCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a20cc7279be55f836e54dd568307c4a6debcd658, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 product-modified Lua, pool allocator, taint/profile prerequisites; no FrameXML/login/gameplay",
+        "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "preset": "linux-lua",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "host_machine": "x86_64",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "status": "Hosted product Lua semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "6ee516a989093055b07c0e8b6e8c6df6bc0c351f20d815ab1c04f096253afd7d"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          }
+        ]
+      },
+      "tests_log_sha256": "d4d21d6e7ec2588611f128dfa17bb5b800b69c062acbbaa40395ae21d6f5e582",
+      "ctest_detail_sha256": "a71c1e0fbb73d1587f1dcb84a98fc30541814f13033c84ecf8b2b3da8bf6367a"
+    },
+    {
+      "kind": "asan",
+      "ctest_passed": 6,
+      "ctest_failed": 0,
+      "lua_cycles": 6,
+      "artifact": {
+        "id": 12245154388,
+        "name": "m3-linux-lua-asan-33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "digest": "sha256:9a0da3d783d31b1894a315746e08837abb0dc7207b21f58e9af68afbb26e05cf",
+        "size_in_bytes": 2478225
+      },
+      "zip_hash_verified": true,
+      "downloaded_binary_hashes_verified": true,
+      "notices_verified": true,
+      "packaged_binary_types": [
+        {
+          "name": "NativeLuaCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=22d9c66997e790f25dddb4cdcca67729ac9a1609, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "NativeCore",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3db694adb3ea7ad2657ae590ea8f5e27973e6081, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b8be6b63741d2f22b727533f9c68535ea67d044d, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "name": "PortableCoreCheck",
+          "description": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a20cc7279be55f836e54dd568307c4a6debcd658, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 product-modified Lua, pool allocator, taint/profile prerequisites; no FrameXML/login/gameplay",
+        "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "preset": "linux-lua-asan",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "host_machine": "x86_64",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "status": "Hosted product Lua semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=ON",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "8b09cb8541fc63f6f14ef35746f1a812b937fcd861e327bd4c5acdb827ef5509"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          }
+        ]
+      },
+      "tests_log_sha256": "93621aff63cd39ea80fc6583661abc7e05563ed112452abb26ead6601bf7211c",
+      "ctest_detail_sha256": "db0f3e6fb7685aa26a71732c903459d0def9acab9e08d0dfa0cec6a772ec83b8"
+    },
+    {
+      "kind": "macos",
+      "ctest_passed": 6,
+      "ctest_failed": 0,
+      "lua_cycles": 6,
+      "artifact": {
+        "id": 12245641045,
+        "name": "m3-macos-arm64-lua-33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "digest": "sha256:45a6608157de57726944ba3c5f96d5d48ce241b1cf43c327db333397f250ed27",
+        "size_in_bytes": 200594
+      },
+      "zip_hash_verified": true,
+      "downloaded_binary_hashes_verified": true,
+      "notices_verified": true,
+      "packaged_binary_types": [
+        {
+          "name": "NativeLuaCheck",
+          "description": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "NativeCore",
+          "description": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "CoreServicesCheck",
+          "description": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "name": "PortableCoreCheck",
+          "description": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|BINDS_TO_WEAK|PIE>"
+        }
+      ],
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 product-modified Lua, pool allocator, taint/profile prerequisites; no FrameXML/login/gameplay",
+        "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "preset": "macos-arm64-lua",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648",
+        "target_os": "MACOS",
+        "target_cpu": "ARM64",
+        "host_machine": "arm64",
+        "runner_arch": "ARM64",
+        "runner_image": "20260831.0302.1",
+        "status": "Hosted product Lua semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "6f764c574464fc4825f89b981fc6cf01d68f8d8eb4778c2b4d76401f85436894"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "16cc40b0942e917de102306246fa66c43a2de7750adf1ce23810bb5ba5339d73"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2"
+          }
+        ]
+      },
+      "tests_log_sha256": "7e68778c20d2e2748ba51af15974d4e492de172577307690ef4fb3e913ffaa00",
+      "ctest_detail_sha256": "80f74df10fc5e1a4607dbda3ac4829f7d7816022dcf9493e99d867652bc4443d"
+    },
+    {
+      "kind": "windows",
+      "ctest_passed": 6,
+      "ctest_failed": 0,
+      "lua_cycles": 6,
+      "artifact": {
+        "id": 12245558343,
+        "name": "m3-windows-lua-33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "digest": "sha256:05ecd19133540fb658dbc386090537975d7bc36eb42d3fc102a25e705c62f2b5",
+        "size_in_bytes": 186274
+      },
+      "zip_hash_verified": true,
+      "downloaded_binary_hashes_verified": true,
+      "notices_verified": true,
+      "packaged_binary_types": [
+        {
+          "name": "NativeLuaCheck.exe",
+          "description": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "NativeCore.exe",
+          "description": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "CoreServicesCheck.exe",
+          "description": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "name": "PortableCoreCheck.exe",
+          "description": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        }
+      ],
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 product-modified Lua, pool allocator, taint/profile prerequisites; no FrameXML/login/gameplay",
+        "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+        "preset": "windows-lua",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648",
+        "target_os": "WINDOWS",
+        "target_cpu": "X86_64",
+        "host_machine": "AMD64",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "status": "Hosted product Lua semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/lua.h",
+            "sha256": "1f0ab5c910b0e8ff1522396e2095198a780f07ae8b459cc8484ba6eb80d4a41d"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:UNINITIALIZED=Release",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Visual Studio 17 2022"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLuaCheck.exe",
+            "sha256": "62722843b00422b64fa090017d602bf5a6f32817f200bf9bc3bebf00d569be7d"
+          },
+          {
+            "name": "NativeCore.exe",
+            "sha256": "608b45704b11cef209ca4b037711b440c917edfae509c40b8562a4d15d60acd1"
+          },
+          {
+            "name": "CoreServicesCheck.exe",
+            "sha256": "f481792e83760335b3f7ce29e06587968a2e20107d2e321295402362930d8815"
+          },
+          {
+            "name": "PortableCoreCheck.exe",
+            "sha256": "8247608e17c059c9bac2e8fc7c210d6d851dd9805fd4d116baebc335c52e2525"
+          }
+        ]
+      },
+      "tests_log_sha256": "513d9d939c7a281f83ba238bfcf879613a361e6562c36bcd8386742495e9d46a",
+      "ctest_detail_sha256": "a973cb5ef9d4f6408b837ae32cd923bfe94cbf883be5f514d3054a78f78ce2ac"
+    }
+  ],
+  "local_runtime": [
+    {
+      "kind": "release",
+      "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "executable_sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f",
+      "exit_code": 0,
+      "lua_cycles": 6,
+      "expected_allocation_overflow_diagnostics": 6,
+      "stdout_sha256": "c351cbc4526ce6bd0a54e0a5fb63277d48d45ee870076da018277ebdf2d62ea4",
+      "stderr_sha256": "190f024832eb4dc811eef0958746a75be1259f67d7b62e5c8838fcfcbffe7bfe",
+      "asan_options": null,
+      "ubsan_options": null,
+      "no_lsan_options_or_preload": true
+    },
+    {
+      "kind": "asan",
+      "source_commit": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "executable_sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc",
+      "exit_code": 0,
+      "lua_cycles": 6,
+      "expected_allocation_overflow_diagnostics": 6,
+      "stdout_sha256": "c351cbc4526ce6bd0a54e0a5fb63277d48d45ee870076da018277ebdf2d62ea4",
+      "stderr_sha256": "190f024832eb4dc811eef0958746a75be1259f67d7b62e5c8838fcfcbffe7bfe",
+      "asan_options": "detect_leaks=1:halt_on_error=1",
+      "ubsan_options": "halt_on_error=1:print_stacktrace=1",
+      "no_lsan_options_or_preload": true
+    }
+  ],
+  "windows_regression": {
+    "artifact": {
+      "id": 12245519434,
+      "name": "windows-x64-baseline-3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3",
+      "digest": "sha256:91ab9d2d563b72e97f871be39b7b0ca8a1ea4dc8e68b1bc747a4654407d60ac7",
+      "size_in_bytes": 9264253
+    },
+    "zip_hash_verified": true,
+    "downloaded_binary_hashes_verified": true,
+    "packaged_binary_types": [
+      {
+        "path": "bin/WowClient64.exe",
+        "description": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+      },
+      {
+        "path": "bin/Wow64.exe",
+        "description": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+      },
+      {
+        "path": "bin/XvidDecoder.dll",
+        "description": "PE32+ executable for MS Windows 6.00 (DLL), x86-64, 7 sections"
+      }
+    ],
+    "source_tree_matches_implementation": true,
+    "merge_checkout_commit": "3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3",
+    "merge_checkout_tree": "d4abd820659ee813de7d28da3ff1327e2c0ac84c",
+    "manifest": {
+      "schema_version": 1,
+      "source_commit": "3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501834",
+      "runner_os": "Windows",
+      "runner_arch": "X64",
+      "runner_image": "20261012.333.1",
+      "configuration": "Release",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "signature_checks": "enabled",
+      "crash_logger": "enabled",
+      "status": "build passed; runtime unverified",
+      "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+      "dependencies": [
+        {
+          "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+          "bytes": 999686,
+          "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+        },
+        {
+          "path": "ThirdParty/nvapi/x86/nvapi.lib",
+          "bytes": 439838,
+          "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+        },
+        {
+          "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+          "bytes": 3494900,
+          "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+        }
+      ],
+      "binaries": [
+        {
+          "path": "bin/WowClient64.exe",
+          "bytes": 9859584,
+          "sha256": "86f0ed817b1900fc2b1d906a2fcac9c7970cdfe8d5b7fd10b93e692da7e2c225"
+        },
+        {
+          "path": "bin/Wow64.exe",
+          "bytes": 9856000,
+          "sha256": "7c3b2c0f1b609ef68a543faa51ab0f49811e79a04f9efec1bdf11bb808492345"
+        },
+        {
+          "path": "bin/XvidDecoder.dll",
+          "bytes": 456192,
+          "sha256": "a663a3d847f545a87c486c5035d82996e61eaf75332e3b921acd63c1d50c81b2"
+        }
+      ],
+      "cmake_version": "cmake version 3.31.6",
+      "visual_studio": {
+        "instanceId": "754ae0a8",
+        "installDate": "2026-10-12T22:00:54Z",
+        "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+        "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+        "installationVersion": "17.14.37710.0",
+        "productId": "Microsoft.VisualStudio.Product.Enterprise",
+        "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+        "state": 4294967295,
+        "isComplete": true,
+        "isLaunchable": true,
+        "isPrerelease": false,
+        "isRebootRequired": false,
+        "displayName": "Visual Studio Enterprise 2022",
+        "description": "Scalable, end-to-end solution for teams of any size",
+        "channelId": "VisualStudio.17.Release",
+        "channelUri": "https://aka.ms/vs/17/release/channel",
+        "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+        "installChannelUri": "https://aka.ms/vs/17/release/channel",
+        "installedChannelId": "VisualStudio.17.Release",
+        "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+        "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+        "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+        "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+        "updateDate": "2026-10-12T22:00:54.346826Z",
+        "catalog": {
+          "buildBranch": "d17.14",
+          "buildVersion": "17.14.37710.0",
+          "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+          "localBuild": "build-lab",
+          "manifestName": "VisualStudio",
+          "manifestType": "installer",
+          "productDisplayVersion": "17.14.41 (September 2026)",
+          "productLine": "Dev17",
+          "productLineVersion": "2022",
+          "productMilestone": "RTW",
+          "productMilestoneIsPreRelease": "False",
+          "productName": "Visual Studio",
+          "productPatchVersion": "41",
+          "productPreReleaseMilestoneSuffix": "1.0",
+          "productReleaseNameSuffix": "(September 2026)",
+          "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+          "requiredEngineVersion": "3.14.2094.42856"
+        },
+        "properties": {
+          "campaignId": "",
+          "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+          "includeRecommended": "1",
+          "nickname": "",
+          "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+        }
+      }
+    }
+  },
+  "iteration_runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 39381501846,
+      "event": "pull_request",
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381501846"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381497648,
+      "event": "push",
+      "headSha": "33ef88fdd742b6b2a4484f3c86c013642f977837",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381497648"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381319837,
+      "event": "pull_request",
+      "headSha": "f2f9932f3e67ba85cfcf83790264b8b36ef35ccf",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381319837"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39381314166,
+      "event": "push",
+      "headSha": "f2f9932f3e67ba85cfcf83790264b8b36ef35ccf",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381314166"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39381228596,
+      "event": "pull_request",
+      "headSha": "4b24f2a2e62ea0c390eac4f8471b2e67cd93f38a",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381228596"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39381220859,
+      "event": "push",
+      "headSha": "4b24f2a2e62ea0c390eac4f8471b2e67cd93f38a",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381220859"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39381074937,
+      "event": "pull_request",
+      "headSha": "bbfb10474dd45e9db5e16a3adff456255d5dd76b",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381074937"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 39381070715,
+      "event": "push",
+      "headSha": "bbfb10474dd45e9db5e16a3adff456255d5dd76b",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39381070715"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380857923,
+      "event": "pull_request",
+      "headSha": "18d855accd3d77893b0380c11b0b0a2c4bd90524",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380857923"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 39380851836,
+      "event": "push",
+      "headSha": "18d855accd3d77893b0380c11b0b0a2c4bd90524",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380851836"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380698975,
+      "event": "pull_request",
+      "headSha": "05096dcf5143525f4cf57ff6c9a2b077e61a5aee",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380698975"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380694779,
+      "event": "push",
+      "headSha": "05096dcf5143525f4cf57ff6c9a2b077e61a5aee",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380694779"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380560952,
+      "event": "pull_request",
+      "headSha": "2079b862614c26eeacbab33cf1e61ff962588405",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380560952"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380556691,
+      "event": "push",
+      "headSha": "2079b862614c26eeacbab33cf1e61ff962588405",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380556691"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380463596,
+      "event": "pull_request",
+      "headSha": "e66ba53ddaa42fc9d685596b7889a4c5ededb895",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380463596"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380459300,
+      "event": "push",
+      "headSha": "e66ba53ddaa42fc9d685596b7889a4c5ededb895",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380459300"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380351841,
+      "event": "pull_request",
+      "headSha": "259eee0b4899d03eee751eca610a6ecc03a01f45",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380351841"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 39380318572,
+      "event": "push",
+      "headSha": "259eee0b4899d03eee751eca610a6ecc03a01f45",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380318572"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 39380299540,
+      "event": "push",
+      "headSha": "e51ac5faa4918351f092a5655214f1fbc36e83d2",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39380299540"
+    }
+  ],
+  "retained_failures": [
+    {
+      "source": "e51ac5f",
+      "scope": "Local Python policy fixtures",
+      "finding": "Copied plural preset names did not match the singular Lua presets; corrected before qualification."
+    },
+    {
+      "run_id": 39380318572,
+      "source": "259eee0",
+      "finding": "Link failure: original Base UTF-8 helpers and selected native fatal-reporting dependency were missing."
+    },
+    {
+      "run_id": 39380851836,
+      "source": "18d855a",
+      "job_id": 118489388822,
+      "finding": "Bytecode fixture expected reload, but the original product always uses its source parser. Fixture corrected to preserve bytecode rejection.",
+      "job_log_sha256": "d741cd41af65fc07f8543efd3a6ba081d15f57af3fdd00509ee38da303af8ead"
+    },
+    {
+      "run_id": 39381070715,
+      "source": "bbfb104",
+      "job_id": 118490068089,
+      "finding": "Strict UBSan: null union-member formation through ngcotouv at an empty upvalue-list terminator; native null check added.",
+      "job_log_sha256": "06119c00c48d938c63910daae727563413f77e385a8d3a76a09d017aef0cbd36"
+    },
+    {
+      "run_id": 39381220859,
+      "source": "4b24f2a",
+      "job_id": 118490531045,
+      "run_cancelled_after_job_failure": true,
+      "finding": "Strict UBSan: signed INT_MIN-1 in numeric table bounds; native subtraction moved into unsigned space.",
+      "job_log_sha256": "9b9e94b175262829b0e8ebf7f5b535b65d5fb3252d920cb91014746255c7b954"
+    }
+  ],
+  "local_source_checks": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -q",
+    "discovered": 39,
+    "passed": 38,
+    "skipped": 1,
+    "skip_reason": "Existing CMake source-selection check: local CMake unavailable",
+    "whitespace": "passed",
+    "documentation_links": "passed",
+    "json_parse": "passed",
+    "local_compilation": false
+  },
+  "qualifications": [
+    "Authored fixtures exercise six cycles per configuration: three with profiling disabled and three enabled; not original UI execution.",
+    "Each local execution emits six expected recoverable allocation-overflow diagnostics; stderr is not empty, and there is no sanitizer finding.",
+    "Original bytecode dumping remains exported, but the product source-only parser rejects emitted and foreign bytecode.",
+    "The fixture is single-threaded. Application owner affinity, complete secure environment, FrameScript events/file/log services and consumers require integration.",
+    "The native integer-remainder overflow case reports a protected Lua error. No Windows runtime comparison is claimed.",
+    "Four Lua archive digests, 16 native binary hashes/types and original license files were verified, plus the Windows archive and three PE x64 binaries.",
+    "Original Gxu/Gx GPU qualifications retain their own historical identities. No new graphics, physical-input, Windows runtime or macOS desktop acceptance was recorded.",
+    "Full client remains gated on Linux/macOS; no native login, transport, authentication, server connection or gameplay was observed.",
+    "Game data and server policy were unchanged. Original signature defaults and interactive user sign-in preference remain in force.",
+    "Cancelled matrix runs and failed job observations are retained separately from the qualified runs. No sanitizer detector was disabled."
+  ]
+}

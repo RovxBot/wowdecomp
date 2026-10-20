@@ -63,7 +63,10 @@ batches to the native resource owners, with qualified hosted and original-data
 GPU release/strict sanitizer checks. The [original Gxu integration](docs/m3/LEGACY_GXU.md)
 now connects original handles, layout/glyph caches, Services text handles and
 batched font consumers, with hosted and actual-GPU release/strict sanitizer
-evidence. Original Frame/Lua/GlueXML/login, transport and gameplay remain open.
+evidence. The separate [product Lua runtime](docs/m3/LUA.md) now preserves the
+modified taint/profile APIs and original pool/libraries in native Linux, ARM64
+macOS and Windows fixtures, including strict Linux sanitizers. Original
+FrameScript/Frame/XML/GlueXML/login, transport and gameplay remain open.
 
 ## Progress
 
