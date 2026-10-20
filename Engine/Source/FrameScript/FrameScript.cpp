@@ -1,11 +1,26 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#include <stdexcept>
+#include <vector>
+#if !defined(_WIN32)
+#include <alloca.h>
+#endif
+#define FS_NATIVE_CHECK() FrameScript::Native::RequireOwner()
+#else
+#define FS_NATIVE_CHECK() ((void)0)
+#endif
+#if defined(_WIN32)
 #include <malloc.h>
+#endif
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/FrameScript/FrameScript_Object.h"
 #include "Engine/Source/Base/Status.h"
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Storm/Source/MD5.h"
@@ -139,6 +154,7 @@ static int32_t IsNotFinite(double value) {
 // VERIFY: de8150e2 manual
 // OFFSET: 0x00817050
 int32_t FrameScript_HookWrapper(lua_State* L) {
+    FS_NATIVE_CHECK();
     int32_t top = lua_gettop(L);
 
     for (int32_t i = 0; i < top; i++) {
@@ -183,18 +199,21 @@ int32_t FrameScript_HookWrapper(lua_State* L) {
 // VERIFY: c8513d96 auto
 // OFFSET: 0x00817CE0
 void FrameScript_MemoryCleanup() {
+    FS_NATIVE_CHECK();
     lua_gc(s_context, LUA_GCRESTART, 0);
 }
 
 // VERIFY: 4e8fafd6 auto
 // OFFSET: 0x00817D00
 void FrameScript_SetPluralRule(PLURAL_RULE rule) {
+    FS_NATIVE_CHECK();
     s_pluralRule = rule;
 }
 
 // VERIFY: 57567097 manual
 // OFFSET: 0x00817D10
 uint32_t FrameScript_GetPluralIndex(int32_t count) {
+    FS_NATIVE_CHECK();
     switch (s_pluralRule) {
         case PLURAL_RULE_0:
             return count != 1;
@@ -225,24 +244,28 @@ uint32_t FrameScript_GetPluralIndex(int32_t count) {
 // VERIFY: 33168677 auto
 // OFFSET: 0x00817DA0
 void SetDecimalConversion(int32_t convert) {
+    FS_NATIVE_CHECK();
     lua_setdecimalconversion(convert);
 }
 
 // VERIFY: fc5212d7 auto
 // OFFSET: 0x00817DB0
 lua_State* FrameScript_GetContext() {
+    FS_NATIVE_CHECK();
     return s_context;
 }
 
 // VERIFY: 02c71ffb auto
 // OFFSET: 0x00817DC0
 int32_t FrameScript_GetTotalMemoryUsed() {
+    FS_NATIVE_CHECK();
     return lua_gc(s_context, LUA_GCCOUNT, 0);
 }
 
 // VERIFY: 8190783d auto
 // OFFSET: 0x00817DE0
 const char* FrameScript_GetCurrentObject(lua_State* L, int32_t level) {
+    FS_NATIVE_CHECK();
     lua_Debug ar;
 
     if (!lua_getstack(L, level, &ar)) {
@@ -276,6 +299,7 @@ const char* FrameScript_GetCurrentObject(lua_State* L, int32_t level) {
 // VERIFY: 5c5c781d auto
 // OFFSET: 0x00817EE0
 char* FrameScript_GetCurrentFunction(lua_State* L, char* buffer, uint32_t bufferLen) {
+    FS_NATIVE_CHECK();
     lua_Debug ar;
     memset(&ar, 0, sizeof(ar));
 
@@ -301,6 +325,7 @@ char* FrameScript_GetCurrentFunction(lua_State* L, char* buffer, uint32_t buffer
 // VERIFY: f3afc104 auto
 // OFFSET: 0x00817F90
 void FrameScript_RegisterFunction(const char* name, lua_CFunction function) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
     lua_pushcfunction(L, function);
     lua_setglobal(L, name);
@@ -309,6 +334,7 @@ void FrameScript_RegisterFunction(const char* name, lua_CFunction function) {
 // VERIFY: dab106df auto
 // OFFSET: 0x00817FD0
 void FrameScript_UnregisterFunction(const char* name) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
     lua_pushnil(L);
     lua_setglobal(L, name);
@@ -317,6 +343,7 @@ void FrameScript_UnregisterFunction(const char* name) {
 // VERIFY: bfbda437 auto
 // OFFSET: 0x00818010
 int32_t FrameScript_GetVariable(const char* name, const char*& value) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
     int32_t result = 0;
 
@@ -336,6 +363,10 @@ int32_t FrameScript_GetVariable(const char* name, const char*& value) {
 // VERIFY: ffd8aefd manual
 // OFFSET: 0x00818070
 char* FrameScript_Sprintf(lua_State* L, int32_t index, char* buffer, uint32_t bufferLen) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!buffer || !bufferLen) return buffer;
+#endif
     size_t length;
     const char* format = luaL_checklstring(L, index, &length);
     const char* formatEnd = format + length;
@@ -404,13 +435,23 @@ char* FrameScript_Sprintf(lua_State* L, int32_t index, char* buffer, uint32_t bu
 
         switch (*format++) {
             case 'c':
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                *dest++ = static_cast<char>(static_cast<uint8_t>(lua_native_number2int(luaL_checknumber(L, arg))));
+#else
                 *dest++ = static_cast<char>(luaL_checknumber(L, arg));
+#endif
                 space--;
                 break;
 
             case 'd':
             case 'i':
-                written = SStrPrintf(dest, space, spec, static_cast<int32_t>(luaL_checknumber(L, arg)));
+                written = SStrPrintf(dest, space, spec,
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                    lua_native_number2int(luaL_checknumber(L, arg))
+#else
+                    static_cast<int32_t>(luaL_checknumber(L, arg))
+#endif
+                );
 
                 if (written > 0) {
                     lua_convertdecimal(dest);
@@ -424,7 +465,13 @@ char* FrameScript_Sprintf(lua_State* L, int32_t index, char* buffer, uint32_t bu
             case 'u':
             case 'x':
             case 'X':
-                written = SStrPrintf(dest, space, spec, static_cast<int64_t>(luaL_checknumber(L, arg)));
+                written = SStrPrintf(dest, space, spec,
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                    static_cast<uint32_t>(lua_native_number2integer(luaL_checknumber(L, arg)))
+#else
+                    static_cast<int64_t>(luaL_checknumber(L, arg))
+#endif
+                );
 
                 if (written > 0) {
                     dest += written;
@@ -489,6 +536,22 @@ char* FrameScript_Sprintf(lua_State* L, int32_t index, char* buffer, uint32_t bu
 
 // VERIFY: f3b61628 manual
 // OFFSET: 0x008183A0
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+static bool s_variableWriteFailed;
+static int32_t FrameScript_WriteVariable(HOSFILE file, const void* bytes, uint32_t size, uint32_t* written) {
+    *written = 0;
+    if (s_variableWriteFailed) return 0;
+    while (*written < size) {
+        uint32_t part = 0;
+        if (!OsWriteFile(file, static_cast<const char*>(bytes) + *written, size - *written, &part)
+            || !part || part > size - *written) { s_variableWriteFailed = true; return 0; }
+        *written += part;
+    }
+    return 1;
+}
+#else
+#define FrameScript_WriteVariable OsWriteFile
+#endif
 static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t depth) {
     uint32_t written;
 
@@ -553,13 +616,13 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
                 string++;
 
                 if (pos >= sizeof(s_printBuffer) - 8) {
-                    OsWriteFile(file, s_printBuffer, pos, &written);
+                    FrameScript_WriteVariable(file, s_printBuffer, pos, &written);
                     pos = 0;
                 }
             }
 
             s_printBuffer[pos] = '"';
-            OsWriteFile(file, s_printBuffer, pos + 1, &written);
+            FrameScript_WriteVariable(file, s_printBuffer, pos + 1, &written);
 
             return;
         }
@@ -574,7 +637,7 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
             if (lua_type(L, -1) != LUA_TNIL) {
                 lua_pop(L, 2);
                 SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "nil --[[ skipped recursive table ]]");
-                OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
 
                 return;
             }
@@ -586,7 +649,7 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
             lua_pop(L, 1);
 
             SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "{\r\n");
-            OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+            FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
 
             if (depth < sizeof(s_printIndent)) {
                 if (depth > 0) {
@@ -601,10 +664,10 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
             for (int32_t i = 1; i <= count; i++) {
                 lua_rawgeti(L, index, i);
                 SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s", s_printIndent);
-                OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                 PrintVariable(file, L, -1, depth + 1);
                 SStrPrintf(s_printBuffer, sizeof(s_printBuffer), ", -- [%d]\r\n", i);
-                OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                 lua_pop(L, 1);
             }
 
@@ -617,20 +680,24 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
 
                         if (std::isnan(key)) {
                             SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s--[[ skipped entry with nan key ]]\r\n", s_printIndent);
-                            OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                            FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                             lua_pop(L, 1);
                             continue;
                         }
 
                         if (!std::isfinite(key)) {
                             SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s--[[ skipped entry with inf key ]]\r\n", s_printIndent);
-                            OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                            FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                             lua_pop(L, 1);
                             continue;
                         }
 
                         if (count > 0) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                            uint32_t n = key > 0 && key <= count ? static_cast<uint32_t>(key) : 0;
+#else
                             uint32_t n = static_cast<uint32_t>(key);
+#endif
 
                             if (key > 0 && key <= count && n == key) {
                                 lua_pop(L, 1);
@@ -643,19 +710,19 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
                     case LUA_TBOOLEAN:
                     case LUA_TSTRING:
                         SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s[", s_printIndent);
-                        OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                        FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                         PrintVariable(file, L, -2, depth + 1);
                         SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "] = ");
-                        OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                        FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                         PrintVariable(file, L, -1, depth + 1);
                         SStrPrintf(s_printBuffer, sizeof(s_printBuffer), ",\r\n");
-                        OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                        FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                         lua_pop(L, 1);
                         break;
 
                     default:
                         SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s--[[ skipped entry with %s key ]]\r\n", s_printIndent, lua_typename(L, lua_type(L, -2)));
-                        OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+                        FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
                         lua_pop(L, 1);
                         break;
                 }
@@ -666,7 +733,7 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
             }
 
             SStrPrintf(s_printBuffer, sizeof(s_printBuffer), "%s}", s_printIndent);
-            OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+            FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
 
             lua_rawgeti(L, LUA_REGISTRYINDEX, s_recursiveTableHash);
             lua_pushvalue(L, tableIndex);
@@ -697,13 +764,17 @@ static void PrintVariable(HOSFILE file, lua_State* L, int32_t index, int32_t dep
             break;
     }
 
-    OsWriteFile(file, s_printBuffer, SStrLen(s_printBuffer), &written);
+    FrameScript_WriteVariable(file, s_printBuffer, SStrLen(s_printBuffer), &written);
 }
 
 // VERIFY: b1d469c4 auto
 // OFFSET: 0x00818B50
 int32_t FrameScript_PrintVariable(HOSFILE file, const char* name) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    s_variableWriteFailed = false;
+#endif
 
     lua_pushstring(L, name);
     lua_rawget(L, LUA_GLOBALSINDEX);
@@ -721,27 +792,43 @@ int32_t FrameScript_PrintVariable(HOSFILE file, const char* name) {
     lua_pop(L, 1);
 
     uint32_t written;
-    OsWriteFile(file, "\r\n", 2, &written);
-    OsWriteFile(file, name, SStrLen(name), &written);
-    OsWriteFile(file, " = ", 3, &written);
+    FrameScript_WriteVariable(file, "\r\n", 2, &written);
+    FrameScript_WriteVariable(file, name, SStrLen(name), &written);
+    FrameScript_WriteVariable(file, " = ", 3, &written);
     PrintVariable(file, L, -1, 1);
     lua_pop(L, 1);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    return !s_variableWriteFailed;
+#else
     return 1;
+#endif
 }
 
 // VERIFY: fd959c82 manual
 // OFFSET: 0x00818C40
 int32_t FrameScript_LoadVariables(const char* filename, CStatus* status) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     lua_State* L = s_context;
 
     char chunkname[261];
     SStrPrintf(chunkname, sizeof(chunkname), "@%s", filename);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    std::string normalized;
+    std::vector<uint8_t> owned;
+    bool loaded = FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::SavedVariables, filename, normalized, owned);
+    const void* data = owned.empty() ? static_cast<const void*>("") : owned.data();
+    uint32_t bytes = static_cast<uint32_t>(owned.size());
+#else
     void* data;
     uint32_t bytes;
-
-    if (!SFile::ReadFile(nullptr, filename, &data, &bytes, 0, 1, nullptr)) {
+    bool loaded = SFile::ReadFile(nullptr, filename, &data, &bytes, 0, 1, nullptr);
+#endif
+    if (!loaded) {
         if (status) {
             status->Add(STATUS_ERROR, "Error loading %s", filename);
         }
@@ -760,12 +847,16 @@ int32_t FrameScript_LoadVariables(const char* filename, CStatus* status) {
             lua_pop(L, 1);
         }
 
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
         SFile::Unload(data);
+#endif
 
         return 0;
     }
 
+#if !defined(WOWDECOMP_PORTABLE_RUNTIME)
     SFile::Unload(data);
+#endif
 
     lua_newtable(L);
     lua_insert(L, -3);
@@ -807,6 +898,10 @@ int32_t FrameScript_LoadVariables(const char* filename, CStatus* status) {
 // VERIFY: d3ad0327 auto
 // OFFSET: 0x00818E50
 int32_t FrameScript_ExecuteBuffer(const char* buffer, size_t bytes, const char* bufferName, CStatus* status, const char* wrapper) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     lua_State* L = s_context;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, s_errorHandlerRef);
@@ -849,6 +944,19 @@ int32_t FrameScript_ExecuteBuffer(const char* buffer, size_t bytes, const char* 
 // VERIFY: 82c92a71 auto
 // OFFSET: 0x00818F60
 int32_t FrameScript_ExecuteFile(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+    std::vector<uint8_t> owned;
+    std::string path;
+    if (!FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Interface, filename, path, owned)) {
+        if (status) status->Add(STATUS_ERROR, "Error loading %s", filename ? filename : "<null>");
+        return 0;
+    }
+    const char* source = owned.empty() ? "" : reinterpret_cast<const char*>(owned.data());
+    if (md5) MD5Update(md5, reinterpret_cast<const uint8_t*>(source), static_cast<uint32_t>(owned.size()));
+    return FrameScript_ExecuteBuffer(source, owned.size(), ("@" + path).c_str(), status, wrapper);
+#else
     const char* path = filename;
     char normalized[260];
 
@@ -900,15 +1008,29 @@ int32_t FrameScript_ExecuteFile(const char* filename, const char* wrapper, MD5_C
     SFile::Unload(data);
 
     return result;
+#endif
 }
 
 // VERIFY: 950ee226 auto
 // OFFSET: 0x008190C0
 int32_t FrameScript_CompileFunction(const char* name, const char* wrapper, const char* body, CStatus* status) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     lua_State* L = s_context;
 
     size_t size = SStrLen(wrapper) + SStrLen(body) + 1;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (size > 8 * 1024 * 1024u) {
+        if (status) status->Add(STATUS_ERROR, "FrameScript function exceeds native source limit");
+        return LUA_NOREF;
+    }
+    std::vector<char> storage(size);
+    char* source = storage.data();
+#else
     char* source = static_cast<char*>(alloca(size));
+#endif
     SStrPrintf(source, size, wrapper, body);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, s_errorHandlerRef);
@@ -944,12 +1066,17 @@ int32_t FrameScript_CompileFunction(const char* name, const char* wrapper, const
 // VERIFY: 631b4ce4 auto
 // OFFSET: 0x008191F0
 void FrameScript_ReleaseFunction(int32_t function) {
+    FS_NATIVE_CHECK();
     luaL_unref(s_context, LUA_REGISTRYINDEX, function);
 }
 
 // VERIFY: c2fefd61 auto
 // OFFSET: 0x00819210
 void FrameScript_Execute(const char* source, const char* filename, const char* taint) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     const char* savedTaint = lua_tainted;
 
     if (++lua_taintexpected && !lua_taintedclosure) {
@@ -983,18 +1110,21 @@ void FrameScript_Execute(const char* source, const char* filename, const char* t
 // VERIFY: 755df109 auto
 // OFFSET: 0x008192E0
 double FrameScript_GetScriptCPUUsage() {
+    FS_NATIVE_CHECK();
     return s_scriptTimeUsed * s_scriptTimeDivisor;
 }
 
 // VERIFY: fa9bf256 auto
 // OFFSET: 0x008192F0
 int32_t FrameScript_GetErrorHandlerReference() {
+    FS_NATIVE_CHECK();
     return s_errorHandlerRef;
 }
 
 // VERIFY: 1baa9ed0 auto
 // OFFSET: 0x00819300
 void FrameScript_PackVariable(lua_State* L, const char* name, int32_t depth, char* buffer, uint32_t bufferLen) {
+    FS_NATIVE_CHECK();
     char line[1024];
 
     if (depth < sizeof(s_packIndent)) {
@@ -1057,7 +1187,13 @@ void FrameScript_PackVariable(lua_State* L, const char* name, int32_t depth, cha
                 while (lua_next(L, -2)) {
                     if (lua_isnumber(L, -2)) {
                         char key[32];
-                        SStrPrintf(key, sizeof(key), "%d", static_cast<int32_t>(lua_tonumber(L, -2)));
+                        SStrPrintf(key, sizeof(key), "%d",
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+                            lua_native_number2int(lua_tonumber(L, -2))
+#else
+                            static_cast<int32_t>(lua_tonumber(L, -2))
+#endif
+                        );
                         FrameScript_PackVariable(L, key, 1, buffer, bufferLen);
                     } else {
                         FrameScript_PackVariable(L, lua_tostring(L, -2), 1, buffer, bufferLen);
@@ -1101,6 +1237,7 @@ void FrameScript_PackVariable(lua_State* L, const char* name, int32_t depth, cha
 // VERIFY: 472836ad auto
 // OFFSET: 0x00819730
 static int32_t FrameScript_HandleError(lua_State* L) {
+    FS_NATIVE_CHECK();
     if (!lua_isstring(L, -1)) {
         lua_pushstring(L, "UNKNOWN ERROR");
         lua_insert(L, -1);
@@ -1118,11 +1255,20 @@ static int32_t FrameScript_HandleError(lua_State* L) {
         lua_replace(L, -2);
     }
 
-    if (s_errorHandlerFunc != -1) {
+    if (s_errorHandlerFunc != -1
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        && !s_inErrorHandler
+#endif
+    ) {
         s_inErrorHandler = 1;
         lua_rawgeti(L, LUA_REGISTRYINDEX, s_errorHandlerFunc);
         lua_insert(L, -2);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        // A failing user handler must not strand the process in error-handler mode.
+        lua_pcall(L, 1, 1, 0);
+#else
         lua_call(L, 1, 1);
+#endif
         s_inErrorHandler = 0;
     }
 
@@ -1132,8 +1278,19 @@ static int32_t FrameScript_HandleError(lua_State* L) {
 // VERIFY: 6d24b23a auto
 // OFFSET: 0x00819BB0
 int32_t FrameScript_Initialize(int32_t profile) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::RequireIdle();
+    if (s_context) throw std::logic_error("FrameScript is already initialized");
+    lua_tainted = nullptr; lua_taintexpected = 0; lua_taintedclosure = 0;
+    lua_closuretaint = nullptr; lua_gctag = nullptr;
+    s_inErrorHandler = 0;
+#endif
     s_mempool = luaM_initPool();
     s_context = lua_newstate(luaM_reallocPool, s_mempool, profile);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (!s_context) { luaM_freePool(s_mempool); s_mempool = nullptr; return 0; }
+#endif
     s_scriptTimeUsed = 0;
     s_scriptProfileEnabled = profile;
     s_errorHandlerFunc = -1;
@@ -1169,6 +1326,7 @@ int32_t FrameScript_Initialize(int32_t profile) {
 // VERIFY: 65dd09ef manual
 // OFFSET: 0x00819D40
 const char* FrameScript_GetText(const char* token, int32_t count, FRAMESCRIPT_GENDER gender) {
+    FS_NATIVE_CHECK();
     // STATIC: 0x00D3FCE0
     static const char* text;
 
@@ -1215,6 +1373,10 @@ const char* FrameScript_GetText(const char* token, int32_t count, FRAMESCRIPT_GE
 // VERIFY: cfc227f0 manual
 // OFFSET: 0x00819EA0
 void FrameScript_Execute(int32_t function, FrameScript_Object* object, int32_t argCount, const char* taint, FrameScript_EventObject* event) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     lua_State* L = s_context;
     int64_t start = 0;
 
@@ -1360,10 +1522,14 @@ void FrameScript_Execute(int32_t function, FrameScript_Object* object, int32_t a
 // VERIFY: b79cad76 auto
 // OFFSET: 0x0081A450
 void FrameScript_GetEventCPUUsage(const char* name, double* time, uint32_t* count) {
+    FS_NATIVE_CHECK();
     int64_t timeUsed = 0;
     uint32_t signalCount = 0;
 
     for (FrameScript_EventObject* event = s_scriptEventsHash.m_fulllist.Head(); event; event = s_scriptEventsHash.m_fulllist.Next(event)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        if (!name || SStrCmpI(name, event->m_key.m_str, STORM_MAX_STR)) continue;
+#endif
         timeUsed += event->m_timeUsed;
         signalCount += event->m_signalCount;
     }
@@ -1375,6 +1541,7 @@ void FrameScript_GetEventCPUUsage(const char* name, double* time, uint32_t* coun
 // VERIFY: ae3608a7 manual
 // OFFSET: 0x0081A4D0
 void FrameScript_ResetCPUUsage() {
+    FS_NATIVE_CHECK();
     s_scriptTimeUsed = 0;
 
     for (FrameScript_EventObject* event = s_scriptEventsHash.m_fulllist.Head(); event; event = s_scriptEventsHash.m_fulllist.Next(event)) {
@@ -1389,11 +1556,16 @@ void FrameScript_ResetCPUUsage() {
 // OFFSET: 0x0081A6B0
 FrameScript_EventObject::~FrameScript_EventObject() {
     this->m_listeners.Clear();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->m_registerListeners.Clear();
+    this->m_unregisterListeners.Clear();
+#endif
 }
 
 // VERIFY: 136616c2 manual
 // OFFSET: 0x0081A790
 void FrameScript_RegisterScriptEvent(FrameScript_Object* object, FrameScript_EventObject* event) {
+    FS_NATIVE_CHECK();
     if (event->m_pendingSignalCount) {
         for (EVENTLISTENERNODE* node = event->m_registerListeners.Head(); !event->m_registerListeners.IsEnd(node); node = event->m_registerListeners.RawNext(node)) {
             if (node->m_listener == object) {
@@ -1412,6 +1584,7 @@ void FrameScript_RegisterScriptEvent(FrameScript_Object* object, FrameScript_Eve
 // VERIFY: 1181f6bd manual
 // OFFSET: 0x0081A8C0
 void FrameScript_UnregisterScriptEvent(FrameScript_Object* object, FrameScript_EventObject* event) {
+    FS_NATIVE_CHECK();
     if (event->m_pendingSignalCount) {
         for (EVENTLISTENERNODE* node = event->m_unregisterListeners.Head(); !event->m_unregisterListeners.IsEnd(node); node = event->m_unregisterListeners.RawNext(node)) {
             if (node->m_listener == object) {
@@ -1434,10 +1607,22 @@ void FrameScript_UnregisterScriptEvent(FrameScript_Object* object, FrameScript_E
 // VERIFY: 29317daf manual
 // OFFSET: 0x0081A9A0
 void FrameScript_Destroy() {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::RequireIdle();
+    if (!s_context) return;
+    FrameScript::Native::Execution closing;
+#endif
     lua_close(s_context);
     s_context = nullptr;
     luaM_freePool(s_mempool);
     s_mempool = nullptr;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    s_errorHandlerRef = s_errorHandlerFunc = s_recursiveTableHash = -1;
+    s_inErrorHandler = 0;
+    lua_tainted = nullptr; lua_taintexpected = 0; lua_taintedclosure = 0;
+    lua_closuretaint = nullptr; lua_gctag = nullptr;
+#endif
     s_scriptEventsHash.Clear();
     s_scriptEvents.Clear();
 }
@@ -1445,10 +1630,17 @@ void FrameScript_Destroy() {
 // VERIFY: 8009da99 manual
 // OFFSET: 0x0081AA00
 void FrameScript_SignalEvent(uint32_t index, lua_State* L, int32_t argCount) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     if (!s_scriptEvents.Count()) {
         return;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (index >= s_scriptEvents.Count()) return;
+#endif
     FrameScript_EventObject* event = s_scriptEvents[index];
 
     if (!event) {
@@ -1488,6 +1680,10 @@ void FrameScript_SignalEvent(uint32_t index, lua_State* L, int32_t argCount) {
     }
 
     event->m_pendingSignalCount--;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Nested dispatch must leave pending mutations until the outermost signal.
+    if (event->m_pendingSignalCount) return;
+#endif
 
     for (node = event->m_unregisterListeners.Head(); !event->m_unregisterListeners.IsEnd(node); node = event->m_unregisterListeners.DeleteNode(node)) {
         FrameScript_UnregisterScriptEvent(node->m_listener, event);
@@ -1501,6 +1697,7 @@ void FrameScript_SignalEvent(uint32_t index, lua_State* L, int32_t argCount) {
 // VERIFY: 96fb99f3 auto
 // OFFSET: 0x0081AC70
 void FrameScript_Flush() {
+    FS_NATIVE_CHECK();
     if (s_context) {
         FrameScript_Destroy();
         FrameScript_Initialize(s_scriptProfileEnabled);
@@ -1510,10 +1707,17 @@ void FrameScript_Flush() {
 // VERIFY: 34c0cd89 manual
 // OFFSET: 0x0081AC90
 void vFrameScript_SignalEvent(uint32_t index, const char* format, va_list args) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     if (!s_scriptEvents.Count()) {
         return;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (index >= s_scriptEvents.Count()) return;
+#endif
     FrameScript_EventObject* event = s_scriptEvents[index];
 
     if (!event || !event->m_listeners.Head()) {
@@ -1590,6 +1794,7 @@ FrameScript_EventObject::FrameScript_EventObject() {
 // VERIFY: d3aa1ca5 manual
 // OFFSET: 0x0081B510
 TSList<EVENTLISTENERNODE>* FrameScript_GetEventListeners(const char* name) {
+    FS_NATIVE_CHECK();
     FrameScript_EventObject* event = s_scriptEventsHash.Ptr(name);
 
     return event ? &event->m_listeners : nullptr;
@@ -1598,6 +1803,10 @@ TSList<EVENTLISTENERNODE>* FrameScript_GetEventListeners(const char* name) {
 // VERIFY: 3031d147 auto
 // OFFSET: 0x0081B530
 void FrameScript_SignalEvent(uint32_t index, const char* format, ...) {
+    FS_NATIVE_CHECK();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::Execution executing;
+#endif
     va_list args;
     va_start(args, format);
     vFrameScript_SignalEvent(index, format, args);
@@ -1607,6 +1816,7 @@ void FrameScript_SignalEvent(uint32_t index, const char* format, ...) {
 // VERIFY: 2207d978 manual
 // OFFSET: 0x0081B5F0
 void FrameScript_CreateEvents(const char** names, uint32_t count) {
+    FS_NATIVE_CHECK();
     s_scriptEvents.SetCount(count);
 
     for (uint32_t i = 0; i < count; i++) {

@@ -127,6 +127,9 @@ void CStatus::Prepend(STATUS_TYPE severity, const char* format, ...) {
     va_list args;
     va_start(args, format);
     SStrVPrintf(buffer, sizeof(buffer), format, args);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    va_end(args);
+#endif
 
     if (!buffer[0]) {
         return;
@@ -156,6 +159,9 @@ void CStatus::Add(STATUS_TYPE severity, const char* format, ...) {
     va_list args;
     va_start(args, format);
     SStrVPrintf(buffer, sizeof(buffer), format, args);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    va_end(args);
+#endif
 
     if (!buffer[0]) {
         return;
