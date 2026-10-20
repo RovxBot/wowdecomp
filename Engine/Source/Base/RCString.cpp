@@ -52,7 +52,13 @@ void CStringMemory::AllocateBlock(uint32_t size) {
 // VERIFY: dc39ef0f auto
 // OFFSET: 0x0047CE40
 char* CStringMemory::New(const char* str) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Native pointer links need pointer alignment, including on ARM64. Original
+    // four-byte entry rounding below belongs to the historical Windows body.
+    size_t bytes = (SStrLen(str) + sizeof(char*) + alignof(char*)) & ~(alignof(char*) - 1);
+#else
     uint32_t bytes = (SStrLen(str) + sizeof(char*) + 4) & ~3;
+#endif
 
     if (this->m_cursor + bytes > this->m_blockEnd) {
         this->AllocateBlock(bytes);

@@ -1,0 +1,103 @@
+name: M3 original XML runtime
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'native-port/**']
+    paths:
+      - '.github/workflows/m3-xml.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableLua/**'
+      - 'Engine/Source/PortableXML/**'
+      - 'Engine/Source/FrameXML/**'
+      - 'Engine/Source/PortableFrameScript/**'
+      - 'Engine/Source/FrameScript/**'
+      - 'Engine/Source/XML/**'
+      - 'Engine/Source/Services/Portable/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'Engine/Source/PortableAsync/**'
+      - 'ThirdParty/**'
+      - 'Engine/Source/Base/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Engine/Source/lua-5.1/**'
+      - 'Tools/NativeLua/**'
+      - 'Tools/NativeXML/**'
+      - 'Tools/NativeFrameScript/**'
+      - 'Tools/Porting/**'
+  pull_request:
+    paths:
+      - '.github/workflows/m3-xml.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/Source/PortableCore/**'
+      - 'Engine/Source/PortableLua/**'
+      - 'Engine/Source/PortableXML/**'
+      - 'Engine/Source/FrameXML/**'
+      - 'Engine/Source/PortableFrameScript/**'
+      - 'Engine/Source/FrameScript/**'
+      - 'Engine/Source/XML/**'
+      - 'Engine/Source/Services/Portable/**'
+      - 'Engine/Source/PortableFiles/**'
+      - 'Engine/Source/PortableAssets/**'
+      - 'Engine/Source/PortableAsync/**'
+      - 'ThirdParty/**'
+      - 'Engine/Source/Base/**'
+      - 'Engine/Source/Storm/**'
+      - 'Engine/Source/Os/**'
+      - 'Engine/Source/BlizzardCore/**'
+      - 'Engine/Source/lua-5.1/**'
+      - 'Tools/NativeLua/**'
+      - 'Tools/NativeXML/**'
+      - 'Tools/NativeFrameScript/**'
+      - 'Tools/Porting/**'
+permissions:
+  contents: read
+concurrency:
+  group: m3-xml-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  xml:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            preset: linux-xml
+            python: python3
+          - runner: ubuntu-24.04
+            preset: linux-xml-asan
+            python: python3
+          - runner: macos-14
+            preset: macos-arm64-xml
+            python: python3
+          - runner: windows-2022
+            preset: windows-xml
+            python: python
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Check out product source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check source-selection and graph-audit fixtures
+        run: ${{ matrix.python }} -m unittest discover -s Tools/Porting -p 'test_*.py' -v
+      - name: Compile and check original XML runtime
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ${{ matrix.python }} Tools/Porting/run_xml_checks.py --preset ${{ matrix.preset }}
+      - name: Retain XML qualification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m3-${{ matrix.preset }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}/
+          if-no-files-found: error
+          retention-days: 14
