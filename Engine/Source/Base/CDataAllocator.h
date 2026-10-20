@@ -39,7 +39,11 @@ class CDataAllocator {
 // OFFSET: [0x007D4920, 0x007E55F0, 0x007E6C60]
 template <class T>
 T* CDataAllocator::New(int32_t zero) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void* data = this->GetData(zero, typeid(T).name(), SLOG_OBJECT);
+#else
     void* data = this->GetData(zero, typeid(T).raw_name(), SLOG_OBJECT);
+#endif
     return data ? new (data) T : nullptr;
 }
 

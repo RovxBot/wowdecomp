@@ -3,6 +3,10 @@
 #include <cstring>
 #include <typeinfo>
 #include <expat.h>
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Portable/Runtime.h"
+#include <string_view>
+#endif
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/Base/CDataAllocator.h"
 #include "Engine/Source/Storm/H/storm.h"
@@ -12,6 +16,12 @@ static XML_Parser s_parser;
 
 // STATIC: 0x00D3F714
 static XMLNode* s_freeNodes;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+// Native bounds around the original callbacks; no native binary VERIFY claim.
+static size_t s_depth, s_nodes, s_bodyBytes;
+static bool s_failed;
+static XMLNode* s_lastChildren[257];
+#endif
 
 // STATIC: 0x00D3F718
 CDataAllocator XMLNode::s_allocator(sizeof(XMLNode), 1170);
@@ -20,6 +30,10 @@ CDataAllocator XMLNode::s_allocator(sizeof(XMLNode), 1170);
 // OFFSET: 0x008145B0
 static void end_element(void* userData, const char* name) {
     XMLTree* tree = static_cast<XMLTree*>(userData);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (s_failed) return;
+    --s_depth;
+#endif
     tree->m_current = tree->m_current->m_parent;
 }
 
@@ -28,6 +42,11 @@ static void end_element(void* userData, const char* name) {
 static void handle_body(void* userData, const char* s, int len) {
     XMLNode* node = static_cast<XMLTree*>(userData)->m_current;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (s_failed || !node) return;
+    if (len < 0 || size_t(len) > 8 * 1024 * 1024u - s_bodyBytes) { s_failed = true; return; }
+    s_bodyBytes += size_t(len);
+#endif
     if (!len) {
         return;
     }
@@ -59,6 +78,9 @@ static void handle_body(void* userData, const char* s, int len) {
 // VERIFY: 39eb725a auto
 // OFFSET: 0x00814650
 void XMLNode::Detach() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     if (!this->m_parent) {
         return;
     }
@@ -82,6 +104,9 @@ void XMLNode::Detach() {
 // VERIFY: 5934cd10 auto
 // OFFSET: 0x008146A0
 void XMLNode::Init(XMLNode* parent, const char* name) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     this->m_parent = parent;
     this->m_child = nullptr;
     this->m_name.Copy(name);
@@ -102,6 +127,9 @@ void XMLNode::Init(XMLNode* parent, const char* name) {
 // VERIFY: 626eada9 auto
 // OFFSET: 0x008146F0
 XMLNode* XMLNode::GetChildByName(const char* name) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     for (XMLNode* child = this->m_child; child; child = child->m_next) {
         if (!SStrCmpI(child->m_name.m_str, name, STORM_MAX_STR)) {
             return child;
@@ -114,6 +142,9 @@ XMLNode* XMLNode::GetChildByName(const char* name) {
 // VERIFY: 106137c0 manual
 // OFFSET: 0x00814730
 const char* XMLNode::GetAttributeByName(const char* name) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     uint32_t count = this->m_attributes.Count();
 
     for (uint32_t i = 0; i < count; i++) {
@@ -128,6 +159,9 @@ const char* XMLNode::GetAttributeByName(const char* name) {
 // VERIFY: dac86679 manual
 // OFFSET: 0x008147A0
 void XMLTree_Cleanup() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireNoTrees();
+#endif
     if (s_parser) {
         XML_ParserFree(s_parser);
         s_parser = nullptr;
@@ -144,13 +178,26 @@ void XMLTree_Cleanup() {
 // VERIFY: e6755991 manual
 // OFFSET: 0x00814960
 XMLNode::~XMLNode() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     if (this->m_userData) {
         delete this->m_userData;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Bound stack use for wide XML sibling lists as well as nested trees.
+    while (this->m_next) {
+        XMLNode* node = this->m_next;
+        this->m_next = node->m_next;
+        node->m_next = nullptr;
+        delete node;
+    }
+#else
     if (this->m_next) {
         delete this->m_next;
     }
+#endif
 
     if (this->m_child) {
         delete this->m_child;
@@ -163,7 +210,12 @@ XMLNode::~XMLNode() {
 
 // INLINED
 void* XMLNode::operator new(size_t bytes) noexcept {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+    return XMLNode::s_allocator.GetData(0, typeid(XMLNode).name(), SLOG_OBJECT);
+#else
     return XMLNode::s_allocator.GetData(0, typeid(XMLNode).raw_name(), SLOG_OBJECT);
+#endif
 }
 
 // INLINED
@@ -182,6 +234,10 @@ XMLNode::XMLNode(XMLNode* parent, const char* name) {
 // VERIFY: ee81cbfc manual
 // OFFSET: 0x00814B50
 static void begin_element(void* userData, const char* name, const char** atts) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (s_failed) return;
+    if (++s_depth > 256 || ++s_nodes > 65536) { s_failed = true; return; }
+#endif
     XMLTree* tree = static_cast<XMLTree*>(userData);
     XMLNode* node = s_freeNodes;
 
@@ -195,7 +251,11 @@ static void begin_element(void* userData, const char* name, const char** atts) {
     XMLNode* parent = tree->m_current;
 
     if (parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        XMLNode* child = s_lastChildren[s_depth - 1];
+#else
         XMLNode* child = parent->m_child;
+#endif
 
         if (child) {
             while (child->m_next) {
@@ -210,6 +270,10 @@ static void begin_element(void* userData, const char* name, const char** atts) {
         tree->m_root = node;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    s_lastChildren[s_depth - 1] = node;
+    s_lastChildren[s_depth] = nullptr;
+#endif
     tree->m_current = node;
 
     uint32_t count = 0;
@@ -229,6 +293,9 @@ static void begin_element(void* userData, const char* name, const char** atts) {
 // VERIFY: 8b011be3 manual
 // OFFSET: 0x00814C40
 void XMLNode::SetAttribute(const char* name, const char* value) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     uint32_t count = this->m_attributes.Count();
 
     for (uint32_t i = 0; i < count; i++) {
@@ -246,15 +313,27 @@ void XMLNode::SetAttribute(const char* name, const char* value) {
 // VERIFY: ec65dbaa manual
 // OFFSET: 0x00814CE0
 void XMLNode::Recycle() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     if (this->m_userData) {
         this->m_userData->Release();
         this->m_userData = nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    while (this->m_next) {
+        XMLNode* node = this->m_next;
+        this->m_next = node->m_next;
+        node->m_next = nullptr;
+        node->Recycle();
+    }
+#else
     if (this->m_next) {
         this->m_next->Recycle();
         this->m_next = nullptr;
     }
+#endif
 
     if (this->m_child) {
         this->m_child->Recycle();
@@ -274,16 +353,35 @@ void XMLNode::Recycle() {
 // VERIFY: 6710e971 manual
 // OFFSET: 0x00814D60
 void XMLTree_Free(XMLTree* tree) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     if (tree->m_root) {
         tree->m_root->Recycle();
     }
 
     SMemFree(tree, __FILE__, __LINE__, 0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::TreeFreed();
+#endif
 }
 
 // VERIFY: 5504e9d7 manual
 // OFFSET: 0x00814D90
 XMLTree* XMLTree_Load(const char* data, uint32_t size) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+    if (!data || !size || size > 8 * 1024 * 1024u) return nullptr;
+    // This first native dialect admits byte-oriented interface XML. Reject DTDs
+    // before the old parser can expand entities, including in failed documents.
+    // NUL rejection also makes UTF-16/32 visibly unavailable at this boundary.
+    std::string_view source(data, size);
+    if (source.find('\0') != source.npos || source.find("<!DOCTYPE") != source.npos) return nullptr;
+    s_depth = s_nodes = s_bodyBytes = 0;
+    s_failed = false;
+    std::memset(s_lastChildren, 0, sizeof(s_lastChildren));
+    FrameXML::Native::TreeCreated();
+#endif
     XMLTree* tree = static_cast<XMLTree*>(SMemAlloc(sizeof(XMLTree), __FILE__, __LINE__, SMEM_FLAG_ZEROMEMORY));
 
     if (s_parser) {
@@ -296,7 +394,11 @@ XMLTree* XMLTree_Load(const char* data, uint32_t size) {
     XML_SetCharacterDataHandler(s_parser, handle_body);
     XML_SetUserData(s_parser, tree);
 
-    if (XML_Parse(s_parser, data, size, 1)) {
+    bool parsed = XML_Parse(s_parser, data, size, 1) != 0;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    parsed = parsed && !s_failed;
+#endif
+    if (parsed) {
         return tree;
     }
 
@@ -308,6 +410,9 @@ XMLTree* XMLTree_Load(const char* data, uint32_t size) {
 // VERIFY: 072e861b auto
 // OFFSET: 0x008BE770
 XMLNode* XMLTree_GetRoot(XMLTree* tree) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireOwner();
+#endif
     return tree->m_root;
 }
 

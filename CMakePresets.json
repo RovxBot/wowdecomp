@@ -284,6 +284,34 @@
         "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
         "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON"
       }
+    },
+    {
+      "name": "linux-xml",
+      "inherits": "linux-framescript",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_XML": "ON"
+      }
+    },
+    {
+      "name": "linux-xml-asan",
+      "inherits": "linux-framescript-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_XML": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-xml",
+      "inherits": "macos-arm64-framescript",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_XML": "ON"
+      }
+    },
+    {
+      "name": "windows-xml",
+      "inherits": "windows-framescript",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_XML": "ON"
+      }
     }
   ]
 }
