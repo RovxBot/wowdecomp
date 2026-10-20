@@ -1,4 +1,10 @@
 #include <cstdint>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#define FS_NATIVE_CHECK() FrameScript::Native::RequireOwner()
+#else
+#define FS_NATIVE_CHECK() ((void)0)
+#endif
 #include "Engine/Source/FrameScript/FrameScript_Object.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/Storm/H/storm.h"
@@ -11,6 +17,7 @@ int32_t FrameScript_Object::s_objectTypes;
 // VERIFY: 53798b75 auto
 // OFFSET: 0x00482AA0
 const char* FrameScript_Object::GetDisplayName() {
+    FS_NATIVE_CHECK();
     const char* name = this->GetName();
 
     return name ? name : "<unnamed>";
@@ -19,6 +26,7 @@ const char* FrameScript_Object::GetDisplayName() {
 // VERIFY: da17dfd1 auto
 // OFFSET: 0x00488380
 int32_t FrameScript_Object::GetLuaObjectRef() {
+    FS_NATIVE_CHECK();
     if (!this->m_luaRegistered) {
         this->RegisterScriptObject(nullptr);
     }
@@ -29,6 +37,7 @@ int32_t FrameScript_Object::GetLuaObjectRef() {
 // VERIFY: 1a7b2f73 auto
 // OFFSET: 0x00816790
 int32_t FrameScript_Object::CreateScriptMetaTable(lua_State* L, void (*registerFunc)(lua_State*)) {
+    FS_NATIVE_CHECK();
     lua_newtable(L);
     lua_pushstring(L, "__index");
     lua_newtable(L);
@@ -41,6 +50,7 @@ int32_t FrameScript_Object::CreateScriptMetaTable(lua_State* L, void (*registerF
 // VERIFY: 9883b20b manual
 // OFFSET: 0x008167E0
 void FrameScript_Object::FillScriptMethodTable(lua_State* L, FrameScript_Method* methods, int32_t count) {
+    FS_NATIVE_CHECK();
     for (int32_t i = 0; i < count; i++) {
         lua_pushstring(L, methods[i].m_name);
         lua_pushcfunction(L, methods[i].m_method);
@@ -51,6 +61,7 @@ void FrameScript_Object::FillScriptMethodTable(lua_State* L, FrameScript_Method*
 // VERIFY: 12a35642 auto
 // OFFSET: 0x00816830
 FrameScript_Object::ScriptIx* FrameScript_Object::GetScriptByName(const char* name, FrameScript_Object::ScriptData& data) {
+    FS_NATIVE_CHECK();
     if (!SStrCmpI(name, "OnEvent", STORM_MAX_STR)) {
         data.m_wrapper = "return function(self,event,...) %s end";
         return &this->m_onEvent;
@@ -62,6 +73,7 @@ FrameScript_Object::ScriptIx* FrameScript_Object::GetScriptByName(const char* na
 // VERIFY: 91b0dc03 auto
 // OFFSET: 0x00816870
 void FrameScript_Object::GetScriptTime(lua_State* L, const FrameScript_Object::ScriptIx& script, double* time, uint32_t* calls) {
+    FS_NATIVE_CHECK();
     if (!script.m_luaRef) {
         return;
     }
@@ -82,6 +94,7 @@ void FrameScript_Object::GetScriptTime(lua_State* L, const FrameScript_Object::S
 // OFFSET: 0x00819810
 FrameScript_Object::ScriptIx::~ScriptIx() {
     if (this->m_luaRef) {
+        FS_NATIVE_CHECK();
         luaL_unref(s_context, LUA_REGISTRYINDEX, this->m_luaRef);
     }
 }
@@ -89,6 +102,10 @@ FrameScript_Object::ScriptIx::~ScriptIx() {
 // VERIFY: 37adfba3 auto
 // OFFSET: 0x00819830
 FrameScript_Object::FrameScript_Object() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FrameScript::Native::ObjectCreated();
+#endif
+    FS_NATIVE_CHECK();
     this->m_luaRegistered = 0;
     this->m_luaObjectRef = LUA_NOREF;
 }
@@ -96,11 +113,18 @@ FrameScript_Object::FrameScript_Object() {
 // VERIFY: b0bf6152 auto
 // OFFSET: [0x00819850, 0x00819E50]
 FrameScript_Object::~FrameScript_Object() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    FS_NATIVE_CHECK();
+    this->UnregisterAllScriptEvents();
+    while (this->m_luaRegistered) this->UnregisterScriptObject(nullptr);
+    FrameScript::Native::ObjectDestroyed();
+#endif
 }
 
 // VERIFY: 12e14749 auto
 // OFFSET: 0x00819880
 void FrameScript_Object::RegisterScriptObject(const char* name) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
 
     if (!this->m_luaRegistered) {
@@ -151,6 +175,7 @@ void FrameScript_Object::RegisterScriptObject(const char* name) {
 // VERIFY: 067f37ae auto
 // OFFSET: 0x008199C0
 void FrameScript_Object::UnregisterScriptObject(const char* name) {
+    FS_NATIVE_CHECK();
     lua_State* L = s_context;
 
     if (this->m_luaRegistered > 0 && --this->m_luaRegistered == 0) {
@@ -172,6 +197,7 @@ void FrameScript_Object::UnregisterScriptObject(const char* name) {
 // VERIFY: c69819bb auto
 // OFFSET: 0x0081A2C0
 void FrameScript_Object::RunScript(const FrameScript_Object::ScriptIx& script, int32_t argCount, const char* taint) {
+    FS_NATIVE_CHECK();
     if (!taint) {
         taint = script.m_tainted;
     }
@@ -182,6 +208,7 @@ void FrameScript_Object::RunScript(const FrameScript_Object::ScriptIx& script, i
 // VERIFY: 965dec45 auto
 // OFFSET: 0x0081B330
 int32_t FrameScript_Object::IsScriptEventRegistered(const char* name) {
+    FS_NATIVE_CHECK();
     FrameScript_EventObject* event = s_scriptEventsHash.Ptr(name);
 
     if (event) {
@@ -198,6 +225,7 @@ int32_t FrameScript_Object::IsScriptEventRegistered(const char* name) {
 // VERIFY: 3ab070bd manual
 // OFFSET: 0x0081B380
 int32_t FrameScript_Object::RegisterScriptEvent(const char* name) {
+    FS_NATIVE_CHECK();
     FrameScript_EventObject* event = s_scriptEventsHash.Ptr(name);
 
     if (!event) {
@@ -227,6 +255,7 @@ int32_t FrameScript_Object::RegisterScriptEvent(const char* name) {
 // VERIFY: f450bc3d manual
 // OFFSET: 0x0081B410
 void FrameScript_Object::UnregisterScriptEvent(const char* name) {
+    FS_NATIVE_CHECK();
     FrameScript_EventObject* event = s_scriptEventsHash.Ptr(name);
 
     if (!event) {
@@ -248,6 +277,7 @@ void FrameScript_Object::UnregisterScriptEvent(const char* name) {
 // VERIFY: e2ddf32b manual
 // OFFSET: 0x0081B470
 void FrameScript_Object::RegisterAllScriptEvents() {
+    FS_NATIVE_CHECK();
     for (FrameScript_EventObject* event = s_scriptEventsHash.m_fulllist.Head(); event; event = s_scriptEventsHash.m_fulllist.Next(event)) {
         this->RegisterScriptEvent(event->m_key.m_str);
     }
@@ -256,6 +286,7 @@ void FrameScript_Object::RegisterAllScriptEvents() {
 // VERIFY: 5895f3a8 manual
 // OFFSET: 0x0081B4C0
 void FrameScript_Object::UnregisterAllScriptEvents() {
+    FS_NATIVE_CHECK();
     for (FrameScript_EventObject* event = s_scriptEventsHash.m_fulllist.Head(); event; event = s_scriptEventsHash.m_fulllist.Next(event)) {
         this->UnregisterScriptEvent(event->m_key.m_str);
     }

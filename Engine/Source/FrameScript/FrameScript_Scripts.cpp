@@ -174,6 +174,10 @@ static int32_t Script_strreplace(lua_State* L) {
     const char* replace = luaL_checklstring(L, 3, &replaceLength);
     int32_t limit = luaL_optinteger(L, 4, 0);
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Empty matches do not advance; reject instead of hanging the owner thread.
+    if (!searchLength) return luaL_error(L, "strreplace(): empty search string");
+#endif
     char buffer[4096];
     const char* source = string;
     int32_t count = 0;
@@ -203,7 +207,11 @@ static int32_t Script_strreplace(lua_State* L) {
             bytes = space;
         }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        memcpy(dest, replace, bytes);
+#else
         memcpy(dest, replace, replaceLength);
+#endif
         dest += bytes;
         space -= bytes;
 
@@ -467,7 +475,13 @@ static int32_t Script_geterrorhandler(lua_State* L) {
 // OFFSET: 0x00817450
 static int32_t Script_date(lua_State* L) {
     const char* format = luaL_optstring(L, 1, "%c");
-    time_t t = lua_isnoneornil(L, 2) ? time(nullptr) : static_cast<time_t>(luaL_checknumber(L, 2));
+    time_t t = lua_isnoneornil(L, 2) ? time(nullptr) : static_cast<time_t>(
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_native_number2integer(luaL_checknumber(L, 2))
+#else
+        luaL_checknumber(L, 2)
+#endif
+    );
     struct tm* stm;
 
     if (*format == '!') {
@@ -526,7 +540,11 @@ static int32_t Script_time(lua_State* L) {
     if (lua_isnoneornil(L, 1)) {
         t = time(nullptr);
     } else {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        struct tm ts{};
+#else
         struct tm ts;
+#endif
         luaL_checktype(L, 1, LUA_TTABLE);
         lua_settop(L, 1);
 
@@ -557,7 +575,11 @@ static int32_t Script_time(lua_State* L) {
             luaL_error(L, "field '%s' missing in date table", "month");
         }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        ts.tm_mon = static_cast<int32_t>(static_cast<uint32_t>(lua_tointeger(L, -1)) - 1u);
+#else
         ts.tm_mon = lua_tointeger(L, -1) - 1;
+#endif
         lua_pop(L, 1);
 
         lua_getfield(L, -1, "year");
@@ -566,7 +588,11 @@ static int32_t Script_time(lua_State* L) {
             luaL_error(L, "field '%s' missing in date table", "year");
         }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        ts.tm_year = static_cast<int32_t>(static_cast<uint32_t>(lua_tointeger(L, -1)) - 1900u);
+#else
         ts.tm_year = lua_tointeger(L, -1) - 1900;
+#endif
         lua_pop(L, 1);
 
         lua_getfield(L, -1, "isdst");
@@ -588,7 +614,12 @@ static int32_t Script_time(lua_State* L) {
 // VERIFY: 35211e53 auto
 // OFFSET: 0x008178A0
 static int32_t Script_difftime(lua_State* L) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    lua_pushnumber(L, difftime(static_cast<time_t>(lua_native_number2integer(luaL_checknumber(L, 1))),
+        static_cast<time_t>(lua_native_number2integer(luaL_optnumber(L, 2, 0)))));
+#else
     lua_pushnumber(L, difftime(static_cast<time_t>(luaL_checknumber(L, 1)), static_cast<time_t>(luaL_optnumber(L, 2, 0))));
+#endif
 
     return 1;
 }
@@ -722,7 +753,11 @@ static int32_t Script_debuglocals(lua_State* L) {
         return 0;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    int32_t level = lua_native_number2int(lua_tonumber(L, 1));
+#else
     int32_t level = lua_tonumber(L, 1);
+#endif
 
     if (level <= 0) {
         level = 1;

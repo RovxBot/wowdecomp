@@ -252,6 +252,38 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_LUA": "ON"
       }
+    },
+    {
+      "name": "linux-framescript",
+      "inherits": "linux-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON"
+      }
+    },
+    {
+      "name": "linux-framescript-asan",
+      "inherits": "linux-async-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-framescript",
+      "inherits": "macos-arm64-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON"
+      }
+    },
+    {
+      "name": "windows-framescript",
+      "inherits": "windows-async",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON"
+      }
     }
   ]
 }
