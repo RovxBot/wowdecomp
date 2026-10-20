@@ -431,6 +431,37 @@ and source inspection are different evidence levels.
   38 passed, one unavailable-CMake skip. All compilation ran in Actions. See
   [contracts](m3/LUA.md) and [evidence](m3/lua-validation.json).
 
+## NP-016 — Original FrameScript execution/events in the native ABI
+
+- Status: qualified at `d49efe426d6fc590dc570b05d2bddb3bf4a36b38` in
+  [PR #31](https://github.com/RovxBot/wowdecomp/pull/31), merged as `872ca9d962e73095a04ec7e5d816f27c59df35cb`.
+- Source: product 12340 at `0cbf8a5f7464057848f140aebade9d16b966b812`, after
+  merged Lua PR #29. Select original FrameScript/FrameScript_Object/script helpers
+  and Base Status plus a native owner/provider. No 15595 import, dependency update
+  or new original-address/VERIFY claim. Historical Windows bodies remain.
+- Benefit/adaptation: actual original script/event/secure consumers use the modified
+  Lua VM. Enforce single owner-thread lifecycle, finish execution/objects before
+  reset, retain worker source bytes, normalize relative paths, bound reads and
+  wrapper storage, preserve saved-variable closure taint and serializer, report
+  failed/partial writes and defer nested listener changes to outermost dispatch.
+  Native helper copies/conversions/stack-level bounds avoid hangs, overwrite and
+  undefined conversions; error-handler mode recovers after a failing handler.
+- Assets/defaults: authored fixtures in CI; external unchanged GlobalStrings only
+  for local inspection. Original-key MPQ authentication/selective MD5 policy stay
+  enabled. No TOC/interface signature claim, login/Frame/XML/image-service
+  completion, protocol change, optional effect or server-policy change.
+- Validation: all eleven PR workflows passed. Four native configurations passed
+  12 CTest checks/six FrameScript cycles each, including actual ARM64 and strict
+  Linux sanitizers. Five archives and 43 binary hashes/types were verified,
+  including full Windows compilation at matching-tree checkout
+  `95ef62bd82e4accbd1655f6e89fe50933e706369`.
+  Downloaded Linux release/strict sanitizer binaries each passed six authored and
+  six original-source cycles with empty stderr/zero workers. The first incorrect
+  table-value taint fixture remains failed evidence; closure semantics are checked
+  explicitly. Local Python: 40 passed, one unavailable-CMake skip. All compilation
+  ran in Actions. See [contracts](m3/FRAMESCRIPT.md) and
+  [durable evidence](m3/framescript-validation.json). M3 remains open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

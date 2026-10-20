@@ -303,6 +303,28 @@ it does not turn a documentation request into authorization to start the whole p
   GPU, physical-input, Windows runtime, macOS desktop or server acceptance is
   recorded. M3 is incomplete; signatures, server revision discrepancies and
   interactive user sign-in preference remain unchanged.
+- M3 original FrameScript [PR #31](https://github.com/RovxBot/wowdecomp/pull/31)
+  is qualified at `d49efe426d6fc590dc570b05d2bddb3bf4a36b38`, merged as
+  `872ca9d962e73095a04ec7e5d816f27c59df35cb`. Read [FrameScript contracts](docs/m3/FRAMESCRIPT.md)
+  and [validation](docs/m3/framescript-validation.json). All eleven implementation
+  PR workflows passed; Linux release/strict ASan/UBSan/leak, actual ARM64 macOS
+  and Windows native configurations passed 12 CTest checks and six FrameScript
+  cycles each. Five archives and all 43 packaged binary hashes/types were
+  verified, including the full Windows x64 client at matching-tree checkout
+  `95ef62bd82e4accbd1655f6e89fe50933e706369`, with signatures enabled. Downloaded
+  Linux release/strict sanitizer binaries each passed six authored cycles and
+  six unchanged original `GlobalStrings.lua` cycles with empty stderr and zero
+  workers. Original script execution/events/secure handlers and saved-variable
+  serialization now use an owner-thread VM and completed-read provider. Close
+  objects/external function references and finish executions before reset/close.
+  Nested listener changes commit at the outermost dispatch. Preserve the original
+  SavedVariables closure taint, distinct from table/scalar-value taint; the first
+  fixture's mistaken expectation remains failed evidence. The source member has
+  no registered MPQ MD5 entry; original-key authentication and selective MD5 policy
+  remain enabled. Original TOC/interface signatures, Frame/XML/image services,
+  GlueXML/login rendering, transport and gameplay remain open. No new GPU,
+  physical-input, Windows runtime, macOS desktop or server acceptance. Preserve
+  server revision discrepancies and interactive user sign-in. M3 remains open.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

@@ -66,7 +66,11 @@ batched font consumers, with hosted and actual-GPU release/strict sanitizer
 evidence. The separate [product Lua runtime](docs/m3/LUA.md) now preserves the
 modified taint/profile APIs and original pool/libraries in native Linux, ARM64
 macOS and Windows fixtures, including strict Linux sanitizers. Original
-FrameScript/Frame/XML/GlueXML/login, transport and gameplay remain open.
+[FrameScript execution/events](docs/m3/FRAMESCRIPT.md) now use that runtime with
+owner-thread lifecycle, secure handlers and retained source reads. Hosted native
+fixtures and downloaded Linux release/strict sanitizer original-source cycles
+pass. Original Frame/XML/image services/GlueXML/login, transport and gameplay
+remain open.
 
 ## Progress
 

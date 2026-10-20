@@ -1,4 +1,4 @@
-# M3 Linux game integration — 2026-10-19
+# M3 Linux game integration — 2026-10-20
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client
@@ -303,14 +303,36 @@ Each passed six CTest checks and three Lua cycles with profiling disabled and
 three enabled. The original pool, modified VM, five libraries, taint/accounting
 and profiling APIs are selected; executable callbacks remain restricted to the
 main image. LP64 parsing/formatting and x86 bit shifts retain Windows widths.
-Original source-only loading remains enforced. Full FrameScript/Frame/XML,
-file/event/secure-handler ownership and original login rendering remain open.
+Original source-only loading remains enforced. At that prerequisite checkpoint,
+full FrameScript/Frame/XML, file/event/secure-handler ownership and original login
+rendering remained open.
 The [record](lua-validation.json) retains all ten passing implementation PR
 workflows, five verified archives/19 binary hashes and the separate matching-tree
 Windows checkout `3c48f75f4e9bbe94a4e5c09c612fb9c88652acb3`. Downloaded Linux
 release/strict sanitizer executions passed six cycles each, with expected
 allocation-overflow diagnostics and no sanitizer finding. No new GPU, physical
 input, Windows runtime, macOS desktop or server acceptance is implied.
+
+The [original FrameScript integration](FRAMESCRIPT.md) in
+[PR #31](https://github.com/RovxBot/wowdecomp/pull/31) is qualified at
+`d49efe426d6fc590dc570b05d2bddb3bf4a36b38`, merged as `872ca9d962e73095a04ec7e5d816f27c59df35cb`.
+The [record](framescript-validation.json) retains all eleven passing implementation
+PR workflows, 12 CTest checks per native configuration, four verified native
+archives/40 executable hashes and the separate full Windows compilation archive
+and three PE x64 identities. The matching-tree hosted checkout is
+`95ef62bd82e4accbd1655f6e89fe50933e706369`. Original execution, event listeners,
+compatibility helpers, secure calls/hooks, profiling, saved-variable closure taint
+and serializer now consume the qualified Lua runtime under an owner-thread VM
+lifecycle. Nested execution and live FrameScript objects prevent VM reset.
+
+Downloaded release and strict ASan/UBSan/leak binaries each passed six authored
+cycles and six unchanged original `GlobalStrings.lua` cycles with empty stderr
+and zero workers. Original-key signaturefile authentication and registered-MD5
+policy remain enabled; this Lua member has no registered MD5 entry. TOC/interface
+signature traversal and actual Frame/XML/GlueXML/login rendering remain open.
+The initial fixture's mistaken table-value taint expectation is retained as failed
+evidence; the original contract marks newly created closures instead. No new GPU,
+physical-input, Windows runtime, macOS desktop or server acceptance is implied.
 
 Next dependencies, in order:
 
@@ -320,8 +342,8 @@ Next dependencies, in order:
    delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
-2. Connect the product Lua runtime to original FrameScript, XML/Frame factories, GlueXML/FrameXML
-   and separate interface/addon signatures, following the [caller audit](LEGACY_GXU.md#next-original-login-consumers).
+2. Connect the qualified FrameScript runtime to original XML/Frame factories,
+   GlueXML/FrameXML and separate interface/addon signatures, following the [caller audit](LEGACY_GXU.md#next-original-login-consumers).
    Render the actual original login UI; extend unchanged 12340 `0x10003` shader
    and full model/material coverage as required by its callers.
    The Windows OpenGL warped-scene failure remains a known comparison failure;
