@@ -97,7 +97,7 @@ the renderer restrictions and all sanitizer detectors remain intact.
 | Caller | Required integration |
 | --- | --- |
 | `CSimpleTexture::SetTexture` in `Frame/CSimpleRender.cpp` | Adapt its `0x17` path/priority/atlas flags and actual image-mode shaders; preserve handle replacement and error reporting. Do not silently discard unsupported flags to use this first service. |
-| `CSimpleTexture::Draw`, dimensions/embedded texture consumers | Adapt readiness/wait mode 2, image coordinates and unsupported mip/filter/atlas behavior. The current service retains mip zero and original offscreen orientation only. |
+| `CSimpleTexture::Draw`, dimensions/embedded texture consumers | The qualified [mip/readiness extension](IMAGE_MIPS.md) now supplies explicit authored mip filters and local wait 2. Adapt actual image coordinates and remaining atlas/default-policy contracts while preserving original offscreen orientation. |
 | `CSimpleFont`, `CSimpleFontString`, layout/root owners | Connect actual Frame font/string factories to Gxu/Services, keep font handles alive through blocks/batches and invalidate fonts/layout on SDL size changes. |
 | `FrameXML_ProcessFile`/`FrameXML_CreateFrames`, `CGlueMgr::Resume` | Connect actual factories, retained templates and ordered FrameScript execution; preserve the second digest comparison before FRAMES_LOADED. Then execute/render original GlueXML/login before interactive sign-in. |
 

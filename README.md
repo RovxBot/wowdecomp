@@ -79,6 +79,10 @@ now deliver bounded BLP2 images through retained reads and original CTexture/Gx
 handles, with hosted and actual-GPU release/strict sanitizer evidence. Actual
 Frame factories/layout, broader image/async contracts and original login
 execution/rendering remain open, followed by transport and gameplay.
+The [authored image mip/readiness extension](docs/m3/IMAGE_MIPS.md) now qualifies
+complete original BLP2 mip chains, explicit mip filters, local wait 2 and UI read
+priority, with hosted and RX 7900 XTX release/strict sanitizer checks. Frame's
+disk/atlas contracts and actual original login rendering remain open.
 
 ## Progress
 

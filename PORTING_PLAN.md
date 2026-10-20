@@ -404,6 +404,18 @@ in three cycles each. [Evidence](docs/m3/xml-validation.json) keeps exact identi
 and failed attempts. Frame factories/image Services and actual GlueXML/login
 execution/rendering remain open, followed by networking and observed gameplay.
 
+The [authored image mip/readiness extension](docs/m3/IMAGE_MIPS.md) in
+[PR #37](https://github.com/RovxBot/wowdecomp/pull/37) is qualified at
+`41c0a78e7f25bf6a040a59560c5f33502297d6f9`, merged as
+`0d90dcdd741e43418016aaeeb15a66c23be2f1f8`. Seven triggered PR workflows passed,
+including full Windows x64 compilation and 23 CTest checks per Linux GL
+configuration. Exact-source GPU release/strict sanitizer checks passed original
+authored BLP2 mip minification, local wait 2 and UI priority, with verified artifacts
+and empty stderr. [Evidence](docs/m3/image-mip-validation.json) remains separate
+from earlier mip-zero image qualification. Original Frame layout/factories,
+disk/atlas/TGA contracts and actual original GlueXML/login remain open; M3 is
+incomplete and no gameplay/session acceptance is implied.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
