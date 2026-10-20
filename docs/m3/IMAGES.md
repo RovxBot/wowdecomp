@@ -55,7 +55,60 @@ without constructing Frame objects or executing GlueXML.
 
 Compilation and hosted synthetic qualification run exclusively in
 [M3 GL Actions](../../.github/workflows/m3-gl.yml); Windows full-client compilation
-remains the independent regression check. Implementation qualification is pending.
-Original-data runtime execution, actual Frame factories/layout/input, broader
-image contracts and original login rendering remain open. This does not establish
-macOS graphics, Windows runtime, physical-input or server/gameplay acceptance.
+remains the independent regression check.
+
+## Qualification
+
+[PR #35](https://github.com/RovxBot/wowdecomp/pull/35) is qualified at
+`db24f90dc2d845d5a5944df0cedb46fd116d13ec`, merged as
+`b1479843dd7eac430514fc1103a4e9c1e6e39301`. The [durable record](image-validation.json)
+retains all twelve passing implementation PR workflows, 23 CTest checks per
+Linux GL configuration, three verified archive digests and all 35 packaged binary
+hashes/types. Full Windows x64 compilation with signatures enabled used separate
+matching-tree checkout `b3df743c8c009d1076d9ec4acfbe3cbd6ba50e86`.
+
+Downloaded release and strict ASan/UBSan/leak binaries each passed three authored
+and three original-data image cycles on RX 7900 XTX / Mesa 26.2.5 / SDL X11 on
+Xwayland. Original-key signaturefile authentication (28,948 records) and selective
+MD5 policy remained enabled. The original 64x64 loading-bar image rendered through
+actual Services handles/PCT/original UI shaders into a 32x32 FBO. Release and
+sanitizer capture hashes match; the release capture was inspected. Captures remain
+external. This does not execute FrameXML or render the login screen.
+
+Original-data Gxu and legacy Gx regressions passed three cycles per configuration;
+the preview passed one release/three sanitizer cycles. Texture, buffer, target and
+transform fixtures each passed three cycles in both modes. All eighteen runtime
+executions exited 0 with empty stderr and zero probe workers. Local source/launcher
+checks passed (43 passed, one platform skip); no client/dependency compiled locally.
+
+The first graphics fixture failed because authored sources were smaller than
+original Gx's 8x8 minimum. The next release fixture used the opposite of the
+original offscreen Y projection and RGB arguments for the original BGR constructor;
+its sanitizer job was cancelled by the next revision. These failures remain in
+the record. Authored inputs/expectations were corrected against the original source;
+the renderer restrictions and all sanitizer detectors remain intact.
+
+## Next original callers
+
+| Caller | Required integration |
+| --- | --- |
+| `CSimpleTexture::SetTexture` in `Frame/CSimpleRender.cpp` | Adapt its `0x17` path/priority/atlas flags and actual image-mode shaders; preserve handle replacement and error reporting. Do not silently discard unsupported flags to use this first service. |
+| `CSimpleTexture::Draw`, dimensions/embedded texture consumers | Adapt readiness/wait mode 2, image coordinates and unsupported mip/filter/atlas behavior. The current service retains mip zero and original offscreen orientation only. |
+| `CSimpleFont`, `CSimpleFontString`, layout/root owners | Connect actual Frame font/string factories to Gxu/Services, keep font handles alive through blocks/batches and invalidate fonts/layout on SDL size changes. |
+| `FrameXML_ProcessFile`/`FrameXML_CreateFrames`, `CGlueMgr::Resume` | Connect actual factories, retained templates and ordered FrameScript execution; preserve the second digest comparison before FRAMES_LOADED. Then execute/render original GlueXML/login before interactive sign-in. |
+
+For downloaded packages, verify the archive and `NativeImageCheck` manifest hash
+before execution; all compilation stays in Actions:
+
+```sh
+SDL_VIDEODRIVER=x11 EGL_PLATFORM=x11 NativeImageCheck \
+  --data /mnt/games/3.3.5aClean/Data \
+  --settings /tmp/wowdecomp-image-settings --cache /tmp/wowdecomp-image-cache
+```
+
+Use the sanitizer package with `ASAN_OPTIONS=detect_leaks=1:halt_on_error=1` and
+`UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`, with separate writable roots.
+Actual Frame factories/layout/input, broader image contracts, original login
+rendering, transport and observed gameplay remain open. No new macOS graphics,
+Windows runtime, physical-input or server acceptance is recorded. Preserve the
+server revision discrepancy and interactive user sign-in preference. M3 is open.

@@ -354,10 +354,33 @@ raw manifest order and the original post-creation digest comparison. No new GPU,
 physical-input, Windows runtime, macOS desktop or server acceptance is implied.
 M3 remains open.
 
+The [file-backed image Services](IMAGES.md) in
+[PR #35](https://github.com/RovxBot/wowdecomp/pull/35) are qualified at
+`db24f90dc2d845d5a5944df0cedb46fd116d13ec`, merged as
+`b1479843dd7eac430514fc1103a4e9c1e6e39301`. The [record](image-validation.json)
+retains all twelve passing implementation PR workflows, 23 CTest checks per Linux
+GL configuration, full Windows compilation at matching-tree checkout
+`b3df743c8c009d1076d9ec4acfbe3cbd6ba50e86`, three verified archives and all 35
+packaged executable hashes/types. Reads/decode use the retained worker; actual
+`CTexture` handles/cache/Gx callbacks mutate on the owner thread. Last-handle close
+cancels retained reads without publishing a native ticket as `CAsyncObject`.
+
+Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict
+ASan/UBSan/leak binaries each passed three authored and three original-data image
+cycles. Original 64x64 loading-bar Services/PCT/UI-shader capture hashes match;
+the release capture was inspected. Gxu/legacy Gx, preview and all four resource
+regressions passed, with empty stderr and zero probe workers. Initial authored
+minimum-dimension and offscreen/BGR expectation failures remain recorded. Original
+signatures remain enabled. This single-mip, explicit nearest/linear BLP2 surface
+does not yet accept Frame's `0x17` flags, wait mode 2, atlas/TGA/streaming callers
+or render original Frame/GlueXML/login. No new physical-input, Windows runtime,
+macOS graphics or server acceptance is implied. M3 remains open.
+
 Next dependencies, in order:
 
-1. Connect original Frame font/string consumers and file-backed image services
-   to the qualified Gxu/Services handle boundary. Extend remaining device/state/
+1. Connect original Frame font/string consumers and factories to the qualified
+   Gxu/Services owners. Adapt actual Frame image callers to the bounded image
+   service; retain their flags/readiness/atlas contracts. Extend device/state/
    mip/texture contracts as their callers require them; audit texture/texgen
    delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry

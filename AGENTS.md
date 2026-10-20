@@ -347,6 +347,27 @@ it does not turn a documentation request into authorization to start the whole p
   GlueXML/login execution/rendering remain open, followed by transport/gameplay.
   No new GPU, physical-input, Windows runtime, macOS desktop or server acceptance;
   M3 stays open, signatures/server discrepancies/interactive sign-in remain intact.
+- M3 file-backed image Services [PR #35](https://github.com/RovxBot/wowdecomp/pull/35)
+  is qualified at `db24f90dc2d845d5a5944df0cedb46fd116d13ec`, merged as
+  `b1479843dd7eac430514fc1103a4e9c1e6e39301`. Read [image contracts/next callers](docs/m3/IMAGES.md)
+  and [validation](docs/m3/image-validation.json). Twelve implementation PR workflows
+  passed; both Linux GL configurations passed 23 CTest checks. Full Windows x64
+  compiled with signatures enabled at matching-tree checkout
+  `b3df743c8c009d1076d9ec4acfbe3cbd6ba50e86`. Three archive digests and all 35
+  packaged executable hashes/types were verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak binaries each passed three
+  authored and three original-data image cycles; Gxu/Gx/preview/resource regressions
+  passed with empty stderr and zero workers. Original loading-bar capture hashes
+  match. CTexture cache/handle/GPU mutation belongs to the owner; reads/decode use
+  the retained worker. Close file handles before service/device/context/queue;
+  retired completions cannot write into recreated entries. Native tickets remain
+  separate from CAsyncObject. Preserve literal native status copies and original
+  8x8/power-of-two limits, offscreen Y and CImVector BGR conventions. Initial
+  authored fixture failures remain recorded. This mip-zero BLP2 surface accepts
+  explicit nearest/linear sampling; Frame 0x17/wait-2, atlas/TGA/streaming and actual
+  Frame factories/GlueXML/login remain open. No new physical-input, Windows runtime,
+  macOS graphics or server acceptance. M3 remains open; signatures, server revision
+  discrepancies and interactive user sign-in remain intact.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
