@@ -552,8 +552,21 @@
 ** in C is extremely slow, so any alternative is worth trying.
 */
 
+/* Native adaptation: retain the Windows x64 truncation/indefinite result without
+   undefined out-of-range floating-to-integer casts on Clang/ARM64. */
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+static inline int lua_native_number2int(LUA_NUMBER n) {
+  return n >= -2147483648.0 && n < 2147483648.0 ? (int)n : (-2147483647 - 1);
+}
+static inline LUA_INTEGER lua_native_number2integer(LUA_NUMBER n) {
+  return n >= -9223372036854775808.0 && n < 9223372036854775808.0
+    ? (LUA_INTEGER)n : (LUA_INTEGER)(-9223372036854775807LL - 1);
+}
+#define lua_number2int(i,d) ((i)=lua_native_number2int(d))
+#define lua_number2integer(i,d) ((i)=lua_native_number2integer(d))
+
 /* On a Pentium, resort to a trick */
-#if defined(LUA_NUMBER_DOUBLE) && !defined(LUA_ANSI) && !defined(__SSE2__) && \
+#elif defined(LUA_NUMBER_DOUBLE) && !defined(LUA_ANSI) && !defined(__SSE2__) && \
     (defined(__i386) || defined (_M_IX86) || defined(__i386__))
 
 /* On a Microsoft compiler, use assembler */

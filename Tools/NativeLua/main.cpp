@@ -98,6 +98,12 @@ int main(int argc, char** argv) {
             assert(string.gsub('abc123','(%d+)','[%1]')=='abc[123]')
             assert(math.floor(3.9)==3 and bit.band(7,3)==3)
             assert(bit.bnot(0)==4294967295 and bit.lshift(1,30)==1073741824)
+            assert(bit.lshift(1,31)==2147483648 and bit.lshift(1,32)==1)
+            assert(bit.lshift(-1,1)==4294967294 and bit.arshift(-8,33)==-4)
+            assert(bit.rshift(-1,0)==-1)
+            assert(bit.band(4294967295,7)==0) -- original signed x64 conversion
+            local ok=pcall(bit.mod,-2147483648,-1); assert(not ok)
+            local wide={}; wide[4294967295]='wide'; assert(wide[4294967295]=='wide')
             assert(bit.rshift(-1,1)==2147483647 and bit.arshift(-8,1)==-4)
             local co=coroutine.create(function(x) coroutine.yield(x+1); return 9 end)
             local ok,n=coroutine.resume(co,4); assert(ok and n==5)
