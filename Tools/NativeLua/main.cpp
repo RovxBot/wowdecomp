@@ -4,6 +4,7 @@
 #include "Engine/Source/lua-5.1/src/lmemPool.h"
 #include "Engine/Source/lua-5.1/src/lstate.h"
 #include "Engine/Source/Os/System.h"
+#include "Engine/Source/Storm/H/storm.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -11,6 +12,7 @@
 #include <cstring>
 #include <vector>
 #include <iterator>
+#include <limits>
 
 static void Require(bool condition, const char* message) {
     if (!condition) { std::fprintf(stderr, "Lua check failed: %s\n", message); std::exit(1); }
@@ -37,6 +39,27 @@ static void Hook(lua_State* state, lua_Debug*) {
 }
 static void* FailAllocation(void*, void*, size_t, size_t) { return nullptr; }
 
+struct AllocationFailure { void* pool; size_t calls = 0, failAt, live = 0; };
+static void* FailAfter(void* context, void* pointer, size_t oldSize, size_t newSize) {
+    auto& failure = *static_cast<AllocationFailure*>(context);
+    if (newSize && ++failure.calls == failure.failAt) return nullptr;
+    void* result = luaM_reallocPool(failure.pool, pointer, oldSize, newSize);
+    if (!pointer && result) ++failure.live;
+    if (pointer && !newSize) --failure.live;
+    return result;
+}
+static void PartialStateCheck() {
+    // Fail each early allocation to check partial-state cleanup via the real pool.
+    for (size_t allocation = 1; allocation <= 40; ++allocation) {
+        void* pool = luaM_initPool();
+        AllocationFailure failure{pool, 0, allocation, 0};
+        auto* state = lua_newstate(FailAfter, &failure, 1);
+        if (state) lua_close(state);
+        Require(failure.live == 0, "partial state allocation ownership");
+        luaM_freePool(pool);
+    }
+}
+
 static void PoolCheck(void* pool) {
     // Cross every size-class boundary in both directions, checking retained bytes.
     const size_t sizes[] = {1,16,17,24,25,32,33,40,41,64,65,80,81,128,129,160,161,256,257,4096};
@@ -52,6 +75,11 @@ static void PoolCheck(void* pool) {
     };
     for (auto size : sizes) resize(size);
     for (auto i = std::size(sizes); i; --i) resize(sizes[i-1]);
+    SMemSetDebugFlags(SMEM_DEBUG_NOEXITONFAILURE, SMEM_DEBUG_NOEXITONFAILURE);
+    void* failed = luaM_reallocPool(pool, allocation, old, std::numeric_limits<size_t>::max());
+    SMemSetDebugFlags(0, SMEM_DEBUG_NOEXITONFAILURE);
+    Require(failed == nullptr && static_cast<unsigned char*>(allocation)[0] == 0xA7,
+            "failed cross-pool growth preserves original bytes");
     Require(luaM_reallocPool(pool, allocation, old, 0) == nullptr, "pool release");
     std::vector<void*> blocks;
     for (size_t i = 0; i < 1100; ++i) {
@@ -74,6 +102,7 @@ int main(int argc, char** argv) {
     }
     OsValidateFunctionPointer(reinterpret_cast<const void*>(&Add));
     Require(lua_newstate(FailAllocation, nullptr, 0) == nullptr, "failed initial allocation");
+    PartialStateCheck();
     for (int cycle = 0; cycle < 3; ++cycle) for (int profile = 0; profile <= 1; ++profile) {
         lua_tainted = nullptr; lua_taintexpected = 0; lua_taintedclosure = 0;
         lua_closuretaint = nullptr; lua_gctag = nullptr;
