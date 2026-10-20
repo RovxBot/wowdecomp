@@ -67,7 +67,7 @@ jobs:
       - name: Compile and check product Lua runtime
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
-          UBSAN_OPTIONS: halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
         run: ${{ matrix.python }} Tools/Porting/run_lua_checks.py --preset ${{ matrix.preset }}
       - name: Retain Lua qualification evidence
         if: always()
