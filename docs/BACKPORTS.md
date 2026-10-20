@@ -462,6 +462,37 @@ and source inspection are different evidence levels.
   ran in Actions. See [contracts](m3/FRAMESCRIPT.md) and
   [durable evidence](m3/framescript-validation.json). M3 remains open.
 
+## NP-017 — Original XML trees and interface signatures in the native ABI
+
+- Status: qualified at `c79cd56a6854ab15e9cf89de47c4c2a3a7663b04` in
+  [PR #33](https://github.com/RovxBot/wowdecomp/pull/33), merged as
+  `c4ee06549c7f5cc5b6093a7d3189c8c6d1dac6bf`; M3 remains open.
+- Source: this product's original 12340 `XMLTree.cpp`, Base allocator/interned
+  strings/refcounts and bundled Expat 1.95.5; native adaptation of original
+  `LoadXML.cpp` signature/manifest functions (`0x00816060`–`0x008165E0`) and
+  original `CGlueMgr::InterfaceKey` (`0x009E2C28`). No 15595 donor import or
+  new OFFSET/VERIFY claim; original Windows branches remain selected.
+- Benefit/adaptation: owner-thread trees and retained interface reads share the
+  qualified FrameScript lifecycle, with explicit tree/borrowed-node shutdown,
+  pointer-aligned native intern entries and bounded parser/manifest input.
+  Preserve raw depth-first digest order/duplicates, uppercase filename binding,
+  original little-endian RSA and fail-closed incomplete traversal. Actual frame
+  creation must still perform the original second digest comparison.
+- Assets/defaults: unchanged read-only 12340/enUS data; original InterfaceKey and
+  MPQ original-key/registered-MD5 policy stay enabled. No extra assets, dependency
+  pins, optional effects, protocol or server-policy changes. Initial native XML
+  excludes DTD and UTF-16/32. No actual Frame/GlueXML/login execution or rendering.
+- Validation: all twelve implementation PR workflows passed, with 14 CTest
+  checks/three authored cycles per native configuration, actual ARM64 and strict
+  Linux sanitizers. Five archive digests/all 47 binary hashes/types verified,
+  including full Windows x64 at matching-tree checkout
+  `f7c2de912a17e55ef9196379b50c097c00dfbc8d`. Downloaded Linux release/sanitizer
+  binaries each passed three authored and three original-data cycles, with empty
+  stderr/zero workers. Both original interface digests authenticated and
+  AccountLogin XML parsed. Prior compiler and restricted-executor leak-inspection
+  failures remain in [evidence](m3/xml-validation.json); no detector was disabled.
+  Local Python: 43 passed, one unavailable-CMake skip. All compilation in Actions.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

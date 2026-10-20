@@ -394,6 +394,16 @@ Linux release/strict sanitizer binaries execute unchanged original GlobalStrings
 in six cycles each. This source check does not qualify interface TOC signatures,
 Frame/XML factories, file-backed image services or original login rendering.
 
+The [original XML/signature integration](docs/m3/XML.md) in
+[PR #33](https://github.com/RovxBot/wowdecomp/pull/33) now qualifies native XML
+ownership and original-key filename-bound TOC signatures. All twelve PR workflows
+passed; four native configurations passed 14 CTest checks each, including actual
+ARM64 and strict Linux sanitizers. Downloaded Linux release/sanitizer binaries
+verified the original GlueXML/FrameXML content digests and parsed AccountLogin XML
+in three cycles each. [Evidence](docs/m3/xml-validation.json) keeps exact identities
+and failed attempts. Frame factories/image Services and actual GlueXML/login
+execution/rendering remain open, followed by networking and observed gameplay.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

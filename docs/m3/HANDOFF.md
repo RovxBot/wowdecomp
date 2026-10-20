@@ -334,6 +334,26 @@ The initial fixture's mistaken table-value taint expectation is retained as fail
 evidence; the original contract marks newly created closures instead. No new GPU,
 physical-input, Windows runtime, macOS desktop or server acceptance is implied.
 
+The [original XML/signature integration](XML.md) in
+[PR #33](https://github.com/RovxBot/wowdecomp/pull/33) is qualified at
+`c79cd56a6854ab15e9cf89de47c4c2a3a7663b04`, merged as `c4ee06549c7f5cc5b6093a7d3189c8c6d1dac6bf`.
+All twelve implementation PR workflows passed, including full Windows x64
+compilation at matching-tree checkout `f7c2de912a17e55ef9196379b50c097c00dfbc8d`.
+Four native configurations passed 14 CTest checks/three authored XML cycles each;
+five archives and all 47 packaged executable hashes/types were verified.
+Downloaded Linux release/strict ASan/UBSan/leak binaries each passed three
+authored and three original-data cycles with empty stderr/zero workers.
+The original InterfaceKey authenticated both interface sidecars: GlueXML MD5
+`b44247235136edcfbbc314797eb2c705` (60 visits) and FrameXML plus Bindings MD5
+`51b264400410d3409c4e79f6f4257711` (267 visits). Original AccountLogin XML parsed;
+frames/Lua/login were not executed or rendered. The [record](xml-validation.json)
+retains two compiler failures and the failed restricted-executor LeakSanitizer
+ptrace attempt; the same binary passed outside tracing with all detectors active.
+Preserve XML-before-VM shutdown, borrowed-node lifetime, native pointer alignment,
+raw manifest order and the original post-creation digest comparison. No new GPU,
+physical-input, Windows runtime, macOS desktop or server acceptance is implied.
+M3 remains open.
+
 Next dependencies, in order:
 
 1. Connect original Frame font/string consumers and file-backed image services
@@ -342,8 +362,9 @@ Next dependencies, in order:
    delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
-2. Connect the qualified FrameScript runtime to original XML/Frame factories,
-   GlueXML/FrameXML and separate interface/addon signatures, following the [caller audit](LEGACY_GXU.md#next-original-login-consumers).
+2. Use the qualified XML trees/interface signatures while connecting FrameScript
+   to actual Frame factories and GlueXML/FrameXML execution. Retain the original
+   post-creation digest comparison; follow the [next-caller audit](XML.md#next-original-callers).
    Render the actual original login UI; extend unchanged 12340 `0x10003` shader
    and full model/material coverage as required by its callers.
    The Windows OpenGL warped-scene failure remains a known comparison failure;

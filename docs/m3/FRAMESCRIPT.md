@@ -102,3 +102,8 @@ Use separate user/output roots for the sanitizer artifact and retain
 `UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`. The optional original-data
 mode performs six cycles, three each with profiling off/on; its data and settings
 roots must be separate. Never upload original source/data to hosted CI.
+
+The following [XML/signature package](XML.md) now qualifies original trees and
+both original interface digests. The FrameScript evidence above retains its
+historical scope; actual Frame factories, image Services, GlueXML/login execution
+and rendering remain open.

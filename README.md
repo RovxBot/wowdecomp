@@ -70,7 +70,12 @@ macOS and Windows fixtures, including strict Linux sanitizers. Original
 owner-thread lifecycle, secure handlers and retained source reads. Hosted native
 fixtures and downloaded Linux release/strict sanitizer original-source cycles
 pass. Original Frame/XML/image services/GlueXML/login, transport and gameplay
-remain open.
+remain open. The [original XML/signature integration](docs/m3/XML.md) now adds
+owner-thread original trees and filename-bound interface verification. Hosted
+Linux, actual ARM64 macOS and Windows fixtures pass; downloaded Linux release
+and strict sanitizer binaries authenticate original GlueXML/FrameXML content
+and parse AccountLogin XML. Actual Frame factories/image Services and original
+login execution/rendering remain open, followed by transport and gameplay.
 
 ## Progress
 
