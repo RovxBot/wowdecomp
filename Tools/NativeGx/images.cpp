@@ -172,11 +172,14 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
             "File image dimensions failed");
     Require(reads == 1 && TextureIsLoaded(raw.value) && TextureIsOpaque(raw.value), "File image readiness/cache failed");
     auto pixels = Draw(device, raw.value);
-    Pixel(pixels, 8,8,255,0,0,255); Pixel(pixels,24,8,0,255,0,255);
-    Pixel(pixels,8,24,0,0,255,255); Pixel(pixels,24,24,255,255,255,255);
+    // Original offscreen native projection flips Y. Row zero is at the upper
+    // FBO edge; do not cancel that adaptation by changing image upload order.
+    Pixel(pixels, 8,24,255,0,0,255); Pixel(pixels,24,24,0,255,0,255);
+    Pixel(pixels,8,8,0,0,255,255); Pixel(pixels,24,8,255,255,255,255);
     for (const auto& test : std::vector<std::pair<const char*, CImVector>>{
-        {"Interface/palette", CImVector(177,91,23,255)}, {"Interface/dxt1", CImVector(255,0,0,255)},
-        {"Interface/dxt3", CImVector(255,0,0,136)}, {"Interface/dxt5", CImVector(255,0,0,128)}}) {
+        // CImVector's original constructor is B,G,R,A.
+        {"Interface/palette", CImVector(23,91,177,255)}, {"Interface/dxt1", CImVector(0,0,255,255)},
+        {"Interface/dxt3", CImVector(0,0,255,136)}, {"Interface/dxt5", CImVector(0,0,255,128)}}) {
         Handle texture(create(test.first));
         auto rendered = Draw(device, texture.value);
         Pixel(rendered, 16,16,test.second.r,test.second.g,test.second.b,test.second.a);
@@ -207,7 +210,7 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         Handle replacement(create("Interface/slow"));
         release = true;
         Require(TextureGetGxTex(replacement.value, 1, nullptr), "Recreated image lost callback ownership");
-        Pixel(Draw(device, replacement.value), 8,8,255,0,0,255);
+        Pixel(Draw(device, replacement.value), 8,24,255,0,0,255);
     }
     {
         std::atomic<bool> blockerEntered{false}, blockerRelease{false};
