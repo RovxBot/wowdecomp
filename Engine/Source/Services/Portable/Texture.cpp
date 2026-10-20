@@ -218,7 +218,7 @@ CGxTex* GetFileTexture(CTexture* texture, int32_t wait, CStatus* status) {
             auto image = found->second;
             if (!image->done && wait && !service->state->queue.Wait(image->ticket, std::chrono::seconds(30)))
                 throw std::runtime_error("Native file texture wait timed out");
-            if (status && image->done) status->Add(texture->m_status);
+            if (status && image->done && status != &texture->m_status) status->Add(texture->m_status);
         }
     }
     return texture->m_gxTex;

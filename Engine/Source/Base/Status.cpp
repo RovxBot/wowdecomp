@@ -34,10 +34,20 @@ CStatus& GetGlobalStatusObj() {
 // VERIFY: 8cc1593d manual
 // OFFSET: 0x0047C0A0
 void CStatus::Add(const CStatus& source) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Native consumers copy diagnostics containing filenames/decoder errors.
+    // Those bytes are data, never another variadic format. Self-copy must not
+    // append entries while traversing that same list. Original Windows path stays.
+    if (this == &source) return;
+#endif
     CStatus& src = const_cast<CStatus&>(source);
 
     for (STATUSENTRY* entry = src.m_statusList.Head(); entry; entry = src.m_statusList.Next(entry)) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        this->Add(entry->m_severity, "%s", entry->m_text);
+#else
         this->Add(entry->m_severity, entry->m_text);
+#endif
     }
 }
 

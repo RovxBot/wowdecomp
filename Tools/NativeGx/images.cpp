@@ -176,10 +176,16 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     Handle linear(create("Interface/raw", CGxTexFlags(GxTex_Linear)));
     Require(wrap.value != raw.value && linear.value != raw.value, "Sampler keys aliased file texture cache");
     Require(TextureGetGxTex(wrap.value, 1, nullptr) && TextureGetGxTex(linear.value, 1, nullptr), "Sampler variant load failed");
-    for (auto name : {"Interface/broken", "Interface/missing"}) {
+    for (auto name : {"Interface/broken", "Interface/missing", "Interface/percent%s%d%n"}) {
         Handle failed(create(name)); CStatus errors;
         Require(!TextureGetGxTex(failed.value, 1, &errors) && !errors.IsEmpty() && !TextureIsLoaded(failed.value),
                 "Failed read/decode fabricated a loaded texture");
+        char message[512]; errors.GetErrorStr(message, sizeof(message), STATUS_INFO, " ");
+        if (std::strstr(name, "percent"))
+            Require(std::strstr(message, "%S%D%N"), "Status copy interpreted filename percent sequences");
+        auto entries = errors.GetErrorStrLen(STATUS_INFO, " ");
+        errors.Add(errors);
+        Require(errors.GetErrorStrLen(STATUS_INFO, " ") == entries, "Status self-copy appended diagnostics");
     }
     Reject([&] { create("../escape"); }); Reject([&] { create("Interface/raw.tga"); });
     Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_LinearMipLinear)); });

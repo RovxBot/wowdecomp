@@ -25,12 +25,16 @@ The initial surface is deliberately bounded:
 - Default mip policy, anisotropy, image atlases, legacy load flags (including
   Frame's `0x17`), TGA/alternate lookup, substitutions, blobs and image streaming
   remain unavailable. Frame callers need explicit adaptation before integration.
-- At most 32 live or undelivered distinct requests, 32 MiB per source and
+- At most 32 live distinct images and 32 undelivered requests, 32 MiB per source and
   2,097,152 base pixels per image. Device dimension limits still apply. Duplicate
   handles share a request; completed cached pixels are bounded to 256 MiB.
 - Wait modes are 0 (query) and 1 (bounded completion wait). Read, decode, cancel
   and GPU failures retain diagnostic status and return no loaded image. They do
   not silently manufacture a success texture.
+
+Native `CStatus` copies use a literal string format, so percent sequences in
+filenames/decoder diagnostics cannot become variadic arguments; copying a status
+to itself leaves its list unchanged. The original Windows path is preserved.
 
 The cache holds no extra handle reference. Closing the final handle removes its
 entry and cancels its retained ticket; a running read keeps its bytes/entry until
