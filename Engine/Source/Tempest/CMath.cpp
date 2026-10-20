@@ -325,12 +325,6 @@ int32_t IsNaN(double value) {
     return _isnan(value);
 }
 
-// VERIFY: 2ff13d8c auto
-// OFFSET: 0x00482870
-int32_t fequalz(float a, float b, float z) {
-    return fabsf(a - b) < z;
-}
-
 // VERIFY: 20bdea3e auto
 // OFFSET: 0x00482890
 bool fequal(float a, float b) {
@@ -351,12 +345,6 @@ int32_t FloatToInt64(float value) {
     }
 
     return static_cast<int32_t>(value);
-}
-
-// VERIFY: 334b4c2a manual
-// OFFSET: 0x00482900
-bool fnotequal(float a, float b) {
-    return !(fabsf(a - b) < 0.00000023841858f);
 }
 
 // VERIFY: f84f50e9 manual

@@ -232,7 +232,7 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected native XML source/ABI")
         if mode == 'layout' and target['name'] in {'WowNativeLayout', 'NativeLayoutCheck'}:
             allowed = (['Engine/Source/Frame/' + n + '.cpp' for n in ['CLayoutFrame', 'CFramePoint', 'Portable/Runtime']] +
-                ['Engine/Source/FrameXML/LayoutXML.cpp', 'Engine/Source/Base/Coordinate.cpp', 'Engine/Source/Tempest/CRect.cpp', 'Engine/Source/Tempest/C2Vector.cpp']
+                ['Engine/Source/FrameXML/LayoutXML.cpp', 'Engine/Source/Base/Coordinate.cpp', 'Engine/Source/Tempest/CRect.cpp', 'Engine/Source/Tempest/C2Vector.cpp', 'Engine/Source/Tempest/LayoutMath.cpp']
                 if target['name'] == 'WowNativeLayout' else ['Tools/NativeLayout/main.cpp'])
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or

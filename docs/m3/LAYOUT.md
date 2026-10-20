@@ -4,7 +4,8 @@ This package follows the qualified [authored image mip/readiness work](IMAGE_MIP
 It selects actual 12340 `CLayoutFrame.cpp` and `CFramePoint.cpp`, scalar coordinate
 and rectangle/vector consumers under a separate native ABI. Original anchor names,
 `FramePointToString` and `LoadXML_Dimensions` are moved unchanged from `LoadXML.cpp`
-to shared `LayoutXML.cpp`, so Windows and native targets use the same bodies.
+to shared `LayoutXML.cpp`; the two scalar layout comparisons likewise move to
+`Tempest/LayoutMath.cpp`, so Windows and native targets use the same bodies.
 Native entry guards are adaptations; historical OFFSET/VERIFY tags describe the
 Windows bodies, without a new binary verification claim. No donor code is imported.
 

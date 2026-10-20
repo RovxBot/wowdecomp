@@ -5,6 +5,7 @@ add_library(WowNativeLayout STATIC
     ../Frame/Portable/Runtime.cpp
     ../FrameXML/LayoutXML.cpp
     ../Base/Coordinate.cpp
+    ../Tempest/LayoutMath.cpp
     ../Tempest/CRect.cpp
     ../Tempest/C2Vector.cpp)
 target_link_libraries(WowNativeLayout PUBLIC WowNativeXML)
