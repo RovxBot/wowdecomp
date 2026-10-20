@@ -741,7 +741,12 @@ union luai_Cast { double l_d; long l_l; };
 ** CHANGE them if your system supports long long or does not support long.
 */
 
-#if defined(LUA_USELONGLONG)
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+/* Product Windows long is 32 bits; host LP64 long must not widen Lua formats. */
+#define LUA_INTFRMLEN ""
+#define LUA_INTFRM_T int
+
+#elif defined(LUA_USELONGLONG)
 
 #define LUA_INTFRMLEN		"ll"
 #define LUA_INTFRM_T		long long

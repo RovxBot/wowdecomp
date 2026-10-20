@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <errno.h>
+#endif
 
 #define lbaselib_c
 #define LUA_LIB
@@ -42,9 +45,30 @@ static int luaB_tonumber (lua_State *L) {
   else {
     const char *s1 = luaL_checkstring(L, 1);
     char *s2;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    uint32_t n;
+#else
     unsigned long n;
+#endif
     luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Preserve Windows unsigned-long range, including negative and overflow input.
+    const char* sign = s1;
+    while (isspace((unsigned char)*sign)) ++sign;
+    const int savederrno = errno;
+    errno = 0;
+    const uint64_t raw = strtoull(s1, &s2, base);
+    const uint64_t magnitude = *sign == '-' ? uint64_t(0) - raw : raw;
+    if (errno == ERANGE || magnitude > UINT32_MAX) {
+      n = UINT32_MAX;
+      errno = ERANGE;
+    } else {
+      n = (uint32_t)raw;
+      errno = savederrno;
+    }
+#else
     n = strtoul(s1, &s2, base);
+#endif
     if (s1 != s2) {  /* at least one valid digit? */
       while (isspace((unsigned char)(*s2))) s2++;  /* skip trailing spaces */
       if (*s2 == '\0') {  /* no invalid trailing characters? */
