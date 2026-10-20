@@ -64,6 +64,7 @@ struct TextureService::State {
     std::map<Key, std::shared_ptr<Image>> cache;
     std::map<CTexture*, std::shared_ptr<Image>> handles;
     std::vector<Ticket> requests;
+    bool closing = false;
     State(FileQueue& q, Reader r) : queue(q), reader(std::move(r)), device(g_theGxDevicePtr) {}
     void Prune() {
         requests.erase(std::remove_if(requests.begin(), requests.end(), FileQueue::Complete), requests.end());
@@ -88,6 +89,7 @@ TextureService::TextureService(FileQueue& queue, Reader reader) : state(new Stat
 TextureService::~TextureService() {
     try {
         RequireIdle();
+        state->closing = true;
         // Discarded handles can still have cooperative reads in progress. Finish
         // exactly one callback for each before freeing the captured service.
         for (const auto& request : state->requests) state->queue.Cancel(request);
@@ -114,6 +116,7 @@ bool TextureService::Cancel(CTexture* texture) {
 CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* status, uint32_t options) {
     auto& service = Owner();
     auto& s = *service.state;
+    if (s.closing) throw std::logic_error("Native image service is closing");
     // Explicit sampler (bit 0), optional exact BLP suffix (bit 3). Default
     // mip policy, legacy flags/atlas/streaming and other formats stay unavailable.
     if (!status || !(options & 1) || (options & ~9u) || flags.m_filter > GxTex_Linear ||
