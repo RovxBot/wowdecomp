@@ -48,7 +48,44 @@ remain open. Game data stays read-only and outside hosted CI.
 
 All client/dependency compilation and CTest run in Actions, with strict
 ASan/UBSan/leak detection and separate signature-enabled full Windows x64 builds.
-Qualification will record exact passing revisions and downloaded runtime evidence.
+
+## Qualification
+
+[PR #53](https://github.com/RovxBot/wowdecomp/pull/53) is qualified at
+`75225260de3b03a17b2f280ab75f377a9f295d42`, merged as
+`74eeee2399937ed72da27f308e9d66ba370d8f23`. The
+[durable record](frame-keyboard-validation.json) retains all thirteen passing PR
+workflows, 36 CTest checks per Linux release/strict ASan/UBSan/leak configuration
+and full signature-enabled Windows x64 compilation. Hosted checkout
+`c2f06f3b20e3335f976682bb28fc1f709828663c` has the same tree as the implementation
+and merge. Three archive digests, all 51 packaged binary hashes/types and notices
+verified. This graphics surface is Linux only; prerequisite CPU workflows retain
+separate actual ARM64 macOS and native Windows coverage.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer
+packages each passed three authored and three original-data keyboard cycles,
+plus authored/original window and hierarchy, region, retained batch, GlueFonts,
+image and Gxu regressions. All 22 executions exited 0 with empty stderr and zero
+workers. Target/transform/buffer/texture fixtures each passed three cycles per mode.
+Each keyboard cycle observed thirteen key-down callbacks and the three injected
+Unicode scalars. Original-key authentication observed 28,948 signaturefile records;
+registered-member MD5 policy stayed enabled. Original-data hierarchy/window/
+keyboard cycles authenticated GlueXML before/after eighteen GlueFonts definitions.
+
+Keyboard/window/hierarchy release and sanitizer captures match the prior PR #51
+baseline, SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`.
+The 640x480 keyboard capture was inspected: authored white text through original
+Friz Quadrata/UI shaders, 131 ink pixels. Loading-bar image-regression hashes
+remain unchanged. These are injected input and authored composition with original
+resources, separate from physical-input, IME/language or login acceptance.
+
+Local Python: 55 passed, one CMake availability skip. The new launcher test's
+missing fake-manifest setup was corrected before hosted submission. All four
+modified legacy source/header files retain the same Windows-selected tokens;
+whitespace passed. No client/dependency compiled locally. No new physical-input,
+Windows runtime, macOS graphics or server acceptance is claimed.
+
 Run a verified Actions package without local compilation:
 
 ```sh

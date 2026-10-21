@@ -136,6 +136,15 @@ input, independent high-DPI changes or original login. Pooled Lua/XML factories,
 remaining Frame/input/texture/animation consumers and full signed GlueXML/login
 remain open; M3 is incomplete.
 
+The [SDL keyboard/text/focus adapter](docs/m3/FRAME_KEYBOARD.md) now delivers
+committed Unicode scalars and captured key/repeat/up through original root priority
+queues, with bounded native key storage and callback lifetime guards. Both Linux
+GL configurations passed 36 checks; signature-enabled Windows compilation and
+clean-data release/strict sanitizer GPU checks passed. SDL input is injected test
+evidence; physical-input and IME/language acceptance remain separate. Pooled
+Lua/XML factories, mouse/IME and other Frame consumers, full signed GlueXML/login
+and transport/gameplay remain open; M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed

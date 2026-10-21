@@ -590,3 +590,32 @@ Next dependencies, in order:
 
 M3 exits only after an observed native Linux world session with unchanged data.
 Audio/movie limitations and unavailable platform coverage must stay explicit.
+
+The [SDL keyboard/text/focus adapter](FRAME_KEYBOARD.md) in
+[PR #53](https://github.com/RovxBot/wowdecomp/pull/53) is qualified at
+`75225260de3b03a17b2f280ab75f377a9f295d42`, merged as
+`74eeee2399937ed72da27f308e9d66ba370d8f23`. Its
+[record](frame-keyboard-validation.json) retains thirteen passing PR
+workflows, 36 checks per Linux GL configuration, signature-enabled full Windows
+x64 compilation at matching-tree checkout `c2f06f3b20e3335f976682bb28fc1f709828663c`,
+three verified archives and all 51 packaged binary hashes/types. Downloaded RX
+7900 XTX release/strict ASan/UBSan/leak packages passed 22 authored/original-data
+keyboard/window/hierarchy and prior-resource executions, three cycles each, with
+empty stderr/zero workers; all four resource fixtures passed three cycles per mode.
+Captures match the prior window baseline and each other.
+
+Original root stratum/priority queues now deliver native key-down, captured
+repeat/key-up, committed Unicode scalars and focus callbacks. Native storage
+covers the full key enum, including Super keys; validate raw indices before
+array/shift access. Preserve original modifier bits, event identities/timestamps,
+PrintScreen fallback, hide/disable/destruction cleanup and traversal guards.
+Native priority nodes use matching allocation/deallocation. Callback consumers
+may defer deletion; finish input before root mutation/update/render/destruction.
+Nonempty native Lua input handlers still reject before stack mutation until actual
+pooled Lua/XML factories are selected. Authored SDL_PushEvent checks are not
+physical-input or IME/language acceptance. Mouse/occlusion/drag/IME, pooled
+factories, texture/animation/model consumers, full signed ordered GlueXML plus
+post-creation digest gate, actual login and transport/gameplay remain open.
+No new physical-input, Windows runtime, macOS graphics or server acceptance.
+M3 stays incomplete; preserve signatures, server revision discrepancies and
+interactive user sign-in.

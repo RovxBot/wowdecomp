@@ -108,8 +108,9 @@ signatures, server revision discrepancies and interactive user sign-in.
 3. Select actual Frame texture/image-mode/backdrop consumers against qualified
    Services source lookup, readiness and atlas coordinates. Adapt scrolling and
    root input/occlusion policy as their callers require them.
-4. Preserve the qualified [SDL display-size path](FRAME_WINDOW.md) while extending
-   actual keyboard/mouse/focus/IME and input/occlusion delivery. Establish original
+4. Preserve the qualified [SDL display-size path](FRAME_WINDOW.md) and
+   [keyboard/committed-text/focus adapter](FRAME_KEYBOARD.md) while extending
+   mouse/IME and input/occlusion delivery. Establish original
    coordinate math before fonts/layout; keep independent high-DPI and physical-input
    acceptance separate from programmatic window-event checks.
 5. Execute complete signed ordered GlueXML/FrameXML creation and the full second
