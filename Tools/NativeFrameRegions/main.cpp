@@ -1,6 +1,7 @@
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Frame/Portable/Render.h"
+#include "Engine/Source/Gxu/GxuFontString.h"
 #include <limits>
 #include "Engine/Source/Frame/Portable/Fonts.h"
 #include "Engine/Source/Frame/CScriptObject.h"
@@ -181,7 +182,14 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     text->SetVertexColor(CImVector(0,0,255,255));
     CRenderBatch retained;
     text->Draw(&retained);auto first=Draw(device,retained);
-    size_t ink=0;for(const auto& p:first)ink+=p.r>16 && p.g<4 && p.b<4;
+    size_t ink=0,lit=0;uint8_t red=0,green=0,blue=0;
+    for(const auto& p:first){ink+=p.r>16 && p.g<4 && p.b<4;lit+=p.r||p.g||p.b;red=std::max(red,p.r);green=std::max(green,p.g);blue=std::max(blue,p.b);}
+    auto* gxText=text->m_string?TextBlockGetStringPtr(text->m_string):nullptr;
+    std::cout<<"region-diagnostic batch="<<retained.m_count<<" layout-flags="<<text->m_layoutFlags
+        <<" rect="<<text->m_rect.minX<<','<<text->m_rect.minY<<','<<text->m_rect.maxX<<','<<text->m_rect.maxY
+        <<" font-height="<<text->m_fontHeight<<" style="<<text->m_styleFlags<<" scale="<<text->m_layoutScale
+        <<" text="<<(text->m_text?text->m_text:"")<<" block="<<bool(gxText)<<" lines="<<(gxText?gxText->m_numLines:0)
+        <<" lit="<<lit<<" rgb-max="<<int(red)<<','<<int(green)<<','<<int(blue)<<'\n';
     Check(ink>4,"Actual FontString region rendered no red glyphs");
     auto oldBlock=text->m_string;auto oldFont=text->m_fontHandle;
     text->SetText("replacement",0);CLayoutFrame::ResizePending();
