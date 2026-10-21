@@ -1,10 +1,14 @@
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/Frame/Portable/WindowEvents.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CFrameStrataNode.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Frame/Portable/Render.h"
 #include "Engine/Source/Gxu/GxuFontString.h"
+#include "Engine/Source/Gxu/GxuFontFont.h"
+#include "Engine/Source/Event/CSizeEvent.h"
+#include <SDL3/SDL.h>
 #include <limits>
 #include "Engine/Source/Frame/Portable/Fonts.h"
 #include "Engine/Source/Frame/CScriptObject.h"
@@ -26,6 +30,7 @@
 #include "Engine/Source/Tempest/C3Vector.h"
 #include <algorithm>
 #include <cfenv>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -116,11 +121,11 @@ static CSimpleFont* Original(Source& source) {
     return selected;
 }
 
-static std::vector<CImVector> Draw(LegacyDevice& device, CSimpleTop& root) {
+static std::vector<CImVector> Draw(LegacyDevice& device, CSimpleTop& root, int width=640, int height=480) {
     root.OnLayerUpdate(0.016f);
     GxSceneClear(GxBufferBit_Color,CImVector(0,0,0,255));
     root.OnLayerRender();
-    CiRect rect{};rect.maxX=640;rect.maxY=480;TSGrowableArray<CImVector> pixels;
+    CiRect rect{};rect.maxX=width;rect.maxY=height;TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect,pixels);return {pixels.Ptr(),pixels.Ptr()+pixels.Count()};
 }
 static void Equal(const std::vector<CImVector>& a,const std::vector<CImVector>& b) {
@@ -141,7 +146,14 @@ struct UpdateFrame final : CSimpleFrame {
     }
 };
 struct GuardedText final : CSimpleFontString {
+    int screenChanges=0;
     explicit GuardedText(CSimpleFrame* parent):CSimpleFontString(parent,2,true) {}
+    void OnScreenSizeChanged() override {
+        Reject([&]{Frame::Native::RequireTreeMutation();});
+        Reject([&]{Frame::Native::RequireDestroyable();});
+        ++screenChanges;
+        CSimpleFontString::OnScreenSizeChanged();
+    }
     void Draw(CRenderBatch* batch) override {
         Reject([&]{SetFrame(m_parent,0,1);});
         Reject([&]{Hide();});
@@ -149,7 +161,80 @@ struct GuardedText final : CSimpleFontString {
         CSimpleFontString::Draw(batch);
     }
 };
-static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string& snapshot) {
+static GlContext* callbackContext=nullptr;
+static int sizeCallbacks=0;
+static bool throwSizeCallback=false;
+static EVENT_DATA_SIZE callbackSize{};
+static void SizeCallback(const CSizeEvent& event) {
+    Check(event.m_id==0x40040064 && !event.m_param,"Original display event identity");
+    callbackSize=event.m_data;
+    ++sizeCallbacks;
+    OSEVENT size{OS_INPUT_SIZE,{0,0,0,0}};
+    Reject([&]{Frame::Native::DispatchWindowEvent(*callbackContext,size);});
+    Reject([&]{CSimpleTop::s_instance->OnLayerUpdate(0.016f);});
+    Reject([&]{CSimpleTop::s_instance->OnLayerRender();});
+    Reject([&]{Frame::Native::RequireDestroyable();});
+    if(throwSizeCallback) throw std::runtime_error("Authored size callback failure");
+}
+static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& root,
+                         GuardedText& text,const std::vector<CImVector>& baseline) {
+    auto pump=[&] {
+        context.Window().Pump();
+        OSEVENT event{};int delivered=0;
+        while(OsQueueGet(&event.id,&event.param[0],&event.param[1],&event.param[2],&event.param[3]))
+            if(Frame::Native::DispatchWindowEvent(context,event)) ++delivered;
+        return delivered;
+    };
+    pump(); // Retire initial window events before counting actual resizes.
+    callbackContext=&context;sizeCallbacks=0;root.m_displaySizeCallback=SizeCallback;
+    auto* face=TextBlockGetFontPtr(text.m_fontHandle);Check(bool(face),"Missing live region font");
+    const auto originalPixels=face->GetPixelSize();
+    const int originalChanges=text.screenChanges;
+    auto resize=[&](int width,int height) {
+        Check(SDL_SetWindowSize(context.Window().Handle(),width,height),"SDL resize request failed");
+        Check(SDL_SyncWindow(context.Window().Handle()),"SDL resize synchronization failed");
+        int delivered=0;
+        const auto deadline=SDL_GetTicks()+3000;
+        do {delivered+=pump();if(!delivered) SDL_Delay(1);} while(!delivered && SDL_GetTicks()<deadline);
+        Check(delivered>0,"SDL resize produced no Os size delivery");
+        int w,h,pw,ph;context.Window().Size(w,h,pw,ph);
+        Check(w==width && h==height,"SDL did not apply requested fixture dimensions");
+        Check(callbackSize.m_w==w && callbackSize.m_h==h,"Display callback dimensions are stale");
+        Check(g_widthPixels==uint32_t(w) && g_heightPixels==uint32_t(h),"Gxu logical metrics are stale");
+        Check(std::fabs(CoordinateGetAspectRatio()-float(w)/h)<0.00001f,"Coordinate aspect is stale");
+        Check(std::fabs(DDCToNDCWidth(root.m_rect.maxX)-1)<0.00001f &&
+              std::fabs(DDCToNDCHeight(root.m_rect.maxY)-1)<0.00001f,"Root extent is stale");
+        auto pixels=Draw(device,root,pw,ph);Check(Ink(pixels)>4,"Resized root lost glyph pixels");
+        Equal(pixels,Draw(device,root,pw,ph));
+        device.ScenePresent();
+        std::cout<<"sdl-frame-size-delivered logical="<<w<<'x'<<h<<" drawable="<<pw<<'x'<<ph
+                 <<" font-pixels="<<face->GetPixelSize()<<" ink="<<Ink(pixels)<<'\n';
+        return pixels;
+    };
+    resize(800,600);
+    Check(face->GetPixelSize()>originalPixels,"Gxu font dimensions were not invalidated");
+    resize(900,600); // Change aspect as well as logical/drawable dimensions.
+    auto restored=resize(640,480);Equal(baseline,restored);
+    Check(face->GetPixelSize()==originalPixels && text.screenChanges>=originalChanges+3 && sizeCallbacks>=3,
+          "Frame/font screen callbacks did not complete each resize");
+    // Authored failure/stale-payload/unsupported/foreign-thread cases are separate
+    // from the three real SDL_SetWindowSize -> Pump -> OsQueueGet transitions.
+    OSEVENT size{OS_INPUT_SIZE,{1,1,0,0}}, key{OS_INPUT_KEY_DOWN,{KEY_A,0,0,0}};
+    Check(!Frame::Native::DispatchWindowEvent(context,key),"Size dispatcher consumed keyboard input");
+    const int callbacksBefore=sizeCallbacks;
+    throwSizeCallback=true;bool threw=false;
+    try{Frame::Native::DispatchWindowEvent(context,size);}catch(const std::runtime_error&){threw=true;}
+    throwSizeCallback=false;Check(threw,"Size callback failure was hidden");
+    Check(Frame::Native::DispatchWindowEvent(context,size),"Size delivery did not recover after callback failure");
+    Check(callbackSize.m_w==640 && callbackSize.m_h==480 && sizeCallbacks==callbacksBefore+2,
+          "Size dispatcher replayed stale event dimensions");
+    Equal(baseline,Draw(device,root));
+    bool foreign=false;std::thread thread([&]{try{Frame::Native::DispatchWindowEvent(context,size);}
+        catch(const std::logic_error&){foreign=true;}});thread.join();Check(foreign,"Foreign size dispatch accepted");
+    root.m_displaySizeCallback=nullptr;callbackContext=nullptr;
+    std::cout<<"sdl-frame-resize-restore-callback-guards-recovery=passed callbacks="<<sizeCallbacks<<'\n';
+}
+static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,const std::string& snapshot,bool windowEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
@@ -168,6 +253,7 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
     auto first=Draw(device,root);auto ink=Ink(first);
     Check(ink>4 && text->m_string,"Root rendered no actual FontString glyphs");
     Equal(first,Draw(device,root));
+    if(windowEvents) WindowEvents(context,device,root,*text,first);
     parent->AllowAttributeChanges(1);parent->AllowAttributeChanges(1);
     Check(root.m_destroyed.Head()==parent && !root.m_destroyed.Next(parent),"Attribute permission cleanup queued twice");
     root.OnLayerUpdate(0.016f);Check(!parent->AttributeChangesAllowed() && !root.m_destroyed.Head(),"Original temporary attribute permission did not expire");
@@ -236,15 +322,16 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
 int main(int argc,char** argv) {
     bool started=false;
     try {
-        std::string data,settings,cache,font,snapshot;
-        for(int i=1;i<argc;++i){Check(i+1<argc,"Missing option value");std::string key=argv[i],value=argv[++i];
+        std::string data,settings,cache,font,snapshot;bool windowEvents=false;
+        for(int i=1;i<argc;++i){std::string key=argv[i];if(key=="--window-events"){windowEvents=true;continue;}
+            Check(i+1<argc,"Missing option value");std::string value=argv[++i];
             if(key=="--data")data=value;else if(key=="--settings")settings=value;else if(key=="--cache")cache=value;else if(key=="--font")font=value;else if(key=="--snapshot")snapshot=value;else throw std::invalid_argument("Unknown region option");}
         Check(data.empty()==settings.empty() && data.empty()==cache.empty(),"Separate original data/user roots required");Check(!data.empty() || !font.empty(),"Supply authored font or original data");
         Check(!std::fesetenv(FE_DFL_ENV) && !std::fesetround(FE_TONEAREST),"FP initialization failed");
         StormRtlInitialize();OsTimeStartup(OsTimeManager::BestAvailable);started=true;
         for(int cycle=0;cycle<3;++cycle){
             {
-                GlContext context("Original Frame parent/root fixture",640,480,true);
+                GlContext context("Original Frame parent/root fixture",640,480,!windowEvents);
                 std::cout<<"gl-renderer="<<context.Info().renderer<<"\ngl-version="<<context.Info().version<<'\n';
                 Source source(data,settings,cache,font);
                 LegacyDevice device(context,[&](const std::string& path){return source.shaders.at(path);});
@@ -256,7 +343,7 @@ int main(int argc,char** argv) {
                     CSimpleFont* selected;
                     if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight(32.0f/480),0),"Authored font creation");}
                     else selected=Original(source);
-                    Hierarchy(device,*selected,cycle?"":snapshot);
+                    Hierarchy(context,device,*selected,cycle?"":snapshot,windowEvents);
                     renderer.CheckCanClose();factories.CheckCanClose();}
                 Check(!source.queue.Pending(),"Region left pending file work");
             }
