@@ -13,7 +13,12 @@ float CSimpleTop::RoundToPixelWidth(float ddcWidth) {
     }
 
     CRect windowRect = { 0.0f, 0.0f, 0.0f, 0.0f };
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // The native UI uses window logical pixels; no desktop-global coordinates.
+    g_theGxDevicePtr->CapsWindowSize(windowRect);
+#else
     g_theGxDevicePtr->CapsWindowSizeInScreenCoords(windowRect);
+#endif
 
     float windowWidth = windowRect.maxX - windowRect.minX;
 
@@ -34,7 +39,11 @@ float CSimpleTop::RoundToPixelHeight(float ddcHeight) {
     }
 
     CRect windowRect = { 0.0f, 0.0f, 0.0f, 0.0f };
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    g_theGxDevicePtr->CapsWindowSize(windowRect);
+#else
     g_theGxDevicePtr->CapsWindowSizeInScreenCoords(windowRect);
+#endif
 
     float windowHeight = windowRect.maxY - windowRect.minY;
 

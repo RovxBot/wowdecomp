@@ -147,6 +147,7 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     text->SetPoint(FRAMEPOINT_BOTTOMLEFT,&root,FRAMEPOINT_BOTTOMLEFT,0.1f,0.1f,1);
     text->SetFontObject(&font);
     text->SetText("AV Frame region",0);
+    text->SetSpacing(NDCToDDCHeight(1.0f/480));
     CLayoutFrame::ResizePending();
     Check(text->m_fontHandle && text->m_string && text->GetStringWidth()>0 && text->GetStringHeight()>0,"Original FontString layout did not create text");
     Reject([&]{factories.CheckCanClose();});
@@ -169,7 +170,7 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     Check(text->m_string,"Scale change lost the original text block");
     // Font replacement must close the prior block before its borrowed font.
     const std::string face=text->GetFontName();const auto height=text->m_fontHeight;
-    Check(text->SetFont(face.c_str(),height,0,true),"Font replacement failed");CLayoutFrame::ResizePending();
+    Check(text->SetFont(face.c_str(),height,text->GetFontFlags(),true),"Font replacement failed");CLayoutFrame::ResizePending();
     text->AddShadow(CImVector(0,0,0,255),C2Vector(0.001f,-0.001f));
     text->SetShadowOffset(C2Vector(0.002f,-0.002f));text->RemoveShadow();
     text->SetVertexColor(CImVector(0,0,255,255));
