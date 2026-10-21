@@ -1,3 +1,9 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
+#else
+#define FRAME_TREE_CHECK() ((void)0)
+#endif
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -162,6 +168,7 @@ static const char* KeyCodeToString(KEY key) {
 // VERIFY: f47c2198 auto
 // OFFSET: 0x0049CAB0
 int32_t CSimpleFrame::GetObjectType() {
+    FRAME_TREE_CHECK();
     if (!CSimpleFrame::s_objectType) {
         CSimpleFrame::s_objectType = ++FrameScript_Object::s_objectTypes;
     }
@@ -171,14 +178,28 @@ int32_t CSimpleFrame::GetObjectType() {
 
 // INLINED
 void CSimpleFrame::operator delete(void* ptr) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    ::operator delete(ptr);
+#else
+
     if (ptr) {
         CSimpleFrame::s_allocator.PutData(ptr, nullptr, 0);
     }
+
+#endif
 }
 
 // VERIFY: 6649b89d manual
 // OFFSET: 0x004922F0
 CSimpleFrame::CSimpleFrame(CSimpleFrame* parent) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRoot();
+    Frame::Native::RequireParent(nullptr, parent);
+    CSimpleFrame::GetObjectType();
+    this->m_isShown = 0;
+#endif
     this->m_frameScale = 1.0f;
     this->m_animating = 0;
     this->m_animAlpha = 0;
@@ -210,7 +231,12 @@ CSimpleFrame::CSimpleFrame(CSimpleFrame* parent) {
     this->m_backdropGenerator = nullptr;
     this->m_batchDirty = 0;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::SimpleFrameCreated(this);
     CSimpleFrame::s_frameCount++;
+#else
+    CSimpleFrame::s_frameCount++;
+#endif
 
     this->m_simpleTop = CSimpleTop::s_instance;
     this->m_simpleTop->RegisterFrame(this);
@@ -234,6 +260,10 @@ CSimpleFrame::CSimpleFrame(CSimpleFrame* parent) {
 // VERIFY: e1a5b71b manual
 // OFFSET: [0x00492770, 0x004926B0, 0x00492E40]
 CSimpleFrame::~CSimpleFrame() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     this->m_lifecycleState = 3;
     this->m_simpleTop->UnregisterFrame(this);
     this->m_simpleTop->ValidateDeletedFrame(this);
@@ -274,42 +304,66 @@ CSimpleFrame::~CSimpleFrame() {
         this->m_parent->UnparentFrame(this);
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_backdropGenerator) std::terminate();
+#else
     if (this->m_backdropGenerator) {
         delete this->m_backdropGenerator;
     }
+#endif
 
     this->m_attributes.Clear();
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::SimpleFrameDestroyed(this);
     CSimpleFrame::s_frameCount--;
+#else
+    CSimpleFrame::s_frameCount--;
+#endif
 }
 
 // VERIFY: bfa0f3ed auto
 // OFFSET: 0x004926C0
 bool CSimpleFrame::IsA(int32_t type) {
+    FRAME_TREE_CHECK();
     return type == CSimpleFrame::s_objectType || type == CScriptRegion::s_objectType || type == CScriptObject::s_objectType;
 }
 
 // VERIFY: bb492e3f auto
 // OFFSET: 0x004926F0
 bool CSimpleFrame::IsA(const char* typeName) {
+    FRAME_TREE_CHECK();
     return !SStrCmpI(typeName, CSimpleFrame::s_objectTypeName, STORM_MAX_STR) || !SStrCmpI(typeName, CScriptRegion::s_objectTypeName, STORM_MAX_STR) || !SStrCmpI(typeName, CScriptObject::s_objectTypeName, STORM_MAX_STR);
 }
 
 // VERIFY: 734071a8 auto
 // OFFSET: 0x00492750
 const char* CSimpleFrame::GetObjectTypeName() {
+    FRAME_TREE_CHECK();
     return CSimpleFrame::s_objectTypeName;
 }
 
 // VERIFY: 3fde1784 auto
 // OFFSET: 0x00492760
 int32_t CSimpleFrame::GetScriptMetaTable() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return CSimpleFrame::s_metatable;
+
+#endif
 }
 
 // VERIFY: cb6c9f18 auto
 // OFFSET: 0x0048E680
 FrameScript_Object::ScriptIx* CSimpleFrame::GetScriptByName(const char* name, FrameScript_Object::ScriptData& data) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     FrameScript_Object::ScriptIx* script = FrameScript_Object::GetScriptByName(name, data);
 
     if (script) {
@@ -405,45 +459,77 @@ FrameScript_Object::ScriptIx* CSimpleFrame::GetScriptByName(const char* name, Fr
     }
 
     return nullptr;
+
+#endif
 }
 
 // VERIFY: d39dac25 manual
 // OFFSET: 0x00482E60
 uint8_t CSimpleFrame::GetEffectiveAlpha() {
+    FRAME_TREE_CHECK();
     return this->m_alpha * this->m_parentAlpha / 255;
 }
 
 // VERIFY: 292e1728 auto
 // OFFSET: 0x0048E970
 void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (set) {
         this->m_frameFlags |= flag;
     } else {
         this->m_frameFlags &= ~flag;
     }
+
+#endif
 }
 
 // VERIFY: c5f65169 auto
 // OFFSET: 0x0048E9A0
 void CSimpleFrame::Raise() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     this->m_simpleTop->RaiseFrame(this, 1);
+
+#endif
 }
 
 // VERIFY: cd9f8146 auto
 // OFFSET: 0x0048E9B0
 int32_t CSimpleFrame::Lower() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return this->m_simpleTop->LowerFrame(this);
+
+#endif
 }
 
 // VERIFY: 7a7cdf5e auto
 // OFFSET: 0x0048E9C0
 int32_t CSimpleFrame::DragBy(float offsetX, float offsetY, FRAMEPOINT point) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return CLayoutFrame::DragBy(this->m_simpleTop, offsetX, offsetY, point);
+
+#endif
 }
 
 // VERIFY: d213d152 auto
 // OFFSET: 0x0048E9F0
 void CSimpleFrame::PropagateProtectFlagToParent(uint32_t flag) {
+    FRAME_TREE_CHECK();
     if (this->m_parent) {
         this->m_parent->SetProtectFlag(flag);
     }
@@ -452,6 +538,7 @@ void CSimpleFrame::PropagateProtectFlagToParent(uint32_t flag) {
 // VERIFY: 19a8f143 auto
 // OFFSET: 0x0048EA10
 void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
+    FRAME_TREE_CHECK();
     if (alpha != this->m_alpha) {
         this->m_alpha = alpha;
         this->UpdateAlpha();
@@ -461,26 +548,41 @@ void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
 // VERIFY: ee3b3c89 auto
 // OFFSET: 0x0048EA40
 void CSimpleFrame::RegisterForEvents(int32_t a2) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_enabledEventsBitmask) Frame::Native::UnavailableFrameFeature();
+#else
+
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
             this->m_simpleTop->RegisterForEvent(this, static_cast<CSimpleEventType>(i), a2, -1);
         }
     }
+
+#endif
 }
 
 // VERIFY: 68083be0 auto
 // OFFSET: 0x0048EA80
 void CSimpleFrame::UnregisterForEvents(int32_t a2) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_enabledEventsBitmask) Frame::Native::UnavailableFrameFeature();
+#else
+
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
             this->m_simpleTop->UnregisterForEvent(this, static_cast<CSimpleEventType>(i), a2);
         }
     }
+
+#endif
 }
 
 // VERIFY: b74e77a5 auto
 // OFFSET: 0x0048EAC0
 void CSimpleFrame::GetHitRectInsets(float& left, float& right, float& top, float& bottom) {
+    FRAME_TREE_CHECK();
     left = this->m_hitRectInsets.minX;
     right = this->m_hitRectInsets.maxX;
     top = this->m_hitRectInsets.maxY;
@@ -490,6 +592,7 @@ void CSimpleFrame::GetHitRectInsets(float& left, float& right, float& top, float
 // VERIFY: 7a64124f auto
 // OFFSET: 0x0048EB00
 void CSimpleFrame::SetClampRectInsets(float left, float right, float top, float bottom) {
+    FRAME_TREE_CHECK();
     this->m_clampRectInsets.minX = left;
     this->m_clampRectInsets.maxX = right;
     this->m_clampRectInsets.maxY = top;
@@ -499,6 +602,7 @@ void CSimpleFrame::SetClampRectInsets(float left, float right, float top, float 
 // VERIFY: 8374aca6 auto
 // OFFSET: 0x0048EB30
 void CSimpleFrame::GetClampRectInsets(float& left, float& right, float& top, float& bottom) {
+    FRAME_TREE_CHECK();
     left = this->m_clampRectInsets.minX;
     right = this->m_clampRectInsets.maxX;
     top = this->m_clampRectInsets.maxY;
@@ -508,37 +612,70 @@ void CSimpleFrame::GetClampRectInsets(float& left, float& right, float& top, flo
 // VERIFY: 31db8368 auto
 // OFFSET: 0x0048EB70
 bool CSimpleFrame::IsDragging() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return this->m_isMouseDragging != 0;
+#else
+
     return this->m_isMouseDragging || (this->m_parent && this->m_parent->IsDragging());
+
+#endif
 }
 
 // VERIFY: 9375fd41 manual
 // OFFSET: 0x0048EBA0
 void CSimpleFrame::PreOnAnimUpdate() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_animating) Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_animAlpha && this->m_animSavedAlpha != this->m_alpha) {
         this->m_alpha = this->m_animSavedAlpha;
         this->UpdateAlpha();
     }
+
+#endif
 }
 
 // VERIFY: fb5aa7ed auto
 // OFFSET: 0x0048EBD0
 void CSimpleFrame::StoreAnimPosition() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     this->Resize(1);
     this->m_animating = 1;
     this->m_animAlpha = 0;
+
+#endif
 }
 
 // VERIFY: e9514e5e auto
 // OFFSET: 0x0048EBF0
 void CSimpleFrame::ResetAnimPosition() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     this->m_animating = 0;
     this->m_animAlpha = 0;
     this->Resize(1);
+
+#endif
 }
 
 // VERIFY: 4eef2a8c auto
 // OFFSET: 0x0048EC10
 void CSimpleFrame::RunOnAttributeChangedScript(const char* name, int32_t luaRef) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!this->m_onAttributeChanged.m_luaRef) {
         return;
     }
@@ -565,11 +702,17 @@ void CSimpleFrame::RunOnAttributeChangedScript(const char* name, int32_t luaRef)
     if (--lua_taintexpected <= 0) {
         lua_taintexpected = 0;
     }
+
+#endif
 }
 
 // VERIFY: 0a1a8e02 manual
 // OFFSET: 0x0048ECF0
 void CSimpleFrame::AllowAttributeChanges(int32_t allow) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (allow && this->m_destroyedLink.IsLinked()) return;
+#endif
     if (allow) {
         this->m_frameFlags |= 0x8000;
         this->m_simpleTop->RegisterForCleanup(this);
@@ -581,6 +724,7 @@ void CSimpleFrame::AllowAttributeChanges(int32_t allow) {
 // VERIFY: 0b620746 manual
 // OFFSET: 0x0048ED30
 int32_t CSimpleFrame::AttributeChangesAllowed() {
+    FRAME_TREE_CHECK();
     for (CSimpleFrame* frame = this; frame; frame = frame->m_parent) {
         if (frame->m_frameFlags & 0x8000) {
             return 1;
@@ -593,6 +737,7 @@ int32_t CSimpleFrame::AttributeChangesAllowed() {
 // VERIFY: 0b2d4d3c auto
 // OFFSET: 0x0048F070
 void CSimpleFrame::RunOnSizeChangedScript(float width, float height) {
+    FRAME_TREE_CHECK();
     if (this->m_onSizeChanged.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * width));
@@ -604,46 +749,79 @@ void CSimpleFrame::RunOnSizeChangedScript(float width, float height) {
 // VERIFY: f5dfec34 auto
 // OFFSET: 0x0048F0F0
 void CSimpleFrame::RunOnEnterScript(int32_t motion) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onCursorEnter.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, motion);
         this->RunScript(this->m_onCursorEnter, 1, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: f2d2ba21 auto
 // OFFSET: 0x0048F130
 void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onCursorExit.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, motion);
         this->RunScript(this->m_onCursorExit, 1, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: ab9ac4fe auto
 // OFFSET: 0x0048F170
 void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onMouseWheel.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, delta);
         this->RunScript(this->m_onMouseWheel, 1, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: 4eba352f auto
 // OFFSET: 0x0048F1B0
 void CSimpleFrame::RunOnKeyUpScript(const char* key) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onKeyUp.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushstring(L, key);
         this->RunScript(this->m_onKeyUp, 1, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: a4db5488 auto
 // OFFSET: 0x0048F1F0
 void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (XMLNode* layerNode = node->m_child; layerNode; layerNode = layerNode->m_next) {
         if (SStrCmpI(layerNode->m_name.m_str, "Layer", STORM_MAX_STR)) {
             const char* frameName = this->GetName();
@@ -671,6 +849,8 @@ void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
             }
         }
     }
+
+#endif
 }
 
 // INLINED
@@ -701,6 +881,11 @@ FrameScriptFunctionRef::~FrameScriptFunctionRef() {
 // VERIFY: 3c47d852 auto
 // OFFSET: 0x0048F400
 void CSimpleFrame::LoadXMLInheritance(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const char* inherits = node->GetAttributeByName("inherits");
 
     if (inherits && *inherits) {
@@ -753,11 +938,14 @@ void CSimpleFrame::LoadXMLInheritance(XMLNode* node, CStatus* status) {
             FrameXML_CreateFrame(child, this, status);
         }
     }
+
+#endif
 }
 
 // VERIFY: 08c5569f auto
 // OFFSET: 0x0048F550
 void CSimpleFrame::NotifyDelayedLoad() {
+    FRAME_TREE_CHECK();
     if (this->m_frameFlags & 0x2000) {
         this->m_batchDirty |= 0x20;
     } else if (this->m_simpleTop && this->m_isVisible) {
@@ -768,6 +956,12 @@ void CSimpleFrame::NotifyDelayedLoad() {
 // VERIFY: 4b524082 auto
 // OFFSET: 0x0048F580
 bool CSimpleFrame::SetFrameScale(float scale, bool force) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireDimension(scale);
+    if (!scale) throw std::invalid_argument("Nonpositive Frame scale");
+    Frame::Native::RequireScale(this, scale);
+#endif
     if ((!force && fabs(scale - this->m_frameScale) < 0.00000023841858f) || scale == 0.0f) {
         return false;
     }
@@ -779,6 +973,10 @@ bool CSimpleFrame::SetFrameScale(float scale, bool force) {
 // VERIFY: 00115b9e auto
 // OFFSET: 0x0048F5D0
 bool CSimpleFrame::SetFrameDepth(float depth, bool force) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFinite(depth);
+#endif
     if (!force && fabs(depth - this->m_depth) < 0.00000023841858f) {
         return false;
     }
@@ -790,6 +988,10 @@ bool CSimpleFrame::SetFrameDepth(float depth, bool force) {
 // VERIFY: 1e40a962 manual
 // OFFSET: 0x0048F620
 int32_t CSimpleFrame::Hide() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
             this->m_simpleTop->m_actionBlockedCallback(nullptr);
@@ -805,6 +1007,10 @@ int32_t CSimpleFrame::Hide() {
 // VERIFY: aa204a9e manual
 // OFFSET: 0x0048F660
 int32_t CSimpleFrame::Show() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
             this->m_simpleTop->m_actionBlockedCallback(nullptr);
@@ -820,6 +1026,11 @@ int32_t CSimpleFrame::Show() {
 // VERIFY: ec84450f auto
 // OFFSET: 0x0048F6A0
 void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if ((1 << eventType) & this->m_enabledEventsBitmask) {
         return;
     }
@@ -829,11 +1040,18 @@ void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority) {
     }
 
     this->m_enabledEventsBitmask |= 1 << eventType;
+
+#endif
 }
 
 // VERIFY: 219cc709 auto
 // OFFSET: 0x0048F6F0
 void CSimpleFrame::DisableEvent(CSimpleEventType eventType) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!((1 << eventType) & this->m_enabledEventsBitmask)) {
         return;
     }
@@ -843,11 +1061,18 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType) {
     }
 
     this->m_enabledEventsBitmask &= ~(1 << eventType);
+
+#endif
 }
 
 // VERIFY: bbfb8171 manual
 // OFFSET: 0x0048F730
 int32_t CSimpleFrame::TestHitRect(const C2Vector& pt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;
     }
@@ -873,11 +1098,14 @@ int32_t CSimpleFrame::TestHitRect(const C2Vector& pt) {
     CRect rect = scrollFrame->m_hitRect;
     CRect clip = rect &= this->m_hitRect;
     return clip.minX <= pt.x && clip.maxX >= pt.x && clip.minY <= pt.y && clip.maxY >= pt.y;
+
+#endif
 }
 
 // VERIFY: 5bdccee1 auto
 // OFFSET: 0x0048F820
 void CSimpleFrame::SetHitRectInsets(float left, float right, float top, float bottom) {
+    FRAME_TREE_CHECK();
     this->m_hitRectInsets.minX = left;
     this->m_hitRectInsets.maxX = right;
     this->m_hitRectInsets.maxY = top;
@@ -892,6 +1120,7 @@ void CSimpleFrame::SetHitRectInsets(float left, float right, float top, float bo
 // VERIFY: 8c2d9ec9 manual
 // OFFSET: 0x0048F890
 int32_t CSimpleFrame::GetHitRect(CRect& rect) {
+    FRAME_TREE_CHECK();
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;
     }
@@ -903,6 +1132,11 @@ int32_t CSimpleFrame::GetHitRect(CRect& rect) {
 // VERIFY: a9240fc0 manual
 // OFFSET: 0x0048F8E0
 void CSimpleFrame::AddAnimAlpha(int16_t alpha) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     int16_t value = alpha + static_cast<uint8_t>(this->m_alpha * this->m_parentAlpha / 255);
     uint8_t newAlpha;
 
@@ -918,11 +1152,18 @@ void CSimpleFrame::AddAnimAlpha(int16_t alpha) {
         this->m_alpha = newAlpha;
         this->UpdateAlpha();
     }
+
+#endif
 }
 
 // VERIFY: de9aeb94 auto
 // OFFSET: 0x0048F950
 int32_t CSimpleFrame::OnLayerTrackUpdate(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     C2Vector pt = evt.m_data.m_mousePosition;
 
     if (this->m_isMouseDown && !this->m_isMouseDragging) {
@@ -946,11 +1187,14 @@ int32_t CSimpleFrame::OnLayerTrackUpdate(const CMouseEvent& evt) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: b9fc7020 manual
 // OFFSET: 0x0048FA20
 void CSimpleFrame::OnFrameSizeChanged(const CRect& rect) {
+    FRAME_TREE_CHECK();
     CLayoutFrame::OnFrameSizeChanged(rect);
 
     this->m_hitRect.minX = this->m_hitRectInsets.minX * this->m_layoutScale + this->m_rect.minX;
@@ -959,9 +1203,13 @@ void CSimpleFrame::OnFrameSizeChanged(const CRect& rect) {
     this->m_hitRect.maxY = this->m_rect.maxY - this->m_hitRectInsets.maxY * this->m_layoutScale;
 
     if (fabs(rect.maxX - rect.minX - (this->m_rect.maxX - this->m_rect.minX)) >= 0.00000023841858f || fabs(rect.maxY - rect.minY - (this->m_rect.maxY - this->m_rect.minY)) >= 0.00000023841858f) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_backdropGenerator) Frame::Native::UnavailableFrameFeature();
+#else
         if (this->m_backdropGenerator) {
             this->m_backdropGenerator->Generate(&this->m_rect);
         }
+#endif
 
         float scale = 1.0f / this->m_layoutScale;
         this->OnFrameSizeChanged((this->m_rect.maxX - this->m_rect.minX) * scale, (this->m_rect.maxY - this->m_rect.minY) * scale);
@@ -973,18 +1221,37 @@ void CSimpleFrame::OnFrameSizeChanged(const CRect& rect) {
 // VERIFY: f20c92f1 auto
 // OFFSET: 0x004899F0
 int32_t CSimpleFrame::OnLayerIme(const CImeEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return 0;
+
+#endif
 }
 
 // VERIFY: c81f847b auto
 // OFFSET: 0x004899F0
 int32_t CSimpleFrame::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return 0;
+
+#endif
 }
 
 // VERIFY: 6103df2d auto
 // OFFSET: 0x0048FB10
 int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!this->m_isVisible || !this->m_onChar.m_luaRef) {
         return 0;
     }
@@ -999,11 +1266,18 @@ int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: 5ad01abe auto
 // OFFSET: 0x0048FB80
 int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!this->m_isVisible || (!this->m_onKeyDown.m_luaRef && !this->m_onKeyUp.m_luaRef)) {
         return 0;
     }
@@ -1017,22 +1291,36 @@ int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: b11bf9fd auto
 // OFFSET: 0x0048FBF0
 int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!this->m_isVisible || !this->m_onKeyUp.m_luaRef) {
         return 0;
     }
 
     this->RunOnKeyUpScript(KeyCodeToString(evt.m_data.m_key));
     return 1;
+
+#endif
 }
 
 // VERIFY: f962ad69 auto
 // OFFSET: 0x0048FC30
 int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!btn) {
         if (this->m_dragButtons & evt.m_data.m_button) {
             this->m_isMouseDown = 1;
@@ -1055,11 +1343,18 @@ int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) 
 
     this->m_simpleTop->m_mouseButtonName = savedButton;
     return 0;
+
+#endif
 }
 
 // VERIFY: 9fd49d5d auto
 // OFFSET: 0x0048FCE0
 int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!btn) {
         if (this->m_dragButtons & evt.m_data.m_button) {
             this->m_isMouseDown = 0;
@@ -1092,22 +1387,36 @@ int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
 
     this->m_simpleTop->m_mouseButtonName = savedButton;
     return 0;
+
+#endif
 }
 
 // VERIFY: 27bac257 manual
 // OFFSET: 0x0048FDB0
 int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!this->m_isVisible || !this->m_onMouseWheel.m_luaRef) {
         return 0;
     }
 
     this->RunOnMouseWheelScript(static_cast<int32_t>(evt.m_data.m_wheelAmount) >= 0 ? 1 : -1);
     return 1;
+
+#endif
 }
 
 // VERIFY: 1d376a78 auto
 // OFFSET: 0x0048FDF0
 void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     uint32_t button = 0;
 
     for (int32_t i = 0; i < 31; i++) {
@@ -1122,27 +1431,48 @@ void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
         lua_pushstring(L, GetMouseButtonName(button));
         this->RunScript(this->m_onDragStart, 1, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: 445a6cbe auto
 // OFFSET: 0x0048FE60
 void CSimpleFrame::OnDragStop(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onDragStop.m_luaRef) {
         this->RunScript(this->m_onDragStop, 0, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: 7c9a0de0 auto
 // OFFSET: 0x0048FE80
 void CSimpleFrame::OnReceiveDrag(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_onReceiveDrag.m_luaRef) {
         this->RunScript(this->m_onReceiveDrag, 0, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: 703bbed0 auto
 // OFFSET: 0x0048FEA0
 void CSimpleFrame::NotifyScrollParent() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_frameFlags & 0x2000) Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!(this->m_frameFlags & 0x2000) || !this->m_isVisible) {
         return;
     }
@@ -1158,11 +1488,18 @@ void CSimpleFrame::NotifyScrollParent() {
     if (scrollFrame && scrollFrame->m_lifecycleState != 3) {
         scrollFrame->m_scrollChildUpdate = 1;
     }
+
+#endif
 }
 
 // VERIFY: de66a4ac manual
 // OFFSET: 0x0048FEF0
 void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     lua_State* L = FrameScript_GetContext();
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
@@ -1247,11 +1584,18 @@ void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
             this->m_enabledEventsBitmask |= 1 << SIMPLE_EVENT_MOUSEWHEEL;
         }
     }
+
+#endif
 }
 
 // VERIFY: 784118ad auto
 // OFFSET: 0x00490270
 void CSimpleFrame::NotifyDrawLayerChanged(uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
+#endif
     if (this->m_frameFlags & 0x2000) {
         this->m_batchDirty |= 1 << drawLayer;
     } else if (this->m_simpleTop && this->m_isVisible) {
@@ -1264,6 +1608,7 @@ void CSimpleFrame::NotifyDrawLayerChanged(uint32_t drawLayer) {
 // VERIFY: 5d917b41 auto
 // OFFSET: 0x004902D0
 void CSimpleFrame::OnLayerShow() {
+    FRAME_TREE_CHECK();
     if (this->m_onShow.m_luaRef && !this->m_isLoading) {
         this->RunScript(this->m_onShow, 0, nullptr);
     }
@@ -1274,6 +1619,7 @@ void CSimpleFrame::OnLayerShow() {
 // VERIFY: 68810318 auto
 // OFFSET: 0x00490300
 void CSimpleFrame::OnLayerHide() {
+    FRAME_TREE_CHECK();
     if (this->m_onHide.m_luaRef && !this->m_isLoading) {
         this->RunScript(this->m_onHide, 0, nullptr);
     }
@@ -1284,6 +1630,7 @@ void CSimpleFrame::OnLayerHide() {
 // VERIFY: 328166ac auto
 // OFFSET: 0x00490330
 void CSimpleFrame::OnFrameSizeChanged(float width, float height) {
+    FRAME_TREE_CHECK();
     this->RunOnSizeChangedScript(width, height);
     this->NotifyScrollParent();
 }
@@ -1291,6 +1638,11 @@ void CSimpleFrame::OnFrameSizeChanged(float width, float height) {
 // VERIFY: a64e9507 auto
 // OFFSET: 0x00490360
 void CSimpleFrame::PreLoadXML(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const char* name = node->GetAttributeByName("name");
 
     if (name && *name) {
@@ -1317,11 +1669,18 @@ void CSimpleFrame::PreLoadXML(XMLNode* node, CStatus* status) {
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->SetDeferredResize(1);
     }
+
+#endif
 }
 
 // VERIFY: b8ec6f00 manual
 // OFFSET: 0x00490410
 void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     this->m_isLoading = 0;
 
     if (this->m_isVisible) {
@@ -1361,11 +1720,18 @@ void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
     if (this->m_isVisible && this->m_onShow.m_luaRef && !this->m_isLoading) {
         this->RunScript(this->m_onShow, 0, nullptr);
     }
+
+#endif
 }
 
 // VERIFY: d6b8f34e manual
 // OFFSET: 0x004905A0
 void CSimpleFrame::SetBackdrop(CBackdropGenerator* backdrop) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_backdropGenerator) {
         this->m_backdropGenerator->DestroyTextures();
         delete this->m_backdropGenerator;
@@ -1376,11 +1742,18 @@ void CSimpleFrame::SetBackdrop(CBackdropGenerator* backdrop) {
     }
 
     this->m_backdropGenerator = backdrop;
+
+#endif
 }
 
 // VERIFY: 8faa6b6f manual
 // OFFSET: 0x00490600
 void CSimpleFrame::EnableDrawLayer(uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
+#endif
     this->m_drawLayerEnabled[drawLayer] = 1;
     this->NotifyDrawLayerChanged(drawLayer);
 }
@@ -1388,6 +1761,11 @@ void CSimpleFrame::EnableDrawLayer(uint32_t drawLayer) {
 // VERIFY: 65896940 manual
 // OFFSET: 0x00490620
 void CSimpleFrame::DisableDrawLayer(uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
+#endif
     this->m_drawLayerEnabled[drawLayer] = 0;
     this->NotifyDrawLayerChanged(drawLayer);
 }
@@ -1395,6 +1773,12 @@ void CSimpleFrame::DisableDrawLayer(uint32_t drawLayer) {
 // VERIFY: 0670b415 manual
 // OFFSET: 0x00490640
 void CSimpleFrame::RegisterRegion(CSimpleRegion* region) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScript(region);
+    if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
+#endif
     if (!region) {
         DebugValidate("region");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -1407,6 +1791,12 @@ void CSimpleFrame::RegisterRegion(CSimpleRegion* region) {
 // VERIFY: a3acb818 manual
 // OFFSET: 0x00490680
 void CSimpleFrame::UnregisterRegion(CSimpleRegion* region) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScript(region);
+    if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
+#endif
     if (!region) {
         DebugValidate("region");
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -1419,6 +1809,13 @@ void CSimpleFrame::UnregisterRegion(CSimpleRegion* region) {
 // VERIFY: 0dfedb0a manual
 // OFFSET: 0x004906C0
 void CSimpleFrame::AddFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
+    Frame::Native::RequireScript(region);
+    if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
+#endif
     region->SetLayoutScale(this->m_layoutScale, false);
     this->m_drawLayers[drawLayer].LinkToTail(region);
     this->NotifyDrawLayerChanged(drawLayer);
@@ -1427,6 +1824,13 @@ void CSimpleFrame::AddFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
 // VERIFY: 3faa2d29 manual
 // OFFSET: 0x00490700
 void CSimpleFrame::RemoveFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
+    Frame::Native::RequireScript(region);
+    if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
+#endif
     this->m_drawLayers[drawLayer].UnlinkNode(region);
     this->NotifyDrawLayerChanged(drawLayer);
 }
@@ -1434,6 +1838,7 @@ void CSimpleFrame::RemoveFrameRegion(CSimpleRegion* region, uint32_t drawLayer) 
 // VERIFY: 787b525f auto
 // OFFSET: 0x00490770
 void CSimpleFrame::OnLayerUpdate(float elapsedSec) {
+    FRAME_TREE_CHECK();
     if (this->m_onUpdate.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, elapsedSec);
@@ -1456,6 +1861,11 @@ void CSimpleFrame::OnLayerUpdate(float elapsedSec) {
 // VERIFY: b0a0345a manual
 // OFFSET: 0x00490840
 void CSimpleFrame::OnFrameRender(CRenderBatch* batch, uint32_t layer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (layer >= 5 || !batch) throw std::invalid_argument("Invalid Frame layer batch");
+#endif
+
     if (!this->m_drawLayerEnabled[layer]) {
         return;
     }
@@ -1468,6 +1878,7 @@ void CSimpleFrame::OnFrameRender(CRenderBatch* batch, uint32_t layer) {
 // VERIFY: 25e7b1ac manual
 // OFFSET: 0x004908A0
 void CSimpleFrame::OnScreenSizeChanged() {
+    FRAME_TREE_CHECK();
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->OnScreenSizeChanged();
     }
@@ -1476,6 +1887,11 @@ void CSimpleFrame::OnScreenSizeChanged() {
 // VERIFY: ee342124 manual
 // OFFSET: 0x004908E0
 void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_hoverFrame) {
         this->m_hoverFrame->Show();
     }
@@ -1486,11 +1902,18 @@ void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
     }
 
     this->RunOnEnterScript(motion);
+
+#endif
 }
 
 // VERIFY: ebe4e67e manual
 // OFFSET: 0x00490980
 void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_hoverFrame) {
         this->m_hoverFrame->Hide();
     }
@@ -1506,11 +1929,18 @@ void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
     }
 
     this->RunOnLeaveScript(motion);
+
+#endif
 }
 
 // VERIFY: 05878e28 auto
 // OFFSET: 0x00490A30
 void CSimpleFrame::LockHighlight(int32_t lock) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (lock == this->m_highlightLocked) {
         return;
     }
@@ -1524,11 +1954,21 @@ void CSimpleFrame::LockHighlight(int32_t lock) {
         this->m_drawLayerEnabled[4] = 0;
         this->NotifyDrawLayerChanged(4);
     }
+
+#endif
 }
 
 // VERIFY: 95d4bac7 manual
 // OFFSET: 0x00490C70
 void CSimpleFrame::ParentFrame(CSimpleFrame* child) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(child);
+    if (child->m_parent != this) throw std::invalid_argument("Use SetParent to link Frame children");
+    for (auto* n = this->m_children.Head(); n; n = this->m_children.Next(n))
+        if (n->m_frame == child) throw std::logic_error("Frame child already linked");
+#endif
     SIMPLEFRAMENODE* node = this->m_children.NewNode(2, 0, 0);
     node->m_frame = child;
 }
@@ -1536,6 +1976,11 @@ void CSimpleFrame::ParentFrame(CSimpleFrame* child) {
 // VERIFY: c03a9cc6 auto
 // OFFSET: 0x00490D80
 void CSimpleFrame::GetScriptTime(lua_State* L, double* time, uint32_t* count, int32_t recurse) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     FrameScript_Object::GetScriptTime(L, this->m_onEvent, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onLoad, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onSizeChanged, time, count);
@@ -1561,11 +2006,17 @@ void CSimpleFrame::GetScriptTime(lua_State* L, double* time, uint32_t* count, in
             node->m_frame->GetScriptTime(L, time, count, 1);
         }
     }
+
+#endif
 }
 
 // VERIFY: c1ad0fe4 manual
 // OFFSET: 0x00490F60
 void CSimpleFrame::SetBeingScrolled(int32_t scrolled, int32_t a3) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (scrolled || a3 >= 0) Frame::Native::UnavailableFrameFeature();
+#endif
     uint32_t visible = this->m_isVisible;
 
     if (visible) {
@@ -1603,7 +2054,16 @@ void CSimpleFrame::SetBeingScrolled(int32_t scrolled, int32_t a3) {
 
 // VERIFY: bb8a4b54 auto
 // OFFSET: 0x00491020
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleFrame::SetFrameStrata(uint32_t strata) {
+#else
 void CSimpleFrame::SetFrameStrata(FRAME_STRATA strata) {
+#endif
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (strata > FRAME_STRATA_TOOLTIP) throw std::invalid_argument("Invalid Frame strata");
+#endif
     if (strata == this->m_strata) {
         return;
     }
@@ -1626,6 +2086,11 @@ void CSimpleFrame::SetFrameStrata(FRAME_STRATA strata) {
 // VERIFY: fcfe87c9 manual
 // OFFSET: 0x004910A0
 void CSimpleFrame::SetFrameLevel(int32_t level, int32_t shiftChildren) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireLevel(this, level);
+#endif
     if (level < 0) {
         level = 0;
     }
@@ -1664,6 +2129,11 @@ void CSimpleFrame::SetFrameLevel(int32_t level, int32_t shiftChildren) {
 // VERIFY: b8653e4f manual
 // OFFSET: 0x00491160
 void CSimpleFrame::UnparentFrame(CSimpleFrame* child) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(child);
+#endif
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
         if (node->m_frame == child) {
             this->m_children.DeleteNode(node);
@@ -1675,6 +2145,11 @@ void CSimpleFrame::UnparentFrame(CSimpleFrame* child) {
 // VERIFY: 53398f96 manual
 // OFFSET: 0x004911B0
 void CSimpleFrame::SetParent(CSimpleFrame* parent) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireParent(this, parent);
+#endif
     if (parent == this->m_parent) {
         return;
     }
@@ -1732,6 +2207,7 @@ void CSimpleFrame::SetParent(CSimpleFrame* parent) {
 // VERIFY: b2a7bb2c manual
 // OFFSET: 0x00491350
 int32_t CSimpleFrame::AreChildrenProtected(int32_t& deferred) {
+    FRAME_TREE_CHECK();
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
         if (node->m_frame->m_frameFlags & 0x800) {
             deferred = 1;
@@ -1746,6 +2222,7 @@ int32_t CSimpleFrame::AreChildrenProtected(int32_t& deferred) {
 // VERIFY: 53570259 manual
 // OFFSET: 0x004913C0
 bool CSimpleFrame::GetBoundsRect(CRect& rect) {
+    FRAME_TREE_CHECK();
     CRect frameRect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (this->IsResizePending()) {
@@ -1788,6 +2265,7 @@ bool CSimpleFrame::GetBoundsRect(CRect& rect) {
 // VERIFY: f8739e8e auto
 // OFFSET: 0x004915A0
 bool CSimpleFrame::UpdateScale(bool force) {
+    FRAME_TREE_CHECK();
     float scale = this->m_frameScale;
 
     if (this->m_parent) {
@@ -1814,6 +2292,7 @@ bool CSimpleFrame::UpdateScale(bool force) {
 // VERIFY: 24578191 manual
 // OFFSET: 0x00491680
 void CSimpleFrame::UpdateAlpha() {
+    FRAME_TREE_CHECK();
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->OnColorChanged(false);
     }
@@ -1833,6 +2312,7 @@ void CSimpleFrame::UpdateAlpha() {
 // VERIFY: c06c770d manual
 // OFFSET: 0x00491740
 bool CSimpleFrame::UpdateDepth(bool force) {
+    FRAME_TREE_CHECK();
     float depth = this->m_parentDepth + this->m_depth;
 
     if (!force && fabs(depth - this->m_layoutDepth) < 0.00000023841858f) {
@@ -1860,6 +2340,10 @@ bool CSimpleFrame::UpdateDepth(bool force) {
 // VERIFY: 9b62d0cd auto
 // OFFSET: 0x00491830
 int32_t CSimpleFrame::HideThis() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (!this->m_isVisible) {
         return 1;
     }
@@ -1890,6 +2374,10 @@ int32_t CSimpleFrame::HideThis() {
 // VERIFY: 7d89da2c manual
 // OFFSET: 0x004918F0
 int32_t CSimpleFrame::ShowThis() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (!this->m_isShown || (this->m_parent && !this->m_parent->m_isVisible)) {
         return 0;
     }
@@ -1928,6 +2416,7 @@ int32_t CSimpleFrame::ShowThis() {
 // VERIFY: dddda613 manual
 // OFFSET: 0x004919F0
 void CSimpleFrame::StopAnimating() {
+    FRAME_TREE_CHECK();
     CScriptRegion::StopAnimating();
 
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
@@ -1942,6 +2431,11 @@ void CSimpleFrame::StopAnimating() {
 // VERIFY: 8b0118ef manual
 // OFFSET: 0x00491A70
 void CSimpleFrame::AnimActivated(CSimpleAnimGroup* group, int32_t first, int32_t hasAlpha) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (first && (!this->m_playingAnimGroups || !this->m_playingAnimGroups->Head())) {
         this->StoreAnimPosition();
     }
@@ -1958,11 +2452,18 @@ void CSimpleFrame::AnimActivated(CSimpleAnimGroup* group, int32_t first, int32_t
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->AnimActivated(group, first, hasAlpha);
     }
+
+#endif
 }
 
 // VERIFY: 567bbc12 manual
 // OFFSET: 0x00491B60
 void CSimpleFrame::AnimDeactivated(CSimpleAnimGroup* group, int32_t last) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_animAlpha) {
         this->m_animAlpha = this->HasActiveAnimOfType(CSimpleAlphaAnim::GetObjectType());
 
@@ -1983,11 +2484,18 @@ void CSimpleFrame::AnimDeactivated(CSimpleAnimGroup* group, int32_t last) {
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->AnimDeactivated(group, last);
     }
+
+#endif
 }
 
 // VERIFY: eba06fbd manual
 // OFFSET: 0x00491C60
 void CSimpleFrame::AddAnimTranslation(const C2Vector& translation) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
         node->m_frame->AddAnimTranslation(translation);
     }
@@ -1995,11 +2503,18 @@ void CSimpleFrame::AddAnimTranslation(const C2Vector& translation) {
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->AddAnimTranslation(translation);
     }
+
+#endif
 }
 
 // VERIFY: 61d08bd1 manual
 // OFFSET: 0x00491CE0
 void CSimpleFrame::AddAnimRotation(FRAMEPOINT origin, const C2Vector& offset, float radians) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
         node->m_frame->AddAnimRotation(origin, offset, radians);
     }
@@ -2007,11 +2522,18 @@ void CSimpleFrame::AddAnimRotation(FRAMEPOINT origin, const C2Vector& offset, fl
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->AddAnimRotation(origin, offset, radians);
     }
+
+#endif
 }
 
 // VERIFY: 2e5a88bd manual
 // OFFSET: 0x00491D70
 void CSimpleFrame::AddAnimScale(FRAMEPOINT origin, const C2Vector& offset, const C2Vector& scale) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (SIMPLEFRAMENODE* node = this->m_children.Head(); node; node = this->m_children.Next(node)) {
         node->m_frame->AddAnimScale(origin, offset, scale);
     }
@@ -2019,11 +2541,18 @@ void CSimpleFrame::AddAnimScale(FRAMEPOINT origin, const C2Vector& offset, const
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->AddAnimScale(origin, offset, scale);
     }
+
+#endif
 }
 
 // VERIFY: 1582c675 manual
 // OFFSET: 0x00491E00
 void CSimpleFrame::OnFrameRender() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     uint32_t dirty = this->m_batchDirty;
     this->m_batchDirty = 0;
 
@@ -2071,11 +2600,18 @@ void CSimpleFrame::OnFrameRender() {
             child->OnFrameRender();
         }
     }
+
+#endif
 }
 
 // VERIFY: 00fe9b58 auto
 // OFFSET: 0x00492BE0
 bool CSimpleFrame::GetAttribute(const char* name, int32_t& luaRef) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     FRAMEATTR* attr = this->m_attributes.Ptr(name);
 
     if (!attr || attr->m_luaRef == -1) {
@@ -2084,11 +2620,18 @@ bool CSimpleFrame::GetAttribute(const char* name, int32_t& luaRef) {
 
     luaRef = attr->m_luaRef;
     return true;
+
+#endif
 }
 
 // VERIFY: b799b38a manual
 // OFFSET: 0x00492F70
 void CSimpleFrame::LoadXML_Attributes(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     lua_State* L = FrameScript_GetContext();
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
@@ -2155,11 +2698,18 @@ void CSimpleFrame::LoadXML_Attributes(XMLNode* node, CStatus* status) {
             lua_taintexpected = 0;
         }
     }
+
+#endif
 }
 
 // VERIFY: 1a129ce3 manual
 // OFFSET: 0x00493230
 void CSimpleFrame::SetAttribute(const char* name, int32_t luaRef) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     FRAMEATTR* attr = this->m_attributes.Ptr(name);
 
     if (!attr) {
@@ -2168,11 +2718,18 @@ void CSimpleFrame::SetAttribute(const char* name, int32_t luaRef) {
 
     attr->m_luaRef = luaRef;
     this->RunOnAttributeChangedScript(name, luaRef);
+
+#endif
 }
 
 // VERIFY: 545a4263 manual
 // OFFSET: 0x004932C0
 void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const char* inherits = node->GetAttributeByName("inherits");
 
     if (inherits && *inherits) {
@@ -2385,4 +2942,6 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
             this->LoadXML_Scripts(child, status);
         }
     }
+
+#endif
 }

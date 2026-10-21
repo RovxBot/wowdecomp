@@ -215,7 +215,11 @@ class CSimpleFrame : public CScriptRegion {
     void SetFrameFlag(uint32_t flag, int32_t set);
     void SetFrameLevel(int32_t level, int32_t shiftChildren);
     bool SetFrameScale(float scale, bool force);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void SetFrameStrata(uint32_t strata);
+#else
     void SetFrameStrata(FRAME_STRATA strata);
+#endif
     void SetHitRectInsets(float left, float right, float top, float bottom);
     int32_t Show();
     int32_t TestHitRect(const C2Vector& pt);

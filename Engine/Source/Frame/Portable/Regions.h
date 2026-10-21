@@ -3,15 +3,20 @@
 #include "Fonts.h"
 #include "Render.h"
 #include <stdexcept>
+class CSimpleFrame;
+class CScriptRegion;
 namespace Frame { namespace Native {
-// Direct, unparented C++ region consumers precede original Frame/root factories.
+void RequireSimpleFrame(CSimpleFrame*);
+void RequireParent(CScriptRegion*, CSimpleFrame*);
+void RequireTreeMutation();
+// Direct C++ region consumers; Frame roots and parents are optional until created.
 // Public fields stay borrowed owner-thread state; batches retain lower handles.
 inline void RequireRegions() {
     RequireFontFactories();
     RequireRenderIdle();
 }
 [[noreturn]] inline void UnavailableRegionFeature() {
-    throw std::logic_error("Native Frame parents/root, animation, XML/script and embedded textures are not installed");
+    throw std::logic_error("Native Frame animation, XML/script and embedded textures are not installed");
 }
 }}
 #endif

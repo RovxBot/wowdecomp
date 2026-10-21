@@ -1,3 +1,9 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
+#else
+#define FRAME_TREE_CHECK() ((void)0)
+#endif
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include <cmath>
 #include <cstring>
@@ -34,38 +40,60 @@ uint32_t CSimpleTop::s_eventTime;
 
 // VERIFY: 29e70871 auto
 // OFFSET: 0x00495810
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static void PaintScreen(void* param, const RECTF* rect, const RECTF* visible, float elapsedSec) {
     CSimpleTop* top = CSimpleTop::s_instance;
     top->OnLayerUpdate(elapsedSec);
     top->OnLayerRender();
 }
 
+#endif
+
 // VERIFY: 3a1b6d83 auto
 // OFFSET: 0x004883B0
 CSimpleTop* CSimpleTop::GetInstance() {
+    FRAME_TREE_CHECK();
     return CSimpleTop::s_instance;
 }
 
 // VERIFY: 4b605abd auto
 // OFFSET: 0x004883C0
 void CSimpleTop::GetCursorPosition(C2Vector& position) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     NDCToDDC(this->m_mousePosition.m_x, this->m_mousePosition.m_y, &position.x, &position.y);
+
+#endif
 }
 
 // VERIFY: 82aafc3e auto
 // OFFSET: 0x00493A10
 void CSimpleTop::StopMoveOrResizeFrame() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_moveResizeFrame) Frame::Native::UnavailableFrameFeature();
+#else
+
     if (this->m_moveResizeFrame) {
         this->m_moveResizeFrame->UnflattenFrame(this);
     }
 
     this->m_moveResizeReason = MOVERESIZE_REASON_NONE;
     this->m_moveResizeFrame = nullptr;
+
+#endif
 }
 
 // VERIFY: eccae11a auto
 // OFFSET: 0x00493C10
 void CSimpleTop::NotifyFrameLayerChanged(CSimpleFrame* frame, uint32_t drawLayer) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid root draw layer");
+#endif
     CFrameStrata* strata = this->m_strata[frame->m_strata];
     strata->m_levels[frame->m_level]->m_batchDirty |= 1 << drawLayer;
     strata->m_batchDirty = 1;
@@ -74,6 +102,7 @@ void CSimpleTop::NotifyFrameLayerChanged(CSimpleFrame* frame, uint32_t drawLayer
 // VERIFY: 6bdea284 auto
 // OFFSET: 0x00493C50
 void CSimpleTop::NotifyFrameDelayedLoad(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
     CFrameStrata* strata = this->m_strata[frame->m_strata];
     strata->m_levels[frame->m_level]->m_batchDirty |= 0x20;
     strata->m_batchDirty = 1;
@@ -82,16 +111,28 @@ void CSimpleTop::NotifyFrameDelayedLoad(CSimpleFrame* frame) {
 // VERIFY: 0f832a78 auto
 // OFFSET: 0x00493C80
 void CSimpleTop::SetCursor(MipBits* image) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (image) {
         memcpy(g_theGxDevicePtr->CursorLock(), image->m_mip[0], sizeof(g_theGxDevicePtr->m_cursor));
         g_theGxDevicePtr->CursorUnlock(0, 0);
         g_theGxDevicePtr->CursorSetVisible(1);
     }
+
+#endif
 }
 
 // VERIFY: 5547f677 auto
 // OFFSET: 0x00493CE0
 void CSimpleTop::MoveOrResizeFrame(const CMouseEvent& evt) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     float offsetX = evt.m_data.m_mousePosition.x - this->m_moveResizeLast.x;
     float offsetY = evt.m_data.m_mousePosition.y - this->m_moveResizeLast.y;
 
@@ -100,11 +141,14 @@ void CSimpleTop::MoveOrResizeFrame(const CMouseEvent& evt) {
         this->m_moveResizeLast.x += offsetX;
         this->m_moveResizeLast.y += offsetY;
     }
+
+#endif
 }
 
 // VERIFY: 03c64564 auto
 // OFFSET: 0x00493F30
 void CSimpleTop::HideFrame(CSimpleFrame* frame, int32_t a3) {
+    FRAME_TREE_CHECK();
     if (this->m_moveResizeFrame == frame && !a3) {
         this->StopMoveOrResizeFrame();
     }
@@ -122,6 +166,11 @@ void CSimpleTop::HideFrame(CSimpleFrame* frame, int32_t a3) {
 // VERIFY: 0240934e manual
 // OFFSET: 0x00493FB0
 void CSimpleTop::SetMouseFocus(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     CSimpleFrame* oldFocus = this->m_mouseFocus;
 
     if (frame != oldFocus) {
@@ -145,11 +194,18 @@ void CSimpleTop::SetMouseFocus(CSimpleFrame* frame) {
         this->m_mouseCapture->OnLayerMouseUp(evt, nullptr);
         this->m_mouseCapture = nullptr;
     }
+
+#endif
 }
 
 // VERIFY: 4a164119 manual
 // OFFSET: 0x00494060
 int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, FRAMEPOINT point) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (!frame->FlattenFrame(this, 0.0f, 0.0f, 0.0f, 0.0f)) {
         return 0;
     }
@@ -168,11 +224,18 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
     this->MoveOrResizeFrame(evt);
 
     return 1;
+
+#endif
 }
 
 // VERIFY: 01703242 manual
 // OFFSET: 0x00494120
 int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, int32_t resize) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     FRAMEPOINT point = FRAMEPOINT_CENTER;
 
     if (resize) {
@@ -215,11 +278,18 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
     }
 
     return this->StartMoveOrResizeFrame(frame, reason, x, y, point);
+
+#endif
 }
 
 // VERIFY: d60ec4ff manual
 // OFFSET: 0x00494280
 int32_t CSimpleTop::OnChar(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_CHAR* charData = static_cast<const EVENT_DATA_CHAR*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -248,11 +318,18 @@ int32_t CSimpleTop::OnChar(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: f2b35fa9 manual
 // OFFSET: 0x00494320
 int32_t CSimpleTop::OnIme(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_IME* imeData = static_cast<const EVENT_DATA_IME*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -281,11 +358,18 @@ int32_t CSimpleTop::OnIme(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: 81128119 manual
 // OFFSET: 0x004943C0
 int32_t CSimpleTop::OnKeyDown(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -324,11 +408,18 @@ int32_t CSimpleTop::OnKeyDown(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: ab5a5ea6 manual
 // OFFSET: 0x00494490
 int32_t CSimpleTop::OnKeyUp(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     CSimpleFrame* frame = top->m_keydownCapture[keyData->m_key];
@@ -349,11 +440,18 @@ int32_t CSimpleTop::OnKeyUp(const void* data, void* param) {
     top->m_keydownCapture[keyData->m_key] = nullptr;
 
     return !handled;
+
+#endif
 }
 
 // VERIFY: 060c6392 manual
 // OFFSET: 0x00494530
 int32_t CSimpleTop::OnKeyDownRepeat(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     CSimpleFrame* frame = top->m_keydownCapture[keyData->m_key];
@@ -368,11 +466,18 @@ int32_t CSimpleTop::OnKeyDownRepeat(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: dbfbf7f9 manual
 // OFFSET: 0x004945A0
 int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t (*callback)(CMouseEvent*) = top->m_mouseMoveCallback;
@@ -448,11 +553,18 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
     }
 
     return newFocus == nullptr;
+
+#endif
 }
 
 // VERIFY: bb6eb71e manual
 // OFFSET: 0x00494730
 int32_t CSimpleTop::OnMouseMoveRelative(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t (*callback)(CMouseEvent*) = top->m_mouseMoveCallback;
@@ -463,11 +575,18 @@ int32_t CSimpleTop::OnMouseMoveRelative(const void* data, void* param) {
     CSimpleTop::s_eventTime = mouseData->m_time;
 
     return !callback || !callback(&evt);
+
+#endif
 }
 
 // VERIFY: f7cc11f1 manual
 // OFFSET: 0x004947A0
 int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     CSimpleFrame* capture = top->m_mouseCapture;
@@ -499,11 +618,18 @@ int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: bb1ac078 manual
 // OFFSET: 0x00494890
 int32_t CSimpleTop::OnMouseWheel(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -540,11 +666,18 @@ int32_t CSimpleTop::OnMouseWheel(const void* data, void* param) {
     }
 
     return handled == 0;
+
+#endif
 }
 
 // VERIFY: c36c518c manual
 // OFFSET: 0x00494970
 int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_FOCUS* focusData = static_cast<const EVENT_DATA_FOCUS*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     void (*callback)(const CFocusEvent&) = top->m_focusChangedCallback;
@@ -559,11 +692,17 @@ int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: 3330b0b2 manual
 // OFFSET: 0x00494C80
 CSimpleFrame* CFrameStrata::GetHitFrame(const C2Vector& pt) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (uint32_t level = this->m_topLevel; level > 0;) {
         level--;
         CFrameStrataNode* node = this->m_levels[level];
@@ -584,11 +723,17 @@ CSimpleFrame* CFrameStrata::GetHitFrame(const C2Vector& pt) {
     }
 
     return nullptr;
+
+#endif
 }
 
 // VERIFY: 314ab723 manual
 // OFFSET: 0x00494D20
 int32_t CFrameStrata::FrameOccluded(CSimpleFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     CRect frameRect = { 0.0f, 0.0f, 0.0f, 0.0f };
     CRect otherRect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -621,11 +766,17 @@ int32_t CFrameStrata::FrameOccluded(CSimpleFrame* frame) {
     }
 
     return 0;
+
+#endif
 }
 
 // VERIFY: 8e94ced8 manual
 // OFFSET: 0x00494E60
 void CFrameStrata::CheckOcclusion() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     for (uint32_t level = 0; level < this->m_topLevel; level++) {
         CFrameStrataNode* node = this->m_levels[level];
 
@@ -635,13 +786,20 @@ void CFrameStrata::CheckOcclusion() {
             }
         }
     }
+
+#endif
 }
 
 // VERIFY: 2b665fc9 manual
 // OFFSET: 0x00494EE0
 int32_t CFrameStrata::BuildBatches(int32_t noMouseCapture) {
+    FRAME_TREE_CHECK();
     if (this->m_levelsDirty) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Occlusion/top-level input policy is not selected for this UI surface.
+#else
         this->CheckOcclusion();
+#endif
         this->m_levelsDirty = 0;
     }
 
@@ -663,6 +821,7 @@ int32_t CFrameStrata::BuildBatches(int32_t noMouseCapture) {
 // VERIFY: 62b40657 manual
 // OFFSET: 0x00494F30
 void CFrameStrata::RenderBatches() {
+    FRAME_TREE_CHECK();
     for (uint32_t level = 0; level < this->m_topLevel; level++) {
         CFrameStrataNode* node = this->m_levels[level];
 
@@ -675,12 +834,14 @@ void CFrameStrata::RenderBatches() {
 // VERIFY: df78660e auto
 // OFFSET: 0x00494F90
 void CSimpleTop::RegisterFrame(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
     this->m_frames.LinkToTail(frame);
 }
 
 // VERIFY: ee8d9d78 auto
 // OFFSET: 0x00494FA0
 void CSimpleTop::UnregisterFrame(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
     if (this->m_moveResizeFrame == frame) {
         this->StopMoveOrResizeFrame();
     }
@@ -700,12 +861,21 @@ void CSimpleTop::UnregisterFrame(CSimpleFrame* frame) {
 // VERIFY: b22dcea3 auto
 // OFFSET: 0x00495050
 void CSimpleTop::RegisterForCleanup(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireSimpleFrame(frame);
+#endif
     this->m_destroyed.LinkToTail(frame);
 }
 
 // VERIFY: cfde847a manual
 // OFFSET: 0x00495060
 void CSimpleTop::CompressStrata(int32_t strata) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     if (strata < FRAME_STRATA_WORLD || strata > FRAME_STRATA_TOOLTIP) {
         return;
     }
@@ -759,11 +929,18 @@ void CSimpleTop::CompressStrata(int32_t strata) {
     }
 
     this->m_strata[strata]->m_topLevel = topLevel;
+
+#endif
 }
 
 // VERIFY: ca612c34 manual
 // OFFSET: 0x004951A0
 int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     while (!(frame->m_frameFlags & 1)) {
         frame = frame->m_parent;
 
@@ -787,11 +964,18 @@ int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: 36f05eee manual
 // OFFSET: 0x00495270
 int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_REASON reason, int32_t resize) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     CSimpleFrame* frame = nullptr;
 
     for (int32_t strata = FRAME_STRATA_FULLSCREEN_DIALOG; strata >= 0; strata--) {
@@ -818,11 +1002,20 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_RE
     }
 
     return this->StartMoveOrResizeFrame(frame, reason, evt.m_data.m_mousePosition.x, evt.m_data.m_mousePosition.y, resize);
+
+#endif
 }
 
 // VERIFY: 09bbf45a auto
 // OFFSET: 0x00495320
 void CSimpleTop::OnLayerUpdate(float elapsedSec) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRoot();
+    Frame::Native::RequireFinite(elapsedSec);
+    Frame::Native::DrainDestroyQueue();
+    Frame::Native::UpdateScope scope;
+#endif
     CSimpleFrame* frame;
 
     while ((frame = this->m_destroyed.Head()) != nullptr) {
@@ -842,17 +1035,32 @@ void CSimpleTop::OnLayerUpdate(float elapsedSec) {
 
     CLayoutFrame::ResizePending();
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_checkFocus = 0; // Input/focus dispatch is a separate integration.
+#else
     if (this->m_checkFocus) {
         this->m_checkFocus = 0;
         CSimpleTop::OnMouseMove(&this->m_mousePosition, this);
     }
+#endif
 }
 
 // VERIFY: 587fb7f2 auto
 // OFFSET: 0x00495410
 void CSimpleTop::OnLayerRender() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRoot();
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::ClearDirtyBatches(*this);
+    Frame::Native::CollectScope scope;
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::SetRootProjection(*this);
+#else
     C2Vector offset;
     CameraSetupScreenProjection(this->m_rect, offset, 0.0f, 0);
+#endif
 
     for (int32_t strata = 0; strata < FRAME_STRATA_TOOLTIP + 1; strata++) {
         this->m_strata[strata]->BuildBatches(this->m_mouseCapture == nullptr);
@@ -863,6 +1071,11 @@ void CSimpleTop::OnLayerRender() {
 // VERIFY: 6721d10a manual
 // OFFSET: 0x00495470
 int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t (*callback)(CMouseEvent*) = top->m_mouseButtonCallback;
@@ -909,11 +1122,28 @@ int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
     frame->OnLayerMouseDown(evt, nullptr);
 
     return 0;
+
+#endif
 }
 
 // VERIFY: c200f27f manual
 // OFFSET: 0x004955E0
 int32_t CSimpleTop::OnDisplaySizeChanged(const void* data, void* param) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRoot();
+    if (param != CSimpleTop::s_instance || !data) throw std::invalid_argument("Invalid native size event");
+    auto* top = CSimpleTop::s_instance;
+    Frame::Native::RequireTreeMutation();
+    NDCToDDC(1.0f, 1.0f, &top->m_rect.maxX, &top->m_rect.maxY);
+    GxuFontWindowSizeChanged();
+    top->OnFrameSizeChanged(top->m_rect);
+    for (auto* frame = top->m_frames.Head(); frame; frame = top->m_frames.Next(frame))
+        frame->OnScreenSizeChanged();
+    CLayoutFrame::ResizePending();
+    return 1;
+#else
+
     const EVENT_DATA_SIZE* sizeData = static_cast<const EVENT_DATA_SIZE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     void (*callback)(const CSizeEvent&) = top->m_displaySizeCallback;
@@ -932,11 +1162,14 @@ int32_t CSimpleTop::OnDisplaySizeChanged(const void* data, void* param) {
     }
 
     return 1;
+
+#endif
 }
 
 // VERIFY: 524e2c20 auto
 // OFFSET: 0x00495840
 void CSimpleTop::NotifyFrameMovedOrResized(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
     this->m_strata[frame->m_strata]->m_levelsDirty = 1;
 
     if (this->m_moveResizeFrame) {
@@ -949,6 +1182,11 @@ void CSimpleTop::NotifyFrameMovedOrResized(CSimpleFrame* frame) {
 // VERIFY: e3307852 manual
 // OFFSET: 0x00495880
 void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4, int32_t priority) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     CSimpleSortedArray<FRAMEPRIORITY*>& queue = this->m_eventqueue[event][frame->m_strata];
 
     if (priority == -1) {
@@ -963,11 +1201,18 @@ void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, i
     if (!a4 && event == SIMPLE_EVENT_MOUSE) {
         this->m_checkFocus = 1;
     }
+
+#endif
 }
 
 // VERIFY: 4939f5d1 manual
 // OFFSET: 0x00495900
 void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     CSimpleSortedArray<FRAMEPRIORITY*>& queue = this->m_eventqueue[event][frame->m_strata];
 
     for (uint32_t i = 0; i < queue.m_count; i++) {
@@ -1007,11 +1252,18 @@ void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event,
 
         return;
     }
+
+#endif
 }
 
 // VERIFY: f41311c7 auto
 // OFFSET: 0x004959F0
 void CSimpleTop::EnableEvents() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     EventRegisterEx(EVENT_ID_CHAR, &CSimpleTop::OnChar, this, 1.0f);
     EventRegisterEx(EVENT_ID_IME, &CSimpleTop::OnIme, this, 1.0f);
     EventRegisterEx(EVENT_ID_KEYDOWN, &CSimpleTop::OnKeyDown, this, 1.0f);
@@ -1024,11 +1276,18 @@ void CSimpleTop::EnableEvents() {
     EventRegisterEx(EVENT_ID_MOUSEWHEEL, &CSimpleTop::OnMouseWheel, this, 1.0f);
     EventRegisterEx(EVENT_ID_SIZE, &CSimpleTop::OnDisplaySizeChanged, this, 1.0f);
     EventRegisterEx(EVENT_ID_FOCUS, &CSimpleTop::OnFocusChanged, this, 1.0f);
+
+#endif
 }
 
 // VERIFY: 8b4e6642 auto
 // OFFSET: 0x00495B00
 void CSimpleTop::DisableEvents() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     EventUnregisterEx(EVENT_ID_CHAR, &CSimpleTop::OnChar, this, 0xFFFFFFFF);
     EventUnregisterEx(EVENT_ID_IME, &CSimpleTop::OnIme, this, 0xFFFFFFFF);
     EventUnregisterEx(EVENT_ID_KEYDOWN, &CSimpleTop::OnKeyDown, this, 0xFFFFFFFF);
@@ -1041,10 +1300,13 @@ void CSimpleTop::DisableEvents() {
     EventUnregisterEx(EVENT_ID_MOUSEWHEEL, &CSimpleTop::OnMouseWheel, this, 0xFFFFFFFF);
     EventUnregisterEx(EVENT_ID_SIZE, &CSimpleTop::OnDisplaySizeChanged, this, 0xFFFFFFFF);
     EventUnregisterEx(EVENT_ID_FOCUS, &CSimpleTop::OnFocusChanged, this, 0xFFFFFFFF);
+
+#endif
 }
 
 // INLINED
 CFrameStrata::CFrameStrata() {
+    FRAME_TREE_CHECK();
     this->m_batchDirty = 0;
     this->m_levelsDirty = 0;
     this->m_topLevel = 0;
@@ -1053,6 +1315,7 @@ CFrameStrata::CFrameStrata() {
 // VERIFY: 46f7c2a5 manual
 // OFFSET: 0x00495DE0
 void CFrameStrata::AddFrame(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
     uint32_t level = frame->m_level;
 
     if (level >= this->m_levels.Count()) {
@@ -1060,7 +1323,11 @@ void CFrameStrata::AddFrame(CSimpleFrame* frame) {
         this->m_levels.SetCount(level + 1);
 
         for (; count <= level; count++) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_levels[count] = new CFrameStrataNode;
+#else
             this->m_levels[count] = new (SMemAlloc(sizeof(CFrameStrataNode), __FILE__, __LINE__, 0)) CFrameStrataNode;
+#endif
         }
     }
 
@@ -1086,6 +1353,11 @@ void CFrameStrata::AddFrame(CSimpleFrame* frame) {
 // VERIFY: a790458c manual
 // OFFSET: 0x00495EB0
 CSimpleTop::CSimpleTop() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRenderer();
+    if (CSimpleTop::s_instance) throw std::logic_error("Only one Frame root may be installed");
+#endif
     this->m_mouseFocus = nullptr;
     this->m_mouseCapture = nullptr;
     this->m_checkFocus = 1;
@@ -1100,8 +1372,12 @@ CSimpleTop::CSimpleTop() {
     this->m_actionBlockedCallback = nullptr;
 
     CSimpleTop::s_instance = this;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_screenLayer = nullptr; // Native host owns scheduling and event delivery.
+#else
     ScrnLayerCreate(nullptr, 1.0f, 4, nullptr, &PaintScreen, &this->m_screenLayer);
     this->EnableEvents();
+#endif
 
     memset(this->m_keydownCapture, 0, sizeof(this->m_keydownCapture));
 
@@ -1116,7 +1392,11 @@ CSimpleTop::CSimpleTop() {
     this->m_moveResizeLast.y = 0.0f;
 
     for (int32_t strata = 0; strata < FRAME_STRATA_TOOLTIP + 1; strata++) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_strata[strata] = new CFrameStrata;
+#else
         this->m_strata[strata] = new (SMemAlloc(sizeof(CFrameStrata), __FILE__, __LINE__, 0)) CFrameStrata;
+#endif
     }
 
     this->m_mousePosition.m_mode = MOUSE_MODE_NORMAL;
@@ -1131,16 +1411,25 @@ CSimpleTop::CSimpleTop() {
 
     float x;
     float y;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    x = y = 0.0f;
+#else
     EventInputGetMousePosition(&x, &y);
+#endif
     DDCToNDC(x, y, &this->m_mousePosition.m_x, &this->m_mousePosition.m_y);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Renderer/font owners are installed before the root, and outlive it.
+#else
     CSimpleRender::Init();
     CSimpleTexture::Init();
+#endif
 }
 
 // VERIFY: 4c3b2719 auto
 // OFFSET: 0x004960D0
 void CSimpleTop::ShowFrame(CSimpleFrame* frame, int32_t a3) {
+    FRAME_TREE_CHECK();
     this->m_strata[frame->m_strata]->AddFrame(frame);
     frame->RegisterForEvents(a3);
 }
@@ -1148,6 +1437,7 @@ void CSimpleTop::ShowFrame(CSimpleFrame* frame, int32_t a3) {
 // VERIFY: 9bb3362f manual
 // OFFSET: 0x00496100
 CFrameStrata::~CFrameStrata() {
+    FRAME_TREE_CHECK();
     for (uint32_t level = 0; level < this->m_levels.Count(); level++) {
         delete this->m_levels[level];
         this->m_levels[level] = nullptr;
@@ -1157,6 +1447,10 @@ CFrameStrata::~CFrameStrata() {
 // VERIFY: caeade74 manual
 // OFFSET: [0x00496170, 0x00496360]
 CSimpleTop::~CSimpleTop() {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     CSimpleFrame* frame;
 
     while ((frame = this->m_destroyed.Head()) != nullptr) {
@@ -1173,6 +1467,9 @@ CSimpleTop::~CSimpleTop() {
         this->m_strata[strata] = nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::DrainDestroyQueue();
+#else
     CSimpleFontString::FreeEmbededTextureStorage();
     CSimpleFont::Destroy();
     CSimpleTexture::Destroy();
@@ -1180,16 +1477,25 @@ CSimpleTop::~CSimpleTop() {
 
     this->DisableEvents();
     HandleClose(reinterpret_cast<HOBJECT>(this->m_screenLayer));
+#endif
     CSimpleTop::s_instance = nullptr;
 }
 
 // VERIFY: a98d5c82 auto
 // OFFSET: 0x004899F0
 int32_t CSimpleTop::LowerFrame(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::UnavailableFrameFeature();
+#else
+
     return 0;
+
+#endif
 }
 
 // VERIFY: 0cc3f3ae auto
 // OFFSET: 0x00632050
 void CSimpleTop::ValidateDeletedFrame(CSimpleFrame* frame) {
+    FRAME_TREE_CHECK();
 }

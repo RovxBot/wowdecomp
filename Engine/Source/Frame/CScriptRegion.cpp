@@ -40,11 +40,9 @@ int32_t CScriptRegion::GetObjectType() {
 // OFFSET: 0x00482B40
 CScriptObject* CScriptRegion::GetScriptObjectParent() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    return nullptr;
-#else
+
     return this->m_parent;
-#endif
+
 }
 
 // VERIFY: 35de1b9a auto
@@ -85,13 +83,9 @@ CScriptRegion::CScriptRegion() {
 // OFFSET: 0x00488350
 bool CScriptRegion::IsDragging() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    return false;
-#else
 
     return this->m_parent ? this->m_parent->IsDragging() : false;
 
-#endif
 }
 
 // VERIFY: e4b70ae0 auto
@@ -138,14 +132,10 @@ void CScriptRegion::LoadXML_Animations(XMLNode* node, CStatus* status) {
 // OFFSET: 0x004884B0
 CLayoutFrame* CScriptRegion::GetLayoutParent() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    return nullptr; // Explicit anchors precede the actual screen root.
-#else
 
     CLayoutFrame* parent = this->m_parent;
     return parent ? parent : CSimpleTop::s_instance;
 
-#endif
 }
 
 // VERIFY: c93d6a9b manual
@@ -170,7 +160,7 @@ CLayoutFrame* CScriptRegion::GetLayoutFrameByName(const char* name) {
 bool CScriptRegion::ProtectedFunctionsAllowed() {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    return !this->IsProtected() || !lua_tainted;
+    return !this->IsProtected() || !lua_tainted || (CSimpleTop::s_instance && CSimpleTop::s_instance->m_allowProtectedActions);
 #else
 
     return !this->IsProtected() || !lua_tainted || CSimpleTop::s_instance->m_allowProtectedActions != 0;

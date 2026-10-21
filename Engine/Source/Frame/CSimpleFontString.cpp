@@ -797,7 +797,7 @@ void CSimpleFontString::AddShadow(const CImVector& color, const C2Vector& offset
         shadowOffset.x = this->m_shadowOffset.x * this->m_layoutScale;
         shadowOffset.y = this->m_shadowOffset.y * this->m_layoutScale;
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-            uint8_t alpha = 255; // Unparented region; parent integration remains gated.
+            uint8_t alpha = this->m_parent ? this->m_parent->GetEffectiveAlpha() : 255;
 #else
             uint8_t alpha = this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255;
 #endif
@@ -980,7 +980,7 @@ void CSimpleFontString::OnColorChanged(bool changed) {
             shadowOffset.x = this->m_shadowOffset.x * this->m_layoutScale;
             shadowOffset.y = this->m_shadowOffset.y * this->m_layoutScale;
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-            uint8_t alpha = 255; // Unparented region; parent integration remains gated.
+            uint8_t alpha = this->m_parent ? this->m_parent->GetEffectiveAlpha() : 255;
 #else
             uint8_t alpha = this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255;
 #endif
@@ -1083,7 +1083,7 @@ void CSimpleFontString::UpdateString() {
         if (this->m_styleFlags & 0x100) {
             CImVector shadowColor = this->m_shadowColor;
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-            uint8_t alpha = 255;
+            uint8_t alpha = this->m_parent ? this->m_parent->GetEffectiveAlpha() : 255;
 #else
             uint8_t alpha = this->m_parent->GetEffectiveAlpha();
 #endif
@@ -1143,11 +1143,7 @@ void CSimpleFontString::OnFrameSizeChanged(const CRect& rect) {
     }
 
     if (this->m_parent) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-        Frame::Native::UnavailableRegionFeature();
-#else
         this->m_parent->NotifyScrollParent();
-#endif
     }
 }
 

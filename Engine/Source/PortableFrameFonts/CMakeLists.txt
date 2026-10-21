@@ -24,8 +24,15 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/CSimpleRegion.cpp
     ../Frame/CSimpleFontString.cpp
     ../Frame/FontStringAttributes.cpp
-    ../Frame/FramePixel.cpp)
+    ../Frame/FramePixel.cpp
+    ../Frame/CSimpleFrame.cpp
+    ../Frame/CSimpleTop.cpp
+    ../Frame/CFrameStrataNode.cpp
+    ../Frame/Portable/Hierarchy.cpp
+    ../Services/ScreenProjection.cpp)
 target_link_libraries(WowNativeFrameRegions PUBLIC WowNativeFrameRender)
+add_executable(NativeFrameHierarchyCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameHierarchy/main.cpp)
+target_link_libraries(NativeFrameHierarchyCheck PRIVATE WowNativeFrameRegions)
 add_executable(NativeFrameRegionsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameRegions/main.cpp)
 target_link_libraries(NativeFrameRegionsCheck PRIVATE WowNativeFrameRegions)
 add_executable(NativeFrameRenderCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameRender/main.cpp)
@@ -37,10 +44,15 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeFrameFontsCheck PRIVATE -g1)
     target_compile_options(WowNativeFrameRender PRIVATE -g1)
     target_compile_options(NativeFrameRenderCheck PRIVATE -g1)
+    target_compile_options(NativeFrameHierarchyCheck PRIVATE -g1)
     target_compile_options(WowNativeFrameRegions PRIVATE -g1)
     target_compile_options(NativeFrameRegionsCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_test(NAME native-frame-parent-root COMMAND NativeFrameHierarchyCheck
+        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf)
+    set_tests_properties(native-frame-parent-root PROPERTIES TIMEOUT 120
+        ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_test(NAME native-frame-font-string-regions COMMAND NativeFrameRegionsCheck
         --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf)
     set_tests_properties(native-frame-font-string-regions PROPERTIES TIMEOUT 120
