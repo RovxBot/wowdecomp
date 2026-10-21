@@ -464,6 +464,29 @@ it does not turn a documentation request into authorization to start the whole p
   names without a current mapping stay comments. Original PE/static source
   findings are not new Windows gameplay or native login/world observations.
 
+- M3 image lookup/atlas [PR #43](https://github.com/RovxBot/wowdecomp/pull/43)
+  is qualified at `e308d2e7eedc1e8f8cba7cfc8cec885e8fe5bfa6`, merged as
+  `dbb4a00d8c85b74ad11f34a8a5f68aa91692aa1e`. Read [image-source contracts/next callers](docs/m3/IMAGE_SOURCES.md)
+  and [validation](docs/m3/image-source-validation.json). Thirteen PR workflows
+  passed; both Linux GL configurations passed 31 CTest checks. Full Windows x64
+  compiled with signatures enabled at matching-tree checkout
+  `e520213854a27c5fb2c694e3effbb0b9e3443821`. Three archive digests and all 45
+  packaged binary hashes/types were verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak checks each passed three
+  authored image, three original-data image and three original GlueFonts cycles,
+  with empty stderr/zero workers. Loading-bar captures match prior qualification;
+  the original BLP lacks the atlas flag and remains standalone. Shared-atlas and
+  loose-source pixels are authored evidence. Native Services accept Frame 0x17
+  eligibility, explicit read-only loose roots and default filtering. Marked square
+  sources up to 64 use original 8 by 8 atlas coordinates with single-level clamped
+  nearest/linear sampling; mip/repeat and other ineligible sources stay standalone.
+  Preserve source/cache distinction, immediate cell uploads, shared pixel budget
+  and GPU-before-pixel teardown. Prior fixture queued-read failure remains recorded.
+  Actual regions/font strings/root, Frame texture modes, TGA/streaming, full
+  signed GlueXML/login and gameplay remain open. No new physical-input, Windows
+  runtime, macOS graphics or server acceptance; M3 remains incomplete. Preserve
+  signatures, server revision discrepancies and interactive sign-in.
+
 ## Compatibility requirements
 
 - Preserve 12340 authentication, protocol, packet layouts, object fields, gameplay,

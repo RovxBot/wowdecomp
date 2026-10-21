@@ -435,13 +435,37 @@ SDL size invalidation, disk/atlas images and full GlueXML/login remain open.
 There is no new physical-input, Windows runtime, macOS graphics or server session
 acceptance. M3 remains incomplete; signatures and interactive sign-in stay intact.
 
+The [native image lookup/atlas package](IMAGE_SOURCES.md) in
+[PR #43](https://github.com/RovxBot/wowdecomp/pull/43) is qualified at
+`e308d2e7eedc1e8f8cba7cfc8cec885e8fe5bfa6`, merged as
+`dbb4a00d8c85b74ad11f34a8a5f68aa91692aa1e`. The
+[record](image-source-validation.json) retains thirteen passing workflows,
+31 CTest checks per Linux GL configuration and full Windows x64 compilation at
+matching-tree checkout `e520213854a27c5fb2c694e3effbb0b9e3443821`, with signatures
+enabled. Three archives/all 45 packaged binary hashes/types were verified.
+Downloaded release/strict sanitizer binaries each passed three authored image,
+three original-data image and three original GlueFonts cycles with empty stderr
+and zero workers. Loading-bar captures match prior qualification; the original
+BLP remains standalone because it has no atlas flag. Marked shared-atlas rendering
+and loose-file overrides are authored evidence. The first fixture's queued-read
+count failure remains recorded.
+
+Native Services now interpret disk/atlas `0x17` eligibility, mounted read-only
+loose-root lookup, original 8 by 8 atlas coordinates/slot lifetime and default
+filtering. The bounded atlas uses single-level clamped nearest/linear sampling;
+repeat/mip or other ineligible images retain standalone storage. TGA/alternate
+lookup and streaming remain unavailable. Actual Frame regions/root/image modes,
+full GlueXML/login and gameplay remain open. No new physical-input, Windows
+runtime, macOS graphics or server acceptance is recorded. M3 remains incomplete.
+
 Next dependencies, in order:
 
 1. Connect actual regions/font strings/root batching to the qualified
    [font/name factories](FRAME_FONTS.md), Gxu/Services and [layout owners](LAYOUT.md).
    Adapt deferred destruction and SDL font/size invalidation before those callers.
-   Adapt actual Frame image callers to the bounded image
-   service; retain their flags/readiness/atlas contracts. Extend device/state/
+   Connect actual Frame texture factories and image-mode shaders to the qualified
+   [image lookup/atlas surface](IMAGE_SOURCES.md); retain readiness and atlas
+   coordinates. Extend device/state/
    mip/texture contracts as their callers require them; audit texture/texgen
    delivery and legacy async callers. Wire SDL size events to font invalidation.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry

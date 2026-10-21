@@ -578,6 +578,35 @@ and source inspection are different evidence levels.
   login and gameplay remain open. Sample text/red tint are authored inputs. No
   new physical-input, Windows runtime, macOS graphics or server-session acceptance.
 
+## NP-021 — Native Frame image lookup and atlas eligibility
+
+- Status: qualified in [PR #43](https://github.com/RovxBot/wowdecomp/pull/43) at
+  `e308d2e7eedc1e8f8cba7cfc8cec885e8fe5bfa6`, merged as
+  `dbb4a00d8c85b74ad11f34a8a5f68aa91692aa1e`. See
+  [contracts/next callers](m3/IMAGE_SOURCES.md) and
+  [validation](m3/image-source-validation.json). M3 remains incomplete.
+- Source: product main `c6ec88eb299671ce87240d8abf52bd80e5fa255d`, following Frame
+  font PR #41/closeout #42. Original 12340 Services TextureCreate/PumpBlpTextureAsync,
+  CTextureAtlas slot/coordinate/update behavior; no donor import, new dependency,
+  asset enhancement or new OFFSET/VERIFY claim. Windows bodies remain selected.
+- Adaptation: optional read-only loose-image root, source/representation-aware
+  cache, actual marked single-level clamped atlas sheets with original 8 by 8
+  coordinates and immediate uploads, shared pixel budget, GPU-before-pixel final
+  teardown and default-filter policy. Native whole-sheet callbacks retain the
+  qualified Gx contract; no legacy bit15 partial-source/async ABI is fabricated.
+- Validation: thirteen passing workflows, 31 checks per Linux GL configuration,
+  full Windows x64 compilation with signatures enabled. Three archives/45 packaged
+  binary hashes/types verified. Downloaded release/strict sanitizer image and
+  original GlueFonts checks passed eighteen cycles, empty stderr/zero workers.
+  Loading-bar captures match the previous qualification. It is unmarked and stays
+  standalone; shared-atlas/disk overrides are authored evidence. The first fixture
+  queued-package read-count mistake remains failed evidence; ordering was corrected
+  without implementation or detector changes.
+- Limits: actual regions/font strings/root/Frame texture modes, broader atlas/mip
+  sources, TGA/alternate lookup, streaming, full signed GlueXML/login and gameplay
+  remain open. No new physical-input, Windows runtime, macOS graphics or server
+  acceptance. Signatures/server discrepancy/interactive sign-in policy stays intact.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

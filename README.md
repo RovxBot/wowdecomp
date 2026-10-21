@@ -96,6 +96,15 @@ sanitizer runs construct 18 GlueFonts definitions and render a selected font.
 Actual regions/font strings/root, disk/atlas images and full original GlueXML/login
 remain open. M3 is incomplete.
 
+The subsequent [native image lookup/atlas package](docs/m3/IMAGE_SOURCES.md) now
+supports Frame `0x17` eligibility, an optional read-only loose-image root, actual
+shared 8 by 8 atlas sheets and default filtering. Both Linux GL configurations
+passed 31 tests; full Windows x64 compilation and downloaded release/strict
+sanitizer image/original-GlueFonts regressions passed. Marked atlas and disk-source
+pixels are authored evidence; the original loading bar remains standalone.
+Actual regions/font strings/root, Frame texture modes, broader image formats and
+full original GlueXML/login rendering remain open. M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
