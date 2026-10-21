@@ -213,6 +213,11 @@ assert(not BaseFont:SetFont('bad.ttf',12))
     tree.reset();Check(status.IsEmpty(),"Authored font XML warnings");
     Lua("assert(XMLChild:GetFontObject()==XMLBase and XMLChild:GetFont()==XMLBase:GetFont());assert(math.abs(XMLChild:GetSpacing()-1)<0.001)");
     Check(CSimpleFont::GetFont("XMLChild",0)->m_attributes.m_fontHeight>0,"XML inherited font height");
+    for (const char* invalid : {"<Font spacing='1e300'/>","<Font><Shadow><Offset x='1e300' y='0'/></Shadow></Font>"}) {
+        std::unique_ptr<XMLTree,decltype(&XMLTree_Free)> bad(XMLTree_Load(invalid,uint32_t(std::strlen(invalid))),&XMLTree_Free);
+        Check(bool(bad),"Invalid-number XML fixture parse");
+        Reject([&]{CSimpleFont::GetFont("XMLChild",0)->LoadXML(XMLTree_GetRoot(bad.get()),&status);});
+    }
 }
 struct Handle {
     HOBJECT value;
@@ -222,7 +227,7 @@ struct Batch {
     CGxStringBatch* value=GxuFontCreateBatch(false,false);
     ~Batch(){GxuFontDestroyBatch(value);}
 };
-static size_t Render(LegacyDevice& device,CSimpleFont& font,const std::string& snapshot) {
+static size_t Render(LegacyDevice& device,CSimpleFont& font,const std::string& snapshot,bool original) {
     auto& a=font.m_attributes;
     HTEXTFONT hfont=TextBlockGenerateFont(a.m_font.m_str,a.m_fontFlags,a.m_fontHeight);
     Check(hfont,"Frame attributes did not generate Services font");
@@ -249,8 +254,14 @@ static size_t Render(LegacyDevice& device,CSimpleFont& font,const std::string& s
         for (int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=pixels[y*640+x];char rgb[]={char(p.r),char(p.g),char(p.b)};out.write(rgb,3);}
         Check(bool(out),"Frame font snapshot write failed");
     }
-    Check(red>4,"Frame font attributes did not render original Gxu glyphs");
-    return red;
+    // The original 10-unit outlined font is about six pixels high at 640x480;
+    // its antialiased glyphs have no opaque texels. Preserve its authored size.
+    Check(ink>4 && (original || red>4),"Frame font glyph coverage missing");
+    GxSceneClear(GxBufferBit_Color,CImVector(0,0,0,255));GxuFontRenderBatch(batch.value);
+    TSGrowableArray<CImVector> repeated;device.DeviceReadPixels(rect,repeated);
+    Check(repeated.Count()==pixels.Count() && !std::memcmp(repeated.Ptr(),pixels.Ptr(),pixels.Count()*sizeof(CImVector)),
+          "Repeated Frame font rendering changed pixels");
+    return ink;
 }
 static CSimpleFont* Original(Source& source) {
     uint8_t before[16],after[16];
@@ -302,9 +313,9 @@ int main(int argc,char** argv) {
                     Reject([]{Gxu::Native::RequireNoFontConsumers();});
                     if(data.empty())Authored(factories,"Fonts\\fixture.ttf");
                     CSimpleFont* selected=data.empty()?CSimpleFont::GetFont("XMLBase",0):Original(source);
-                    size_t red=Render(device,*selected,cycle?"":snapshot);
+                    size_t ink=Render(device,*selected,cycle?"":snapshot,!data.empty());
                     factories.CheckCanClose();
-                    std::cout<<"frame-font-factory-inheritance-xml-lua-render=passed red="<<red<<" original-data="<<!data.empty()<<'\n';
+                    std::cout<<"frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels="<<ink<<" original-data="<<!data.empty()<<'\n';
                 }
                 Check(CSimpleFont::s_metatable==LUA_NOREF && !source.queue.Pending(),"Font factory/queue teardown");
             }

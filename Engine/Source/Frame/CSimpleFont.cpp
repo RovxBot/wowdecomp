@@ -309,6 +309,9 @@ void CSimpleFont::LoadXML(XMLNode* node, CStatus* status) {
     if (spacingAttr && *spacingAttr) {
         float spacing = SStrToFloat(spacingAttr);
         float ddcSpacing = NDCToDDCWidth(spacing / (CoordinateGetAspectCompensation() * 1024.0f));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::RequireFinite(ddcSpacing);
+#endif
 
         if (fabsf(ddcSpacing - this->m_attributes.m_spacing) >= 0.00000023841858f || !(this->m_attributes.m_flags & 0x1000)) {
             this->m_attributes.m_flags |= 0x1010;
@@ -385,6 +388,9 @@ void CSimpleFont::LoadXML(XMLNode* node, CStatus* status) {
                 LoadXML_Dimensions(offsetNode, offset.x, offset.y, status);
             }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::RequireFinite(offset.x); Frame::Native::RequireFinite(offset.y);
+#endif
             if (*reinterpret_cast<uint32_t*>(&color) != *reinterpret_cast<uint32_t*>(&this->m_attributes.m_shadowColor) || offset.x != this->m_attributes.m_shadowOffset.x || offset.y != this->m_attributes.m_shadowOffset.y || !(this->m_attributes.m_flags & 0x800)) {
                 this->m_attributes.m_shadowColor = color;
                 this->m_attributes.m_flags |= 0x808;

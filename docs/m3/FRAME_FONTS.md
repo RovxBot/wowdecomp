@@ -29,7 +29,10 @@ The Linux GL presets now include the real layout/XML/FrameScript/product-Lua
 graph and exact source audits. `NativeFrameFontsCheck` runs three owner cycles
 with authored font inheritance, overrides, copying, XML dimensions/color/shadow,
 Lua methods/global CreateFont, names, table invalidation, wrong-thread rejection,
-callback lifetime and Gxu text rendering. Optional original-data mode authenticates
+callback lifetime, nonfinite XML inputs and Gxu text rendering. Repeated renders
+must match every pixel. The larger authored font retains full-coverage red checks;
+the small original outlined font uses visible antialiased glyph coverage at its
+unchanged logical size. Optional original-data mode authenticates
 GlueXML's interface signature, loads actual GlueFonts definitions into the original
 font factories, compares the signed content again and renders via Services/Gxu.
 That fixture does not perform the complete FrameXML factory traversal or replace
