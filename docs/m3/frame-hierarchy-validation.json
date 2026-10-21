@@ -1,0 +1,2111 @@
+{
+  "schema_version": 1,
+  "milestone": "M3",
+  "package": "Original Frame parent/layer/root integration",
+  "date": "2026-10-21",
+  "reporting_timezone": "Australia/Adelaide",
+  "status": "qualified on the observed Linux X11 GPU baseline; M3 remains open",
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/49",
+  "identity": {
+    "selected_implementation": "ac717d347e2226e06a4f36e0a2bd485f396f6ef2",
+    "source_tree": "392dbe6f8c1cfdce14ecb45da4d0b91a33e0e8f4",
+    "hosted_checkout": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+    "hosted_tree": "392dbe6f8c1cfdce14ecb45da4d0b91a33e0e8f4",
+    "base": "be621700c9255852fa2face8909b3de0c265be5e",
+    "merge_commit": "9b01385d6a1bdb11a78905dd9c302d559cbc142d",
+    "merge_tree": "392dbe6f8c1cfdce14ecb45da4d0b91a33e0e8f4"
+  },
+  "hosted_workflows": [
+    {
+      "id": 39557430407,
+      "name": "M1 portable core",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 223,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430407/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430407/logs",
+      "workflow_id": 386286522,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430407"
+    },
+    {
+      "id": 39557430400,
+      "name": "M3 native packet prerequisites",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 121,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430400/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430400/logs",
+      "workflow_id": 388867513,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430400"
+    },
+    {
+      "id": 39557430429,
+      "name": "M0 source audit",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 259,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430429/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430429/logs",
+      "workflow_id": 386269013,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430429"
+    },
+    {
+      "id": 39557430374,
+      "name": "M2 native asset services",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 206,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430374/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430374/logs",
+      "workflow_id": 387300538,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430374"
+    },
+    {
+      "id": 39557430411,
+      "name": "M2 native asynchronous files",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 205,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430411/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430411/logs",
+      "workflow_id": 387308084,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430411"
+    },
+    {
+      "id": 39557430362,
+      "name": "M2 native file services",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 206,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430362/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430362/logs",
+      "workflow_id": 387286565,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430362"
+    },
+    {
+      "id": 39557430522,
+      "name": "M3 product Lua runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 86,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430522/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430522/logs",
+      "workflow_id": 390208145,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430522"
+    },
+    {
+      "id": 39557430577,
+      "name": "M3 original FrameScript runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 74,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430577/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430577/logs",
+      "workflow_id": 390272401,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430577"
+    },
+    {
+      "id": 39557430514,
+      "name": "M3 original Frame layout",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 60,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430514/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430514/logs",
+      "workflow_id": 391130764,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430514"
+    },
+    {
+      "id": 39557430486,
+      "name": "M3 original XML runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 68,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430486/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430486/logs",
+      "workflow_id": 390323915,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430486"
+    },
+    {
+      "id": 39557430434,
+      "name": "M2 native SDL3 shell",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 204,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430434/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430434/logs",
+      "workflow_id": 387524322,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430434"
+    },
+    {
+      "id": 39557430513,
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 204,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430513/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430513/logs",
+      "workflow_id": 388075931,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513"
+    },
+    {
+      "id": 39557430447,
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 287,
+      "jobs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430447/jobs",
+      "logs_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/runs/39557430447/logs",
+      "workflow_id": 386261528,
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430447"
+    }
+  ],
+  "packages": [
+    {
+      "artifact_id": 12326915316,
+      "name": "m3-linux-gl-asan-960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "archive_sha256": "efe208a1732d6d3be1d73b9b20fa9e1e9571e86f069570b9fee1e606ad0f6a1d",
+      "archive_digest_verified": true,
+      "workflow_run": 39557430513,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 Linux SDL3/Gx context, native render-target/transform/buffer ownership, 12340 shader decoder and synthetic ARB/FBO readback; no login/gameplay",
+        "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+        "preset": "linux-gl-asan",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "12340 shader fixtures, OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle passed on hosted X11; no original login/gameplay",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL",
+          "OGL_ES2"
+        ],
+        "sdl_desktop_opengl": true,
+        "sdl_display_dependency_options": [
+          "SDL_WAYLAND_SHARED:BOOL=OFF",
+          "SDL_X11_SHARED:BOOL=OFF",
+          "SDL_WAYLAND_LIBDECOR_SHARED:INTERNAL=OFF"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "8b09cb8541fc63f6f14ef35746f1a812b937fcd861e327bd4c5acdb827ef5509"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "5253c0d4f7691761f144d9306b45f426084217fd36b529001c4d9f1d0a9918ba"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "a86508cd460214c31d74fad656a228b366053c59fe1823058bcd9dcfbea8c70f"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "c79c079c41ba7d120539b1f06a3efc387919e99289fee149876043a1fa851ee4"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "3502cb0aed51034b9bd0f310a875ff3b826ebb0025bbef0a9196cb4c627caa95"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "8504c67398e990d1a55f0c0573bb6fba2e7ea8da7a8153c5f1c6e1fa529a42c2"
+          },
+          {
+            "name": "SDLDesktopControl",
+            "sha256": "6eba531b2de740b2d9ab57271f76d6ef926b03e041973c7a8cd8375c4b0e4f7f"
+          },
+          {
+            "name": "NativeFrameHierarchyCheck",
+            "sha256": "a008815420e2deacbf0ec327c7482a953fd6b6a2eda06ae72c05709a5cdeb0d7"
+          },
+          {
+            "name": "NativeFrameRegionsCheck",
+            "sha256": "d4727abaf7b80c5e1281eef23261f808d4d1ed3e4ccfdf700ac13273a92c1111"
+          },
+          {
+            "name": "NativeFrameRenderCheck",
+            "sha256": "82f4185c6f0e3a2527ca6bda84cd3ef81a229b72c31a79f3f41f66b28ec53ce5"
+          },
+          {
+            "name": "NativeFrameFontsCheck",
+            "sha256": "21b5a6312d66904d54365c8625ad89f75ee08ae96587771bcef2d40b95e12183"
+          },
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc"
+          },
+          {
+            "name": "NativeFrameScriptCheck",
+            "sha256": "2e6729fd4f024b06ff0b8a84f78cb46d2643bb83734eeda51cb65210f2e75023"
+          },
+          {
+            "name": "NativeXMLCheck",
+            "sha256": "d66aed7dc4c9c02c6a64a8d70857776d2aff7e3e45ae8384b6682cb0feed8997"
+          },
+          {
+            "name": "NativeLayoutCheck",
+            "sha256": "6f4e17836ea2bfa449d4b09c3094cab4a2cdf045aff1bad9fd4069400d34312d"
+          },
+          {
+            "name": "NativeImageCheck",
+            "sha256": "cb274e2ef0fff0b72d0b480308d6a8fa4f7791b38ed427f8c1c51c461ef2a330"
+          },
+          {
+            "name": "LegacyGxuCheck",
+            "sha256": "01933a1dd2f15d9ecfbdf4564b39e2f61daa5f2321ed8d1db80a2fe470643567"
+          },
+          {
+            "name": "LegacyGxCheck",
+            "sha256": "84757614a7cebebbbcaf40f0db5ac4fd59edcde0295b5ee3f2f0f46d182c52a4"
+          },
+          {
+            "name": "NativeFontsCheck",
+            "sha256": "a84f5bfe72c419f44848d0c0d678923a2afbb48208ddc5fcf7098f1c02ab8b33"
+          },
+          {
+            "name": "NativeGlCheck",
+            "sha256": "da5d5ba3c191feab1dcbbf56ca1facffa01ff1964da89850ad6e4f914015ccca"
+          },
+          {
+            "name": "ShaderPackageCheck",
+            "sha256": "d61ae11b6d428924f72a04069c51c728dc1842dab266757b5d3ed18c2bc97a32"
+          },
+          {
+            "name": "GlRenderTargetsCheck",
+            "sha256": "146fe3775e4fd3cbd2a7270c4aee2b11d92a074eceee11c8718d14e859a32662"
+          },
+          {
+            "name": "GlTransformsCheck",
+            "sha256": "7a3e407191f150d20a3ea775861fbcbe13650f483876a8be0ab011d4ac6a860b"
+          },
+          {
+            "name": "GlTexturesCheck",
+            "sha256": "4429019e7973b5cd37c51482e0256418127b8043fe8b6ae900a9bb0ba5d85c60"
+          },
+          {
+            "name": "GlBuffersCheck",
+            "sha256": "018e67229d91585dde1e28b085a383cb4395f63c1e84e5df0a322f61c07d1ff1"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+          "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+          "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeCore",
+          "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd",
+          "bytes": 1811280,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3db694adb3ea7ad2657ae590ea8f5e27973e6081, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/FileServicesCheck",
+          "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f",
+          "bytes": 1960088,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6731fbbaf424c44728b59bed187ddbc443217de6, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PackageServicesCheck",
+          "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7",
+          "bytes": 3983992,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2ed1e2da6821408e1e10aa97d276007720472114, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeAssetCheck",
+          "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c",
+          "bytes": 4017288,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=48e4ea76f28e4cf931103425d626d9d3a8f5db59, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeWindowCheck",
+          "sha256": "c79c079c41ba7d120539b1f06a3efc387919e99289fee149876043a1fa851ee4",
+          "bytes": 26919416,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=39a1fbae1b0267e135cea06fd0089c8e64b9a117, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeShell",
+          "sha256": "8504c67398e990d1a55f0c0573bb6fba2e7ea8da7a8153c5f1c6e1fa529a42c2",
+          "bytes": 29781192,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e78b1068244f7752854be80658421e76bde1ef72, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/SDLDesktopControl",
+          "sha256": "6eba531b2de740b2d9ab57271f76d6ef926b03e041973c7a8cd8375c4b0e4f7f",
+          "bytes": 26689664,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=9eb972c4abd9f8066eaa02ed7bf82690cd4139ff, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameHierarchyCheck",
+          "sha256": "a008815420e2deacbf0ec327c7482a953fd6b6a2eda06ae72c05709a5cdeb0d7",
+          "bytes": 41042792,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=897f603c2d62ef4237e49be61004b33fde68b862, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameRegionsCheck",
+          "sha256": "d4727abaf7b80c5e1281eef23261f808d4d1ed3e4ccfdf700ac13273a92c1111",
+          "bytes": 40986856,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a751b533eaa6e67e92a31a2d762a63812992d7b0, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameRenderCheck",
+          "sha256": "82f4185c6f0e3a2527ca6bda84cd3ef81a229b72c31a79f3f41f66b28ec53ce5",
+          "bytes": 39636360,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=71bb809972384282d476801bc560634b1bee6c31, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameFontsCheck",
+          "sha256": "21b5a6312d66904d54365c8625ad89f75ee08ae96587771bcef2d40b95e12183",
+          "bytes": 39964896,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7d61de6802fcfec8555d9246edbcfafaf2e50b13, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeLuaCheck",
+          "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc",
+          "bytes": 3762200,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=22d9c66997e790f25dddb4cdcca67729ac9a1609, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck",
+          "sha256": "2e6729fd4f024b06ff0b8a84f78cb46d2643bb83734eeda51cb65210f2e75023",
+          "bytes": 6707104,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=66ded20d59f6144414c4f8dc9af2018dca1a8928, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeXMLCheck",
+          "sha256": "d66aed7dc4c9c02c6a64a8d70857776d2aff7e3e45ae8384b6682cb0feed8997",
+          "bytes": 8450304,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=c4b5555b658e5080291a46b7b2626ac4e8723609, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeLayoutCheck",
+          "sha256": "6f4e17836ea2bfa449d4b09c3094cab4a2cdf045aff1bad9fd4069400d34312d",
+          "bytes": 6305016,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=de984c1385873273673dc9fd3f402395be101dc5, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeImageCheck",
+          "sha256": "cb274e2ef0fff0b72d0b480308d6a8fa4f7791b38ed427f8c1c51c461ef2a330",
+          "bytes": 35215440,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=18f93e2f318032a7833ad0e600a42be3a0b14f0e, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/LegacyGxuCheck",
+          "sha256": "01933a1dd2f15d9ecfbdf4564b39e2f61daa5f2321ed8d1db80a2fe470643567",
+          "bytes": 35137512,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=da907c038e73b0d625a43bb504447aa91920cb43, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/LegacyGxCheck",
+          "sha256": "84757614a7cebebbbcaf40f0db5ac4fd59edcde0295b5ee3f2f0f46d182c52a4",
+          "bytes": 33622880,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=29823cbb99ed9e27d64cc906e236bd77cf494801, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/NativeFontsCheck",
+          "sha256": "a84f5bfe72c419f44848d0c0d678923a2afbb48208ddc5fcf7098f1c02ab8b33",
+          "bytes": 3832736,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e5fc9a6ceeff3ff98ef9bb4841b7910576eab3b7, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeGlCheck",
+          "sha256": "da5d5ba3c191feab1dcbbf56ca1facffa01ff1964da89850ad6e4f914015ccca",
+          "bytes": 32410824,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=cc59cf68fcb16a7fa785cd6e2ca72b52a56f7b0b, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/GlRenderTargetsCheck",
+          "sha256": "146fe3775e4fd3cbd2a7270c4aee2b11d92a074eceee11c8718d14e859a32662",
+          "bytes": 27270592,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a29abc7f86e474d282e38b7ac3767b65c62a33cf, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/GlTransformsCheck",
+          "sha256": "7a3e407191f150d20a3ea775861fbcbe13650f483876a8be0ab011d4ac6a860b",
+          "bytes": 27480840,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=c449d1c321c09e023f27a895bddadf23c374ef54, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/GlTexturesCheck",
+          "sha256": "4429019e7973b5cd37c51482e0256418127b8043fe8b6ae900a9bb0ba5d85c60",
+          "bytes": 27601432,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=84c4f174ff5176d3cc0fbf03b91fc11770f74cca, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        },
+        {
+          "path": "bin/GlBuffersCheck",
+          "sha256": "018e67229d91585dde1e28b085a383cb4395f63c1e84e5df0a322f61c07d1ff1",
+          "bytes": 27529344,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=5de6a5ca848acdd7e90f90b716cb47ffa2878119, for GNU/Linux 3.2.0, with debug_info, not stripped"
+        }
+      ],
+      "ctest_passed": 34,
+      "ctest_summary": "100% tests passed, 0 tests failed out of 34"
+    },
+    {
+      "artifact_id": 12326282377,
+      "name": "m3-linux-gl-960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "archive_sha256": "a1983f1d1f278002b1ebff185158869df659c46ac306a94ab4fccd07490b72c9",
+      "archive_digest_verified": true,
+      "workflow_run": 39557430513,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 Linux SDL3/Gx context, native render-target/transform/buffer ownership, 12340 shader decoder and synthetic ARB/FBO readback; no login/gameplay",
+        "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+        "preset": "linux-gl",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "runner_os": "Linux",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "host_machine": "x86_64",
+        "status": "12340 shader fixtures, OpenGL compatibility context, synthetic ARB/FBO pixels and lifecycle passed on hosted X11; no original login/gameplay",
+        "sdl_video_drivers": [
+          "DUMMY",
+          "OFFSCREEN",
+          "WAYLAND",
+          "X11"
+        ],
+        "sdl_render_presenters": [
+          "OGL",
+          "OGL_ES2"
+        ],
+        "sdl_desktop_opengl": true,
+        "sdl_display_dependency_options": [
+          "SDL_WAYLAND_SHARED:BOOL=OFF",
+          "SDL_X11_SHARED:BOOL=OFF",
+          "SDL_WAYLAND_LIBDECOR_SHARED:INTERNAL=OFF"
+        ],
+        "toolchain_cache": [
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/ninja"
+        ],
+        "binaries": [
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "6ee516a989093055b07c0e8b6e8c6df6bc0c351f20d815ab1c04f096253afd7d"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "12dff84e8bb7c46b313b241b05b0cf251e54b477cf82cbba97be9dac57d9eca4"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "fb54240630f055ab0923c97e9e156a87c32fefc410116db92583688913d66957"
+          },
+          {
+            "name": "NativeWindowCheck",
+            "sha256": "bfb0820c7564e39c0cca8e5627f72e0e1611b8ea54ebf032df42e94d59e1514d"
+          },
+          {
+            "name": "ShellSettingsCheck",
+            "sha256": "39dc7823b52c9544e961acf0570b384c4c7d95a43597e1f4a69777a6e2119223"
+          },
+          {
+            "name": "NativeShell",
+            "sha256": "6fc5626122acc9f9ebc6789b1b27acaec3f6b8d12ed886b03c01574aab78721f"
+          },
+          {
+            "name": "SDLDesktopControl",
+            "sha256": "460ce19398e99800ed8b78a5c949e8fe54d119d040afdb13cc90029d6f0c6b4a"
+          },
+          {
+            "name": "NativeFrameHierarchyCheck",
+            "sha256": "37ffc3ac47add75531647373b1c775f2429bd2df98afab65b3cf70f8830ee95c"
+          },
+          {
+            "name": "NativeFrameRegionsCheck",
+            "sha256": "7f44dca14e36a19aeba8cf2ba8ef70d866090b491c1c5b26b11dbb5791864e4e"
+          },
+          {
+            "name": "NativeFrameRenderCheck",
+            "sha256": "a0213ae030e0e00650c26dbd4ddedb7f3da0d5e96433090c38204c1c2e242cf2"
+          },
+          {
+            "name": "NativeFrameFontsCheck",
+            "sha256": "18372ffcc34d1a5904b8b6d6d78cab60f671693bf21040d45603e7da38210d69"
+          },
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f"
+          },
+          {
+            "name": "NativeFrameScriptCheck",
+            "sha256": "7542d69fb94dd6a31ce2e968d7bbe792e38c215f0b51178c5f3a8cda2b2e33c4"
+          },
+          {
+            "name": "NativeXMLCheck",
+            "sha256": "6054edbd9a9c29b517c43b5fa626e6b3c1902877200f38d1b36dc28e59889200"
+          },
+          {
+            "name": "NativeLayoutCheck",
+            "sha256": "8a54328b7f06588e0357c7b3b90c70bdf5896fc5efb9eeed592509048dcd10f7"
+          },
+          {
+            "name": "NativeImageCheck",
+            "sha256": "da0e6fca32fedc7c7706c2269a1ecb78016e98e976b48e70b262e351e640f4fa"
+          },
+          {
+            "name": "LegacyGxuCheck",
+            "sha256": "15ef3b0becda5d1b03d3e62391e1f1e8877c23f9614b6635253f1fc9e99a0cba"
+          },
+          {
+            "name": "LegacyGxCheck",
+            "sha256": "567413722c8b13c3360cce6d6c47bdfef326be86f87eb6e8d43e8decfa96ad85"
+          },
+          {
+            "name": "NativeFontsCheck",
+            "sha256": "3362d1e57c90240656bcccdbce23612e6d82dafdb7bb39d8a39dddc805ab7631"
+          },
+          {
+            "name": "NativeGlCheck",
+            "sha256": "cfa8d8892e36ec113083aedaa4f234b2e2265592c2b3c7f71f163e1ea3acdb55"
+          },
+          {
+            "name": "ShaderPackageCheck",
+            "sha256": "661c24f80075507120308c93706df7e8c843ae7e5242637a3d17a912818069dc"
+          },
+          {
+            "name": "GlRenderTargetsCheck",
+            "sha256": "82661128b714ce04ab8b1411d5729240ec72bc0e25c23441f9b41ea91f9892df"
+          },
+          {
+            "name": "GlTransformsCheck",
+            "sha256": "5d58c9a0e708f8c812dbba6bae578144fa7152158e544e01d91ce3f61728a7bc"
+          },
+          {
+            "name": "GlTexturesCheck",
+            "sha256": "7a5997984412f92d6d659cbac7a49e30529edce347b06b40f59cec507143a0e9"
+          },
+          {
+            "name": "GlBuffersCheck",
+            "sha256": "40ef69672b5d27ec9dfa50760f003e41505c6d7da7ee59185d9fbcf736958670"
+          }
+        ],
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "notices": {
+          "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+          "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+          "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeCore",
+          "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b",
+          "bytes": 67680,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a5373af6fed27517bb5956db6affc1a34a26ac84, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/FileServicesCheck",
+          "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d",
+          "bytes": 138544,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7c621122bcfc27cf2a351ca1c4da54596d8b7c72, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PackageServicesCheck",
+          "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76",
+          "bytes": 375896,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=739d816b19366fd74c8082fc693eed88ed4b9031, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeAssetCheck",
+          "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158",
+          "bytes": 374160,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=fe4bbdf7ebc5bdf79338988f1147d347755a35bc, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeWindowCheck",
+          "sha256": "bfb0820c7564e39c0cca8e5627f72e0e1611b8ea54ebf032df42e94d59e1514d",
+          "bytes": 2570528,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=98ef1182572b4f81fdbe09ed8fca5fd95ca07fcd, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeShell",
+          "sha256": "6fc5626122acc9f9ebc6789b1b27acaec3f6b8d12ed886b03c01574aab78721f",
+          "bytes": 3018728,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=0cf40da3dee0c582d3d2748e31b2200933268bbc, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/SDLDesktopControl",
+          "sha256": "460ce19398e99800ed8b78a5c949e8fe54d119d040afdb13cc90029d6f0c6b4a",
+          "bytes": 2511608,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6bfc72c003db1d2a374bbf7e52dc58fb17c3d854, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameHierarchyCheck",
+          "sha256": "37ffc3ac47add75531647373b1c775f2429bd2df98afab65b3cf70f8830ee95c",
+          "bytes": 4344880,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=76920558fde69b2d1002ec9268d5944490bd2e81, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameRegionsCheck",
+          "sha256": "7f44dca14e36a19aeba8cf2ba8ef70d866090b491c1c5b26b11dbb5791864e4e",
+          "bytes": 4327952,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=c33e05855b2892543b954f26aefc1a5f381ca6e7, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameRenderCheck",
+          "sha256": "a0213ae030e0e00650c26dbd4ddedb7f3da0d5e96433090c38204c1c2e242cf2",
+          "bytes": 4142984,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=8aff447c681ed477637c92784b24c1988b86dbc7, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameFontsCheck",
+          "sha256": "18372ffcc34d1a5904b8b6d6d78cab60f671693bf21040d45603e7da38210d69",
+          "bytes": 4202600,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=ea4d1675505ebd1153986bfc6f854f88830cb187, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeLuaCheck",
+          "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f",
+          "bytes": 268672,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=eb054e461ec7771967b166b23c00afb060db1e58, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck",
+          "sha256": "7542d69fb94dd6a31ce2e968d7bbe792e38c215f0b51178c5f3a8cda2b2e33c4",
+          "bytes": 744752,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=c678010abf57fb5aa8e6d5350107b49d20f77ade, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeXMLCheck",
+          "sha256": "6054edbd9a9c29b517c43b5fa626e6b3c1902877200f38d1b36dc28e59889200",
+          "bytes": 951440,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=334632a3533a1716416f0baa1d8b7851d30a2e0d, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeLayoutCheck",
+          "sha256": "8a54328b7f06588e0357c7b3b90c70bdf5896fc5efb9eeed592509048dcd10f7",
+          "bytes": 626888,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=22d06a92425c988286e6ec264fffa52dd17860fa, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeImageCheck",
+          "sha256": "da0e6fca32fedc7c7706c2269a1ecb78016e98e976b48e70b262e351e640f4fa",
+          "bytes": 3633656,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=8553d529a76b763fe2cb644c48ea6fe896398111, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/LegacyGxuCheck",
+          "sha256": "15ef3b0becda5d1b03d3e62391e1f1e8877c23f9614b6635253f1fc9e99a0cba",
+          "bytes": 3612512,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=0a74ab9ece9dd4a26cede6b064fe404c0edf5582, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/LegacyGxCheck",
+          "sha256": "567413722c8b13c3360cce6d6c47bdfef326be86f87eb6e8d43e8decfa96ad85",
+          "bytes": 3387592,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=da4c89dd5dd553392668d45c2887f736a65ed9c0, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFontsCheck",
+          "sha256": "3362d1e57c90240656bcccdbce23612e6d82dafdb7bb39d8a39dddc805ab7631",
+          "bytes": 177872,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=8864561ccaca4b334f08446c601dbbf91ebaa8fb, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeGlCheck",
+          "sha256": "cfa8d8892e36ec113083aedaa4f234b2e2265592c2b3c7f71f163e1ea3acdb55",
+          "bytes": 3216992,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=ed52d3ba86876bf5b2b5a0116fb0ea812bc3f591, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/GlRenderTargetsCheck",
+          "sha256": "82661128b714ce04ab8b1411d5729240ec72bc0e25c23441f9b41ea91f9892df",
+          "bytes": 2631952,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b6df5d5bc8fa1b26d167f8feb807760843ed2f5e, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/GlTransformsCheck",
+          "sha256": "5d58c9a0e708f8c812dbba6bae578144fa7152158e544e01d91ce3f61728a7bc",
+          "bytes": 2667552,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3707d4047940d137524546e46410d43f962a6f45, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/GlTexturesCheck",
+          "sha256": "7a5997984412f92d6d659cbac7a49e30529edce347b06b40f59cec507143a0e9",
+          "bytes": 2667104,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b59c5a5ce626c36800ceb96a2d195e3d9fcae6c8, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/GlBuffersCheck",
+          "sha256": "40ef69672b5d27ec9dfa50760f003e41505c6d7da7ee59185d9fbcf736958670",
+          "bytes": 2658736,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=151dd6b13610fd2c0b25abfd6328fb10370b1846, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "ctest_passed": 34,
+      "ctest_summary": "100% tests passed, 0 tests failed out of 34"
+    },
+    {
+      "artifact_id": 12326686152,
+      "name": "windows-x64-baseline-960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "archive_sha256": "20e9877a8447558d0958c1e62a2a7520ceca026e44d7adf74751b638b2e3c2e7",
+      "archive_digest_verified": true,
+      "workflow_run": 39557430447,
+      "manifest": {
+        "schema_version": 1,
+        "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430447",
+        "runner_os": "Windows",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "configuration": "Release",
+        "generator": "Visual Studio 17 2022",
+        "architecture": "x64",
+        "signature_checks": "enabled",
+        "crash_logger": "enabled",
+        "status": "build passed; runtime unverified",
+        "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+        "dependencies": [
+          {
+            "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+            "bytes": 999686,
+            "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+          },
+          {
+            "path": "ThirdParty/nvapi/x86/nvapi.lib",
+            "bytes": 439838,
+            "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+          },
+          {
+            "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+            "bytes": 3494900,
+            "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+          }
+        ],
+        "binaries": [
+          {
+            "path": "bin/WowClient64.exe",
+            "bytes": 9859072,
+            "sha256": "76c19cbf8f683c87df72bde745ef2280beccf6c5c2c8b89f27f66cbda0298466"
+          },
+          {
+            "path": "bin/Wow64.exe",
+            "bytes": 9856000,
+            "sha256": "17285828d186983dbd9a325d5441a40ccc2593ec7e727aa0a3e07101ad0ee483"
+          },
+          {
+            "path": "bin/XvidDecoder.dll",
+            "bytes": 456192,
+            "sha256": "63bb030cdf70c1ba675224b5a57e05e19994c9b47ee0e81e51dfbebe8c3ec550"
+          }
+        ],
+        "cmake_version": "cmake version 3.31.6",
+        "visual_studio": {
+          "instanceId": "754ae0a8",
+          "installDate": "2026-10-12T22:00:54Z",
+          "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+          "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "installationVersion": "17.14.37710.0",
+          "productId": "Microsoft.VisualStudio.Product.Enterprise",
+          "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+          "state": 4294967295,
+          "isComplete": true,
+          "isLaunchable": true,
+          "isPrerelease": false,
+          "isRebootRequired": false,
+          "displayName": "Visual Studio Enterprise 2022",
+          "description": "Scalable, end-to-end solution for teams of any size",
+          "channelId": "VisualStudio.17.Release",
+          "channelUri": "https://aka.ms/vs/17/release/channel",
+          "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+          "installChannelUri": "https://aka.ms/vs/17/release/channel",
+          "installedChannelId": "VisualStudio.17.Release",
+          "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+          "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+          "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+          "updateDate": "2026-10-12T22:00:54.346826Z",
+          "catalog": {
+            "buildBranch": "d17.14",
+            "buildVersion": "17.14.37710.0",
+            "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+            "localBuild": "build-lab",
+            "manifestName": "VisualStudio",
+            "manifestType": "installer",
+            "productDisplayVersion": "17.14.41 (September 2026)",
+            "productLine": "Dev17",
+            "productLineVersion": "2022",
+            "productMilestone": "RTW",
+            "productMilestoneIsPreRelease": "False",
+            "productName": "Visual Studio",
+            "productPatchVersion": "41",
+            "productPreReleaseMilestoneSuffix": "1.0",
+            "productReleaseNameSuffix": "(September 2026)",
+            "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+            "requiredEngineVersion": "3.14.2094.42856"
+          },
+          "properties": {
+            "campaignId": "",
+            "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+            "includeRecommended": "1",
+            "nickname": "",
+            "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+          }
+        }
+      },
+      "binaries": [
+        {
+          "path": "bin/WowClient64.exe",
+          "sha256": "76c19cbf8f683c87df72bde745ef2280beccf6c5c2c8b89f27f66cbda0298466",
+          "bytes": 9859072,
+          "machine": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/Wow64.exe",
+          "sha256": "17285828d186983dbd9a325d5441a40ccc2593ec7e727aa0a3e07101ad0ee483",
+          "bytes": 9856000,
+          "machine": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/XvidDecoder.dll",
+          "sha256": "63bb030cdf70c1ba675224b5a57e05e19994c9b47ee0e81e51dfbebe8c3ec550",
+          "bytes": 456192,
+          "machine": "PE32+ executable for MS Windows 6.00 (DLL), x86-64, 7 sections"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "archive_digests_verified": 3,
+    "packaged_binary_hashes_and_machine_types_verified": 51,
+    "notices_verified": true,
+    "matching_implementation_hosted_and_merge_trees": true,
+    "signatures": "Original Windows checks enabled; native original-key signaturefile and selective registered-member MD5 policy enabled. GlueXML authenticates before and after the font-definition subset. Full CGlueMgr post-creation digest gate remains required."
+  },
+  "runtime_host": {
+    "date": "2026-10-21",
+    "timezone": "Australia/Adelaide",
+    "platform": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+    "machine": "x86_64",
+    "compiler_execution": "GitHub Actions only; no local compilation",
+    "data": "/mnt/games/3.3.5aClean/Data",
+    "data_policy": "read-only; settings/cache/reports external",
+    "environment": {
+      "DISPLAY": ":0",
+      "WAYLAND_DISPLAY": "wayland-0",
+      "XDG_SESSION_TYPE": "wayland",
+      "SDL_VIDEODRIVER": null,
+      "EGL_PLATFORM": "wayland",
+      "ASAN_OPTIONS": null,
+      "UBSAN_OPTIONS": null,
+      "LSAN_OPTIONS": null,
+      "LD_PRELOAD": null,
+      "LD_AUDIT": null
+    },
+    "gpu": {
+      "exit_code": 0,
+      "stdout": "00:00.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Root Complex [1022:14d8]\n00:00.2 IOMMU [0806]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge IOMMU [1022:14d9]\n00:01.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Dummy Host Bridge [1022:14da]\n00:01.1 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge GPP Bridge [1022:14db]\n00:01.2 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge GPP Bridge [1022:14db]\n00:02.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Dummy Host Bridge [1022:14da]\n00:02.1 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge GPP Bridge [1022:14db]\n00:02.2 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge GPP Bridge [1022:14db]\n00:03.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Dummy Host Bridge [1022:14da]\n00:04.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Dummy Host Bridge [1022:14da]\n00:08.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Dummy Host Bridge [1022:14da]\n00:08.1 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Internal GPP Bridge to Bus [C:A] [1022:14dd]\n00:08.3 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Internal GPP Bridge to Bus [C:A] [1022:14dd]\n00:14.0 SMBus [0c05]: Advanced Micro Devices, Inc. [AMD] FCH SMBus Controller [1022:790b] (rev 71)\n00:14.3 ISA bridge [0601]: Advanced Micro Devices, Inc. [AMD] FCH LPC Bridge [1022:790e] (rev 51)\n00:18.0 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 0 [1022:14e0]\n00:18.1 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 1 [1022:14e1]\n00:18.2 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 2 [1022:14e2]\n00:18.3 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 3 [1022:14e3]\n00:18.4 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 4 [1022:14e4]\n00:18.5 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 5 [1022:14e5]\n00:18.6 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 6 [1022:14e6]\n00:18.7 Host bridge [0600]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge Data Fabric; Function 7 [1022:14e7]\n01:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 XL Upstream Port of PCI Express Switch [1002:1478] (rev 10)\n02:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 XL Downstream Port of PCI Express Switch [1002:1479] (rev 10)\n03:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 31 [Radeon RX 7900 XT/7900 XTX/7900 GRE/7900M] [1002:744c] (rev c8)\n03:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 31 HDMI/DP Audio [1002:ab30]\n03:00.2 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 31 USB [1002:7446]\n03:00.3 Serial bus controller [0c80]: Advanced Micro Devices, Inc. [AMD/ATI] Device [1002:7444]\n04:00.0 Non-Volatile memory controller [0108]: Sandisk Corp WD PC SN810 / Black SN850 NVMe SSD [15b7:5011] (rev 01)\n05:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Upstream Port [1022:43f4] (rev 01)\n06:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:04.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:05.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:06.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:08.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:0c.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n06:0d.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n07:00.0 Non-Volatile memory controller [0108]: Realtek Semiconductor Co., Ltd. RTS5762 NVMe SSD Controller [10ec:5762] (rev 01)\n0b:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Upstream Port [1022:43f4] (rev 01)\n0c:00.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:01.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:02.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:03.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:04.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:08.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:0c.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0c:0d.0 PCI bridge [0604]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset PCIe Switch Downstream Port [1022:43f5] (rev 01)\n0f:00.0 Network controller [0280]: Qualcomm Technologies, Inc NCM8x5/WCN785x Wi-Fi 7(802.11be) 320MHz 2x2 [FastConnect 7800] [17cb:1107] (rev 01)\n10:00.0 Ethernet controller [0200]: Realtek Semiconductor Co., Ltd. RTL8126 5GbE Controller [10ec:8126] (rev 01)\n13:00.0 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD] 800 Series Chipset USB 3.x XHCI Controller [1022:43fd] (rev 01)\n14:00.0 SATA controller [0106]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset SATA Controller [1022:43f6] (rev 01)\n15:00.0 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD] 800 Series Chipset USB 3.x XHCI Controller [1022:43fd] (rev 01)\n16:00.0 SATA controller [0106]: Advanced Micro Devices, Inc. [AMD] 600 Series Chipset SATA Controller [1022:43f6] (rev 01)\n17:00.0 PCI bridge [0604]: ASMedia Technology Inc. ASM4242 PCIe Switch Upstream Port [1b21:2421] (rev 01)\n18:00.0 PCI bridge [0604]: ASMedia Technology Inc. ASM4242 PCIe Switch Downstream Port [1b21:2423] (rev 01)\n18:01.0 PCI bridge [0604]: ASMedia Technology Inc. ASM4242 PCIe Switch Downstream Port [1b21:2423] (rev 01)\n18:02.0 PCI bridge [0604]: ASMedia Technology Inc. ASM4242 PCIe Switch Downstream Port [1b21:2423] (rev 01)\n18:03.0 PCI bridge [0604]: ASMedia Technology Inc. ASM4242 PCIe Switch Downstream Port [1b21:2423] (rev 01)\n79:00.0 USB controller [0c03]: ASMedia Technology Inc. ASM4242 USB 3.2 xHCI Controller [1b21:2426] (rev 01)\n7a:00.0 USB controller [0c03]: ASMedia Technology Inc. ASM4242 USB 4 / Thunderbolt 3 Host Router [1b21:2425] (rev 01)\n7b:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Granite Ridge [Radeon 610M] [1002:13c0] (rev cb)\n7b:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Radeon High Definition Audio Controller [1002:1640]\n7b:00.2 Encryption controller [1080]: Advanced Micro Devices, Inc. [AMD] Family 19h PSP/CCP [1022:1649]\n7b:00.3 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge USB 3.1 xHCI [1022:15b6]\n7b:00.4 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge USB 3.1 xHCI [1022:15b7]\n7b:00.6 Audio device [0403]: Advanced Micro Devices, Inc. [AMD] Ryzen HD Audio Controller [1022:15e3]\n7c:00.0 USB controller [0c03]: Advanced Micro Devices, Inc. [AMD] Raphael/Granite Ridge USB 2.0 xHCI [1022:15b8]\n",
+      "stderr": ""
+    },
+    "glx": {
+      "exit_code": 0,
+      "stdout": "name of display: :0\ndisplay: :0  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: AMD (0x1002)\n    Device: AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts) (0x744c)\n    Version: 26.2.5\n    Accelerated: yes\n    Video memory: 24576MB\n    Unified memory: no\n    Preferred profile: core (0x1)\n    Max core profile version: 4.6\n    Max compat profile version: 4.6\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nMemory info (GL_ATI_meminfo):\n    VBO free memory - total: 22545 MB, largest block: 22545 MB\n    VBO free aux. memory - total: 30843 MB, largest block: 30843 MB\n    Texture free memory - total: 22545 MB, largest block: 22545 MB\n    Texture free aux. memory - total: 30843 MB, largest block: 30843 MB\n    Renderbuffer free memory - total: 22545 MB, largest block: 22545 MB\n    Renderbuffer free aux. memory - total: 30843 MB, largest block: 30843 MB\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 24576 MB\n    Total available memory: 55518 MB\n    Currently available dedicated video memory: 22545 MB\nOpenGL vendor string: AMD\nOpenGL renderer string: AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)\nOpenGL core profile version string: 4.6 (Core Profile) Mesa 26.2.5-arch1.1\nOpenGL core profile shading language version string: 4.60\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1\nOpenGL shading language version string: 4.60\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 26.2.5-arch1.1\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "stderr": ""
+    }
+  },
+  "runtime": {
+    "release-authored-hierarchy": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:42.540605+00:00",
+      "completed_at": "2026-10-21T06:51:42.716493+00:00",
+      "probe": "NativeFrameHierarchyCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "37ffc3ac47add75531647373b1c775f2429bd2df98afab65b3cf70f8830ee95c",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": false,
+      "locale": null,
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "release-original-hierarchy": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:42.757325+00:00",
+      "completed_at": "2026-10-21T06:51:43.735675+00:00",
+      "probe": "NativeFrameHierarchyCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "37ffc3ac47add75531647373b1c775f2429bd2df98afab65b3cf70f8830ee95c",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=3 workers=0"
+      ],
+      "stderr": [],
+      "render_target_checks": {
+        "binary_sha256": "82661128b714ce04ab8b1411d5729240ec72bc0e25c23441f9b41ea91f9892df",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "native-render-target-cycles=3 passed"
+        ],
+        "stderr": []
+      },
+      "transform_checks": {
+        "binary_sha256": "5d58c9a0e708f8c812dbba6bae578144fa7152158e544e01d91ce3f61728a7bc",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "native-transform-cycles=3 passed"
+        ],
+        "stderr": []
+      },
+      "buffer_checks": {
+        "binary_sha256": "40ef69672b5d27ec9dfa50760f003e41505c6d7da7ee59185d9fbcf736958670",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=1;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=2;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=3;passed"
+        ],
+        "stderr": []
+      },
+      "texture_checks": {
+        "binary_sha256": "7a5997984412f92d6d659cbac7a49e30529edce347b06b40f59cec507143a0e9",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=1;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=2;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=3;passed"
+        ],
+        "stderr": []
+      },
+      "probe_exit_code": 0
+    },
+    "release-regions": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:43.770166+00:00",
+      "completed_at": "2026-10-21T06:51:44.071816+00:00",
+      "probe": "NativeFrameRegionsCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "7f44dca14e36a19aeba8cf2ba8ef70d866090b491c1c5b26b11dbb5791864e4e",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "release-frame-render": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:44.105534+00:00",
+      "completed_at": "2026-10-21T06:51:44.459477+00:00",
+      "probe": "NativeFrameRenderCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "a0213ae030e0e00650c26dbd4ddedb7f3da0d5e96433090c38204c1c2e242cf2",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "release-frame-fonts": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:44.493213+00:00",
+      "completed_at": "2026-10-21T06:51:44.831311+00:00",
+      "probe": "NativeFrameFontsCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "18372ffcc34d1a5904b8b6d6d78cab60f671693bf21040d45603e7da38210d69",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "release-images": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:44.863910+00:00",
+      "completed_at": "2026-10-21T06:51:45.146427+00:00",
+      "probe": "NativeImageCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "da0e6fca32fedc7c7706c2269a1ecb78016e98e976b48e70b262e351e640f4fa",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "release-gxu": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:51:45.178736+00:00",
+      "completed_at": "2026-10-21T06:51:45.449956+00:00",
+      "probe": "LegacyGxuCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "15ef3b0becda5d1b03d3e62391e1f1e8877c23f9614b6635253f1fc9e99a0cba",
+      "preset": "linux-gl",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": null,
+        "UBSAN_OPTIONS": null,
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-authored-hierarchy": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:15.774976+00:00",
+      "completed_at": "2026-10-21T06:53:16.083135+00:00",
+      "probe": "NativeFrameHierarchyCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "a008815420e2deacbf0ec327c7482a953fd6b6a2eda06ae72c05709a5cdeb0d7",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": false,
+      "locale": null,
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=484",
+        "frame-hierarchy-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-original-hierarchy": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:16.183236+00:00",
+      "completed_at": "2026-10-21T06:53:18.046452+00:00",
+      "probe": "NativeFrameHierarchyCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "a008815420e2deacbf0ec327c7482a953fd6b6a2eda06ae72c05709a5cdeb0d7",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink=131",
+        "frame-hierarchy-cycle-closed=3 workers=0"
+      ],
+      "stderr": [],
+      "render_target_checks": {
+        "binary_sha256": "146fe3775e4fd3cbd2a7270c4aee2b11d92a074eceee11c8718d14e859a32662",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "video=x11",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "target-allocation-binding-and-pbo-restoration=passed",
+          "target-color-depth-replacement-depth-only-npot-rectangle=passed",
+          "target-six-cube-color-and-depth-faces=passed",
+          "target-validation-affinity-attachment-and-sampler-lifetime=passed",
+          "target-feedback-and-injected-incomplete-fbo-rollback=passed",
+          "target-default-drawable-resize-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "native-render-target-cycles=3 passed"
+        ],
+        "stderr": []
+      },
+      "transform_checks": {
+        "binary_sha256": "7a3e407191f150d20a3ea775861fbcbe13650f483876a8be0ab011d4ac6a860b",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "gl-vendor=AMD",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "gx-scalar-stacks-order-saturation-rejection=passed",
+          "gx-target-viewport-scissor-projection-ui-constants=passed",
+          "gx-fixed-and-arb-transformed-depth-scissor-cull-pixels=passed",
+          "gx-resized-drawable-normalized-pixel-viewport=passed logical=517,293 pixels=517,293",
+          "native-transform-cycles=3 passed"
+        ],
+        "stderr": []
+      },
+      "buffer_checks": {
+        "binary_sha256": "018e67229d91585dde1e28b085a383cb4395f63c1e84e5df0a322f61c07d1ff1",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=1;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=2;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-buffer-upload-lock-abort-retention-bounds-affinity=passed",
+          "gx-seven-attribute-types-separate-streams-zero-stride=passed",
+          "gx-buffered-array-indexed-pct-pixels-binding-restoration=passed",
+          "gx-buffer-cycle=3;passed"
+        ],
+        "stderr": []
+      },
+      "texture_checks": {
+        "binary_sha256": "4429019e7973b5cd37c51482e0256418127b8043fe8b6ae900a9bb0ba5d85c60",
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=1;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=2;passed",
+          "gpu=AMD;AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts);4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1;video=x11",
+          "gx-synthetic-argb4444-atlas-buffered-blend-and-sampler-lifetime=passed",
+          "gx-texture-packed-formats-strides-mips-cubes-dxt-edges=passed",
+          "gx-texture-filter-validation-unpack-pbo-binding-affinity=passed",
+          "gx-texture-cycle=3;passed"
+        ],
+        "stderr": []
+      },
+      "probe_exit_code": 0
+    },
+    "sanitizer-regions": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:18.096320+00:00",
+      "completed_at": "2026-10-21T06:53:19.000273+00:00",
+      "probe": "NativeFrameRegionsCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "d4727abaf7b80c5e1281eef23261f808d4d1ed3e4ccfdf700ac13273a92c1111",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "region-diagnostic batch=1 layout-flags=262 rect=0.125,0.125,0.875,0.5 font-height=0.0078125 style=530 scale=1.25 text=AV Frame region block=1 lines=1 lit=218 rgb-max=221,0,0",
+        "frame-regions-layout-font-inheritance-replacement-batch-retention=passed red-ink=213",
+        "frame-regions-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-frame-render": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:19.048678+00:00",
+      "completed_at": "2026-10-21T06:53:21.265767+00:00",
+      "probe": "NativeFrameRenderCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "82f4185c6f0e3a2527ca6bda84cd3ef81a229b72c31a79f3f41f66b28ec53ce5",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "frame-render-mesh-snapshot-retention-sort-merge-atlas=passed",
+        "frame-render-retained-text-original-composition=passed colored-pixels=1521 original-data=1",
+        "frame-render-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-frame-fonts": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:21.314751+00:00",
+      "completed_at": "2026-10-21T06:53:22.216512+00:00",
+      "probe": "NativeFrameFontsCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "21b5a6312d66904d54365c8625ad89f75ee08ae96587771bcef2d40b95e12183",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-signaturefile=authenticated records=28948",
+        "original-GlueFonts-factories=18 interface-signature=authenticated",
+        "frame-font-pixels font=SystemFont_Shadow_Outline_Small height-ddc=0.0078125 flags=1 fully-red=0 red-ink=77 peak-red=187",
+        "frame-font-factory-inheritance-xml-lua-render=passed colored-glyph-pixels=77 original-data=1",
+        "frame-font-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-images": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:22.263523+00:00",
+      "completed_at": "2026-10-21T06:53:22.946928+00:00",
+      "probe": "NativeImageCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "cb274e2ef0fff0b72d0b480308d6a8fa4f7791b38ed427f8c1c51c461ef2a330",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "image-cache-read-cancel-failure-pct-fbo=passed reads=19",
+        "image-authored-mips-filters-local-wait2-priority=passed",
+        "image-disk-root-source-cache-failures=passed",
+        "image-original-atlas-grid-sharing-reuse-sampling=passed",
+        "image-default-filter-small-blp-mips=passed",
+        "original-services-blp-pct-shader-fbo=passed width=64 height=64 atlas=0",
+        "original-services-authored-mips-trilinear-local-wait2=passed width=256 height=256",
+        "image-services-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    },
+    "sanitizer-gxu": {
+      "schema_version": 1,
+      "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+      "started_at": "2026-10-21T06:53:22.995113+00:00",
+      "completed_at": "2026-10-21T06:53:23.698723+00:00",
+      "probe": "LegacyGxuCheck",
+      "source_commit": "960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274",
+      "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39557430513",
+      "binary_sha256": "01933a1dd2f15d9ecfbdf4564b39e2f61daa5f2321ed8d1db80a2fe470643567",
+      "preset": "linux-gl-asan",
+      "os": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44",
+      "machine": "x86_64",
+      "sdl3": {
+        "version": "3.2.28",
+        "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+        "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+      },
+      "video": "x11",
+      "original_data_requested": true,
+      "locale": "enUS",
+      "environment": {
+        "SDL_VIDEODRIVER": "x11",
+        "EGL_PLATFORM": "x11",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1",
+        "LSAN_OPTIONS": null,
+        "LD_PRELOAD": null,
+        "LD_AUDIT": null
+      },
+      "exit_code": 0,
+      "timed_out": false,
+      "stdout": [
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=1 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=2 workers=0",
+        "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.57-2-lts)",
+        "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+        "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+        "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+        "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+        "original-signaturefile=authenticated records=28948",
+        "gxu-hface-layout-glyph-lru-atlas-batch-regeneration=passed red=109 white=96 stress-glyphs=0 original-data=1",
+        "legacy-gxu-cycle-closed=3 workers=0"
+      ],
+      "stderr": []
+    }
+  },
+  "captures": [
+    {
+      "fixture": "original-hierarchy",
+      "external_paths": [
+        "/tmp/m3-frame-hierarchy-evidence/release-original-hierarchy.ppm",
+        "/tmp/m3-frame-hierarchy-evidence/sanitizer-original-hierarchy.ppm"
+      ],
+      "sha256": "5e980e9638c007449355cd4b32e17f75218cda2bc75e10e9f54dadb7ebbe47b7",
+      "dimensions": [
+        640,
+        480
+      ],
+      "release_sanitizer_match": true,
+      "inspection": "Inspected the release capture: small white authored AV Frame parent text on black through actual CSimpleFrame parents/layers/CSimpleTop root and CSimpleFontString. Original font/shader/GlueFonts bytes; authored text and layout, not original login UI."
+    },
+    {
+      "fixture": "images",
+      "external_paths": [
+        "/tmp/m3-frame-hierarchy-evidence/release-images.ppm",
+        "/tmp/m3-frame-hierarchy-evidence/sanitizer-images.ppm"
+      ],
+      "sha256": "428ff567a3d5518cb045592fdbb766155e3f98de8157e6d626c133ddadebefea",
+      "dimensions": [
+        640,
+        480
+      ],
+      "release_sanitizer_match": true,
+      "inspection": "Loading-bar image-regression hash matches prior qualification; no new world capture."
+    }
+  ],
+  "retained_failures": [
+    {
+      "implementation": "8e9db6b8593100cbf798f3d748d2d5435626413e",
+      "run": 39555669433,
+      "result": "superseded/cancelled; not qualified"
+    },
+    {
+      "implementation": "38cbbf29667fcae093e54bd27af5b2d301724acb",
+      "run": 39555898367,
+      "jobs": [
+        119075862717,
+        119075862303
+      ],
+      "result": "both Linux configurations compiled, then passed 33 of 34 tests; hierarchy fixture expected rejection of a valid level shift after it had moved the child to level zero",
+      "correction": "Fixture restores child level one before checking descendant overflow. Added line-specific rejection diagnostics; implementation and detectors unchanged for this correction."
+    },
+    {
+      "implementation": "0c8f9e4ed5be2e06a9c70d2f2e60c9c48cdce80a",
+      "run": 39556575115,
+      "result": "superseded/cancelled for root batch-collection callback guard; not qualified"
+    },
+    {
+      "implementation": "bf24ea5d39bb41479e904d378136bb3132eb3aee",
+      "run": 39556847767,
+      "release": "34/34 passed",
+      "sanitizer_job": 119078503969,
+      "result": "Strict UBSan invalid enum load in new SetFrameStrata preflight at CSimpleFrame.cpp:2061; 33/34 passed",
+      "correction": "Native API accepts raw uint32_t and validates its range before enum interpretation. Original Windows enum API retained; all sanitizer detectors unchanged."
+    }
+  ],
+  "local_validation": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p test_*.py",
+    "discovered": 54,
+    "passed": 53,
+    "skipped": 1,
+    "skip": "Local CMake source-selection check unavailable; hosted CMake graph audits passed.",
+    "windows_source_comparison": "269 original Windows function bodies and extracted original screen projection preserved. Windows SetFrameStrata enum API retained.",
+    "whitespace": "git diff --check passed",
+    "compilation": "All client/dependency compilation ran in GitHub Actions; no local compilation."
+  },
+  "acceptance_limits": [
+    "Direct C++ heap-created Frames/FontStrings owned by parents/root; original pooled XML/Lua factories remain unavailable.",
+    "Display callback is direct event injection, not real SDL size delivery or new physical-input acceptance.",
+    "Animation, input/occlusion, backdrop, scrolling, Frame texture and embedded-texture consumers and language processing remain unqualified/unavailable.",
+    "Original font bytes/definitions/shaders are consumed with authored text/layout; not original login layout or all font styles/languages/stereo/world-space qualification.",
+    "No complete ordered GlueXML/FrameXML factory traversal, full post-creation digest check or original login UI.",
+    "No new Windows runtime, macOS graphics, transport/authentication, live server/Warden session or observed gameplay acceptance.",
+    "Keep external server tag/embedded-revision discrepancies and interactive user sign-in preference."
+  ]
+}

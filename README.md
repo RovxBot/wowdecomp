@@ -116,8 +116,15 @@ The [original unparented FontString regions](docs/m3/FRAME_REGIONS.md) now conne
 actual region/layout/font inheritance and retained text batching through a bounded
 C++ surface. Both Linux GL configurations passed 33 checks; full Windows compilation
 and downloaded release/strict sanitizer original-data GPU cycles passed. Frame
-parent/layer/root traversal, region Lua/XML/animation, SDL size delivery and full
-signed GlueXML/login remain open. M3 is incomplete.
+region Lua/XML/animation, SDL size delivery and full signed GlueXML/login remain
+open.
+
+The [original Frame parent/root integration](docs/m3/FRAME_HIERARCHY.md) now uses
+actual parent/child, region/layer/strata lists, inherited visibility/alpha/scale
+and original root batches through direct C++ ownership. Both Linux GL configurations
+passed 34 checks; Windows compilation and downloaded original-data release/strict
+sanitizer GPU cycles passed. Pooled factories, input/animation/texture consumers,
+actual SDL size delivery and full signed GlueXML/login remain open. M3 is incomplete.
 
 ## Progress
 

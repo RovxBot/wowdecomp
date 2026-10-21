@@ -683,3 +683,29 @@ remaining checks need another machine.
   by transport/gameplay. No new physical-input, Windows runtime, macOS graphics
   or server acceptance. M3 stays open; preserve signatures, server discrepancies
   and interactive user sign-in.
+
+- M3 original Frame parent/layer/root [PR #49](https://github.com/RovxBot/wowdecomp/pull/49)
+  is qualified at `ac717d347e2226e06a4f36e0a2bd485f396f6ef2`, merged as
+  `9b01385d6a1bdb11a78905dd9c302d559cbc142d`. Read [hierarchy contracts/next callers](docs/m3/FRAME_HIERARCHY.md)
+  and [validation](docs/m3/frame-hierarchy-validation.json). Thirteen workflows
+  passed; both Linux GL configurations passed 34 checks and full Windows x64
+  compiled with signatures enabled at matching-tree checkout
+  `960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274`. Three archive digests and all 51
+  packaged executable hashes/types verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release/strict ASan/UBSan/leak binaries each passed three
+  authored and three original-data hierarchy cycles, plus region/batch/GlueFonts/
+  image/Gxu and all four resource regressions, with empty stderr/zero workers.
+  Captures match. Actual Frame parents/layers/strata/root now render authored
+  text/layout through original resources. Preserve initialization before parenting,
+  raw unsigned native strata checks, graph/level/scale bounds, dirty-batch release
+  before rebuilding, callback guards and root-before-renderer/font/device teardown.
+  Original m_destroyed expires attribute permissions; deferred object deletion is
+  separate and retires queued descendants. Current C++ heap ownership is not the
+  original pooled Lua/XML factory: adapt allocation before selecting those callers.
+  The prior fixture failure and UBSan invalid enum load remain recorded without
+  disabling detectors. Display events are injected, not actual SDL delivery.
+  Pooled factories, region Lua/XML/language, animation/input/texture/backdrop/scroll
+  consumers, complete signed ordered GlueXML plus post-creation digest gate and
+  actual login remain open, then transport/gameplay. No new physical-input, Windows
+  runtime, macOS graphics or server acceptance. M3 remains open; preserve original
+  signatures, server revision discrepancies and interactive user sign-in.

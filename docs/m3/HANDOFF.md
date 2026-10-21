@@ -502,13 +502,40 @@ composition; this is not original login. Root/parent/layer, animation/Lua/XML,
 texture factories and real SDL size delivery remain open. No new physical-input,
 Windows runtime, macOS graphics or server acceptance; M3 is incomplete.
 
+The [original Frame parent/layer/root integration](FRAME_HIERARCHY.md) in
+[PR #49](https://github.com/RovxBot/wowdecomp/pull/49) is qualified at
+`ac717d347e2226e06a4f36e0a2bd485f396f6ef2`, merged as
+`9b01385d6a1bdb11a78905dd9c302d559cbc142d`. The
+[record](frame-hierarchy-validation.json) retains thirteen passing PR workflows,
+34 checks per Linux GL configuration, full signature-enabled Windows x64
+compilation at matching-tree checkout `960ebca2d4bb7a50a7cd8ddd53f3e44a89f02274`,
+three verified archives and all 51 packaged binary hashes/types. Downloaded
+release/strict sanitizer binaries each passed three authored and three original-data
+hierarchy cycles, plus region/batch/GlueFonts/image/Gxu and all four resource
+regressions, with empty stderr and zero workers. Captures match; original-resource
+text/layout is authored, not login. The retained fixture failure and UBSan enum-load
+finding were corrected with all detectors enabled.
+
+Actual parent/child, region/layer/strata lists, inherited visibility/alpha/scale and
+root batches now use original Frame consumers through a direct C++ heap-owned
+surface. Preserve `m_isShown` initialization before parenting, unsigned native
+strata preflight, bounded parent/level/scale graphs, dirty-batch retirement before
+rebuilding and update/collection/resize/draw guards. Original `m_destroyed` expires
+attribute permission; the separate deferred object queue coalesces requests and
+retires recursively deleted descendants. Close root consumers before renderer/
+font factories/Gxu/layout/XML/VM/device/context/queue. Pooled Lua/XML factories,
+animation/input/texture consumers and actual SDL size delivery remain open. The
+complete signed ordered GlueXML plus post-creation digest gate and original login
+remain open, followed by transport/gameplay. No new physical-input, Windows runtime,
+macOS graphics or server acceptance. M3 stays incomplete.
+
 Next dependencies, in order:
 
-1. Connect actual Frame parent/child and region/layer lists, animation ownership
-   and root batching to the qualified [direct font-string regions](FRAME_REGIONS.md),
-   [font/name factories](FRAME_FONTS.md) and [layout owners](LAYOUT.md).
-   Adapt pooled factories, deferred destruction, region Lua/XML/language callers
-   and actual SDL font/size invalidation before selecting those consumers.
+1. Continue from the qualified [Frame parent/root integration](FRAME_HIERARCHY.md).
+   Adapt original pooled factories before selecting Frame/region Lua/XML/language
+   callers and animation ownership. Wire actual SDL font/size delivery to the root.
+   Preserve qualified [font/name](FRAME_FONTS.md), [layout](LAYOUT.md) and retained
+   batch lifetimes; direct C++ ownership does not install those factories.
    Connect actual Frame texture factories and image-mode shaders to the qualified
    [image lookup/atlas surface](IMAGE_SOURCES.md); retain readiness and atlas
    coordinates. Extend device/state/
