@@ -162,9 +162,6 @@ void CSimpleRegion::SetVertexGradient(ORIENTATION orientation, const CImVector& 
 // OFFSET: 0x00487BF0
 void CSimpleRegion::HideThis() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    this->m_visible = 0;
-#else
 
     if (!this->m_visible || !this->m_parent) {
         return;
@@ -177,16 +174,12 @@ void CSimpleRegion::HideThis() {
     this->m_parent->RemoveFrameRegion(this, this->m_drawLayer);
     this->m_visible = 0;
 
-#endif
 }
 
 // VERIFY: b0e6ff7b auto
 // OFFSET: 0x00487C40
 void CSimpleRegion::ShowThis() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_parent) Frame::Native::UnavailableRegionFeature();
-#else
 
     if (!this->m_shown || !this->m_parent || !this->m_parent->m_isVisible || this->m_visible) {
         return;
@@ -199,37 +192,28 @@ void CSimpleRegion::ShowThis() {
     this->m_parent->AddFrameRegion(this, this->m_drawLayer);
     this->m_visible = 1;
 
-#endif
 }
 
 // VERIFY: fbf040a8 auto
 // OFFSET: 0x00487CA0
 void CSimpleRegion::OnRegionChanged() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_parent) Frame::Native::UnavailableRegionFeature();
-#else
 
     if (this->m_visible && this->m_parent) {
         this->m_parent->NotifyDrawLayerChanged(this->m_drawLayer);
     }
 
-#endif
 }
 
 // VERIFY: 51a4dfd1 manual
 // OFFSET: 0x00487CC0
 void CSimpleRegion::NotifyDelayedLoad() {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_parent) Frame::Native::UnavailableRegionFeature();
-#else
 
     if (this->m_visible && this->m_parent) {
         this->m_parent->NotifyDelayedLoad();
     }
 
-#endif
 }
 
 // VERIFY: 63ab363f manual
@@ -254,9 +238,7 @@ void CSimpleRegion::AddAnimAlpha(int16_t alpha) {
 // OFFSET: 0x00487D70
 void CSimpleRegion::OnColorChanged(bool changed) {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_parent) Frame::Native::UnavailableRegionFeature();
-#else
+
     if (this->m_parent) {
         if ((uint8_t)(this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255) < 0xFE) {
             if (!this->m_colorCount) {
@@ -292,7 +274,6 @@ void CSimpleRegion::OnColorChanged(bool changed) {
         }
     }
 
-#endif
     if (changed) {
         this->OnRegionChanged();
     }
@@ -303,12 +284,10 @@ void CSimpleRegion::OnColorChanged(bool changed) {
 void CSimpleRegion::SetFrame(CSimpleFrame* frame, uint32_t drawLayer, int32_t show) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (frame) Frame::Native::UnavailableRegionFeature();
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireParent(this, frame);
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
-    this->m_drawLayer = drawLayer;
-    this->m_shown = show != 0;
-    this->m_visible = 0;
-#else
+#endif
 
     if (this->m_parent == frame) {
         if (this->m_drawLayer == drawLayer) {
@@ -363,7 +342,6 @@ void CSimpleRegion::SetFrame(CSimpleFrame* frame, uint32_t drawLayer, int32_t sh
         this->Hide();
     }
 
-#endif
 }
 
 // VERIFY: 3115eee5 manual
@@ -414,7 +392,7 @@ void CSimpleRegion::AnimDeactivated(CSimpleAnimGroup* group, int32_t last) {
 CSimpleRegion::CSimpleRegion(CSimpleFrame* frame, uint32_t drawLayer, int32_t show) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (frame) Frame::Native::UnavailableRegionFeature();
+    if (frame) Frame::Native::RequireSimpleFrame(frame);
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
 #endif
     this->m_alphaCount = 4;

@@ -86,13 +86,14 @@ class NativeGlGraphTests(unittest.TestCase):
             changed['sources'].append({'path': 'Engine/Source/Frame/' + name + '.cpp'})
             self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))
 
-    def test_regions_reject_unselected_root_and_script_factories(self):
+    def test_regions_select_root_and_reject_unselected_script_factories(self):
         target = self.target('WowNativeFrameRegions', 'Engine/Source/Frame/CScriptRegion.cpp')
         target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
-            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel']]
+            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CFrameStrataNode', 'Portable/Hierarchy']]
+        target['sources'].append({'path': 'Engine/Source/Services/ScreenProjection.cpp'})
         message = 'WowNativeFrameRegions: unexpected native Frame region source/ABI'
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
-        for name in ['CSimpleFrame', 'CSimpleTop', 'CSimpleFontString_Scripts', 'CSimpleAnimGroup']:
+        for name in ['CSimpleFrame_Scripts', 'CSimpleTexture', 'CSimpleFontString_Scripts', 'CSimpleAnimGroup']:
             changed = copy.deepcopy(target)
             changed['sources'].append({'path': 'Engine/Source/Frame/' + name + '.cpp'})
             self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))
