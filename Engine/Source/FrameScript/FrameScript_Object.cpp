@@ -128,6 +128,11 @@ void FrameScript_Object::RegisterScriptObject(const char* name) {
     lua_State* L = s_context;
 
     if (!this->m_luaRegistered) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        // A native factory may reject an unavailable metatable. Do that before
+        // changing the Lua stack or the VM's expected-taint nesting counter.
+        int32_t nativeMetaTable = this->GetScriptMetaTable();
+#endif
         const char* taint = lua_tainted;
 
         if (++lua_taintexpected && !lua_taintedclosure) {
@@ -138,7 +143,11 @@ void FrameScript_Object::RegisterScriptObject(const char* name) {
         lua_pushnumber(L, 0.0);
         lua_pushlightuserdata(L, this);
         lua_rawset(L, -3);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_rawgeti(L, LUA_REGISTRYINDEX, nativeMetaTable);
+#else
         lua_rawgeti(L, LUA_REGISTRYINDEX, this->GetScriptMetaTable());
+#endif
         lua_setmetatable(L, -2);
         this->m_luaObjectRef = luaL_ref(L, LUA_REGISTRYINDEX);
 

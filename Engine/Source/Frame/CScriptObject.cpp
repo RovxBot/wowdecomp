@@ -133,6 +133,10 @@ const char* CScriptObject::GetObjectTypeName() {
 // OFFSET: 0x0048B6C0
 void CScriptObject::SetName(const char* name) {
     FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Reject unavailable native factories before retiring an existing name.
+    if (name && *name && !this->m_luaRegistered) this->GetScriptMetaTable();
+#endif
     if (this->m_name.m_str) {
         this->UnregisterScriptObject(this->m_name.m_str);
         this->m_name.Copy(nullptr);

@@ -1,4 +1,5 @@
 #include "Render.h"
+#include "Fonts.h"
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -18,6 +19,7 @@ namespace {
 Frame::Native::Renderer* renderer = nullptr;
 size_t batches = 0;
 bool drawing = false;
+Frame::Native::RegionTextQueue regionTextQueue = nullptr;
 struct Handle {
     HOBJECT value = nullptr;
     Handle() = default;
@@ -43,6 +45,16 @@ struct Text {
 };
 }
 namespace Frame { namespace Native {
+void SetRegionTextQueue(RegionTextQueue queue) { RequireRenderIdle(); regionTextQueue = queue; }
+void QueueRegionText(CRenderBatch* batch, CSimpleFontString* string) {
+    RequireRenderIdle();
+    if (!regionTextQueue) throw std::logic_error("Native Frame font-string regions are not installed");
+    regionTextQueue(batch, string);
+}
+void RequireRenderIdle() {
+    Gxu::Native::RequireFontOwner();
+    if (drawing) throw std::logic_error("Finish Frame rendering before region mutation");
+}
 void RequireRenderer() {
     Gxu::Native::RequireFontOwner();
     if (!renderer) throw std::logic_error("Native Frame renderer is not installed");
@@ -87,8 +99,8 @@ void CRenderBatch::NativeCheck(bool mutation) const {
 }
 void CRenderBatch::NativeDestroy() { NativeCheck(); delete m_native; m_native = nullptr; --batches; }
 void CRenderBatch::NativeRelease() { m_native->meshes.clear(); m_native->texts.clear(); }
-void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; }
-void CRenderBatch::NativeEndDraw() { drawing = false; }
+void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; Frame::Native::SetLayoutRenderActive(true); }
+void CRenderBatch::NativeEndDraw() { Frame::Native::SetLayoutRenderActive(false); drawing = false; }
 void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCount,
     const C3Vector* positions, const C2Vector* coords, int32_t colorCount, const CImVector* colors,
     int32_t idxCount, const uint16_t* indices, CGxShader* shader) {

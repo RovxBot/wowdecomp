@@ -10,6 +10,7 @@
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
+bool renderActive = false;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
 std::unordered_set<CFramePoint*> points;
@@ -36,6 +37,7 @@ size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
 }
 Runtime::Runtime() {
     FrameXML::Native::RequireOwner();
+    if (renderActive) throw std::logic_error("Finish rendering before installing layout");
     if (installed) throw std::logic_error("Only one layout runtime may be installed");
     installed = true;
 }
@@ -51,7 +53,9 @@ Runtime::~Runtime() {
 void RequireOwner() {
     FrameXML::Native::RequireOwner();
     if (!installed) throw std::logic_error("Native layout runtime is not installed");
+    if (renderActive) throw std::logic_error("Finish Frame rendering before layout/region access");
 }
+void SetLayoutRenderActive(bool value) { renderActive = value; }
 void RequireNoObjects() {
     RequireOwner();
     if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || !points.empty())

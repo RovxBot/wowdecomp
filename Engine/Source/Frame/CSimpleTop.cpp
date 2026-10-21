@@ -102,48 +102,6 @@ void CSimpleTop::MoveOrResizeFrame(const CMouseEvent& evt) {
     }
 }
 
-// VERIFY: a9f9f36d auto
-// OFFSET: 0x00493D70
-float CSimpleTop::RoundToPixelWidth(float ddcWidth) {
-    if (fabs(ddcWidth) < 0.00000023841858f) {
-        return ddcWidth;
-    }
-
-    CRect windowRect = { 0.0f, 0.0f, 0.0f, 0.0f };
-    g_theGxDevicePtr->CapsWindowSizeInScreenCoords(windowRect);
-
-    float windowWidth = windowRect.maxX - windowRect.minX;
-
-    if (fabs(windowWidth) < 0.00000023841858f) {
-        return ddcWidth;
-    }
-
-    int32_t pixels = static_cast<int32_t>(CMath::fuint_pi(DDCToNDCWidth(ddcWidth) * windowWidth));
-
-    return NDCToDDCWidth(pixels / windowWidth);
-}
-
-// VERIFY: c3d69b78 auto
-// OFFSET: 0x00493E00
-float CSimpleTop::RoundToPixelHeight(float ddcHeight) {
-    if (fabs(ddcHeight) < 0.00000023841858f) {
-        return ddcHeight;
-    }
-
-    CRect windowRect = { 0.0f, 0.0f, 0.0f, 0.0f };
-    g_theGxDevicePtr->CapsWindowSizeInScreenCoords(windowRect);
-
-    float windowHeight = windowRect.maxY - windowRect.minY;
-
-    if (fabs(windowHeight) < 0.00000023841858f) {
-        return ddcHeight;
-    }
-
-    int32_t pixels = static_cast<int32_t>(CMath::fuint_pi(DDCToNDCHeight(ddcHeight) * windowHeight));
-
-    return NDCToDDCHeight(pixels / windowHeight);
-}
-
 // VERIFY: 03c64564 auto
 // OFFSET: 0x00493F30
 void CSimpleTop::HideFrame(CSimpleFrame* frame, int32_t a3) {

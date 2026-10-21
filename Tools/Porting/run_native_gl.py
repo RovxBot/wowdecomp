@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--snapshot', type=Path)
     parser.add_argument('--images', action='store_true', help='Run image sources, atlases and mip Services checks (three cycles)')
+    parser.add_argument('--frame-regions', action='store_true', help='Run original unparented FontString regions (three cycles)')
     parser.add_argument('--frame-render', action='store_true', help='Run retained original Frame render batches (three cycles)')
     parser.add_argument('--frame-fonts', action='store_true', help='Run original Frame font/name/XML/Lua factories (three cycles)')
     parser.add_argument('--legacy-gxu', action='store_true', help='Run original Gxu handles/layout/cache/batches (three cycles)')
@@ -52,10 +53,10 @@ def main():
     manifest = json.loads((args.artifact / 'manifest.json').read_text())
     if manifest['preset'] not in {'linux-gl', 'linux-gl-asan'} or manifest['target_os'] != 'LINUX':
         parser.error('Expected a Linux M3 OpenGL Actions artifact')
-    if sum([args.legacy_device, args.legacy_gxu, args.frame_fonts, args.frame_render, args.images]) > 1:
+    if sum([args.legacy_device, args.legacy_gxu, args.frame_fonts, args.frame_regions, args.frame_render, args.images]) > 1:
         parser.error('Select one legacy fixture')
-    legacy = args.legacy_device or args.legacy_gxu or args.frame_fonts or args.frame_render or args.images
-    probe_name = 'NativeFrameRenderCheck' if args.frame_render else 'NativeImageCheck' if args.images else 'NativeFrameFontsCheck' if args.frame_fonts else 'LegacyGxuCheck' if args.legacy_gxu else 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
+    legacy = args.legacy_device or args.legacy_gxu or args.frame_fonts or args.frame_regions or args.frame_render or args.images
+    probe_name = 'NativeFrameRegionsCheck' if args.frame_regions else 'NativeFrameRenderCheck' if args.frame_render else 'NativeImageCheck' if args.images else 'NativeFrameFontsCheck' if args.frame_fonts else 'LegacyGxuCheck' if args.legacy_gxu else 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
     if args.legacy_device and args.snapshot:
         parser.error('The legacy fixture currently records pixels, without a snapshot')
     binary = args.artifact / 'bin' / probe_name
@@ -89,7 +90,7 @@ def main():
     if not legacy:
         command += ['--frames', str(args.frames), '--cycles', str(args.cycles)]
     if args.font:
-        if not (args.legacy_gxu or args.frame_fonts or args.frame_render) or args.data:
+        if not (args.legacy_gxu or args.frame_fonts or args.frame_regions or args.frame_render) or args.data:
             parser.error('--font is only for synthetic Gxu/Frame font checks')
         command += ['--font', str(args.font.resolve())]
     if args.snapshot:

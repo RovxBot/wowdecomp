@@ -23,6 +23,8 @@ struct OwnerLease final {
     OwnerLease& operator=(const OwnerLease&) = delete;
 };
 void RequireOwner();
+// Original batch callbacks may not mutate layout or derived Frame consumers.
+void SetLayoutRenderActive(bool);
 void RequireNoObjects();
 void FrameCreated(CLayoutFrame*);
 void FrameDestroyed(CLayoutFrame*);
