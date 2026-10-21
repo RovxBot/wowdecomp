@@ -156,6 +156,11 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     Reject([&]{text->SetParent(reinterpret_cast<CSimpleFrame*>(uintptr_t(1)));});
     Reject([&]{text->RegisterAnimGroup(nullptr);});
     Reject([&]{text->GetScriptMetaTable();});
+    const auto stack=lua_gettop(s_context), expected=lua_taintexpected;
+    const auto taint=lua_tainted;
+    Reject([&]{text->RegisterScriptObject(nullptr);});
+    Reject([&]{text->SetName("UnavailableRegion");});
+    Check(lua_gettop(s_context)==stack && lua_taintexpected==expected && lua_tainted==taint && !text->GetName(),"Unavailable region script factory changed VM/name state");
     Reject([&]{text->SetText("processed",1);});
     Reject([&]{text->SetText("|Tunsupported:16|t",0);});
     Reject([&]{text->SetTextLength(65535);});
