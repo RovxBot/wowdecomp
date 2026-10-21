@@ -40,8 +40,52 @@ All client/dependency compilation and CTest run in Actions, including strict
 ASan/UBSan/leak checks and the separate full Windows x64 regression. The native
 target selects original `CEvent.cpp`; original Windows function bodies remain
 unchanged. No donor/dependency change or signature-policy relaxation occurs.
-Implementation and downloaded original-data qualification will be recorded after
-the hosted checks complete. This is authored layout/text, not original login.
+The selected implementation is qualified below. This is authored layout/text,
+not original login.
+
+## Qualification
+
+[PR #51](https://github.com/RovxBot/wowdecomp/pull/51) is qualified at
+`b173d38012681e61780c6d60f6dc069782220304`, merged as
+`e36987aa8e58502708e29696a535e4d841a0dde9`. The
+[durable record](frame-window-validation.json) retains all thirteen passing PR
+workflows, 35 CTest checks per Linux release/strict ASan/UBSan/leak configuration,
+and full Windows x64 compilation with signatures enabled. Hosted checkout
+`ccdb724540ca225850355886b7c69b19ff564767` has the same tree as the implementation
+and merge. Three archive digests, all 51 packaged executable hashes/types and
+notices verified. This graphics surface is Linux only; prerequisite CPU workflows
+retain their separate actual ARM64 macOS and native Windows coverage.
+
+Downloaded exact-source release and strict sanitizer packages each passed three
+authored and three original-data window cycles, plus authored/original hierarchy,
+region, retained batch, GlueFonts, image and Gxu cycles. All eighteen executions
+exited 0 with empty stderr and zero workers. The target/transform/buffer/texture
+fixtures also passed three cycles per configuration on RX 7900 XTX / Mesa 26.2.5 /
+SDL X11. Original-key authentication observed 28,948 signaturefile records and
+retained registered-member MD5 policy. Each original-data window/hierarchy cycle
+authenticated GlueXML before and after constructing eighteen original GlueFonts.
+
+Each window cycle observed 800x600, 900x600 and 640x480 logical/drawable dimensions.
+The selected original font changed from six raster pixels to eight and back to
+six; rendered ink changed from 131 pixels to 207 and back to 131. The authored
+20-pixel font changed to 25 and back to 20. Repeat/restoration pixels match exactly.
+Release/sanitizer original window and hierarchy captures match SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`;
+the 640x480 release capture was inspected. Matching original startup coordinate
+initialization moves the historical hierarchy image up one pixel (162 pixel
+positions differ), with unchanged glyph coverage. Preserve PR #49's original
+capture identity. Loading-bar regression capture hashes remain unchanged.
+
+Earlier hosted release runs passed 34/35 checks. The initial font hit the original
+32-pixel raster cap; window mode now uses an uncapped authored 20-pixel font.
+Subsequent release and strict runs passed the new resize/restoration sequence but
+failed the later parent scale-restoration comparison. The diagnostic identifies
+fixture line 283: startup had used literal DDC defaults before the first resize.
+The host now calls the original coordinate setter before fonts/layout, matching
+`CGlueMgr::Resume`. No pixel assertion or detector was relaxed. Failed and
+superseded/cancelled runs remain recorded. Local Python: 54 passed, one CMake
+availability skip; 269 original Windows body comparisons and whitespace passed.
+No client/dependency compiled locally.
 
 Run a manifest-verified hosted artifact without local compilation:
 

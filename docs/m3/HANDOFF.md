@@ -529,18 +529,47 @@ complete signed ordered GlueXML plus post-creation digest gate and original logi
 remain open, followed by transport/gameplay. No new physical-input, Windows runtime,
 macOS graphics or server acceptance. M3 stays incomplete.
 
+The [SDL display-size integration](FRAME_WINDOW.md) in
+[PR #51](https://github.com/RovxBot/wowdecomp/pull/51) is qualified at
+`b173d38012681e61780c6d60f6dc069782220304`, merged as
+`e36987aa8e58502708e29696a535e4d841a0dde9`. Its
+[record](frame-window-validation.json) retains thirteen passing workflows,
+35 checks per Linux GL configuration and full signature-enabled Windows x64
+compilation at matching-tree checkout `ccdb724540ca225850355886b7c69b19ff564767`.
+Three archives and all 51 packaged binary hashes/types verified. Downloaded release
+and strict ASan/UBSan/leak packages passed eighteen authored/original-data window,
+hierarchy and prior-resource executions, with three owner cycles each, empty stderr
+and zero workers; all four resource fixtures passed three cycles per mode.
+
+Actual programmatic SDL size events now refresh Gx dimensions and coordinate
+aspect, invalidate original Gxu fonts and Frame regions, deliver the original
+size callback and finish pending layout before batching. Preserve the current
+context/owner and traversal guards, unhandled-event caller ownership, logical
+versus drawable dimensions and deferred destruction. Initialize original coordinate
+math before fonts/layout, as `CGlueMgr::Resume` does. The prior capped-font and
+startup-order fixture failures remain recorded with unchanged assertions/detectors.
+Release/sanitizer captures match; the corrected startup baseline moves historical
+hierarchy text up one pixel, retained separately from PR #49's capture identity.
+This is authored layout with original resources, not login. Physical keyboard/mouse/
+focus/IME, independent high-DPI/platform coverage, pooled Lua/XML factories,
+texture/animation/model consumers, complete signed ordered GlueXML and its full
+post-creation digest gate, login and transport/gameplay remain open. No new
+physical-input, Windows runtime, macOS graphics or server acceptance. Preserve
+signatures, server revision discrepancies and interactive user sign-in; M3 stays open.
+
 Next dependencies, in order:
 
 1. Continue from the qualified [Frame parent/root integration](FRAME_HIERARCHY.md).
    Adapt original pooled factories before selecting Frame/region Lua/XML/language
-   callers and animation ownership. Wire actual SDL font/size delivery to the root.
+   callers and animation ownership. Preserve the qualified [SDL size path](FRAME_WINDOW.md)
+   while extending keyboard/mouse/focus/IME and input/occlusion consumers.
    Preserve qualified [font/name](FRAME_FONTS.md), [layout](LAYOUT.md) and retained
    batch lifetimes; direct C++ ownership does not install those factories.
    Connect actual Frame texture factories and image-mode shaders to the qualified
    [image lookup/atlas surface](IMAGE_SOURCES.md); retain readiness and atlas
    coordinates. Extend device/state/
    mip/texture contracts as their callers require them; audit texture/texgen
-   delivery and legacy async callers. Wire SDL size events to font invalidation.
+   delivery and legacy async callers.
    Do not pass native file tickets as `CAsyncObject` or use inspection geometry
    as a replacement for full M2 animation/material ownership.
 2. Use the qualified XML trees/interface signatures while connecting FrameScript

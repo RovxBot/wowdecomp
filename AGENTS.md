@@ -709,3 +709,30 @@ remaining checks need another machine.
   actual login remain open, then transport/gameplay. No new physical-input, Windows
   runtime, macOS graphics or server acceptance. M3 remains open; preserve original
   signatures, server revision discrepancies and interactive user sign-in.
+
+- M3 SDL display-size [PR #51](https://github.com/RovxBot/wowdecomp/pull/51) is
+  qualified at `b173d38012681e61780c6d60f6dc069782220304`, merged as
+  `e36987aa8e58502708e29696a535e4d841a0dde9`. Read [window contracts](docs/m3/FRAME_WINDOW.md)
+  and [validation](docs/m3/frame-window-validation.json). All thirteen implementation
+  workflows passed; both Linux GL configurations passed 35 CTest checks and full
+  signature-enabled Windows x64 compiled at matching-tree checkout
+  `ccdb724540ca225850355886b7c69b19ff564767`. Three archive digests and all 51 packaged
+  binary hashes/types verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11
+  release/strict ASan/UBSan/leak packages passed eighteen authored/original-data
+  window/hierarchy and prior-resource executions, with three cycles each, empty
+  stderr/zero workers; four resource fixtures also passed three cycles per mode.
+  Actual programmatic SDL size events refresh Gx/coordinates, invalidate Gxu/fonts/
+  Frame regions, deliver the original size callback and finish pending layout before
+  batching. Preserve owner/current-context and traversal guards, unhandled-event
+  caller ownership, logical/drawable separation and deferred deletion. Initialize
+  original coordinate math before fonts/layout as CGlueMgr::Resume does; literal
+  defaults differ from recomputed 4:3 by one float ULP. The initial capped-font and
+  later scale-restoration fixture failures remain recorded with assertions and
+  detectors unchanged. Captures match release/sanitizer; the corrected startup
+  baseline moves historical hierarchy text up one pixel, separate from PR #49's
+  original capture identity. No new physical-input, independent high-DPI, Windows
+  runtime, macOS graphics or server acceptance. Pooled Lua/XML/language/template
+  factories, input/focus/IME/texture/animation/model consumers, complete signed
+  ordered GlueXML and full post-creation digest gate, original login and transport/
+  gameplay remain open. M3 is incomplete; preserve signatures, server revision
+  discrepancies and interactive user sign-in.
