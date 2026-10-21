@@ -165,10 +165,12 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     Reject([&]{owner.CheckCanClose();});
     Handle red(reinterpret_cast<HOBJECT>(TextureCreateSolid(CImVector(0,0,255,255))));
     auto* texture=reinterpret_cast<CTexture*>(red.value);Check(texture,"Solid texture creation failed");
+    const auto sharedShaderRefs=shader.value->m_refCount;
     Quad(batch,texture,shader.value);red.Close();
+    Check(shader.value->m_refCount==sharedShaderRefs+1,"Frame mesh failed to add shader reference");
     Check(batch.m_texturelist[0].m_texture->m_refcount==1,"Frame mesh failed to retain texture");
     auto* retainedShader=shader.value;device.ShaderDestroy(shader.value);
-    Check(retainedShader->m_refCount==1,"Frame mesh failed to retain pixel shader");
+    Check(retainedShader->m_refCount==sharedShaderRefs,"Frame mesh failed to retain pixel shader");
     bool foreign=false;std::thread thread([&]{try{batch.Clear();}catch(const std::logic_error&){foreign=true;}});thread.join();Check(foreign,"Foreign batch mutation accepted");
     CallbackProbe probe{batch};batch.QueueCallback(&CallbackProbe::Run,&probe);batch.Finish();
     auto depth=device.m_stackOffsets.Count();
