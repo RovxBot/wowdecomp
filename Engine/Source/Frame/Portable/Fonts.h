@@ -21,8 +21,6 @@ private:
     Gxu::Native::FontOwnerLease gxu;
 };
 void RequireFontFactories();
-// Batcher brackets borrowed Frame consumers during callback execution.
-void SetFontRenderActive(bool);
 void FontCreated(CSimpleFont*);
 void FontDestroyed(CSimpleFont*);
 void FontableCreated(CSimpleFontable*);

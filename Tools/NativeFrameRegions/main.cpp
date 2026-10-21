@@ -135,6 +135,7 @@ struct CallbackProbe {
         Reject([&]{r.SetText("callback",0);});
         Reject([&]{r.SetFontObject(nullptr);});
         Reject([&]{r.SetVertexAlpha(1);});
+        Reject([&]{r.SetPoint(FRAMEPOINT_CENTER,&r,FRAMEPOINT_CENTER,0,0,1);});
     }
 };
 static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts& factories,const std::string& snapshot) {

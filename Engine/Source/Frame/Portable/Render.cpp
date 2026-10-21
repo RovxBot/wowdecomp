@@ -92,8 +92,8 @@ void CRenderBatch::NativeCheck(bool mutation) const {
 }
 void CRenderBatch::NativeDestroy() { NativeCheck(); delete m_native; m_native = nullptr; --batches; }
 void CRenderBatch::NativeRelease() { m_native->meshes.clear(); m_native->texts.clear(); }
-void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; Frame::Native::SetFontRenderActive(true); }
-void CRenderBatch::NativeEndDraw() { Frame::Native::SetFontRenderActive(false); drawing = false; }
+void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; Frame::Native::SetLayoutRenderActive(true); }
+void CRenderBatch::NativeEndDraw() { Frame::Native::SetLayoutRenderActive(false); drawing = false; }
 void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCount,
     const C3Vector* positions, const C2Vector* coords, int32_t colorCount, const CImVector* colors,
     int32_t idxCount, const uint16_t* indices, CGxShader* shader) {
