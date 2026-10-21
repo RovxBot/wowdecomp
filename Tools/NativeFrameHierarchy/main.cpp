@@ -37,10 +37,11 @@ using Bytes = std::vector<uint8_t>;
 using namespace Gx::Native;
 using namespace Services::Native;
 static void Check(bool value, const char* why) { if (!value) throw std::runtime_error(why); }
-template<class F> static void Reject(F f) {
+template<class F> static void RejectAt(F f,int line) {
     bool rejected=false; try { f(); } catch (const std::logic_error&) { rejected=true; }
-    Check(rejected,"Invalid Frame font operation accepted");
+    if (!rejected) throw std::runtime_error("Invalid Frame operation accepted at fixture line " + std::to_string(line));
 }
+#define Reject(...) RejectAt(__VA_ARGS__, __LINE__)
 static Bytes Program(const char* program, uint32_t count=1) {
     Bytes bytes;
     auto word=[&](uint32_t value) { for (int i=0;i<4;++i) bytes.push_back(uint8_t(value>>(8*i))); };
@@ -189,6 +190,7 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
     Reject([&]{new CSimpleFrame(deep.back());});
     Reject([&]{deep.front()->SetParent(deep.back());});
     delete deep.front();
+    child->SetFrameLevel(1,1);Equal(first,Draw(device,root));
     const int oldLevel=parent->m_level;
     Reject([&]{parent->SetFrameLevel(128,1);});
     Check(parent->m_level==oldLevel && child->m_parent==parent,"Rejected level change mutated hierarchy");

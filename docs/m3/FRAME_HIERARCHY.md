@@ -14,7 +14,7 @@ scrolling and backdrops remain visibly unavailable. Original script metatables,
 FrameXML factories and full signed ordered GlueXML/login remain subsequent work.
 
 Owner/thread guards protect native mutations. Parent edges are validated before
-unlinking, with a 64-node bound. Draw-layer/strata/level bounds and finite effective
+unlinking, with a 64-node bound and 128-level allocation limit. Draw-layer/strata/level bounds and finite effective
 scales reject invalid input. Windows bodies remain selected unchanged. Native
 initialization sets `m_isShown` before original constructor parenting reads it.
 The original root delegates renderer/font initialization and shutdown to their
