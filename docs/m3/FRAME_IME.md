@@ -58,3 +58,40 @@ occlusion/drag, edit boxes and actual login rendering remain open, followed by
 transport/authentication and observed GrimGuzzler gameplay. M3 stays incomplete.
 No new physical-input, Windows runtime, macOS graphics or server acceptance is
 claimed. Preserve signatures, server revision discrepancies and interactive sign-in.
+
+## Qualification
+
+[PR #55](https://github.com/RovxBot/wowdecomp/pull/55) is qualified at
+`77177a99bcd2ef524c42bfb9bdeba1081cd07f61`, merged as
+`da722de8093aba62baa59805c11e35c7e6b857b9`. The [durable record](frame-ime-validation.json)
+retains all thirteen passing PR workflows, 37 CTest checks per Linux release/strict
+ASan/UBSan/leak configuration and signature-enabled full Windows x64 compilation.
+Hosted checkout `5629a4093141fe46d9e140c4793620bac0066828` has the same tree as
+implementation and merge. Three archive digests, all 51 packaged executable
+hashes/types and notices verified. The candidate-only focus cancellation fixture
+also passed in the SDL-only actual ARM64 macOS, Windows and three Linux matrix
+configurations; that does not establish Frame graphics on those other platforms.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+each passed three authored and three original-data IME cycles, plus authored/
+original keyboard, window and hierarchy checks and region/batch/GlueFonts/image/
+Gxu regressions. All 26 executions exited zero with empty stderr and zero workers.
+All four target/transform/buffer/texture fixtures passed three cycles per mode.
+Each IME cycle checked eight ordered retained composition/candidate/commit snapshots,
+plus cancellation, focus loss, malformed input, dispatch guards and recovery.
+These are authored SDL injections, separate from physical IME/language acceptance.
+
+Original-key signaturefile authentication observed 28,948 records; selective
+registered-member MD5 checks stayed enabled. Original-data hierarchy/input cycles
+authenticated GlueXML before and after constructing eighteen GlueFonts definitions.
+The hierarchy captures match the prior qualified baseline and each other, SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`.
+The release IME capture was inspected: authored white text with original Friz
+Quadrata/UI shaders, 131 ink pixels. Loading-bar captures also match prior evidence.
+This is authored composition, not edit-box/candidate UI or original login rendering.
+
+Local source/launcher checks: 56 passed, one CMake availability skip; 269 original
+Windows function bodies and extracted screen projection match; whitespace passed.
+No client/dependency compiled locally. No failed hosted/runtime attempt or detector
+suppression was needed for this implementation. M3 remains open with the factory,
+mouse, actual edit-box/GlueXML/login and transport/gameplay gates above.

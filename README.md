@@ -145,6 +145,13 @@ evidence; physical-input and IME/language acceptance remain separate. Pooled
 Lua/XML factories, mouse/IME and other Frame consumers, full signed GlueXML/login
 and transport/gameplay remain open; M3 is incomplete.
 
+The [SDL IME adapter](docs/m3/FRAME_IME.md) now delivers retained composition,
+candidate and result snapshots through original Frame priority queues, including
+candidate-only focus cancellation. All thirteen workflows, 37 checks per Linux
+GL configuration and clean-data release/strict sanitizer GPU regressions passed.
+These are injected input checks; physical IME, actual edit boxes, pooled Lua/XML
+factories, mouse/occlusion, full signed GlueXML/login and gameplay remain open.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
