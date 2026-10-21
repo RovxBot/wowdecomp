@@ -75,6 +75,17 @@ class NativeGlGraphTests(unittest.TestCase):
             modified['compileGroups'][0]['defines'].append({'define': definition})
             self.assertIn(message, audit([modified], 'gl', 'LINUX', 'X86_64'))
 
+    def test_frame_renderer_selects_bounded_batch_sources(self):
+        target = self.target('WowNativeFrameRender', 'Engine/Source/Frame/CRenderBatch.cpp')
+        target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'}
+                              for name in ['CSimpleBatchRender', 'Portable/Render']]
+        message = 'WowNativeFrameRender: unexpected native Frame renderer source/ABI'
+        self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
+        for name in ['CSimpleRender', 'CSimpleFrame', 'CSimpleTop']:
+            changed = copy.deepcopy(target)
+            changed['sources'].append({'path': 'Engine/Source/Frame/' + name + '.cpp'})
+            self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))
+
     def test_gxu_rejects_full_legacy_file_and_texture_services(self):
         message = 'WowNativeGxu: unexpected native Gxu provider/ABI'
         target = self.target('WowNativeGxu', 'Engine/Source/Gxu/Portable/LegacyFonts.cpp')
@@ -177,6 +188,18 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertEqual(json.loads(self.output.read_text())['probe'], 'NativeImageCheck')
         binary.write_text('tampered')
         result = self.run_wrapper('--images')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_frame_render_probe_requires_its_own_binary_hash(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('print("frame-render-passed")\n', 'NativeFrameRenderCheck')
+        result = self.run_wrapper('--frame-render')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.output.read_text())['probe'], 'NativeFrameRenderCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--frame-render')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())

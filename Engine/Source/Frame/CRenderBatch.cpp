@@ -1,6 +1,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#endif
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
@@ -20,7 +23,12 @@ static int32_t SortByTexture(const void* elem1, const void* elem2) {
     const CSimpleBatchedMesh* mesh2 = static_cast<const CSimpleBatchedMesh*>(elem2);
 
     if (mesh1->m_textureID != mesh2->m_textureID) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        auto a = reinterpret_cast<uintptr_t>(mesh1->m_textureID), b = reinterpret_cast<uintptr_t>(mesh2->m_textureID);
+        return (a > b) - (a < b);
+#else
         return static_cast<int32_t>(reinterpret_cast<uintptr_t>(mesh1->m_textureID) - reinterpret_cast<uintptr_t>(mesh2->m_textureID));
+#endif
     }
 
     int32_t alphaMode1 = (mesh1->m_color && mesh1->m_alphaMode < GxBlend_Alpha) ? GxBlend_Alpha : mesh1->m_alphaMode;
@@ -30,12 +38,20 @@ static int32_t SortByTexture(const void* elem1, const void* elem2) {
         return alphaMode1 - alphaMode2;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    auto a = reinterpret_cast<uintptr_t>(mesh1->m_shader), b = reinterpret_cast<uintptr_t>(mesh2->m_shader);
+    return (a > b) - (a < b);
+#else
     return static_cast<int32_t>(reinterpret_cast<uintptr_t>(mesh1->m_shader) - reinterpret_cast<uintptr_t>(mesh2->m_shader));
+#endif
 }
 
 // VERIFY: 2cc3a1bc auto
 // OFFSET: 0x00484450
 void CRenderBatch::Finish() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeCheck();
+#endif
     if (this->m_texturelist.Count() > 1) {
         qsort(this->m_texturelist.Ptr(), this->m_texturelist.Count(), sizeof(CSimpleBatchedMesh), &SortByTexture);
     }
@@ -44,6 +60,9 @@ void CRenderBatch::Finish() {
 // VERIFY: f0079ae6 auto
 // OFFSET: 0x004846F0
 void CRenderBatch::Queue(CTexture* texture, EGxBlend alphaMode, int32_t posCount, const C3Vector* position, const C2Vector* texCoord, int32_t colorCount, const CImVector* color, int32_t idxCount, const uint16_t* indices, CGxShader* shader) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeQueue(texture, alphaMode, posCount, position, texCoord, colorCount, color, idxCount, indices, shader);
+#else
     CGxTex* gxTex = TextureGetGxTex(texture, 1, nullptr);
 
     if (!gxTex) {
@@ -72,6 +91,7 @@ void CRenderBatch::Queue(CTexture* texture, EGxBlend alphaMode, int32_t posCount
     }
 
     this->m_count++;
+#endif
 }
 
 // VERIFY: 90c75e14 auto
@@ -79,11 +99,19 @@ void CRenderBatch::Queue(CTexture* texture, EGxBlend alphaMode, int32_t posCount
 CRenderBatch::CRenderBatch() {
     this->m_count = 0;
     this->m_stringbatch = nullptr;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeConstruct();
+#endif
 }
 
 // VERIFY: 6542125c manual
 // OFFSET: 0x004858E0
 void CRenderBatch::QueueCallback(void (*callback)(void*), void* param) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeCheck();
+    if (!callback) throw std::invalid_argument("Null Frame render callback");
+    if (this->m_count >= 32768) throw std::length_error("Native Frame batch limit");
+#endif
     RENDERCALLBACKNODE* node = this->m_callbacks.NewNode(2, 0, 0);
     node->m_callback = callback;
     node->m_param = param;
@@ -93,6 +121,9 @@ void CRenderBatch::QueueCallback(void (*callback)(void*), void* param) {
 // VERIFY: 0c4ec2c0 auto
 // OFFSET: 0x00485F00
 void CRenderBatch::Clear() {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeCheck();
+#endif
     this->m_texturelist.SetCount(0);
 
     if (this->m_stringbatch) {
@@ -102,17 +133,27 @@ void CRenderBatch::Clear() {
 
     this->m_callbacks.Clear();
     this->m_count = 0;
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeRelease();
+#endif
 }
 
 // VERIFY: 731464f9 manual
 // OFFSET: [0x00486FC0, 0x00487160]
 CRenderBatch::~CRenderBatch() {
     this->Clear();
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeDestroy();
+#endif
 }
 
 // VERIFY: d1a22f87 auto
 // OFFSET: 0x004843A0
 void CRenderBatch::QueueFontString(CSimpleFontString* string) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeCheck();
+    throw std::logic_error("Native Frame font string objects are not installed");
+#else
     CRect rect;
 
     if (!string->GetRect(&rect)) {
@@ -139,11 +180,16 @@ void CRenderBatch::QueueFontString(CSimpleFontString* string) {
 
     GxuFontAddToBatch(this->m_stringbatch, gxString);
     this->m_count++;
+#endif
 }
 
 // VERIFY: 597baa7e manual
 // OFFSET: 0x004847A0
 void CRenderBatch::QueueTexture(CSimpleTexture* texture) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeCheck();
+    throw std::logic_error("Native Frame texture objects are not installed");
+#else
     CGxTex* gxTex = TextureGetGxTex(texture->m_texture, (texture->m_textureFlags & 1) ? 0 : 2, nullptr);
 
     if (!gxTex) {
@@ -223,4 +269,5 @@ void CRenderBatch::QueueTexture(CSimpleTexture* texture) {
     const CImVector* colors = colorCount ? texture->m_colors : nullptr;
 
     this->Queue(texture->m_texture, texture->m_alphaMode, 4, texture->m_positions, texture->m_texCoords, colorCount > 1 ? 4 : 0, colors, 6, s_quadIndices, texture->m_shader);
+#endif
 }

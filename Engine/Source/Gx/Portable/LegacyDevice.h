@@ -37,6 +37,8 @@ class LegacyDevice final : public CGxDevice {
     void DeviceSetRenderTarget(EGxBuffer, CGxTex *, uint32_t) override;
     void ShaderCreate(CGxShader **, EGxShTarget, const char *, const char *, uint32_t) override;
     void ShaderDestroy(CGxShader *&) override;
+    void RetainShader(CGxShader *);
+    void AbortBufferWrite(CGxBuf *);
     void IShaderCreate(CGxShader *) override;
     void IShaderReload(CGxShader *, const char *, const char *) override;
     void DeviceReadPixels(CiRect &, TSGrowableArray<CImVector> &) override;

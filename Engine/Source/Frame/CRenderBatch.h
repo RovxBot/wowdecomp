@@ -6,6 +6,10 @@
 #include "Engine/Source/Frame/CSimpleBatchedMesh.h"
 #include "Engine/Source/Gx/Types.h"
 #include "Engine/Source/Storm/H/stpl.h"
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include "Engine/Source/Services/Types.h"
+namespace Frame { namespace Native { class RenderScope; }}
+#endif
 
 class C2Vector;
 class C3Vector;
@@ -38,6 +42,23 @@ class CRenderBatch {
     void QueueCallback(void (*callback)(void*), void* param);
     void QueueFontString(CSimpleFontString* string);
     void QueueTexture(CSimpleTexture* texture);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    // Retain both handles: the original Services text block borrows its font.
+    void NativeQueueText(HTEXTFONT font, HTEXTBLOCK text);
+    void NativeCheck(bool mutation = true) const;
+    CRenderBatch(const CRenderBatch&) = delete;
+    CRenderBatch& operator=(const CRenderBatch&) = delete;
+private:
+    friend class Frame::Native::RenderScope;
+    void NativeBeginDraw();
+    void NativeEndDraw();
+    struct NativeState;
+    NativeState* m_native = nullptr;
+    void NativeConstruct();
+    void NativeDestroy();
+    void NativeRelease();
+    void NativeQueue(CTexture*, EGxBlend, int32_t, const C3Vector*, const C2Vector*, int32_t, const CImVector*, int32_t, const uint16_t*, CGxShader*);
+#endif
 };
 
 #endif
