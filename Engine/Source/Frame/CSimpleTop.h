@@ -80,7 +80,13 @@ class CSimpleTop : public CLayoutFrame {
     /* 0074 */ HLAYER m_screenLayer;
     /* 0078 */ CSimpleFrame* m_mouseFocus;
     /* 007C */ CSimpleFrame* m_mouseCapture;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleFrame* m_keydownCapture[KEY_LAST];
+    bool m_nativeKeysDown[KEY_LAST]{};
+    uint32_t m_nativeMetaKeys = 0;
+#else
     /* 0080 */ CSimpleFrame* m_keydownCapture [787];
+#endif
     /* 0CCC */ TSExplicitList<CSimpleFrame, offsetof(CSimpleFrame, m_framesLink)> m_frames;
     /* 0CD8 */ TSExplicitList<CSimpleFrame, offsetof(CSimpleFrame, m_destroyedLink)> m_destroyed;
     /* 0CE4 */ CFrameStrata* m_strata [9];
@@ -119,7 +125,11 @@ class CSimpleTop : public CLayoutFrame {
     void OnLayerUpdate(float elapsedSec);
     int32_t RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion);
     void RegisterForCleanup(CSimpleFrame* frame);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void RegisterForEvent(CSimpleFrame* frame, uint32_t event, int32_t a4, int32_t priority);
+#else
     void RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4, int32_t priority);
+#endif
     void RegisterFrame(CSimpleFrame* frame);
     void SetCursor(MipBits* image);
     void SetMouseFocus(CSimpleFrame* frame);
@@ -128,7 +138,11 @@ class CSimpleTop : public CLayoutFrame {
     int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, FRAMEPOINT point);
     int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, int32_t resize);
     void StopMoveOrResizeFrame();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void UnregisterForEvent(CSimpleFrame* frame, uint32_t event, int32_t a4);
+#else
     void UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4);
+#endif
     void UnregisterFrame(CSimpleFrame* frame);
     void ValidateDeletedFrame(CSimpleFrame* frame);
 };

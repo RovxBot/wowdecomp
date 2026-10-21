@@ -51,6 +51,10 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeFrameRegionsCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_test(NAME native-frame-sdl-keyboard COMMAND NativeFrameHierarchyCheck
+        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf --keyboard-events)
+    set_tests_properties(native-frame-sdl-keyboard PROPERTIES TIMEOUT 120
+        ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_test(NAME native-frame-sdl-size COMMAND NativeFrameHierarchyCheck
         --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf --window-events)
     set_tests_properties(native-frame-sdl-size PROPERTIES TIMEOUT 120
