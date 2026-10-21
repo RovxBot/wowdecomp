@@ -319,12 +319,13 @@ void SourcesAndAtlas(LegacyDevice& device, FileQueue& queue) {
         return TextureCreate(name, flags, &status, options);
     };
     {
-        Handle package(create("Interface/Disk", CGxTexFlags(GxTex_Nearest), 1));
         Handle disk(create("Interface/dIsK"));
         Handle duplicate(create("interface/DISK.BLP"));
-        Require(package.value != disk.value && duplicate.value == disk.value, "Disk policy aliased cache identity");
+        Require(duplicate.value == disk.value, "Disk policy split cache identity");
         Pixel(Draw(device, disk.value), 16,16,177,91,23,255);
         Require(packageReads == 0, "Loose image unexpectedly read packages");
+        Handle package(create("Interface/Disk", CGxTexFlags(GxTex_Nearest), 1));
+        Require(package.value != disk.value, "Disk policy aliased package-only cache identity");
         Pixel(Draw(device, package.value), 8,24,255,0,0,255);
         Require(packageReads == 1 && TextureIsSame(disk.value, "interface/Disk.blp"), "Image source/name policy failed");
         Handle absent(create("Interface/Absent"));
