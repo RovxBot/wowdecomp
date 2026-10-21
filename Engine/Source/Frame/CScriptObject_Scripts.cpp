@@ -10,6 +10,9 @@
 // VERIFY: 2f726e9e auto
 // OFFSET: 0x004A81B0
 CScriptObject* FrameScript_GetObjectThis(lua_State* L, int32_t type) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameScript::Native::RequireOwner();
+#endif
     if (lua_type(L, 1) != LUA_TTABLE) {
         luaL_error(L, "Attempt to find 'this' in non-table object (used '.' instead of ':' ?)");
         return nullptr;

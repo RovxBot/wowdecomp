@@ -183,6 +183,15 @@ assert(not BaseFont:SetFont('bad.ttf',12))
     lua_newtable(L);lua_pushlightuserdata(L,reinterpret_cast<void*>(uintptr_t(1)));lua_rawseti(L,-2,0);lua_setglobal(L,"Forged");
     Lua("assert(not pcall(BaseFont.GetName,Forged))");
     ScriptObjects(owner);
+    // New edges and CopyFontObject validate descendants before list mutation.
+    CSimpleFont* previous=nullptr;
+    for (int i=0;i<64;++i) {
+        auto name="Deep"+std::to_string(i);
+        auto* node=CSimpleFont::GetFont(name.c_str(),1);node->SetFontObject(previous);previous=node;
+    }
+    auto* overflow=CSimpleFont::GetFont("DeepOverflow",1);
+    Reject([&]{overflow->SetFontObject(previous);});
+    Lua("assert(not pcall(DeepOverflow.SetFontObject,DeepOverflow,Deep63));assert(not pcall(BaseFont.SetFontObject,BaseFont,''))");
     // Destroy registered parents while children and external Lua tables remain.
     Lua("OldFont=BaseFont");
     CSimpleFont::Destroy();
