@@ -17,8 +17,10 @@ namespace Services { namespace Native {
 class TextureService final {
 public:
     using Reader = std::function<ReadResult(const std::string&, const Cancellation&)>;
-    TextureService(FileQueue&, std::shared_ptr<const Blizzard::Mopaq::Native::Packages>);
-    TextureService(FileQueue&, Reader);
+    // Optional read-only loose-image root. Option 2 checks it before packages;
+    // without a mounted root, that eligibility still resolves through packages.
+    TextureService(FileQueue&, std::shared_ptr<const Blizzard::Mopaq::Native::Packages>, std::string diskRoot = {});
+    TextureService(FileQueue&, Reader, std::string diskRoot = {});
     ~TextureService();
     TextureService(const TextureService&) = delete;
     TextureService& operator=(const TextureService&) = delete;
@@ -26,6 +28,8 @@ public:
     void RequireIdle() const;
     size_t Poll();
     bool Cancel(CTexture*);
+    void EnableAtlas(bool);
+    void SetFilter(uint32_t);
     struct State;
 private:
     std::unique_ptr<State> state;

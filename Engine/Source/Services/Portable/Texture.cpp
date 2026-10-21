@@ -6,9 +6,11 @@
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
+#include "Engine/Source/Tempest/C2Vector.h"
 #include <algorithm>
 #include <atomic>
 #include <map>
+#include <filesystem>
 #include <thread>
 #include <tuple>
 
@@ -20,8 +22,10 @@ struct PixelBudget { std::atomic<size_t> bytes{0}; };
 struct Key {
     std::string name;
     uint32_t filter, u, v;
+    bool disk, atlas, defaultFilter;
     bool operator<(const Key& other) const {
-        return std::tie(name, filter, u, v) < std::tie(other.name, other.filter, other.u, other.v);
+        return std::tie(name, filter, u, v, disk, atlas, defaultFilter) <
+            std::tie(other.name, other.filter, other.u, other.v, other.disk, other.atlas, other.defaultFilter);
     }
 };
 struct Image {
@@ -32,6 +36,8 @@ struct Image {
     std::shared_ptr<PixelBudget> budget;
     size_t heldBytes = 0;
     bool done = false;
+    bool atlasSafe = false;
+    bool smallDefault = false;
     ~Image() { ClearPixels(); }
     void ClearPixels() {
         levels.clear();
@@ -61,6 +67,69 @@ struct Image {
         }
     }
 };
+// Original atlas coordinates and slot accounting, with retained whole-sheet
+// callback pixels. This avoids exporting bit15's legacy partial-source ABI.
+struct Atlas {
+    Image pixels;
+    CTextureAtlas legacy;
+    Atlas(uint32_t side, CGxTexFlags flags, std::shared_ptr<PixelBudget> budget) {
+        legacy.m_width = legacy.m_height = side;
+        legacy.m_capacity = 64;
+        legacy.m_format = legacy.m_dataFormat = GxTex_Abgr8888;
+        legacy.m_texFlags = flags;
+        pixels.budget = std::move(budget);
+        pixels.Retain({{side * 8, side * 8, std::vector<uint8_t>(side * side * 64 * 4)}});
+        if (!GxTexCreate(GxTex_2d, side * 8, side * 8, 0, GxTex_Abgr8888, GxTex_Abgr8888,
+            flags, &pixels, Image::Source, "Native image atlas", legacy.m_gxTex))
+            throw std::runtime_error("Atlas Gx allocation failed");
+        GxTexUpdate(legacy.m_gxTex, 0, 0, side * 8, side * 8, 1);
+    }
+    ~Atlas() {
+        // GPU callbacks/bindings must retire before retained pixels.
+        if (legacy.m_gxTex) { GxTexDestroy(legacy.m_gxTex); legacy.m_gxTex = nullptr; }
+    }
+    void Copy(uint32_t slot, const uint8_t* source) {
+        const auto side = legacy.m_width, stride = side * 8 * 4;
+        const auto x = (slot & 7) * side, y = (slot >> 3) * side;
+        auto& bytes = pixels.levels.front().rgba;
+        for (uint32_t row = 0; row < side; ++row) {
+            auto* dest = bytes.data() + (y + row) * stride + x * 4;
+            if (source) std::copy_n(source + row * side * 4, side * 4, dest);
+            else std::fill_n(dest, side * 4, 0);
+        }
+        GxTexUpdate(legacy.m_gxTex, x, y, x + side, y + side, 0);
+    }
+};
+
+ReadResult ReadImage(const TextureService::Reader& reader, const std::string& root,
+                     const Key& key, const Cancellation& cancel) {
+    if (cancel.Requested()) { ReadResult r; r.status = ReadStatus::Cancelled; return r; }
+    if (key.disk && !root.empty()) {
+        namespace File = Blizzard::File;
+        std::string path;
+        if (File::Native::ResolveDataPath({root, {}, {}}, key.name.c_str(), path)) {
+            File::StreamRecord* stream = nullptr;
+            if (!File::Native::Open(path.c_str(), 1 | 4, File::Native::Disposition::OpenExisting, stream))
+                throw std::runtime_error("Loose image open failed");
+            struct Close { File::StreamRecord* file; ~Close() { File::Close(file); } } close{stream};
+            File::FileInfo info{};
+            if (!File::GetFileInfo(stream, &info) || !info.m_regularFile || info.m_size < 0 ||
+                uint64_t(info.m_size) > MaxSource) throw std::out_of_range("Loose image source extent/type");
+            ReadResult result;
+            result.file.archive = path; result.file.member = key.name;
+            result.file.bytes.resize(size_t(info.m_size));
+            int32_t count = int32_t(info.m_size);
+            if (!File::Read(stream, result.file.bytes.data(), &count) || count != info.m_size)
+                throw std::runtime_error("Loose image short/failed read");
+            return result;
+        }
+        const auto error = SErrGetLastError();
+        // Only absence permits package lookup. Ambiguity, root escape and I/O
+        // failures must never select a different source behind the caller's back.
+        if (error != 2 && error != 3) throw std::runtime_error("Loose image path lookup failed");
+    }
+    return reader(key.name, cancel);
+}
 TextureService& Owner() {
     auto* service = active.load();
     if (!service) throw std::logic_error("Native file image service is not installed");
@@ -86,25 +155,78 @@ struct TextureService::State {
     std::map<CTexture*, std::shared_ptr<Image>> handles;
     std::vector<Ticket> requests;
     std::shared_ptr<PixelBudget> budget = std::make_shared<PixelBudget>();
+    std::string diskRoot;
+    std::vector<std::unique_ptr<Atlas>> atlases;
+    bool atlasEnabled = false;
+    uint32_t filter = GxTex_LinearMipNearest;
     bool closing = false;
-    State(FileQueue& q, Reader r) : queue(q), reader(std::move(r)), device(g_theGxDevicePtr) {}
+    State(FileQueue& q, Reader r, std::string root) : queue(q), reader(std::move(r)), device(g_theGxDevicePtr), diskRoot(std::move(root)) {}
+    void Attach(Image& image) {
+        auto* texture = image.texture;
+        auto flags = texture->m_gxTexFlags;
+        const auto side = texture->m_gxWidth;
+        // Atlas eligibility is advisory. Preserve standalone repeat/mip behavior
+        // when this bounded single-level, clamped sheet cannot represent it.
+        if (!image.key.atlas || !image.atlasSafe || side != texture->m_gxHeight || side > 64 ||
+            flags.m_filter > GxTex_Linear || flags.m_wrapU || flags.m_wrapV) return;
+        Atlas* best = nullptr;
+        for (auto& atlas : atlases)
+            if (atlas->legacy.m_width == side && atlas->legacy.m_texFlags == flags &&
+                atlas->legacy.m_used < 64 && (!best || atlas->legacy.m_used > best->legacy.m_used)) best = atlas.get();
+        if (!best) {
+            auto atlas = std::make_unique<Atlas>(side, flags, budget);
+            best = atlas.get(); atlases.push_back(std::move(atlas));
+        }
+        auto& a = best->legacy;
+        uint32_t slot = a.m_freeSlot;
+        if (slot == uint32_t(-1)) {
+            slot = 0;
+            while (slot < 64 && a.m_textures[slot]) ++slot;
+        }
+        if (slot >= 64) throw std::logic_error("Atlas slot accounting failed");
+        best->Copy(slot, image.levels.front().rgba.data());
+        a.m_freeSlot = uint32_t(-1);
+        a.m_textures[slot] = texture; ++a.m_used; ++a.m_count;
+        texture->m_atlas = &a; texture->m_atlasBlockIndex = int32_t(slot);
+        texture->m_flags |= 4;
+        image.ClearPixels(); // The sheet now owns the retained copy.
+    }
+    void Detach(CTexture* texture) {
+        if (!texture->m_atlas) return;
+        auto found = std::find_if(atlases.begin(), atlases.end(), [&](const std::unique_ptr<Atlas>& a) {
+            return &a->legacy == texture->m_atlas;
+        });
+        if (found == atlases.end()) throw std::logic_error("Foreign native image atlas");
+        auto& a = (*found)->legacy;
+        const auto slot = texture->m_atlasBlockIndex;
+        if (slot < 0 || slot >= 64 || a.m_textures[slot] != texture) throw std::logic_error("Foreign atlas slot");
+        if (a.m_used > 1) (*found)->Copy(uint32_t(slot), nullptr);
+        a.m_textures[slot] = nullptr; --a.m_used; --a.m_count; a.m_freeSlot = uint32_t(slot);
+        texture->m_atlas = nullptr; texture->m_atlasBlockIndex = -1;
+        if (!a.m_used) atlases.erase(found);
+    }
     void Prune() {
         requests.erase(std::remove_if(requests.begin(), requests.end(), FileQueue::Complete), requests.end());
     }
 };
-TextureService::TextureService(FileQueue& queue, std::shared_ptr<const Blizzard::Mopaq::Native::Packages> packages)
+TextureService::TextureService(FileQueue& queue, std::shared_ptr<const Blizzard::Mopaq::Native::Packages> packages, std::string root)
     : TextureService(queue, [packages](const std::string& name, const Cancellation& cancel) {
         if (!packages) throw std::invalid_argument("Missing authenticated image packages");
         ReadResult result;
         if (cancel.Requested()) result.status = ReadStatus::Cancelled;
         else result.file = packages->Read(name, MaxSource);
         return result;
-    }) {
+    }, std::move(root)) {
     if (!packages) { active = nullptr; throw std::invalid_argument("Missing authenticated image packages"); }
 }
-TextureService::TextureService(FileQueue& queue, Reader reader) : state(new State(queue, std::move(reader))) {
+TextureService::TextureService(FileQueue& queue, Reader reader, std::string root) : state(new State(queue, std::move(reader), std::move(root))) {
     if (!state->device || !state->reader) throw std::invalid_argument("Images require an installed Gx device and reader");
     state->device->NativeCheckOwner();
+    if (!state->diskRoot.empty()) {
+        auto path = std::filesystem::canonical(std::filesystem::u8path(state->diskRoot));
+        if (!std::filesystem::is_directory(path)) throw std::invalid_argument("Loose image root must be a directory");
+        state->diskRoot = path.u8string();
+    }
     TextureService* empty = nullptr;
     if (!active.compare_exchange_strong(empty, this)) throw std::logic_error("Only one image service may be installed");
 }
@@ -135,17 +257,24 @@ bool TextureService::Cancel(CTexture* texture) {
     auto found = state->handles.find(texture);
     return found != state->handles.end() && state->queue.Cancel(found->second->ticket);
 }
+void TextureService::EnableAtlas(bool enable) { Check(); state->atlasEnabled = enable; }
+void TextureService::SetFilter(uint32_t filter) {
+    Check();
+    if (filter > GxTex_LinearMipLinear) throw std::invalid_argument("Unavailable default image filter");
+    state->filter = filter;
+}
 CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* status, uint32_t options) {
     auto& service = Owner();
     auto& s = *service.state;
     if (s.closing) throw std::logic_error("Native image service is closing");
-    // Explicit sampler (bit 0), exact BLP suffix (bit 3), UI priority (bit 4).
-    // Disk lookup, atlas eligibility, streaming and other formats stay unavailable.
-    if (!status || !(options & 1) || (options & ~0x19u) || flags.m_filter > GxTex_LinearMipLinear ||
+    // Original explicit/default sampler, disk, atlas, exact suffix and UI priority.
+    if (!(options & 1)) flags.m_filter = s.filter;
+    if (!status || (options & ~0x1Fu) || flags.m_filter > GxTex_LinearMipLinear ||
         flags.m_forceMipTracking || flags.m_generateMipMaps || flags.m_renderTarget || flags.m_bit8 ||
         flags.m_maxAnisotropy != 1 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 || flags.m_bit31)
         throw std::invalid_argument("Unavailable native file texture options/sampler");
-    Key key{Filename(filename), flags.m_filter, flags.m_wrapU, flags.m_wrapV};
+    Key key{Filename(filename), flags.m_filter, flags.m_wrapU, flags.m_wrapV,
+            bool(options & 2), bool(options & 4) && s.atlasEnabled, !(options & 1)};
     auto cached = s.cache.find(key);
     if (cached != s.cache.end()) {
         if (options & 0x10) s.queue.Promote(cached->second->ticket, 129);
@@ -170,8 +299,9 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
         // untracked callback capturing the service or a partially built handle.
         s.requests.reserve(s.requests.size() + 1);
         auto reader = s.reader;
-        image->ticket = s.queue.Submit([reader, image](const Cancellation& cancel) {
-            auto result = reader(image->key.name, cancel);
+        auto root = s.diskRoot;
+        image->ticket = s.queue.Submit([reader, root, image](const Cancellation& cancel) {
+            auto result = ReadImage(reader, root, image->key, cancel);
             if (result.status != ReadStatus::Success || cancel.Requested()) return result;
             const auto& bytes = result.file.bytes;
             if (bytes.size() < 148 || bytes.size() > MaxSource) throw std::out_of_range("File image source extent");
@@ -181,7 +311,11 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             if (width < 8 || height < 8 || (width & (width - 1)) || (height & (height - 1)) ||
                 uint64_t(width) * height > MaxPixels) throw std::out_of_range("File image dimensions/pixel budget");
             auto levels = Blizzard::Assets::DecodeBlp(bytes);
-            if (image->key.filter >= GxTex_NearestMipNearest) {
+            image->atlasSafe = bytes[11] & 0x10;
+            // The original small single-level BLP rule supplies the default
+            // policy. Explicit mip requests retain their complete-chain contract.
+            image->smallDefault = image->key.defaultFilter && width < 256 && levels.size() == 1;
+            if (image->key.filter >= GxTex_NearestMipNearest && !image->smallDefault) {
                 size_t count = 1;
                 for (auto extent = std::max(width, height); extent > 1; extent >>= 1) ++count;
                 if (levels.size() != count) throw std::invalid_argument("Mipped file texture requires a complete authored chain");
@@ -190,7 +324,7 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             result.file.bytes.clear();
             result.file.bytes.shrink_to_fit();
             return result;
-        }, [image](const ReadResult& result) {
+        }, [image, &s](const ReadResult& result) {
             if (!image->texture) return; // Last handle closed; callback still delivered once.
             auto* texture = image->texture;
             image->done = true;
@@ -204,12 +338,16 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
                 texture->m_gxWidth = image->levels.front().width;
                 texture->m_gxHeight = image->levels.front().height;
                 texture->m_dataFormat = texture->m_gxTexFormat = GxTex_Abgr8888;
+                if (image->smallDefault)
+                    texture->m_gxTexFlags.m_filter = GxTex_Nearest;
                 bool opaque = true;
                 for (const auto& level : image->levels)
                     for (size_t i = 3; i < level.rgba.size(); i += 4)
                         if (level.rgba[i] != 255) { opaque = false; break; }
-                texture->m_flags = opaque ? 1 : 0;
+                texture->m_flags = (opaque ? 1 : 0) | (image->key.disk ? 2 : 0);
                 texture->m_alphaBits = opaque ? 0 : 8;
+                s.Attach(*image);
+                if (texture->m_atlas) return;
                 if (!GxTexCreate(GxTex_2d, texture->m_gxWidth, texture->m_gxHeight, 0,
                     GxTex_Abgr8888, GxTex_Abgr8888, texture->m_gxTexFlags, image.get(), Image::Source,
                     texture->m_filename, texture->m_gxTex)) throw std::runtime_error("Gx allocation failed");
@@ -235,6 +373,7 @@ void ReleaseFileTexture(CTexture* texture) {
     auto found = s.handles.find(texture);
     if (found == s.handles.end()) return; // Callback-only Gxu atlas.
     auto image = found->second;
+    s.Detach(texture);
     image->texture = nullptr;
     s.queue.Cancel(image->ticket);
     s.cache.erase(image->key);
@@ -258,9 +397,35 @@ CGxTex* GetFileTexture(CTexture* texture, int32_t wait, CStatus* status) {
             if (status && image->done && status != &texture->m_status) status->Add(texture->m_status);
         }
     }
-    return texture->m_gxTex;
+    return texture->m_atlas ? texture->m_atlas->m_gxTex : texture->m_gxTex;
 }
 }}
+
+// Native atlas metadata uses the original public shape, but owns whole-sheet
+// pixels through TextureService rather than legacy ResolveMipLevel/async objects.
+CTextureAtlas::CTextureAtlas() : m_count(0), m_dirty(0), m_width(0), m_height(0),
+    m_capacity(0), m_used(0), m_freeSlot(uint32_t(-1)), m_gxTex(nullptr),
+    m_format(GxTex_Unknown), m_dataFormat(GxTex_Unknown), m_slots(64), m_textures{}, m_updateSlot(-1) {}
+CTextureAtlas::~CTextureAtlas() { if (m_gxTex) GxTexDestroy(m_gxTex); }
+
+void TextureEnableAtlas(int32_t enable) { Services::Native::Owner().EnableAtlas(enable != 0); }
+void TextureSetFilterMode(EGxTexFilter filter) { Services::Native::Owner().SetFilter(uint32_t(filter)); }
+int32_t TextureOnAtlas(CTexture* texture) {
+    if (!texture) return 0;
+    texture->NativeCheckOwner(); return texture->m_atlas != nullptr;
+}
+int32_t TextureGetAtlasOffsetAndScale(CTexture* texture, C2Vector& offset, float& scale) {
+    if (!TextureOnAtlas(texture)) return 0;
+    scale = 0.125f;
+    offset.x = scale * (texture->m_atlasBlockIndex & 7);
+    offset.y = scale * ((texture->m_atlasBlockIndex >> 3) & 7);
+    return 1;
+}
+int32_t TextureIsSame(CTexture* texture, const char* name) {
+    if (!texture) return 0;
+    texture->NativeCheckOwner();
+    return Services::Native::Filename(name) == texture->m_filename;
+}
 
 CTexture* TextureCreate(const char* filename, CGxTexFlags flags, CStatus* status, uint32_t options) {
     return Services::Native::CreateFileTexture(filename, flags, status, options);

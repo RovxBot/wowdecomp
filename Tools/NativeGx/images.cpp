@@ -5,12 +5,14 @@
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Tempest/C2Vector.h"
 #include <atomic>
 #include <algorithm>
 #include <cfenv>
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <thread>
@@ -125,8 +127,11 @@ std::vector<CImVector> Draw(LegacyDevice& device, CTexture* texture, float repea
                         matrix.c0,matrix.c1,matrix.c2,matrix.c3,matrix.d0,matrix.d1,matrix.d2,matrix.d3};
     GxShaderConstantsSet(GxSh_Vertex, 0, constants, 4);
     struct Vertex { float x,y,z; uint8_t color[4]; float u,v; };
-    const Vertex quad[] = {{-1,-1,0,{255,255,255,255},0,0}, {1,-1,0,{255,255,255,255},repeat,0},
+    Vertex quad[] = {{-1,-1,0,{255,255,255,255},0,0}, {1,-1,0,{255,255,255,255},repeat,0},
                            {1,1,0,{255,255,255,255},repeat,repeat}, {-1,1,0,{255,255,255,255},0,repeat}};
+    C2Vector offset; float scale;
+    if (TextureGetAtlasOffsetAndScale(texture, offset, scale))
+        for (auto& vertex : quad) { vertex.u = offset.x + vertex.u * scale; vertex.v = offset.y + vertex.v * scale; }
     auto* buffer = GxBufStream(GxPoolTarget_Vertex, sizeof(Vertex), 4);
     std::memcpy(GxBufLock(buffer), quad, sizeof(quad)); GxBufUnlock(buffer, 0);
     GxPrimVertexPtr(buffer, GxVBF_PCT);
@@ -238,7 +243,7 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     }
     Reject([&] { create("../escape"); }); Reject([&] { create("Interface/raw.tga"); });
     Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_Anisotropic)); });
-    Reject([&] { create("Interface/raw", CGxTexFlags(), 0x17); });
+    Reject([&] { create("Interface/raw", CGxTexFlags(), 0x20); });
     Reject([&] { TextureGetGxTex(raw.value, 3, nullptr); });
     Reject([&] { TextureGetGxTex(raw.value, -1, nullptr); });
     {
@@ -283,6 +288,115 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     service.Poll(); service.RequireIdle();
     std::cout << "image-cache-read-cancel-failure-pct-fbo=passed reads=" << reads << '\n'
               << "image-authored-mips-filters-local-wait2-priority=passed\n";
+}
+void SourcesAndAtlas(LegacyDevice& device, FileQueue& queue) {
+    namespace fs = std::filesystem;
+    const auto root = fs::temp_directory_path() / ("wow-native-image-" +
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    Require(fs::create_directory(root), "Temporary loose-image root failed");
+    struct Remove { fs::path root; ~Remove() { std::error_code e; fs::remove_all(root, e); } } remove{root};
+    fs::create_directory(root / "Interface");
+    auto write = [&](const char* name, const Bytes& bytes) {
+        std::ofstream out(root / "Interface" / name, std::ios::binary);
+        out.write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+        Require(bool(out), "Loose-image fixture write failed");
+    };
+    write("Disk.blp", Palette()); write("Broken.blp", Bytes(148));
+    write("Case.blp", Raw()); write("case.BLP", Palette());
+    fs::create_directory(root / "Interface" / "Directory.blp");
+    fs::create_symlink(root.parent_path(), root / "Interface" / "Escape.blp");
+    std::atomic<unsigned> packageReads{0};
+    TextureService service(queue, [&](const std::string& name, const Cancellation&) {
+        ++packageReads;
+        ReadResult result;
+        auto bytes = name.find("REPLACEMENT") != std::string::npos ? Palette() :
+            name.find("MIPPED") != std::string::npos ? Mipped() : Raw();
+        if (name.find("ATLAS") != std::string::npos) bytes[11] |= 0x10;
+        result.file.bytes = std::move(bytes); return result;
+    }, root.u8string());
+    CStatus status;
+    auto create = [&](const char* name, CGxTexFlags flags = CGxTexFlags(GxTex_Nearest), uint32_t options = 0x17) {
+        return TextureCreate(name, flags, &status, options);
+    };
+    {
+        Handle package(create("Interface/Disk", CGxTexFlags(GxTex_Nearest), 1));
+        Handle disk(create("Interface/dIsK"));
+        Handle duplicate(create("interface/DISK.BLP"));
+        Require(package.value != disk.value && duplicate.value == disk.value, "Disk policy aliased cache identity");
+        Pixel(Draw(device, disk.value), 16,16,177,91,23,255);
+        Require(packageReads == 0, "Loose image unexpectedly read packages");
+        Pixel(Draw(device, package.value), 8,24,255,0,0,255);
+        Require(packageReads == 1 && TextureIsSame(disk.value, "interface/Disk.blp"), "Image source/name policy failed");
+        Handle absent(create("Interface/Absent"));
+        Require(TextureGetGxTex(absent.value, 2, &status) && packageReads == 2, "Absent disk image did not use packages");
+        for (auto name : {"Interface/Broken", "Interface/Case", "Interface/Directory", "Interface/Escape"}) {
+            auto before = packageReads.load();
+            Handle failed(create(name)); CStatus errors;
+            Require(!TextureGetGxTex(failed.value, 2, &errors) && !errors.IsEmpty() && packageReads == before,
+                    "Invalid loose image silently selected package bytes");
+        }
+    }
+    TextureEnableAtlas(1);
+    {
+        std::vector<std::unique_ptr<Handle>> members;
+        for (int i = 0; i < 12; ++i) {
+            auto name = "Interface/Atlas" + std::to_string(i);
+            members.push_back(std::make_unique<Handle>(create(name.c_str())));
+            auto* texture = members.back()->value;
+            Require(TextureGetGxTex(texture, 2, &status) && TextureOnAtlas(texture), "Marked BLP did not enter atlas");
+            Require(texture->m_atlasBlockIndex == i && texture->m_gxWidth == 8 && texture->m_gxHeight == 8,
+                    "Original atlas slot/dimension accounting failed");
+            Require(texture->m_atlas == members.front()->value->m_atlas && !texture->m_gxTex,
+                    "Eligible images did not share atlas ownership");
+            C2Vector offset; float scale = 0;
+            Require(TextureGetAtlasOffsetAndScale(texture, offset, scale) && scale == 0.125f &&
+                offset.x == float(i & 7) * scale && offset.y == float(i >> 3) * scale, "Atlas UV coordinates changed");
+            auto pixels = Draw(device, texture);
+            Pixel(pixels,8,24,255,0,0,255); Pixel(pixels,24,8,255,255,255,255);
+        }
+        auto* sheet = members.front()->value->m_atlas;
+        members[3]->Close();
+        Require(sheet->m_used == 11, "Closing atlas member destroyed siblings");
+        Handle reused(create("Interface/AtlasReplacement"));
+        Require(TextureGetGxTex(reused.value, 2, &status) && reused.value->m_atlas == sheet &&
+            reused.value->m_atlasBlockIndex == 3, "Freed atlas slot was not reused");
+        Pixel(Draw(device, members[9]->value),8,24,255,0,0,255);
+        Pixel(Draw(device, reused.value),24,24,177,91,23,255);
+        Handle unmarked(create("Interface/Raw"));
+        Handle repeat(create("Interface/AtlasRepeat", CGxTexFlags(GxTex_Nearest, 1, 1)));
+        Handle mipped(create("Interface/AtlasMipped", CGxTexFlags(GxTex_LinearMipLinear)));
+        for (auto* t : {unmarked.value, repeat.value, mipped.value})
+            Require(TextureGetGxTex(t, 2, &status) && !TextureOnAtlas(t), "Ineligible image entered atlas");
+        Pixel(Draw(device, mipped.value, 8),16,16,0,255,0,255);
+        Handle linear(create("Interface/AtlasLinear", CGxTexFlags(GxTex_Linear)));
+        Require(TextureGetGxTex(linear.value, 2, &status) && TextureOnAtlas(linear.value) &&
+                linear.value->m_atlas != sheet, "Atlas sampler classes aliased");
+        auto rendered = Draw(device, linear.value);
+        Pixel(rendered,4,28,255,0,0,255); Pixel(rendered,28,4,255,255,255,255);
+        TextureEnableAtlas(0);
+        Handle disabled(create("Interface/Atlas0"));
+        Require(TextureGetGxTex(disabled.value, 2, &status) && !TextureOnAtlas(disabled.value) &&
+                disabled.value != members.front()->value, "Atlas toggle changed live cache representation");
+        Require(TextureOnAtlas(members.front()->value), "Disabling atlases invalidated existing members");
+    }
+    {
+        Handle small(create("Interface/Raw", CGxTexFlags(GxTex_Anisotropic), 0));
+        Require(TextureGetGxTex(small.value, 2, &status) && small.value->m_gxTexFlags.m_filter == GxTex_Nearest,
+                "Original small-BLP default policy failed");
+        Handle mipped(create("Interface/Mipped", CGxTexFlags(GxTex_Nearest), 0));
+        Require(TextureGetGxTex(mipped.value, 2, &status) && mipped.value->m_gxTexFlags.m_filter == GxTex_LinearMipNearest,
+                "Original default mip filter failed");
+        TextureSetFilterMode(GxTex_Linear);
+        Handle changed(create("Interface/Mipped", CGxTexFlags(GxTex_Nearest), 0));
+        Require(TextureGetGxTex(changed.value, 2, &status) && changed.value != mipped.value &&
+                changed.value->m_gxTexFlags.m_filter == GxTex_Linear, "Default-filter cache policy failed");
+        Reject([&] { TextureSetFilterMode(GxTex_Anisotropic); });
+    }
+    Require(queue.WaitAll(std::chrono::seconds(5)) && status.IsEmpty(), "Image source/atlas callbacks failed");
+    service.Poll(); service.RequireIdle();
+    std::cout << "image-disk-root-source-cache-failures=passed\n"
+              << "image-original-atlas-grid-sharing-reuse-sampling=passed\n"
+              << "image-default-filter-small-blp-mips=passed\n";
 }
 void Snapshot(const std::string& name, const std::vector<CImVector>& pixels) {
     if (name.empty()) return;
@@ -336,17 +450,19 @@ int main(int argc, char** argv) {
                     LegacyDevice device(context, [&](const std::string& name) { return shaders.at(name); });
                     ShaderOwner programs(device); Target target(device);
                     Fixture(device, queue);
+                    SourcesAndAtlas(device, queue);
                     if (packages) {
                         TextureService service(queue, packages);
+                        TextureEnableAtlas(1);
                         CStatus status;
-                        Handle texture(TextureCreate("Interface\\Glues\\LoadingBar\\Loading-BarFill.blp", CGxTexFlags(GxTex_Linear), &status, 9));
+                        Handle texture(TextureCreate("Interface\\Glues\\LoadingBar\\Loading-BarFill.blp", CGxTexFlags(GxTex_Linear), &status, 0x17));
                         Require(TextureGetGxTex(texture.value, 1, &status) && status.IsEmpty(), "Original file image failed");
                         auto first = Draw(device, texture.value), second = Draw(device, texture.value);
                         Require(first.size() == second.size() && !std::memcmp(first.data(), second.data(), first.size()*sizeof(CImVector)), "Original repeat pixels changed");
                         Require(std::any_of(first.begin(), first.end(), [](const CImVector& p) { return p.r || p.g || p.b; }), "Original image rendered black");
                         Snapshot(cycle ? "" : snapshot, first);
                         std::cout << "original-services-blp-pct-shader-fbo=passed width=" << texture.value->m_gxWidth
-                                  << " height=" << texture.value->m_gxHeight << '\n';
+                                  << " height=" << texture.value->m_gxHeight << " atlas=" << TextureOnAtlas(texture.value) << '\n';
                         Handle terrain(TextureCreate("Tileset\\Elwynn\\ElwynnDirtBase.blp",
                             CGxTexFlags(GxTex_LinearMipLinear, 1, 1), &status, 0x19));
                         Require(TextureGetGxTex(terrain.value, 2, &status) && status.IsEmpty(),

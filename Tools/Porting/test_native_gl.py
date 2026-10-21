@@ -169,6 +169,18 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
+    def test_image_probe_requires_its_own_binary_hash(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('import sys\nassert sys.argv[1:] == []\nprint("images-passed")\n', 'NativeImageCheck')
+        result = self.run_wrapper('--images')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.output.read_text())['probe'], 'NativeImageCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--images')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_target_failure_is_recorded_separately_and_fails_combined_run(self):
         self.script('print("probe-passed")\n')
         self.target_script('print("target-failed")\nraise SystemExit(9)\n')
