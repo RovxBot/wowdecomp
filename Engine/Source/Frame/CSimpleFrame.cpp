@@ -2054,11 +2054,15 @@ void CSimpleFrame::SetBeingScrolled(int32_t scrolled, int32_t a3) {
 
 // VERIFY: bb8a4b54 auto
 // OFFSET: 0x00491020
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleFrame::SetFrameStrata(uint32_t strata) {
+#else
 void CSimpleFrame::SetFrameStrata(FRAME_STRATA strata) {
+#endif
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    if (uint32_t(strata) > FRAME_STRATA_TOOLTIP) throw std::invalid_argument("Invalid Frame strata");
+    if (strata > FRAME_STRATA_TOOLTIP) throw std::invalid_argument("Invalid Frame strata");
 #endif
     if (strata == this->m_strata) {
         return;

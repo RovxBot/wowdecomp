@@ -206,7 +206,7 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
     Reject([&]{parent->SetParent(child);});
     Reject([&]{parent->SetParent(parent);});
     Reject([&]{text->SetFrame(reinterpret_cast<CSimpleFrame*>(uintptr_t(1)),2,1);});
-    Reject([&]{child->SetFrameStrata(static_cast<FRAME_STRATA>(UINT32_MAX));});
+    Reject([&]{child->SetFrameStrata(UINT32_MAX);});
     Reject([&]{child->SetFrameLevel(INT32_MAX,1);});
     Reject([&]{child->SetFrameScale(std::numeric_limits<float>::infinity(),false);});
     Reject([&]{child->SetFrameScale(0,false);});
