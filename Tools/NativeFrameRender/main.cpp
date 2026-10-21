@@ -159,6 +159,7 @@ static void Sorting() {
         Check(reinterpret_cast<uintptr_t>(batch.m_texturelist[i-1].m_shader)<reinterpret_cast<uintptr_t>(batch.m_texturelist[i].m_shader),"Frame shader sort truncated pointer keys");
 }
 static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer& owner) {
+    CStatus status;
     TextureService service(queue,[](const std::string& name,const Cancellation&){
         ReadResult result;result.file.bytes=AtlasBlp();
         if(name=="INTERFACE\\RED.BLP" || name=="INTERFACE\\WHITE.BLP") {
@@ -173,10 +174,11 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     PixelShader shader(device);
     CRenderBatch batch;
     Reject([&]{owner.CheckCanClose();});
-    Handle red(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\red.blp",CGxTexFlags(GxTex_Nearest),nullptr,1)));
+    Handle red(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\red.blp",CGxTexFlags(GxTex_Nearest),&status,1)));
     auto* texture=reinterpret_cast<CTexture*>(red.value);Check(texture,"Solid texture creation failed");
     const auto sharedShaderRefs=shader.value->m_refCount;
-    Quad(batch,texture,shader.value);red.Close();
+    Quad(batch,texture,shader.value);
+    Check(batch.m_texturelist.Count()==1 && status.IsEmpty(),"Authored red image did not become ready");red.Close();
     Check(shader.value->m_refCount==sharedShaderRefs+1,"Frame mesh failed to add shader reference");
     Check(batch.m_texturelist[0].m_texture->m_refcount==1,"Frame mesh failed to retain texture");
     auto* retainedShader=shader.value;device.ShaderDestroy(shader.value);
@@ -192,7 +194,7 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     Check(device.m_stackOffsets.Count()==depth,"Callback failure leaked render state");
     batch.Clear();Check(!batch.m_count && !batch.m_stringbatch && !batch.m_texturelist.Count(),"Frame batch clear");
     PixelShader nextShader(device);
-    Handle white(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\white.blp",CGxTexFlags(GxTex_Nearest),nullptr,1)));texture=reinterpret_cast<CTexture*>(white.value);
+    Handle white(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\white.blp",CGxTexFlags(GxTex_Nearest),&status,1)));texture=reinterpret_cast<CTexture*>(white.value);
     C3Vector positions[]={{-1,1,0},{-1,-1,0},{1,1,0},{1,-1,0}};C2Vector coords[]={{0,0},{0,1},{1,0},{1,1}};uint16_t indices[]={0,1,2,2,1,3};
     Reject([&]{batch.Queue(nullptr,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});
     positions[0].x=std::numeric_limits<float>::infinity();Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});positions[0].x=-1;
@@ -212,6 +214,11 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     Check(!device.m_bufLocked[GxPoolTarget_Vertex] && device.m_bufLocked[GxPoolTarget_Index]==callerIndex && device.m_stackOffsets.Count()==depth,"Frame partial-lock unwind changed caller ownership");
     GxBufUnlock(callerIndex,0);
     ClearScreen();CSimpleRender::DrawBatch(&batch);Solid(Pixels(device),240*640+320,0,255,0);batch.Clear();
+    CImVector gradient[]={CImVector(0,0,255,255),CImVector(0,0,255,255),CImVector(0,255,0,255),CImVector(0,255,0,255)};
+    batch.Queue(texture,GxBlend_Opaque,4,positions,coords,4,gradient,6,indices,nextShader.value);
+    for(auto& color:gradient)color=CImVector(255,0,0,255);
+    ClearScreen();CSimpleRender::DrawBatch(&batch);auto graded=Pixels(device);
+    Check(graded[240*640+160].r>graded[240*640+160].g && graded[240*640+480].g>graded[240*640+480].r && !graded[240*640+320].b,"Frame four-color snapshot/gradient");batch.Clear();
     // Merging reaches the original uint16 vertex boundary with actual owned quads.
     CSimpleRender::s_mergeEnable=1;
     // Clip the first group: the boundary needs real geometry submission, while
@@ -225,13 +232,14 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     white.Close();
     // A nonzero atlas cell must be transformed by the original draw path.
     TextureEnableAtlas(1);std::vector<std::unique_ptr<Handle>> members;
-    for(int i=0;i<10;++i){auto name="Interface\\batch"+std::to_string(i)+".blp";auto h=std::make_unique<Handle>(reinterpret_cast<HOBJECT>(TextureCreate(name.c_str(),CGxTexFlags(GxTex_Nearest),nullptr,0x17)));Check(h->value,"Atlas fixture handle");Check(TextureGetGxTex(reinterpret_cast<CTexture*>(h->value),1,nullptr),"Atlas fixture upload");members.push_back(std::move(h));}
+    for(int i=0;i<10;++i){auto name="Interface\\batch"+std::to_string(i)+".blp";auto h=std::make_unique<Handle>(reinterpret_cast<HOBJECT>(TextureCreate(name.c_str(),CGxTexFlags(GxTex_Nearest),&status,0x17)));Check(h->value,"Atlas fixture handle");Check(TextureGetGxTex(reinterpret_cast<CTexture*>(h->value),1,&status),"Atlas fixture upload");members.push_back(std::move(h));}
     auto* atlas=reinterpret_cast<CTexture*>(members.back()->value);Check(TextureOnAtlas(atlas) && atlas->m_atlasBlockIndex==9,"Nonzero atlas cell fixture");
     Quad(batch,atlas,nextShader.value);members.clear();Reject([&]{service.RequireIdle();});
     ClearScreen();CSimpleRender::DrawBatch(&batch);Solid(Pixels(device),240*640+320,0,0,255);batch.Clear();service.RequireIdle();
     std::cout<<"frame-render-mesh-snapshot-retention-sort-merge-atlas=passed\n";
 }
 static void TextAndOriginal(LegacyDevice& device,Source& source,const std::string& snapshot,bool original) {
+    CStatus status;
     std::unique_ptr<TextureService> service;
     if(original)service=std::make_unique<TextureService>(source.queue,source.packages);
     PixelShader shader(device);
@@ -247,7 +255,7 @@ static void TextAndOriginal(LegacyDevice& device,Source& source,const std::strin
     batch.Clear();other.NativeQueueText(hfont,reinterpret_cast<HTEXTBLOCK>(block.value));other.Clear();
     batch.NativeQueueText(hfont,reinterpret_cast<HTEXTBLOCK>(block.value));
     block.Close();font.Close(); // Batch alone now retains both original handles.
-    if(original){Handle image(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\GLUES\\LOADINGBAR\\Loading-BarFill.blp",CGxTexFlags(GxTex_Linear),nullptr,0x17)));Check(image.value,"Original Frame batch image failed");Quad(batch,reinterpret_cast<CTexture*>(image.value),shader.value,-0.9f,-0.4f);}
+    if(original){Handle image(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\GLUES\\LOADINGBAR\\Loading-BarFill.blp",CGxTexFlags(GxTex_Linear),&status,0x17)));Check(image.value,"Original Frame batch image failed");Quad(batch,reinterpret_cast<CTexture*>(image.value),shader.value,-0.9f,-0.4f);Check(batch.m_texturelist.Count()==1 && status.IsEmpty(),"Original batch image did not become ready");}
     batch.Finish();ClearScreen();CSimpleRender::DrawBatch(&batch);auto first=Pixels(device);
     size_t ink=0;for(auto& p:first)ink+=p.r>16 && p.g<4 && p.b<4;
     Check(ink>4,"Frame batch rendered no text");
