@@ -431,6 +431,29 @@ passed three cycles with empty stderr. Original Frame factories/login rendering
 are still open; this adds no GPU, input, Windows runtime, macOS desktop or server
 acceptance. Original signatures and interactive sign-in remain intact.
 
+The [original Frame font/name factories](docs/m3/FRAME_FONTS.md) in
+[PR #41](https://github.com/RovxBot/wowdecomp/pull/41) are qualified at
+`c87df98ab5b8f05cab034941dece92a78f81d726`, merged as
+`829904d849546a224201a885fdb4e1c55ce578e5`. The [record](docs/m3/frame-font-validation.json)
+retains thirteen passing implementation workflows, 31 CTest checks per Linux GL
+configuration and full Windows x64 compilation at matching-tree checkout
+`ba54f09734f163123155e378048cadf3bcfde61b`. Three archives and all 45 packaged
+binary hashes/types were verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11
+release and strict ASan/UBSan/leak checks passed three authored movement/font,
+three original GlueFonts and three original-data Gxu cycles each, with empty
+stderr and zero workers. All 18 original GlueFonts definitions were constructed;
+a selected small outlined font rendered at its original logical size, with exact
+repeat pixels and matching release/sanitizer captures.
+
+Native font/name factories now use the original Lua/XML/Gxu owners and canonical
+live Lua tables. Native FreeType movement adapters preserve the original index
+conversion and Windows paths; the strict prior failure and authored reproducer
+remain in the record. Sample text/red tint are authored fixture inputs, separate
+from original font bytes/definitions. Actual regions/font strings/root batching,
+SDL size invalidation, disk/atlas images and full GlueXML/login remain open.
+There is no new physical-input, Windows runtime, macOS graphics or server session
+acceptance. M3 remains incomplete; signatures and interactive sign-in stay intact.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.

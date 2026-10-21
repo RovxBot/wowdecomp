@@ -89,6 +89,13 @@ anchor/resize/XML dimension consumers on Linux release/strict sanitizers, native
 ARM64 macOS and Windows. Frame factories, disk/atlas image contracts and actual
 original GlueXML/login rendering remain open; M3 is incomplete.
 
+The [original Frame font/name factories](docs/m3/FRAME_FONTS.md) now connect
+CreateFont, inheritance, XML attributes and Lua object lifetime to native Gxu.
+Both Linux GL configurations passed 31 tests; original-data release/strict
+sanitizer runs construct 18 GlueFonts definitions and render a selected font.
+Actual regions/font strings/root, disk/atlas images and full original GlueXML/login
+remain open. M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
