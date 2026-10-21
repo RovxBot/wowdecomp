@@ -127,7 +127,7 @@ static void Solid(const std::vector<CImVector>& pixels,size_t index,uint8_t r,ui
 static Bytes AtlasBlp() {
     Bytes bytes(148+8*8*4);
     auto word=[&](size_t at,uint32_t n){for(int b=0;b<4;++b)bytes[at+b]=uint8_t(n>>(b*8));};
-    word(0,0x32504c42);word(4,0x11);bytes[8]=3;bytes[9]=8;
+    word(0,0x32504c42);word(4,1);bytes[8]=3;bytes[9]=8;bytes[11]=0x10;
     word(12,8);word(16,8);word(20,148);word(84,8*8*4);
     for(size_t i=148;i<bytes.size();i+=4){bytes[i]=255;bytes[i+3]=255;}
     return bytes;
@@ -163,7 +163,7 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     TextureService service(queue,[](const std::string& name,const Cancellation&){
         ReadResult result;result.file.bytes=AtlasBlp();
         if(name=="INTERFACE\\RED.BLP" || name=="INTERFACE\\WHITE.BLP") {
-            auto& bytes=result.file.bytes;bytes[4]=1;
+            auto& bytes=result.file.bytes;bytes[11]=0;
             for(size_t i=148;i<bytes.size();i+=4) {
                 bytes[i]=bytes[i+1]=name=="INTERFACE\\WHITE.BLP"?255:0;
                 bytes[i+2]=255;
