@@ -3,6 +3,7 @@
 #include <cstdlib>
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
 #include <stdexcept>
+#include "Engine/Source/Frame/Portable/Fonts.h"
 #endif
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Base/Coordinate.h"
@@ -152,8 +153,9 @@ CRenderBatch::~CRenderBatch() {
 void CRenderBatch::QueueFontString(CSimpleFontString* string) {
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
     this->NativeCheck();
-    throw std::logic_error("Native Frame font string objects are not installed");
-#else
+    Frame::Native::RequireScript(string);
+    if (!string->IsA("FontString")) throw std::invalid_argument("Frame batch requires a font-string region");
+#endif
     CRect rect;
 
     if (!string->GetRect(&rect)) {
@@ -174,6 +176,9 @@ void CRenderBatch::QueueFontString(CSimpleFontString* string) {
         return;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    this->NativeQueueText(string->m_fontHandle, string->m_string);
+#else
     if (!this->m_stringbatch) {
         this->m_stringbatch = GxuFontCreateBatch(false, false);
     }

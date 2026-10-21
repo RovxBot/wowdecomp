@@ -106,7 +106,7 @@ def main():
                     raise RuntimeError('SDL display-library loading differs from the selected baseline/control')
         manifest['toolchain_cache'] = [line for line in cache.splitlines() if line.startswith(
             ('CMAKE_CXX_COMPILER:', 'CMAKE_C_COMPILER:', 'CMAKE_MAKE_PROGRAM:', 'CMAKE_OSX_ARCHITECTURES:'))]
-        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeFrameRenderCheck', 'NativeFrameFontsCheck', 'NativeLuaCheck', 'NativeFrameScriptCheck', 'NativeXMLCheck', 'NativeLayoutCheck', 'NativeImageCheck', 'LegacyGxuCheck', 'LegacyGxCheck', 'NativeFontsCheck', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'] if graphics else [])
+        executables = ['PortableCoreCheck', 'CoreServicesCheck', 'NativeCore'] + (['FileServicesCheck'] if files else []) + (['PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'] if assets else []) + (['AsyncFileCheck'] if asynchronous else []) + (['NativeWindowCheck', 'ShellSettingsCheck', 'NativeShell', 'SDLDesktopControl'] if window else []) + (['NativeFrameRegionsCheck', 'NativeFrameRenderCheck', 'NativeFrameFontsCheck', 'NativeLuaCheck', 'NativeFrameScriptCheck', 'NativeXMLCheck', 'NativeLayoutCheck', 'NativeImageCheck', 'LegacyGxuCheck', 'LegacyGxCheck', 'NativeFontsCheck', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck'] if graphics else [])
         run('build', ['cmake', '--build', str(build), '--config', 'Release', '--target',
                       'WowPortableCore', *executables, '--parallel', '2'])
         run('tests', ['ctest', '--test-dir', str(build), '-C', 'Release', '--output-on-failure', '--no-tests=error'])
@@ -123,7 +123,7 @@ def main():
             if target_os != 'WINDOWS':
                 run(f'binary-type-{name}', ['file', str(executable)])
             manifest['binaries'].append(entry)
-            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck', 'SDLDesktopControl', 'NativeGlCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'NativeFontsCheck', 'LegacyGxCheck', 'LegacyGxuCheck', 'NativeImageCheck', 'NativeFrameRenderCheck', 'NativeFrameFontsCheck', 'NativeLuaCheck', 'NativeFrameScriptCheck', 'NativeXMLCheck', 'NativeLayoutCheck'}:
+            if name in {'NativeCore', 'FileServicesCheck', 'PackageServicesCheck', 'NativeAssetCheck', 'NativeShell', 'NativeWindowCheck', 'SDLDesktopControl', 'NativeGlCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'NativeFontsCheck', 'LegacyGxCheck', 'LegacyGxuCheck', 'NativeImageCheck', 'NativeFrameRegionsCheck', 'NativeFrameRenderCheck', 'NativeFrameFontsCheck', 'NativeLuaCheck', 'NativeFrameScriptCheck', 'NativeXMLCheck', 'NativeLayoutCheck'}:
                 binary_directory = evidence / 'bin'
                 binary_directory.mkdir(exist_ok=True)
                 shutil.copy2(executable, binary_directory / executable.name)

@@ -9,6 +9,7 @@
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
+bool renderActive = false;
 std::unordered_set<CSimpleFont*> fonts;
 std::unordered_set<CSimpleFontable*> fontables;
 std::unordered_set<CScriptObject*> scripts;
@@ -26,7 +27,9 @@ void RequireFontFactories() {
     RequireOwner();
     Gxu::Native::RequireFontOwner();
     if (!installed) throw std::logic_error("Native Frame font factories are not installed");
+    if (renderActive) throw std::logic_error("Finish Frame rendering before font/region access");
 }
+void SetFontRenderActive(bool value) { renderActive = value; }
 void Fonts::CheckCanClose() const {
     RequireFontFactories();
     if (!scripts.empty() || fontables.size() != fonts.size() || updates)

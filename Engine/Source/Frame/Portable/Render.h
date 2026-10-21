@@ -17,6 +17,9 @@ private:
     Gxu::Native::FontOwnerLease lifetime;
 };
 void RequireRenderer();
+// Also guards region/font-string mutation from batch callbacks. An installed
+// renderer is only required when actually queuing/drawing a batch.
+void RequireRenderIdle();
 class RenderScope final {
 public:
     explicit RenderScope(CRenderBatch*);

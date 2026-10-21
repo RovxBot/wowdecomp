@@ -1,4 +1,5 @@
 #include "Render.h"
+#include "Fonts.h"
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -43,6 +44,10 @@ struct Text {
 };
 }
 namespace Frame { namespace Native {
+void RequireRenderIdle() {
+    Gxu::Native::RequireFontOwner();
+    if (drawing) throw std::logic_error("Finish Frame rendering before region mutation");
+}
 void RequireRenderer() {
     Gxu::Native::RequireFontOwner();
     if (!renderer) throw std::logic_error("Native Frame renderer is not installed");
@@ -87,8 +92,8 @@ void CRenderBatch::NativeCheck(bool mutation) const {
 }
 void CRenderBatch::NativeDestroy() { NativeCheck(); delete m_native; m_native = nullptr; --batches; }
 void CRenderBatch::NativeRelease() { m_native->meshes.clear(); m_native->texts.clear(); }
-void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; }
-void CRenderBatch::NativeEndDraw() { drawing = false; }
+void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; Frame::Native::SetFontRenderActive(true); }
+void CRenderBatch::NativeEndDraw() { Frame::Native::SetFontRenderActive(false); drawing = false; }
 void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCount,
     const C3Vector* positions, const C2Vector* coords, int32_t colorCount, const CImVector* colors,
     int32_t idxCount, const uint16_t* indices, CGxShader* shader) {
