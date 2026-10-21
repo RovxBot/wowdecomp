@@ -1,256 +1,242 @@
 # wowdecomp
 
-A C++ decompilation of the World of Warcraft 3.3.5a client (`Wow.exe`, build 12340, June 2010).
+A C++ decompilation of the World of Warcraft **3.3.5a client** (`Wow.exe`, build
+**12340**, June 2010), based on [SatyPardus/wowdecomp](https://github.com/SatyPardus/wowdecomp).
+The source follows the original module and file layout, with `// OFFSET:` tags
+identifying reconstructed functions' original binary addresses for comparison.
 
-Join the discord for other clients and to show off some cool stuff you build.
+This fork is building native clients for **Linux x86-64** and **macOS ARM64
+(Apple silicon)** while retaining **Windows x64** as the regression reference.
+The goal is to preserve unchanged 3.3.5a data, protocol, gameplay, Lua APIs and addon
+compatibility. The [4.3.4 decompilation](https://github.com/SatyPardus/wowdecomp15595)
+is a reference for selected improvements; it does not change the 12340 baseline.
+No game data is included in this repository.
 
-https://discord.gg/DsZMGUD8aT
+[Join the community Discord](https://discord.gg/DsZMGUD8aT) to discuss other clients
+and share what you build.
 
-Every function is reconstructed from the original binary and keeps the address it came from in an
-`// OFFSET:` tag, so each one can be compared against the original. The source tree follows the layout
-of the original client (`Engine/Source/<Module>`, `WoW/Source/<Module>`, original file names).
+## Native port status
 
-x64 is the main target. Win32 still builds and is used to check struct layouts against the 32-bit
-original.
+**Updated: 2026-10-21. Linux has a tested native rendering and UI foundation.
+A playable native Linux or macOS client is still in development.**
 
-## Native client roadmap
+| Platform | What is demonstrated | What still blocks a playable prototype |
+| --- | --- | --- |
+| **Linux x86-64** | Native SDL3 shell; original asset loading; OpenGL UI shaders, images and fonts; original Frame layout, hierarchy and text rendering; resize, keyboard/text/focus and IME event delivery | Complete original login UI and its Frame factories/consumers, portable networking/authentication, full world rendering and an observed server session |
+| **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
+| **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
 
-[PORTING_PLAN.md](PORTING_PLAN.md) describes the planned Linux x86-64 and macOS ARM64 ports,
-with selected engine improvements from the 4.3.4 decompilation. A native playable client is not implemented yet.
-Coding agents should read [AGENTS.md](AGENTS.md). The [M0 report](docs/m0/BASELINE.md)
-records the dependency audit and Windows x64 Actions build. Operator runtime results
-report D3D9 passes and matching OpenGL failures; data/server evidence remains partial.
-Client and dependency builds for this porting effort run in GitHub Actions.
-The [M1 foundations](docs/m1/FOUNDATIONS.md) provide an asset-free core-service
-library and `NativeCore` initialization/shutdown executable, tested in hosted
-Linux x86-64, macOS ARM64 and Windows x64 jobs. The full native game remains gated.
-The [M1 core workflow](.github/workflows/m1-core.yml) also runs Linux ASan/UBSan
-and provides NativeCore binaries plus evidence; no game data is needed for that tool.
-M2 is complete for the observed Linux asset/shell baseline. It adds
-[host-file/path services](docs/m2/FILESYSTEM.md), authenticated retail MPQs
-and [original asset inspection](docs/m2/ASSETS.md), an [async file queue](docs/m2/ASYNC.md)
-and a [native SDL3 shell](docs/m2/SHELL.md). Hosted semantic fixtures pass on all
-three platforms, including Linux sanitizers and actual ARM64 execution. Downloaded
-Linux binaries load the supplied read-only 12340/enUS data and display decoded
-terrain pixels on X11 and Wayland. The [M2 handoff](docs/m2/HANDOFF.md) records exact
-evidence, passed operator input acceptance and the clean X11 sanitizer baseline.
-The separate Wayland Fontconfig qualification remains documented. These tools do not run the
-login screen, world, networking or audio.
+Linux diagnostic applications can already display original resources and exercise
+parts of the original UI engine. The next visible milestone is the **actual
+original login screen**, followed by interactive sign-in, character selection and
+world entry. macOS shares the portable foundations, but the current Gx graphics
+target is Linux-only. SDL shell presentation on macOS does not establish a working
+macOS game renderer.
 
-M3 begins with a separate [Linux SDL3/OpenGL context probe](docs/m3/HANDOFF.md),
-built by [M3 Actions](.github/workflows/m3-gl.yml). It checks desktop compatibility
-contexts and synthetic ARB shader/FBO rendering, with optional original glue
-texture display. It does not yet run the original login UI or connect to a server.
-The [native target owner](docs/m3/RENDER_TARGETS.md) adds retained offscreen color,
-depth and cube resources with hosted and actual-GPU sanitizer evidence. The full
-native device, original fonts/login UI, networking and gameplay remain open.
-The [transform adapter](docs/m3/TRANSFORMS.md) now reuses scalar Gx/Tempest math
-for normalized viewport/scissor and target projection, with original UI shader
-constants and transformed-pixel checks qualified in hosted and real-GPU
-release/sanitizer runs. It follows the merged target work.
-The merged [buffer adapter](docs/m3/BUFFERS.md), following the transform work, now
-submits retained PCT vertex/index resources through original UI shaders, with
-hosted and real-GPU release/sanitizer checks. Full legacy device integration,
-original fonts/login, networking and observed gameplay remain open; M3 is incomplete.
-The [texture owner](docs/m3/TEXTURES.md) now also handles ordinary sampled assets,
-packed font-atlas formats, mip/cube uploads and DXT resources with qualified
-hosted/GPU checks. Its synthetic atlas fixture is separate from original text.
-The [original font preview](docs/m3/FONTS.md) now renders unchanged Friz Quadrata
-glyphs through the original UI shaders, with qualified hosted and real-GPU
-release/sanitizer checks. The next [legacy Gx UI adapter](docs/m3/LEGACY_DEVICE.md)
-connects actual global dispatch, texture callbacks, shader caches and streamed
-batches to the native resource owners, with qualified hosted and original-data
-GPU release/strict sanitizer checks. The [original Gxu integration](docs/m3/LEGACY_GXU.md)
-now connects original handles, layout/glyph caches, Services text handles and
-batched font consumers, with hosted and actual-GPU release/strict sanitizer
-evidence. The separate [product Lua runtime](docs/m3/LUA.md) now preserves the
-modified taint/profile APIs and original pool/libraries in native Linux, ARM64
-macOS and Windows fixtures, including strict Linux sanitizers. Original
-[FrameScript execution/events](docs/m3/FRAMESCRIPT.md) now use that runtime with
-owner-thread lifecycle, secure handlers and retained source reads. Hosted native
-fixtures and downloaded Linux release/strict sanitizer original-source cycles
-pass. Original Frame/XML/image services/GlueXML/login, transport and gameplay
-remain open. The [original XML/signature integration](docs/m3/XML.md) now adds
-owner-thread original trees and filename-bound interface verification. Hosted
-Linux, actual ARM64 macOS and Windows fixtures pass; downloaded Linux release
-and strict sanitizer binaries authenticate original GlueXML/FrameXML content
-and parse AccountLogin XML. The [file-backed image Services](docs/m3/IMAGES.md)
-now deliver bounded BLP2 images through retained reads and original CTexture/Gx
-handles, with hosted and actual-GPU release/strict sanitizer evidence. Actual
-Frame factories/layout, broader image/async contracts and original login
-execution/rendering remain open, followed by transport and gameplay.
-The [authored image mip/readiness extension](docs/m3/IMAGE_MIPS.md) now qualifies
-complete original BLP2 mip chains, explicit mip filters, local wait 2 and UI read
-priority, with hosted and RX 7900 XTX release/strict sanitizer checks. Frame's
-disk/atlas contracts and actual original login rendering remain open.
+There is no measured percentage or delivery date for a playable port. Completed
+components reduce the remaining work, but UI integration, networking and world
+rendering still need substantial implementation and validation. The source
+reconstruction figures below measure a different kind of progress.
 
-The [original Frame layout prerequisite](docs/m3/LAYOUT.md) now qualifies actual
-anchor/resize/XML dimension consumers on Linux release/strict sanitizers, native
-ARM64 macOS and Windows. Frame factories, disk/atlas image contracts and actual
-original GlueXML/login rendering remain open; M3 is incomplete.
+## Work completed
 
-The [original Frame font/name factories](docs/m3/FRAME_FONTS.md) now connect
-CreateFont, inheritance, XML attributes and Lua object lifetime to native Gxu.
-Both Linux GL configurations passed 31 tests; original-data release/strict
-sanitizer runs construct 18 GlueFonts definitions and render a selected font.
-Actual regions/font strings/root, disk/atlas images and full original GlueXML/login
-remain open. M3 is incomplete.
+The following capabilities are implemented and qualified within their documented
+scope. Cross-platform component tests and Linux desktop/GPU observations are
+identified separately in the linked reports.
 
-The subsequent [native image lookup/atlas package](docs/m3/IMAGE_SOURCES.md) now
-supports Frame `0x17` eligibility, an optional read-only loose-image root, actual
-shared 8 by 8 atlas sheets and default filtering. Both Linux GL configurations
-passed 31 tests; full Windows x64 compilation and downloaded release/strict
-sanitizer image/original-GlueFonts regressions passed. Marked atlas and disk-source
-pixels are authored evidence; the original loading bar remains standalone.
-Actual regions/font strings/root, Frame texture modes, broader image formats and
-full original GlueXML/login rendering remain open. M3 is incomplete.
+| Area | Completed work | Details and evidence |
+| --- | --- | --- |
+| **Build and runtime foundations** | OS/CPU-aware CMake targets, allocation, logging, time, synchronization, threads and native startup/shutdown; Linux, actual ARM64 macOS and Windows fixture execution | [M1 foundations](docs/m1/FOUNDATIONS.md), [runtime design](docs/m1/RUNTIME_DESIGN.md) |
+| **Files and original assets** | Host paths, read-only MPQs, original-key authentication and registered-member MD5 checks; representative DBC, BLP, M2, WMO and map inspection; retained asynchronous reads | [Files](docs/m2/FILESYSTEM.md), [assets](docs/m2/ASSETS.md), [async](docs/m2/ASYNC.md) |
+| **Native application shell** | SDL3 window/input, clipboard, settings save/reload and joined shutdown; original-data Linux X11/Wayland execution and recorded operator input acceptance | [M2 handoff](docs/m2/HANDOFF.md), [shell](docs/m2/SHELL.md), [closeout](docs/m2/closeout.json) |
+| **Linux graphics and images** | OpenGL context, original `0x10003` UI shaders, render targets, transforms, vertex/index buffers, sampled textures and bounded legacy Gx UI dispatch; BLP2 image Services, authored mip chains and atlas/loose-image lookup | [M3 handoff](docs/m3/HANDOFF.md), [Gx device](docs/m3/LEGACY_DEVICE.md), [images](docs/m3/IMAGES.md), [mips](docs/m3/IMAGE_MIPS.md), [image sources](docs/m3/IMAGE_SOURCES.md) |
+| **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions; Frame anchors, font/name factories, FontString regions, retained batches and parent/layer/root rendering | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md) |
+| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md) |
+| **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md) |
+| **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The [original Frame render batcher](docs/m3/FRAME_RENDER.md) now retains native
-quad snapshots and texture/shader/font/block resources through consumption. Both
-Linux GL configurations passed 32 tests; full Windows compilation and downloaded
-release/strict sanitizer GPU checks passed with original resources. Actual
-regions/Frame/root lifetimes and full signed GlueXML/login remain open; M3 is
-incomplete.
+The latest qualified package, [Frame IME PR #55](https://github.com/RovxBot/wowdecomp/pull/55),
+passed all **13 implementation PR workflows**, including **37 CTest checks in each
+Linux release and strict sanitizer configuration** and full Windows x64 compilation
+with signature checks enabled. Downloaded packages passed **26 runtime executions**
+across IME/input/UI and prior-resource checks, with three owner cycles each, empty
+stderr and zero remaining workers. Release/sanitizer captures match. Exact source,
+build and artifact identities are in the [validation record](docs/m3/frame-ime-validation.json).
 
-The [original unparented FontString regions](docs/m3/FRAME_REGIONS.md) now connect
-actual region/layout/font inheritance and retained text batching through a bounded
-C++ surface. Both Linux GL configurations passed 33 checks; full Windows compilation
-and downloaded release/strict sanitizer original-data GPU cycles passed. Frame
-region Lua/XML/animation, SDL size delivery and full signed GlueXML/login remain
-open.
+The real-GPU results cover the recorded **AMD RX 7900 XTX / Mesa 26.2.5 / SDL X11**
+profile with ASan, UBSan and leak detection. Current Frame input checks use injected
+SDL events; they do not establish physical IME/language or edit-box/candidate UI
+acceptance. Earlier shell operator acceptance remains separate. Wayland shell
+functionality is observed, with an external Fontconfig leak qualification retained
+in the [desktop lifetime report](docs/m2/DESKTOP_LIFETIMES.md).
 
-The [original Frame parent/root integration](docs/m3/FRAME_HIERARCHY.md) now uses
-actual parent/child, region/layer/strata lists, inherited visibility/alpha/scale
-and original root batches through direct C++ ownership. Both Linux GL configurations
-passed 34 checks; Windows compilation and downloaded original-data release/strict
-sanitizer GPU cycles passed. Pooled factories, input/animation/texture consumers,
-actual SDL size delivery and full signed GlueXML/login remain open. M3 is incomplete.
+## What remains before a working prototype
 
-The [SDL display-size path](docs/m3/FRAME_WINDOW.md) now connects actual
-programmatic window events to Gx dimensions, original Gxu/font and Frame callbacks,
-and pending layout before rendering. Both Linux GL configurations passed 35 checks;
-full Windows compilation and downloaded release/strict sanitizer original-data
-GPU cycles passed. Captures match release/sanitizer; the probe now initializes
-coordinate math in original Glue startup order. This does not qualify physical
-input, independent high-DPI changes or original login. Pooled Lua/XML factories,
-remaining Frame/input/texture/animation consumers and full signed GlueXML/login
-remain open; M3 is incomplete.
+For this project, a playable prototype means a native executable that uses
+unchanged 12340 data, signs in, selects a character, enters the world, supports
+basic play, saves settings and exits cleanly. A rendered test or successful build
+does not close that milestone.
 
-The [SDL keyboard/text/focus adapter](docs/m3/FRAME_KEYBOARD.md) now delivers
-committed Unicode scalars and captured key/repeat/up through original root priority
-queues, with bounded native key storage and callback lifetime guards. Both Linux
-GL configurations passed 36 checks; signature-enabled Windows compilation and
-clean-data release/strict sanitizer GPU checks passed. SDL input is injected test
-evidence; physical-input and IME/language acceptance remain separate. Pooled
-Lua/XML factories, mouse/IME and other Frame consumers, full signed GlueXML/login
-and transport/gameplay remain open; M3 is incomplete.
+1. **Finish original UI creation and interaction.** Connect pooled Frame/region
+   Lua/XML factories, templates/language handling, texture, animation/model and
+   remaining widget consumers. Complete mouse hit testing/occlusion/drag and actual
+   edit-box integration alongside the qualified keyboard/IME delivery.
+2. **Run and render the signed original login UI.** Execute complete ordered
+   GlueXML creation, retain the full post-creation digest comparison, and validate
+   the real screen and its required shaders/models. Current original-resource text
+   and font-definition tests cover a subset of that path.
+3. **Implement portable transport and authentication integration.** Replace the
+   Windows IOCP/WSA backends beneath the existing interfaces, preserving partial
+   I/O, framing, cancellation and callback lifetimes. The packet/crypto prerequisites
+   do not yet provide sockets, a connection or login.
+4. **Validate world rendering and gameplay on Linux.** Complete model, animation,
+   material, terrain, world-object and effect coverage as required; observe character
+   selection, world entry and basic play on the target local server.
+   Verify the live realm endpoint and Warden outcomes. The
+   [server snapshot](docs/m3/SERVER_IDENTITY.md) records an image-tag/embedded-revision
+   discrepancy and does not establish session compatibility. Sign-in will be
+   interactive, with credentials kept outside the repository.
+5. **Bring the application to Apple silicon.** Validate and select the maintained
+   graphics/shader path, complete Metal rendering and ARM64 application integration,
+   then test Retina scaling, input, audio/movies and gameplay on a real Mac.
+   The proposed Gx/bgfx Vulkan/Metal direction remains a prototype/decision task.
 
-The [SDL IME adapter](docs/m3/FRAME_IME.md) now delivers retained composition,
-candidate and result snapshots through original Frame priority queues, including
-candidate-only focus cancellation. All thirteen workflows, 37 checks per Linux
-GL configuration and clean-data release/strict sanitizer GPU regressions passed.
-These are injected input checks; physical IME, actual edit boxes, pooled Lua/XML
-factories, mouse/occlusion, full signed GlueXML/login and gameplay remain open.
+Audio, movies, wider GPU/display coverage, long-session stability and packaging
+are further requirements for a complete release. Optional 4.3.4 visual upgrades
+follow the baseline and remain separate from portability work.
 
-## Progress
+| Roadmap milestone | Current position |
+| --- | --- |
+| **M0 — Windows baseline and dependency audit** | Source/build audit complete; runtime/data/server evidence remains partial |
+| **M1 — Portable core and lifecycle** | Complete for the defined core scope |
+| **M2 — Original assets and native shell** | Complete for the observed Linux X11 acceptance profile |
+| **M3 — Linux login and world entry** | In progress; graphics/UI/input prerequisites qualified, login/network/world gates open |
+| **M4–M6 — Complete Linux, maintained graphics, macOS ARM64** | Ahead; shared ARM64 component work is already tested |
+| **M7 / M8 — Selected enhancements / release stabilization** | Enhancements tracked separately; native release qualification remains ahead |
 
-Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
-separate hosted Linux, ARM64 macOS and Windows checks. They do not provide sockets or login.
+See [PORTING_PLAN.md](PORTING_PLAN.md) for milestone exit criteria and
+[the current M3 handoff](docs/m3/HANDOFF.md) for implementation dependencies.
 
-The percentages below measure how much of the original binary has a counterpart in this source tree. They do
-**not** say how much of the game works, and the missing part is not missing gameplay: the client builds into a
-complete executable and the game is 100% playable. Bugs could still be hiding, though; a ported function can behave differently
-from the original.
+## Getting builds and running diagnostics
 
-Measured against the 12340 binary on 2026-10-15. A function counts as ported when its address is
-tagged in the source.
+**All client and dependency compilation for this fork runs in GitHub Actions.**
+Download artifacts from a passing run and verify their manifests/hashes before
+execution. Native artifacts currently contain diagnostic/component executables;
+the full client CMake target still requires Windows and MSVC.
 
-| | Ported | Total | Share of the original |
-|---|---:|---:|---:|
-| Functions | 24,515 | 27,157 | 90.3% |
-| Code bytes | 5,270,186 | 5,656,573 | 93.2% |
+| Build or check | Workflow |
+| --- | --- |
+| Full Windows x64 reference client | [Windows baseline](.github/workflows/windows-baseline.yml) |
+| Portable runtime | [M1 core](.github/workflows/m1-core.yml) |
+| Files, assets and asynchronous reads | [M2 files](.github/workflows/m2-files.yml), [M2 assets](.github/workflows/m2-assets.yml), [M2 async](.github/workflows/m2-async.yml) |
+| Native SDL3 shell | [M2 shell](.github/workflows/m2-shell.yml) |
+| Linux graphics, images, fonts and Frame probes | [M3 OpenGL](.github/workflows/m3-gl.yml) |
+| Portable packet/script/XML/layout components | [Packets](.github/workflows/m3-packets.yml), [Lua](.github/workflows/m3-lua.yml), [FrameScript](.github/workflows/m3-framescript.yml), [XML](.github/workflows/m3-xml.yml), [layout](.github/workflows/m3-layout.yml) |
 
-The total leaves out 658 functions that IDA identifies as compiler library code and 132 import thunks.
-Most of the untagged remainder is code the build gets elsewhere: compiler-generated code (static
-initializers, template instances) that our compiler emits on its own, C runtime helpers, and third-party
-libraries that are linked from their upstream sources instead of being decompiled (FreeType, zlib, PCRE,
-parts of FMOD Ex).
+The [shell guide](docs/m2/SHELL.md#build-and-execution) covers artifact verification
+and native shell execution. For the current Linux Frame/IME probe, extract a
+verified `linux-gl` artifact and run from this checkout:
 
-## Requirements
-
-- Windows 10 or 11
-- Visual Studio 2022 with the **Desktop development with C++** workload (MSVC v143 and a Windows SDK)
-- CMake 3.21 or newer (the one that ships with Visual Studio works)
-- For Win32 builds only: [NASM](https://www.nasm.us/), on `PATH` or passed as `-DNASM_EXECUTABLE=<path>`, and
-  `DivxDecoder.dll` from your 3.3.5a client copied to `ThirdParty/DivxDecoder/` (the build copies it next to the
-  executables; the x64 build uses its own decoder instead)
-- A World of Warcraft **3.3.5a (12340)** client. No game data is included in this repository.
-
-## Building
-
-For this porting fork, all client/dependency compilation runs in GitHub Actions.
-Use the [Windows baseline workflow](.github/workflows/windows-baseline.yml) for
-the legacy client and the [M2 shell workflow](.github/workflows/m2-shell.yml) for
-the native diagnostic application. Download binaries from a passing run; native
-runtime instructions and hash verification are in [SHELL.md](docs/m2/SHELL.md).
-The following upstream Windows commands describe the runner build environment:
-
-```powershell
-git clone https://github.com/SatyPardus/wowdecomp.git
-cd wowdecomp
-
-# x64 (main target)
-cmake -S . -B build/x64 -G "Visual Studio 17 2022" -A x64
-cmake --build build/x64 --config Release --target WowClient --parallel
-
-# Win32 (optional, needs NASM)
-cmake -S . -B build/win32 -G "Visual Studio 17 2022" -A Win32
-cmake --build build/win32 --config Release --target WowClient --parallel
+```sh
+python3 Tools/Porting/run_native_gl.py \
+  --artifact /path/to/extracted-linux-gl-artifact \
+  --frame-ime --data /path/to/3.3.5a/Data \
+  --settings /tmp/wowdecomp-settings --cache /tmp/wowdecomp-cache \
+  --output /tmp/wowdecomp-ime.json --snapshot /tmp/wowdecomp-ime.ppm
 ```
 
-In-source builds are refused, so keep the build directory separate (`build/` above).
+This is a diagnostic, not a login client. It requires Linux x86-64, an X11 session
+(including Xwayland), a suitable OpenGL compatibility driver, Python 3 and the
+currently tested 12340/enUS data. Use the `linux-gl-asan` artifact with
+`--sanitizers` and separate output/settings/cache paths for strict sanitizer runs.
+Keep the entire data installation read-only and outside Git/ordinary hosted CI;
+all writable roots and reports must be outside it. The
+[clean-data inventory](docs/m2/clean-data-inventory.json) identifies the tested
+reference; representative authenticated reads do not certify every archive as stock.
 
-The client is written to `bin/Win/`:
+## Windows reference client
 
-| Target | x64 | Win32 |
-|---|---|---|
+Windows x64 remains the full-client reference. Win32 is retained for comparison
+with the original 32-bit layouts; the baseline workflow builds x64.
+
+Runtime requires Windows 10 or 11, compatible 3.3.5a (12340) data and the Visual C++
+runtime required by the artifact. The runner build environment uses Visual Studio
+2022 with **Desktop development with C++**, MSVC v143, a Windows SDK and CMake
+3.21+. Win32 additionally needs NASM and an external `DivxDecoder.dll` from the
+original client in `ThirdParty/DivxDecoder/`; x64 uses its Xvid replacement.
+
+| Target | x64 output | Win32 output |
+| --- | --- | --- |
 | `WowClient` | `WowClient64.exe` | `WowClient32.exe` |
 | `Wow` | `Wow64.exe` | `Wow32.exe` |
 
-`WowClient` is the client with a crash logger: it opens a console window and writes
-`WowClient_crash.log` when the client crashes. `Wow` is the same client without it. You can also turn the
-logger off in `WowClient` with `-DWOWCLIENT_CRASH_LOG=OFF`.
+Runner builds write client executables to `bin/Win/`. For runtime use, prepare a
+separate staging directory outside the repository and reference installations:
 
-### Options
+1. Extract the verified x64 executables and companion `XvidDecoder.dll` into it.
+2. Supply a separate copy of the matching data as `Data/`, then configure
+   `Data/<locale>/realmlist.wtf` in staging for the intended compatible server.
+3. Start `WowClient64.exe` (or `Wow64.exe`) from that directory.
+
+`WowClient` opens a console and writes `WowClient_crash.log` on a crash. `Wow` is
+the client without that logger. The [Windows runtime record](docs/m0/RUNTIME_SESSION.md)
+distinguishes reported D3D9 passes, known OpenGL failures and outstanding evidence.
 
 | CMake option | Default | Effect |
-|---|---|---|
-| `WOWDECOMP_DISABLE_SIGNATURE_CHECKS` | `OFF` | Skip the MPQ file and `.toc.sig` signature checks, so modified game data and interface files load |
-| `WOWCLIENT_CRASH_LOG` | `ON` | Build `WowClient` with the crash logger |
-| `WOWCLIENT_OUTPUT_OVERRIDE` | empty | Name the `WowClient` executable something other than `WowClient64` / `WowClient32` |
+| --- | --- | --- |
+| `WOWDECOMP_DISABLE_SIGNATURE_CHECKS` | `OFF` | When enabled, skips MPQ and `.toc.sig` verification for modified data/interfaces; baseline qualification keeps checks enabled |
+| `WOWCLIENT_CRASH_LOG` | `ON` | Enables the `WowClient` crash logger |
+| `WOWCLIENT_OUTPUT_OVERRIDE` | empty | Overrides the `WowClient64` / `WowClient32` executable name |
 
-## Running
+## Original source reconstruction
 
-1. Copy the `Data` folder of your 3.3.5a client into `bin/Win/`, so you have `bin/Win/Data/`.
-2. Point `Data/<locale>/realmlist.wtf` at the server you want to connect to.
-3. Start `bin/Win/WowClient64.exe` (or `Wow64.exe`).
+Historical upstream coverage, measured against build 12340 on **2026-10-15**:
 
-## Layout
+| Measure | Address-tagged reconstruction | Total | Share of original |
+| --- | ---: | ---: | ---: |
+| Functions | 24,515 | 27,157 | 90.3% |
+| Code bytes | 5,270,186 | 5,656,573 | 93.2% |
+
+A function counts when its original address is tagged in the source. These figures
+have not been remeasured for the native port and do not measure native readiness,
+correctness or gameplay coverage. Totals exclude 658 functions identified by IDA
+as compiler library code and 132 import thunks. Much of the untagged remainder is
+compiler-generated code, C runtime helpers or third-party code linked from source
+(including FreeType, zlib, PCRE and parts of FMOD Ex).
+
+## Repository layout and contributing
 
 | Path | Contents |
-|---|---|
-| `Engine/Source/` | Engine modules: Storm, Gx (Direct3D 9 / OpenGL), Model2, Frame/FrameXML UI, SoundEngine, Lua, ... |
-| `WoW/Source/` | Game modules: objects, world rendering, UI, networking, database, glue screens |
-| `WoW/Common/` | Code shared by the game modules |
-| `ThirdParty/` | Libraries linked from their upstream sources |
-| `Tools/WowClient/` | The `WowClient` executable target |
-| `Tools/XvidDecoder/` | x64 movie decoder that replaces the original 32-bit `DivxDecoder.dll` |
+| --- | --- |
+| `Engine/Source/` | Engine modules: Storm, Gx/Gxu, Model2, Frame/FrameXML, sound, Lua and native portability adapters |
+| `WoW/Source/` | Game objects, world rendering, UI, networking, database and glue screens |
+| `WoW/Common/` | Code shared by game modules |
+| `ThirdParty/` | Dependencies linked from their upstream sources, with their existing notices |
+| `Tools/WowClient/` | Windows client target and crash logger |
+| `Tools/XvidDecoder/` | x64 replacement for the original 32-bit `DivxDecoder.dll` |
+| `Tools/Native*/`, `Tools/Portable*/` | Native diagnostic applications and component fixtures |
+| `Tools/Porting/` | Hosted build tooling, source audits and artifact/runtime validation |
+| `docs/` | Milestone contracts, handoffs and durable validation records |
 
-## Special thanks
+Read [AGENTS.md](AGENTS.md) and [PORTING_PLAN.md](PORTING_PLAN.md) before porting
+work. Preserve original address provenance, compatibility and signature defaults;
+record imported fixes and their attribution in [BACKPORTS.md](docs/BACKPORTS.md).
+Use small synthetic fixtures in hosted CI and external original data for recorded
+runtime checks. Documentation changes need reference/whitespace checks, not a
+client rebuild.
 
+## Credits and recognition
+
+- [SatyPardus/wowdecomp](https://github.com/SatyPardus/wowdecomp) and its contributors,
+  for the original 3.3.5a reconstruction on which this fork is based.
+- [SatyPardus/wowdecomp15595](https://github.com/SatyPardus/wowdecomp15595), for the
+  4.3.4 reference and selected improvement candidates.
+- [arlyon/wowdecomp](https://github.com/arlyon/wowdecomp) and
+  [RosemyneH/wowdecomp](https://github.com/RosemyneH/wowdecomp), for native-port
+  references reviewed in [the reference audit](docs/m2/REFERENCE_REVIEW.md).
 - [binana](https://github.com/thunderbrewhq/binana)
 - [thunderbrew](https://github.com/thunderbrewhq/thunderbrew)
 - [whoa](https://github.com/whoahq/whoa)
-- TOMRUS, for the initial IDB
-- Everyone who has reported bugs so far
-- The WoW modding community
+- TOMRUS, for the initial IDB.
+- Everyone who has reported bugs and helped test builds.
+- The WoW modding community and the authors of the bundled dependencies.
