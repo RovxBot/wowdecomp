@@ -47,9 +47,49 @@ absolute/relative/setAllPoints behavior at 4:3 and 16:9. The exact CMake graph i
 audited; original signatures stay enabled. The separate Windows baseline compiles
 the full x64 client. All client/dependency compilation runs in Actions.
 
-Qualification is pending hosted results. This authored layout fixture adds no
-original-data execution, GPU/rendered output, physical-input, Windows runtime,
-macOS desktop or server acceptance. Frame font/string/region/root factories,
-disk/atlas/default image policies, actual GlueXML/login execution/rendering and
-transport/gameplay remain open. M3 remains incomplete; preserve server revision
-discrepancies and interactive user sign-in.
+## Qualification
+
+[PR #39](https://github.com/RovxBot/wowdecomp/pull/39) is qualified at
+`4aa176506079a35e81c3bf9d7108e7bff1d57df2`, merged as
+`4cf5e0e536dca1bb96f06d8a8500e7ddd293c754`. The [durable record](layout-validation.json)
+retains all thirteen passing implementation PR workflows, 15 CTest checks and
+three layout cycles per Linux release/strict ASan/UBSan/leak, actual ARM64 macOS
+and native Windows configuration. Five archive digests and all 51 packaged binary
+hashes/types were verified, including full Windows x64 compilation with signatures
+enabled at matching-tree checkout `8e4de17077fd39972148f7b0aa1101a28e711dd6`.
+The separate Linux GL workflow passed its existing release/sanitizer regressions;
+there is no new desktop GPU/rendered-output acceptance in this package.
+
+Downloaded exact-source Linux release and strict sanitizer binaries each passed
+three authored layout cycles and three unchanged original-data XML/signature
+cycles, with exit 0 and empty stderr. The XML regression authenticated original
+GlueXML/FrameXML content and parsed AccountLogin; it did not instantiate original
+Frame objects. Its shutdown reports zero workers. Original-key package RSA and
+registered-MD5 policy remain enabled. Local Python: 45 passed, one platform skip.
+No client/dependency compiled locally. The missing scalar-helper link and the
+fixture's incorrect X/Y root initialization remain failed evidence; original
+`CRect` stores Y/X. Neither correction changes the solver or disables a detector.
+
+## Next original callers
+
+1. Connect actual `CScriptObject` name/global-table ownership and original
+   `CSimpleFont`/`CSimpleFontable`/`CSimpleFontStringAttributes` factories to the
+   FrameScript and Gxu owners. Preserve borrowed script-object lifetime, inherited
+   font attributes, registered fontable lists and font handles through text blocks.
+2. Select actual `CScriptRegion`/`CSimpleRegion` and `CSimpleFontString` consumers
+   (the latter is declared in `CSimpleRender.h`), then the real `CSimpleTop` root,
+   deferred destruction, batching and SDL size/font invalidation. This initial
+   layout owner rejects destruction during resize callbacks; adapt the root's
+   deferred destruction before enabling those callers.
+3. Adapt `CSimpleTexture::SetTexture`'s `0x17` disk/atlas/priority request, actual
+   image modes and `TextureGetAtlasInfo` coordinates. Preserve explicit supported
+   source lookup/default filtering and diagnose unsupported TGA/streaming policy.
+4. Connect original FrameXML factories, retained virtual templates and ordered Lua
+   execution. Preserve raw signed traversal order and the second content-digest
+   comparison in `CGlueMgr::Resume` before FRAMES_LOADED. Execute/render actual
+   original GlueXML/login before the user's interactive sign-in.
+
+This authored layout fixture adds no original-data Frame layout/rendering,
+physical-input, Windows runtime, macOS desktop or server acceptance. Transport,
+authentication and observed gameplay remain open. M3 is incomplete; preserve
+server revision discrepancies and interactive user sign-in.

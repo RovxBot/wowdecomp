@@ -397,11 +397,26 @@ The service now accepts explicit authored mip filters, local wait 2 and UI prior
 requires disk/atlas adaptation; TGA/default-policy/streaming and actual original
 Frame/GlueXML/login remain open. The PR #35 identities above remain historical.
 
+The [original Frame layout prerequisite](LAYOUT.md) in
+[PR #39](https://github.com/RovxBot/wowdecomp/pull/39) is qualified at
+`4aa176506079a35e81c3bf9d7108e7bff1d57df2`, merged as
+`4cf5e0e536dca1bb96f06d8a8500e7ddd293c754`. Its [record](layout-validation.json)
+retains thirteen passing implementation workflows, 15 CTest checks/three authored
+layout cycles in each of four native configurations, full Windows x64 compilation
+at matching-tree checkout `8e4de17077fd39972148f7b0aa1101a28e711dd6`,
+five verified archives and all 51 executable hashes/types. Original layout/anchor,
+resize-list and XML coordinate consumers now have native ownership, initialized
+flags, bounded graphs and transitive rectangle invalidation. Downloaded Linux
+release/strict sanitizer layout and original-data XML/signature regressions each
+passed three cycles with empty stderr. Original Frame factories/login rendering
+are still open; this adds no GPU, input, Windows runtime, macOS desktop or server
+acceptance. Original signatures and interactive sign-in remain intact.
+
 Next dependencies, in order:
 
 1. Connect original Frame font/string consumers and factories to the qualified
-   Gxu/Services owners, beginning with original layout/anchor ownership and the
-   [concrete source prerequisites](IMAGE_MIPS.md#next-original-frame-callers).
+   Gxu/Services owners, following the qualified [layout/anchor ownership](LAYOUT.md)
+   and its concrete next-caller audit.
    Adapt actual Frame image callers to the bounded image
    service; retain their flags/readiness/atlas contracts. Extend device/state/
    mip/texture contracts as their callers require them; audit texture/texgen

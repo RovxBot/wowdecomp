@@ -524,6 +524,33 @@ and source inspection are different evidence levels.
   not world rendering. Local source audit: 43 passed, one platform skip. All
   compilation ran in Actions. PR #35 identities/failures remain historical.
 
+## NP-019 — Original Frame layout/anchor ownership in the native ABI
+
+- Status: qualified in [PR #39](https://github.com/RovxBot/wowdecomp/pull/39) at
+  `4aa176506079a35e81c3bf9d7108e7bff1d57df2`, merged as
+  `4cf5e0e536dca1bb96f06d8a8500e7ddd293c754`. See [contracts](m3/LAYOUT.md)
+  and [durable validation](m3/layout-validation.json). M3 remains open.
+- Source: product main `7add229c943a98ed5a038046eb4115e30fbf5043`, following
+  image mip PR #37 and closeout #38. Select original 12340 CLayoutFrame/CFramePoint,
+  coordinate/rectangle consumers, shared original LoadXML anchor/dimension and
+  scalar comparison bodies. No donor body, new OFFSET/VERIFY claim or dependency.
+- Adaptation: owner-thread XML/VM lease, object/point/pool accounting, initialized
+  native flags/portable RTTI, unsigned anchor checks, finite dimensions/scales,
+  bounded acyclic anchor graphs and transitive invalidation after origin destruction.
+  Original solver, scaling/clamping/protection/deferred ordering remain selected;
+  Windows bodies remain intact. Root factories/deferred destruction are next.
+- Assets/defaults: authored layout/XML geometry. Original-data XML/signature
+  regressions stay separate from original Frame construction or rendering. No data,
+  protocol, asset enhancement, credential or server-policy change. Original package
+  and InterfaceKey authentication/registered MD5 checks remain enabled.
+- Validation: thirteen passing implementation PR workflows; four native layouts
+  passed 15 CTest checks/three cycles each, including strict Linux sanitizers and
+  actual ARM64 execution. Full Windows x64 compiled with signatures enabled.
+  Five archives/all 51 binary hashes/types verified. Downloaded Linux layout and
+  original-data XML/signature checks each passed three cycles per mode, exit 0,
+  empty stderr. Prior missing-helper link and authored CRect field-order failures
+  remain recorded. No new GPU/input/desktop/server or gameplay acceptance.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
