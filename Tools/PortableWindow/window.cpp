@@ -99,6 +99,29 @@ int main() {
                 Check(e.id != OS_INPUT_CHAR, "IME commit duplicated as characters");
             }
             Check(compositions == 2 && commits == 1, "Composition/commit delivery count failed");
+            // A candidate list can outlive empty composition text. Focus loss
+            // must still publish an end event with an empty retained snapshot.
+            const char* candidates[] = {"\xe4\xb8\xad"};
+            event = {};
+            event.type = SDL_EVENT_TEXT_EDITING_CANDIDATES;
+            event.edit_candidates.candidates = candidates;
+            event.edit_candidates.num_candidates = 1;
+            event.edit_candidates.selected_candidate = 0;
+            Send(event, id);
+            event = {};
+            event.type = SDL_EVENT_WINDOW_FOCUS_LOST;
+            Send(event, id);
+            window.Pump();
+            bool candidateOpened = false, candidateEnded = false;
+            while (OsQueueGet(&e.id, &e.param[0], &e.param[1], &e.param[2], &e.param[3])) {
+                if (e.id != OS_INPUT_IME) continue;
+                if (e.param[0] == 3) {
+                    candidateOpened = window.CurrentComposition().candidates.size() == 1;
+                } else if (e.param[0] == 6) {
+                    candidateEnded = window.CurrentComposition().candidates.empty();
+                }
+            }
+            Check(candidateOpened && candidateEnded, "Candidate-only focus cancellation failed");
             Check(OsClipboardPutString("fixture \xc3\xa9 \xf0\x9f\x98\x80"), "Clipboard write failed");
             auto clipboard = OsClipboardGetString();
             Check(clipboard && std::string(clipboard) == "fixture \xc3\xa9 \xf0\x9f\x98\x80",

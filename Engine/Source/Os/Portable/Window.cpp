@@ -228,7 +228,7 @@ void ReleaseInput(WindowState &state) {
             throw std::runtime_error(SDL_GetError());
         state.relative = false;
     }
-    if (!state.editing.text.empty()) {
+    if (!state.editing.text.empty() || !state.editing.candidates.empty()) {
         state.editing = {};
         Push(OS_INPUT_IME, 6);
     }
