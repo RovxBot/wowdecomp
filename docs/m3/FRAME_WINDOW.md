@@ -14,6 +14,10 @@ callback receives a `CSizeEvent`. Pending layout finishes before subsequent root
 batching. Logical dimensions remain the Gxu/layout metrics; drawable pixels remain
 the Gx target extent. Zero dimensions defer mutation until a later size event.
 Bound offscreen targets retain their ownership through the existing Gx size path.
+The host must establish the original coordinate aspect before constructing fonts
+and layout, as `CGlueMgr::Resume` does. The probe now performs that startup step;
+literal default DDC scales differ from recomputed 4:3 by one float ULP and must not
+be mixed with the resize path's computed baseline.
 
 Delivery belongs to the current context and root owner outside update, collection,
 draw and resize callbacks. The screen traversal now holds a resize guard, including

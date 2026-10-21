@@ -337,6 +337,11 @@ int main(int argc,char** argv) {
                 std::cout<<"gl-renderer="<<context.Info().renderer<<"\ngl-version="<<context.Info().version<<'\n';
                 Source source(data,settings,cache,font);
                 LegacyDevice device(context,[&](const std::string& path){return source.shaders.at(path);});
+                // Match CGlueMgr::Resume: establish the original coordinate math
+                // before font/layout construction, including the first cycle.
+                // Literal default scales differ from computed 4:3 by one float ULP.
+                int w,h,pw,ph;context.Window().Size(w,h,pw,ph);
+                CoordinateSetAspectRatio(float(w)/float(h));
                 GxRsSet(GxRs_Lighting,0);GxRsSet(GxRs_Fog,0);GxRsSet(GxRs_Culling,0);
                 FrameScript::Native::Runtime scripts([&](FrameScript::Native::SourceKind kind,const std::string& path,Bytes& bytes){return kind==FrameScript::Native::SourceKind::Interface && source.Read(path,bytes);});
                 FrameXML::Native::Runtime xml;Frame::Native::Runtime layout;
