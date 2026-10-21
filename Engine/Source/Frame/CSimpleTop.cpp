@@ -1135,11 +1135,19 @@ int32_t CSimpleTop::OnDisplaySizeChanged(const void* data, void* param) {
     if (param != CSimpleTop::s_instance || !data) throw std::invalid_argument("Invalid native size event");
     auto* top = CSimpleTop::s_instance;
     Frame::Native::RequireTreeMutation();
+    Frame::Native::ResizeScope scope;
+    const CRect oldRect = top->m_rect;
     NDCToDDC(1.0f, 1.0f, &top->m_rect.maxX, &top->m_rect.maxY);
     GxuFontWindowSizeChanged();
-    top->OnFrameSizeChanged(top->m_rect);
+    top->OnFrameSizeChanged(oldRect);
     for (auto* frame = top->m_frames.Head(); frame; frame = top->m_frames.Next(frame))
         frame->OnScreenSizeChanged();
+    if (top->m_displaySizeCallback) {
+        CSizeEvent evt;
+        evt.m_data = *static_cast<const EVENT_DATA_SIZE*>(data);
+        evt.m_id = 0x40040064;
+        top->m_displaySizeCallback(evt);
+    }
     CLayoutFrame::ResizePending();
     return 1;
 #else

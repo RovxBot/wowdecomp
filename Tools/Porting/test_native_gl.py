@@ -89,8 +89,8 @@ class NativeGlGraphTests(unittest.TestCase):
     def test_regions_select_root_and_reject_unselected_script_factories(self):
         target = self.target('WowNativeFrameRegions', 'Engine/Source/Frame/CScriptRegion.cpp')
         target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
-            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CFrameStrataNode', 'Portable/Hierarchy']]
-        target['sources'].append({'path': 'Engine/Source/Services/ScreenProjection.cpp'})
+            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
+        target['sources'] += [{'path': path} for path in ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp']]
         message = 'WowNativeFrameRegions: unexpected native Frame region source/ABI'
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         for name in ['CSimpleFrame_Scripts', 'CSimpleTexture', 'CSimpleFontString_Scripts', 'CSimpleAnimGroup']:
@@ -236,6 +236,20 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertEqual(json.loads(self.output.read_text())['probe'], 'NativeFrameHierarchyCheck')
         binary.write_text('tampered')
         result = self.run_wrapper('--frame-hierarchy')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_frame_window_selects_event_mode_and_checks_hierarchy_binary(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('import sys\nassert sys.argv[1:] == ["--window-events"]\n', 'NativeFrameHierarchyCheck')
+        result = self.run_wrapper('--frame-window')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(json.loads(self.output.read_text())['frame_window_events'])
+        result = self.run_wrapper('--frame-window', '--frame-hierarchy')
+        self.assertNotEqual(result.returncode, 0)
+        binary.write_text('tampered')
+        result = self.run_wrapper('--frame-window')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())

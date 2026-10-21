@@ -29,6 +29,8 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/CSimpleTop.cpp
     ../Frame/CFrameStrataNode.cpp
     ../Frame/Portable/Hierarchy.cpp
+    ../Frame/Portable/WindowEvents.cpp
+    ../Event/CEvent.cpp
     ../Services/ScreenProjection.cpp)
 target_link_libraries(WowNativeFrameRegions PUBLIC WowNativeFrameRender)
 add_executable(NativeFrameHierarchyCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameHierarchy/main.cpp)
@@ -49,6 +51,10 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeFrameRegionsCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_test(NAME native-frame-sdl-size COMMAND NativeFrameHierarchyCheck
+        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf --window-events)
+    set_tests_properties(native-frame-sdl-size PROPERTIES TIMEOUT 120
+        ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_test(NAME native-frame-parent-root COMMAND NativeFrameHierarchyCheck
         --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf)
     set_tests_properties(native-frame-parent-root PROPERTIES TIMEOUT 120
