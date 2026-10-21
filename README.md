@@ -84,6 +84,11 @@ complete original BLP2 mip chains, explicit mip filters, local wait 2 and UI rea
 priority, with hosted and RX 7900 XTX release/strict sanitizer checks. Frame's
 disk/atlas contracts and actual original login rendering remain open.
 
+The [original Frame layout prerequisite](docs/m3/LAYOUT.md) now qualifies actual
+anchor/resize/XML dimension consumers on Linux release/strict sanitizers, native
+ARM64 macOS and Windows. Frame factories, disk/atlas image contracts and actual
+original GlueXML/login rendering remain open; M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed

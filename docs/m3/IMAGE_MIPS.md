@@ -83,10 +83,10 @@ the external server revision discrepancy and interactive sign-in preference stay
 
 ## Next original Frame callers
 
-The first bounded Frame package should select actual `CLayoutFrame.cpp` and
-`CFramePoint.cpp`, then connect font/string/region factories through the qualified
-FrameScript/XML/Gxu owners. Source inspection identifies prerequisites to resolve
-before exposing those objects:
+The subsequent [layout package](LAYOUT.md) now qualifies actual `CLayoutFrame.cpp`
+and `CFramePoint.cpp`. Font/string/region/root factories and disk/atlas image
+contracts remain next. The initial source audit below records the prerequisites
+that layout work resolved, without replacing this image package's historical scope:
 
 - `CLayoutFrame` preserves uninitialized bits of `m_layoutFlags` in its constructor;
   `CFramePoint` reads uninitialized `m_flags`, and its allocator uses MSVC-only

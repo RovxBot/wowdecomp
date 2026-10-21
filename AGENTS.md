@@ -389,6 +389,27 @@ it does not turn a documentation request into authorization to start the whole p
   and gameplay remain open. No new physical-input, Windows runtime, macOS graphics
   or server acceptance. M3 remains incomplete; signatures, server revision
   discrepancies and interactive user sign-in stay intact.
+- M3 original layout [PR #39](https://github.com/RovxBot/wowdecomp/pull/39) is
+  qualified at `4aa176506079a35e81c3bf9d7108e7bff1d57df2`, merged as
+  `4cf5e0e536dca1bb96f06d8a8500e7ddd293c754`. Read [layout contracts/next callers](docs/m3/LAYOUT.md)
+  and [validation](docs/m3/layout-validation.json). Thirteen implementation PR
+  workflows passed; Linux release/strict ASan/UBSan/leak, actual ARM64 macOS and
+  native Windows each passed 15 CTest checks/three layout cycles. Full Windows
+  x64 compiled with signatures enabled at matching-tree checkout
+  `8e4de17077fd39972148f7b0aa1101a28e711dd6`. Five archive digests and all 51
+  packaged binary hashes/types were verified. Downloaded Linux release/strict
+  sanitizer layout and original-data XML/signature checks each passed three cycles
+  with empty stderr; XML workers reached zero. Original CLayoutFrame/CFramePoint
+  solver, resize lists and absolute/relative XML dimensions now have native owner
+  and pool lifetime, initialized flags, unsigned index checks, graph bounds and
+  transitive failed-rectangle invalidation. Close objects outside resize callbacks
+  before layout, XML and VM owners. Preserve original CRect Y/X order and scalar
+  comparison epsilon; prior link/fixture failures remain recorded. This is authored
+  layout, not original-data Frame layout/rendering. Actual font/string/region/root
+  factories, disk/atlas/default image policy, GlueXML/login and transport/gameplay
+  remain open. No new GPU, physical-input, Windows runtime, macOS desktop or server
+  acceptance. M3 stays open; preserve signatures/server discrepancies/interactive
+  user sign-in.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The

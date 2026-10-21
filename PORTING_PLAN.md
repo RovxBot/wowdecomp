@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-20. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-21. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -415,6 +415,21 @@ and empty stderr. [Evidence](docs/m3/image-mip-validation.json) remains separate
 from earlier mip-zero image qualification. Original Frame layout/factories,
 disk/atlas/TGA contracts and actual original GlueXML/login remain open; M3 is
 incomplete and no gameplay/session acceptance is implied.
+
+The [original Frame layout prerequisite](docs/m3/LAYOUT.md) in
+[PR #39](https://github.com/RovxBot/wowdecomp/pull/39) is qualified at
+`4aa176506079a35e81c3bf9d7108e7bff1d57df2`, merged as
+`4cf5e0e536dca1bb96f06d8a8500e7ddd293c754`. Its [record](docs/m3/layout-validation.json)
+retains thirteen passing implementation workflows, 15 CTest checks/three authored
+layout cycles in each of four native configurations, full Windows x64 compilation
+at matching-tree checkout `8e4de17077fd39972148f7b0aa1101a28e711dd6`,
+five verified archives and all 51 executable hashes/types. Original layout/anchor,
+resize-list and XML coordinate consumers now have native ownership, initialized
+flags, bounded graphs and transitive rectangle invalidation. Downloaded Linux
+release/strict sanitizer layout and original-data XML/signature regressions each
+passed three cycles with empty stderr. Original Frame factories/login rendering
+are still open; this adds no GPU, input, Windows runtime, macOS desktop or server
+acceptance. Original signatures and interactive sign-in remain intact.
 
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit

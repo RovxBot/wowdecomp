@@ -1,0 +1,1096 @@
+{
+  "schema_version": 1,
+  "milestone": "M3",
+  "recorded_on": "2026-10-21",
+  "reporting_timezone": "Australia/Adelaide",
+  "status": "Original authored Frame layout/anchor/XML coordinate consumers qualified; actual Frame factories, disk/atlas image contracts, GlueXML/login rendering, transport and observed gameplay remain open.",
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/39",
+  "implementation_head": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+  "implementation_tree": "46c5c6fc5bc870f1593c45f8bda7dc9fbdb6c35c",
+  "starting_parent": "7add229c943a98ed5a038046eb4115e30fbf5043",
+  "merge_commit": "4cf5e0e536dca1bb96f06d8a8500e7ddd293c754",
+  "merged_at": "2026-10-21T00:03:36Z",
+  "hosted_checkout": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+  "hosted_checkout_tree": "46c5c6fc5bc870f1593c45f8bda7dc9fbdb6c35c",
+  "hosted_pr_workflows": [
+    {
+      "id": 39518065080,
+      "name": "M3 product Lua runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065080"
+    },
+    {
+      "id": 39518065137,
+      "name": "M0 source audit",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065137"
+    },
+    {
+      "id": 39518065096,
+      "name": "M3 native packet prerequisites",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065096"
+    },
+    {
+      "id": 39518065245,
+      "name": "M2 native file services",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065245"
+    },
+    {
+      "id": 39518065335,
+      "name": "M1 portable core",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065335"
+    },
+    {
+      "id": 39518065059,
+      "name": "M2 native asset services",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065059"
+    },
+    {
+      "id": 39518065679,
+      "name": "M3 original Frame layout",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065679"
+    },
+    {
+      "id": 39518065265,
+      "name": "M2 native asynchronous files",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065265"
+    },
+    {
+      "id": 39518065320,
+      "name": "M3 original FrameScript runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065320"
+    },
+    {
+      "id": 39518065221,
+      "name": "M3 original XML runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065221"
+    },
+    {
+      "id": 39518065155,
+      "name": "M2 native SDL3 shell",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065155"
+    },
+    {
+      "id": 39518065383,
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065383"
+    },
+    {
+      "id": 39518065367,
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "4aa176506079a35e81c3bf9d7108e7bff1d57df2",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065367"
+    }
+  ],
+  "hosted_layout": {
+    "ctest_checks": {
+      "linux-layout-asan": 15,
+      "linux-layout": 15,
+      "macos-arm64-layout": 15,
+      "windows-layout": 15
+    },
+    "cycles_per_configuration": 3,
+    "actual_arm64_execution": true,
+    "source_graph": "Exact native allowlist passed in all four configurations; signatures remain enabled",
+    "scope": "Authored layout geometry and XML dimensions, no original-data Frame construction or rendering"
+  },
+  "verified_packages": [
+    {
+      "artifact_id": 12310120743,
+      "name": "m3-linux-layout-asan-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "archive_sha256": "32caaf680c6543661610c4a41b77bffdb779553b6777ea286e15beed520ea5a6",
+      "archive_digest_verified": true,
+      "workflow_run": 39518065679,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 original Frame layout/anchors/XML dimensions; no Frame factories/login/gameplay",
+        "source_commit": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+        "preset": "linux-layout-asan",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065679",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "host_machine": "x86_64",
+        "runner_arch": "X64",
+        "runner_image": "20261012.334.1",
+        "status": "Hosted original layout semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/expat-COPYING",
+            "sha256": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864"
+          },
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LAYOUT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_XML:BOOL=ON",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=ON",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLayoutCheck",
+            "sha256": "d9ab0d6376651a40c3652dd62a98ab90ece640e98ef42a702a1ab1e288060869"
+          },
+          {
+            "name": "NativeXMLCheck",
+            "sha256": "545998c8b13098161d4abee09106fb3ed2dbf5f9627b629738c6ddea46a2a6e3"
+          },
+          {
+            "name": "NativeFrameScriptCheck",
+            "sha256": "39cb785b4ad22816d14a1e6364147fd7d96419df646a4f20617694e7ac4e9b7a"
+          },
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "8b09cb8541fc63f6f14ef35746f1a812b937fcd861e327bd4c5acdb827ef5509"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "5253c0d4f7691761f144d9306b45f426084217fd36b529001c4d9f1d0a9918ba"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "a86508cd460214c31d74fad656a228b366053c59fe1823058bcd9dcfbea8c70f"
+          }
+        ]
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeLayoutCheck",
+          "sha256": "d9ab0d6376651a40c3652dd62a98ab90ece640e98ef42a702a1ab1e288060869",
+          "bytes": 6265720,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=bd7a638a2820948bda3c97931560f31d4466947f, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeXMLCheck",
+          "sha256": "545998c8b13098161d4abee09106fb3ed2dbf5f9627b629738c6ddea46a2a6e3",
+          "bytes": 8407688,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=bc38af732d403dfc58c035fd08a8a9391106c968, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck",
+          "sha256": "39cb785b4ad22816d14a1e6364147fd7d96419df646a4f20617694e7ac4e9b7a",
+          "bytes": 6672712,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6967de9480d7e0cb01f07be06bd9d331f631863d, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeLuaCheck",
+          "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc",
+          "bytes": 3762200,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=22d9c66997e790f25dddb4cdcca67729ac9a1609, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeCore",
+          "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd",
+          "bytes": 1811280,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3db694adb3ea7ad2657ae590ea8f5e27973e6081, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/CoreServicesCheck",
+          "sha256": "8b09cb8541fc63f6f14ef35746f1a812b937fcd861e327bd4c5acdb827ef5509",
+          "bytes": 2126336,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b8be6b63741d2f22b727533f9c68535ea67d044d, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PortableCoreCheck",
+          "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40",
+          "bytes": 26000,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a20cc7279be55f836e54dd568307c4a6debcd658, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/FileServicesCheck",
+          "sha256": "82e928b44b4ed999dbf5976ccd2e1be490212fbf7ea2a3d0493989f1f0bf5f4f",
+          "bytes": 1960088,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6731fbbaf424c44728b59bed187ddbc443217de6, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PackageServicesCheck",
+          "sha256": "cd15a22e9e5df4409cc8b54f151416500baeecc8545bc53ae80e56302b5580d7",
+          "bytes": 3983992,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2ed1e2da6821408e1e10aa97d276007720472114, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/AssetDecodersCheck",
+          "sha256": "5253c0d4f7691761f144d9306b45f426084217fd36b529001c4d9f1d0a9918ba",
+          "bytes": 1892816,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e8bf821994478206a4533c446a7b3062922e385a, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeAssetCheck",
+          "sha256": "34874486af68b3ac9a477c015dc3219e63d7d3f1cba4560c569c5553e468822c",
+          "bytes": 4017288,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=48e4ea76f28e4cf931103425d626d9d3a8f5db59, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/AsyncFileCheck",
+          "sha256": "a86508cd460214c31d74fad656a228b366053c59fe1823058bcd9dcfbea8c70f",
+          "bytes": 4256848,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=42e704c077c1130e0761392680212f15bff5a348, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "extracted_to": "/tmp/m3-layout-evidence/m3-linux-layout-asan-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "ctest_detail_sha256": "7d53475f3fd9a483f690818cd534b3cb20ca480cd506bab1bcecf01024df73ac"
+    },
+    {
+      "artifact_id": 12309375751,
+      "name": "m3-linux-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "archive_sha256": "256838caceff31edfa240885012960fed0abad7058c48fce16477cb459cdd4a2",
+      "archive_digest_verified": true,
+      "workflow_run": 39518065679,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 original Frame layout/anchors/XML dimensions; no Frame factories/login/gameplay",
+        "source_commit": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+        "preset": "linux-layout",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065679",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "host_machine": "x86_64",
+        "runner_arch": "X64",
+        "runner_image": "20261018.339.1",
+        "status": "Hosted original layout semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/expat-COPYING",
+            "sha256": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864"
+          },
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LAYOUT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_XML:BOOL=ON",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLayoutCheck",
+            "sha256": "4b3a53eb443890adfc72be0a3b87a47e844ff3410f66d9cc99fb57950c67820d"
+          },
+          {
+            "name": "NativeXMLCheck",
+            "sha256": "756fef0b7edbbe70f37c860795ea47287e3b73e4cf36b3ea30553fdb54f9f01b"
+          },
+          {
+            "name": "NativeFrameScriptCheck",
+            "sha256": "fc124bacf676a58f6eac4e884ed0ea17d3ee93d3d66f8bdaf1763dc09f37140f"
+          },
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "6ee516a989093055b07c0e8b6e8c6df6bc0c351f20d815ab1c04f096253afd7d"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "12dff84e8bb7c46b313b241b05b0cf251e54b477cf82cbba97be9dac57d9eca4"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "fb54240630f055ab0923c97e9e156a87c32fefc410116db92583688913d66957"
+          }
+        ]
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeLayoutCheck",
+          "sha256": "4b3a53eb443890adfc72be0a3b87a47e844ff3410f66d9cc99fb57950c67820d",
+          "bytes": 625240,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2b4204c79eed6ea0c07b7692b621cd1453860e3b, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeXMLCheck",
+          "sha256": "756fef0b7edbbe70f37c860795ea47287e3b73e4cf36b3ea30553fdb54f9f01b",
+          "bytes": 950216,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b27b997e363aa5149209849802ca3ae32ef1b369, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck",
+          "sha256": "fc124bacf676a58f6eac4e884ed0ea17d3ee93d3d66f8bdaf1763dc09f37140f",
+          "bytes": 743528,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=d4b27578834762d5e6f661fb239ad58a51425bf8, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeLuaCheck",
+          "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f",
+          "bytes": 268672,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=eb054e461ec7771967b166b23c00afb060db1e58, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeCore",
+          "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b",
+          "bytes": 67680,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a5373af6fed27517bb5956db6affc1a34a26ac84, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/CoreServicesCheck",
+          "sha256": "6ee516a989093055b07c0e8b6e8c6df6bc0c351f20d815ab1c04f096253afd7d",
+          "bytes": 139784,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=f7a014a3ea03ab71e0dcb11df3d61fb92310d0a4, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PortableCoreCheck",
+          "sha256": "2236670d986302ec1194067e1ff2de76b3c32276f3805ef694ba5f937f996a40",
+          "bytes": 26000,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a20cc7279be55f836e54dd568307c4a6debcd658, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/FileServicesCheck",
+          "sha256": "9b81494413ecbe13e1c83c4893c57458f88aa0866371781c01b1a618599f735d",
+          "bytes": 138544,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7c621122bcfc27cf2a351ca1c4da54596d8b7c72, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/PackageServicesCheck",
+          "sha256": "6a29fcdfaaf5d115704ff6813efcba9f1fc84b1058b5c8141b3ec5ec4f53eb76",
+          "bytes": 375896,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=739d816b19366fd74c8082fc693eed88ed4b9031, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/AssetDecodersCheck",
+          "sha256": "12dff84e8bb7c46b313b241b05b0cf251e54b477cf82cbba97be9dac57d9eca4",
+          "bytes": 99104,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2159de6282743a158ecb1574269393bb3b7ba588, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/NativeAssetCheck",
+          "sha256": "633e69681ecd2f39bacb8e09b3f25e3757c641bf13f34116316c671de890e158",
+          "bytes": 374160,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=fe4bbdf7ebc5bdf79338988f1147d347755a35bc, for GNU/Linux 3.2.0, not stripped"
+        },
+        {
+          "path": "bin/AsyncFileCheck",
+          "sha256": "fb54240630f055ab0923c97e9e156a87c32fefc410116db92583688913d66957",
+          "bytes": 443664,
+          "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=d0d3b008437c8155a65629d5fe9e71830699ac74, for GNU/Linux 3.2.0, not stripped"
+        }
+      ],
+      "extracted_to": "/tmp/m3-layout-evidence/m3-linux-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "ctest_detail_sha256": "7ce9920a949ad2145a5f93500dd2388481ea4eb98652d35a0df9f69e1619f914"
+    },
+    {
+      "artifact_id": 12308492513,
+      "name": "m3-macos-arm64-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "archive_sha256": "72590edd8342e287badf2381d67e1baeeb87de34a0b2493b10700c44400d3ca0",
+      "archive_digest_verified": true,
+      "workflow_run": 39518065679,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 original Frame layout/anchors/XML dimensions; no Frame factories/login/gameplay",
+        "source_commit": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+        "preset": "macos-arm64-layout",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065679",
+        "target_os": "MACOS",
+        "target_cpu": "ARM64",
+        "host_machine": "arm64",
+        "runner_arch": "ARM64",
+        "runner_image": "20260831.0302.1",
+        "status": "Hosted original layout semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/expat-COPYING",
+            "sha256": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864"
+          },
+          {
+            "path": "notices/lua.h",
+            "sha256": "b4c273cf7dd2d417f4724b5f904e54a66e2a2ab87afbc88ab6a228bb4fbd0639"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:STRING=Release",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_C_COMPILER:STRING=/usr/bin/clang",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LAYOUT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_XML:BOOL=ON",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Ninja"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLayoutCheck",
+            "sha256": "63af0b4c3f2164841e7a488e1c5a5c9b327b62f69b399449bf94358b5227293d"
+          },
+          {
+            "name": "NativeXMLCheck",
+            "sha256": "09322184c1acbccfc4899a41421380978f3e856435766947d64524781745f5c9"
+          },
+          {
+            "name": "NativeFrameScriptCheck",
+            "sha256": "ab8a418311327a0aee315a436e444342ec079ec114e938ce2322f4a7df20fda4"
+          },
+          {
+            "name": "NativeLuaCheck",
+            "sha256": "6f764c574464fc4825f89b981fc6cf01d68f8d8eb4778c2b4d76401f85436894"
+          },
+          {
+            "name": "NativeCore",
+            "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533"
+          },
+          {
+            "name": "CoreServicesCheck",
+            "sha256": "16cc40b0942e917de102306246fa66c43a2de7750adf1ce23810bb5ba5339d73"
+          },
+          {
+            "name": "PortableCoreCheck",
+            "sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2"
+          },
+          {
+            "name": "FileServicesCheck",
+            "sha256": "daf0ec4736fef8f084104706cdabed6c0604274c432c9e53126bd8a337f86c13"
+          },
+          {
+            "name": "PackageServicesCheck",
+            "sha256": "692998c401ac6414e050a7cacb4103d366e329906f5dac1037b894ae75f1e468"
+          },
+          {
+            "name": "AssetDecodersCheck",
+            "sha256": "97361d661a923d2f18bf5440a18d36903c43a4be8a0539aab3d6a75c5a9801e2"
+          },
+          {
+            "name": "NativeAssetCheck",
+            "sha256": "b0e428bb1a828cccaaed910771f07e89fe6ac79115e17ae2d3c7a7166d40a630"
+          },
+          {
+            "name": "AsyncFileCheck",
+            "sha256": "49102b34292adf6356713b58bfa356cf5e4420e9bbfd63d8b0ab5576fd756673"
+          }
+        ]
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeLayoutCheck",
+          "sha256": "63af0b4c3f2164841e7a488e1c5a5c9b327b62f69b399449bf94358b5227293d",
+          "bytes": 575728,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/NativeXMLCheck",
+          "sha256": "09322184c1acbccfc4899a41421380978f3e856435766947d64524781745f5c9",
+          "bytes": 869328,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck",
+          "sha256": "ab8a418311327a0aee315a436e444342ec079ec114e938ce2322f4a7df20fda4",
+          "bytes": 708264,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/NativeLuaCheck",
+          "sha256": "6f764c574464fc4825f89b981fc6cf01d68f8d8eb4778c2b4d76401f85436894",
+          "bytes": 268224,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/NativeCore",
+          "sha256": "c2cf3a69a8eef3c3684ea5bd4cca6214fa591a5c67a3066a911d0cb4598d7533",
+          "bytes": 101624,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/CoreServicesCheck",
+          "sha256": "16cc40b0942e917de102306246fa66c43a2de7750adf1ce23810bb5ba5339d73",
+          "bytes": 191424,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/PortableCoreCheck",
+          "sha256": "75c55ad65aa6849e651af17da21db9d9ab4c3a9384d0e65dd1f8eeba9b4e17a2",
+          "bytes": 52496,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|BINDS_TO_WEAK|PIE>"
+        },
+        {
+          "path": "bin/FileServicesCheck",
+          "sha256": "daf0ec4736fef8f084104706cdabed6c0604274c432c9e53126bd8a337f86c13",
+          "bytes": 142896,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/PackageServicesCheck",
+          "sha256": "692998c401ac6414e050a7cacb4103d366e329906f5dac1037b894ae75f1e468",
+          "bytes": 349064,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/AssetDecodersCheck",
+          "sha256": "97361d661a923d2f18bf5440a18d36903c43a4be8a0539aab3d6a75c5a9801e2",
+          "bytes": 134704,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/NativeAssetCheck",
+          "sha256": "b0e428bb1a828cccaaed910771f07e89fe6ac79115e17ae2d3c7a7166d40a630",
+          "bytes": 352224,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        },
+        {
+          "path": "bin/AsyncFileCheck",
+          "sha256": "49102b34292adf6356713b58bfa356cf5e4420e9bbfd63d8b0ab5576fd756673",
+          "bytes": 464192,
+          "machine": "Mach-O 64-bit arm64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE|HAS_TLV_DESCRIPTORS>"
+        }
+      ],
+      "extracted_to": "/tmp/m3-layout-evidence/m3-macos-arm64-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "ctest_detail_sha256": "df46d944b2e0ac821a9c4bb18b26b9f79841461be2c6dd0190d83f5db801fcd1"
+    },
+    {
+      "artifact_id": 12308432777,
+      "name": "m3-windows-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "archive_sha256": "d8b628ee8a93253c38d8fa512d4228a92a5eb708a129d08ddbcc9248b9e25a57",
+      "archive_digest_verified": true,
+      "workflow_run": 39518065679,
+      "manifest": {
+        "schema_version": 1,
+        "scope": "M3 original Frame layout/anchors/XML dimensions; no Frame factories/login/gameplay",
+        "source_commit": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+        "preset": "windows-layout",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065679",
+        "target_os": "WINDOWS",
+        "target_cpu": "X86_64",
+        "host_machine": "AMD64",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "status": "Hosted original layout semantics passed; transport/authentication/gameplay remain open",
+        "notices": [
+          {
+            "path": "notices/expat-COPYING",
+            "sha256": "0af67be817fff8a534840b54983d7040763718c1d268fcd1acf7d020e26c2b62"
+          },
+          {
+            "path": "notices/lua.h",
+            "sha256": "1f0ab5c910b0e8ff1522396e2095198a780f07ae8b459cc8484ba6eb80d4a41d"
+          }
+        ],
+        "toolchain_cache": [
+          "CMAKE_BUILD_TYPE:UNINITIALIZED=Release",
+          "WOWDECOMP_BUILD_CLIENT:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_ASSETS:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_ASYNC:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FILES:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_GL:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_LAYOUT:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_LUA:BOOL=ON",
+          "WOWDECOMP_BUILD_NATIVE_PACKETS:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_WINDOW:BOOL=OFF",
+          "WOWDECOMP_BUILD_NATIVE_XML:BOOL=ON",
+          "WOWDECOMP_BUILD_PORTABLE_CORE:BOOL=ON",
+          "WOWDECOMP_CORE_SANITIZERS:BOOL=OFF",
+          "WOWDECOMP_DISABLE_SIGNATURE_CHECKS:BOOL=OFF",
+          "CMAKE_GENERATOR:INTERNAL=Visual Studio 17 2022"
+        ],
+        "binaries": [
+          {
+            "name": "NativeLayoutCheck.exe",
+            "sha256": "8edc6f62cf2b0376f8073eaf788c5d4efb7340c2b2b68b1fb31e3bc95422bb10"
+          },
+          {
+            "name": "NativeXMLCheck.exe",
+            "sha256": "2e750404ead28aeb7c10b7a1e2193a0067b3ac55d18f1a0bd90f43c64ae5269b"
+          },
+          {
+            "name": "NativeFrameScriptCheck.exe",
+            "sha256": "71d2dc022e07390b65189bec64a96df648b2cb65fdf9a64357e4e7916602bee0"
+          },
+          {
+            "name": "NativeLuaCheck.exe",
+            "sha256": "bd8c4d4bf93dbe189c659e42f06933c29bce043ed428a0190b90683b28339fe4"
+          },
+          {
+            "name": "NativeCore.exe",
+            "sha256": "55ade31b8b94ced931b2bd7d717166bc886b5e128e09ca3da2ef6a196f16d843"
+          },
+          {
+            "name": "CoreServicesCheck.exe",
+            "sha256": "1daaa6205df3d87edabb12cd92b9d3a548e3f43a3e108ed73852e11449461b2c"
+          },
+          {
+            "name": "PortableCoreCheck.exe",
+            "sha256": "f0a72955a70bf67b720e8cc58cf9c28317cc509213bacb609a4d45fbe6f2e19c"
+          },
+          {
+            "name": "FileServicesCheck.exe",
+            "sha256": "07311395172a7f82520f7453fc67ddb05acd10dae74c160d36d74cde08ced252"
+          },
+          {
+            "name": "PackageServicesCheck.exe",
+            "sha256": "ff989feb73f9c55a29da487a2108ea280cc6aa7b92b441238f7f499f1ea00b79"
+          },
+          {
+            "name": "AssetDecodersCheck.exe",
+            "sha256": "ca8ff96e803ee090943cdc087ebfafd9ce9ef456e97cbb3eea5a26640061f597"
+          },
+          {
+            "name": "NativeAssetCheck.exe",
+            "sha256": "44b681959cd9aeb18ff73ab6f334b79ac27db06c051a58691a9cbd53c9e616fe"
+          },
+          {
+            "name": "AsyncFileCheck.exe",
+            "sha256": "569ace00cd086e8fa05f2567e9b188e2bd91eede1d6a9480e603f6e139117c0d"
+          }
+        ]
+      },
+      "binaries": [
+        {
+          "path": "bin/NativeLayoutCheck.exe",
+          "sha256": "8edc6f62cf2b0376f8073eaf788c5d4efb7340c2b2b68b1fb31e3bc95422bb10",
+          "bytes": 371200,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/NativeXMLCheck.exe",
+          "sha256": "2e750404ead28aeb7c10b7a1e2193a0067b3ac55d18f1a0bd90f43c64ae5269b",
+          "bytes": 610816,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/NativeFrameScriptCheck.exe",
+          "sha256": "71d2dc022e07390b65189bec64a96df648b2cb65fdf9a64357e4e7916602bee0",
+          "bytes": 507904,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/NativeLuaCheck.exe",
+          "sha256": "bd8c4d4bf93dbe189c659e42f06933c29bce043ed428a0190b90683b28339fe4",
+          "bytes": 166912,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/NativeCore.exe",
+          "sha256": "55ade31b8b94ced931b2bd7d717166bc886b5e128e09ca3da2ef6a196f16d843",
+          "bytes": 67584,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/CoreServicesCheck.exe",
+          "sha256": "1daaa6205df3d87edabb12cd92b9d3a548e3f43a3e108ed73852e11449461b2c",
+          "bytes": 138752,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/PortableCoreCheck.exe",
+          "sha256": "f0a72955a70bf67b720e8cc58cf9c28317cc509213bacb609a4d45fbe6f2e19c",
+          "bytes": 24576,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/FileServicesCheck.exe",
+          "sha256": "07311395172a7f82520f7453fc67ddb05acd10dae74c160d36d74cde08ced252",
+          "bytes": 132096,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/PackageServicesCheck.exe",
+          "sha256": "ff989feb73f9c55a29da487a2108ea280cc6aa7b92b441238f7f499f1ea00b79",
+          "bytes": 206848,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/AssetDecodersCheck.exe",
+          "sha256": "ca8ff96e803ee090943cdc087ebfafd9ce9ef456e97cbb3eea5a26640061f597",
+          "bytes": 79360,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/NativeAssetCheck.exe",
+          "sha256": "44b681959cd9aeb18ff73ab6f334b79ac27db06c051a58691a9cbd53c9e616fe",
+          "bytes": 256000,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/AsyncFileCheck.exe",
+          "sha256": "569ace00cd086e8fa05f2567e9b188e2bd91eede1d6a9480e603f6e139117c0d",
+          "bytes": 168448,
+          "machine": "PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections"
+        }
+      ],
+      "extracted_to": "/tmp/m3-layout-evidence/m3-windows-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "ctest_detail_sha256": "23185515ff87c0954959aef4ff57363aceffb9526779798796eb45bd600a1eab"
+    },
+    {
+      "artifact_id": 12310096549,
+      "name": "windows-x64-baseline-8e4de17077fd39972148f7b0aa1101a28e711dd6",
+      "archive_sha256": "ac71658a5edd42900ce75830c150d29db1e09c778b6f4ebf56496488924817b0",
+      "archive_digest_verified": true,
+      "workflow_run": 39518065367,
+      "manifest": {
+        "schema_version": 1,
+        "source_commit": "8e4de17077fd39972148f7b0aa1101a28e711dd6",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/39518065367",
+        "runner_os": "Windows",
+        "runner_arch": "X64",
+        "runner_image": "20261012.333.1",
+        "configuration": "Release",
+        "generator": "Visual Studio 17 2022",
+        "architecture": "x64",
+        "signature_checks": "enabled",
+        "crash_logger": "enabled",
+        "status": "build passed; runtime unverified",
+        "runtime_validation": "not run; requires a separate Windows session with game data and a test server",
+        "dependencies": [
+          {
+            "path": "ThirdParty/nvapi/amd64/nvapi64.lib",
+            "bytes": 999686,
+            "sha256": "901e479e548d41c30688c7481f0c6353c0be7fdee978796d27d87c32e19ce172"
+          },
+          {
+            "path": "ThirdParty/nvapi/x86/nvapi.lib",
+            "bytes": 439838,
+            "sha256": "92056c461921c509eaa135c890a47180e822ba8872cfb507c1d452f813a1782f"
+          },
+          {
+            "path": "ThirdParty/xvidcore/lib/x64/libxvidcore.lib",
+            "bytes": 3494900,
+            "sha256": "be95947a0d7b3bb6f362bfd5d361ce220c30489b20bc8604c4e3383b286de368"
+          }
+        ],
+        "binaries": [
+          {
+            "path": "bin/WowClient64.exe",
+            "bytes": 9859072,
+            "sha256": "f5709a75f8323c8c0706c4ff66fb3e8c8323f8b449f8eb6ff0348505a9175461"
+          },
+          {
+            "path": "bin/Wow64.exe",
+            "bytes": 9854976,
+            "sha256": "2c80f48f56ffa29cddc6f145003b3948ae50ce6fe7de7a3201b9a7cf89a27485"
+          },
+          {
+            "path": "bin/XvidDecoder.dll",
+            "bytes": 456192,
+            "sha256": "b169a0e27e024dcb07f512b1e63e43cafaab92d780a0ae510de3f3b5b7157f14"
+          }
+        ],
+        "cmake_version": "cmake version 3.31.6",
+        "visual_studio": {
+          "instanceId": "754ae0a8",
+          "installDate": "2026-10-12T22:00:54Z",
+          "installationName": "VisualStudio/17.14.41+37710.0.-september.2026-",
+          "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "installationVersion": "17.14.37710.0",
+          "productId": "Microsoft.VisualStudio.Product.Enterprise",
+          "productPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\devenv.exe",
+          "state": 4294967295,
+          "isComplete": true,
+          "isLaunchable": true,
+          "isPrerelease": false,
+          "isRebootRequired": false,
+          "displayName": "Visual Studio Enterprise 2022",
+          "description": "Scalable, end-to-end solution for teams of any size",
+          "channelId": "VisualStudio.17.Release",
+          "channelUri": "https://aka.ms/vs/17/release/channel",
+          "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+          "installChannelUri": "https://aka.ms/vs/17/release/channel",
+          "installedChannelId": "VisualStudio.17.Release",
+          "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+          "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.14#17.14.41",
+          "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
+          "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+          "updateDate": "2026-10-12T22:00:54.346826Z",
+          "catalog": {
+            "buildBranch": "d17.14",
+            "buildVersion": "17.14.37710.0",
+            "id": "VisualStudio/17.14.41+37710.0.-september.2026-",
+            "localBuild": "build-lab",
+            "manifestName": "VisualStudio",
+            "manifestType": "installer",
+            "productDisplayVersion": "17.14.41 (September 2026)",
+            "productLine": "Dev17",
+            "productLineVersion": "2022",
+            "productMilestone": "RTW",
+            "productMilestoneIsPreRelease": "False",
+            "productName": "Visual Studio",
+            "productPatchVersion": "41",
+            "productPreReleaseMilestoneSuffix": "1.0",
+            "productReleaseNameSuffix": "(September 2026)",
+            "productSemanticVersion": "17.14.41+37710.0.-september.2026-",
+            "requiredEngineVersion": "3.14.2094.42856"
+          },
+          "properties": {
+            "campaignId": "",
+            "channelManifestId": "VisualStudio.17.Release/17.14.41+37710.0.-september.2026-",
+            "includeRecommended": "1",
+            "nickname": "",
+            "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+          }
+        }
+      },
+      "binaries": [
+        {
+          "path": "bin/WowClient64.exe",
+          "sha256": "f5709a75f8323c8c0706c4ff66fb3e8c8323f8b449f8eb6ff0348505a9175461",
+          "bytes": 9859072,
+          "machine": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/Wow64.exe",
+          "sha256": "2c80f48f56ffa29cddc6f145003b3948ae50ce6fe7de7a3201b9a7cf89a27485",
+          "bytes": 9854976,
+          "machine": "PE32+ executable for MS Windows 6.00 (GUI), x86-64, 6 sections"
+        },
+        {
+          "path": "bin/XvidDecoder.dll",
+          "sha256": "b169a0e27e024dcb07f512b1e63e43cafaab92d780a0ae510de3f3b5b7157f14",
+          "bytes": 456192,
+          "machine": "PE32+ executable for MS Windows 6.00 (DLL), x86-64, 7 sections"
+        }
+      ],
+      "extracted_to": "/tmp/m3-layout-evidence/windows-x64-baseline-8e4de17077fd39972148f7b0aa1101a28e711dd6"
+    }
+  ],
+  "local_host": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "platform": "Linux-6.18.57-2-lts-x86_64-with-glibc2.44"
+  },
+  "local_executions": [
+    {
+      "name": "sanitizer-NativeLayoutCheck",
+      "command": [
+        "/tmp/m3-layout-evidence/m3-linux-layout-asan-8e4de17077fd39972148f7b0aa1101a28e711dd6/bin/NativeLayoutCheck"
+      ],
+      "binary_sha256": "d9ab0d6376651a40c3652dd62a98ab90ece640e98ef42a702a1ab1e288060869",
+      "exit_code": 0,
+      "elapsed_seconds": 0.02,
+      "stdout": "Original layout/anchor/XML cycle 1 passed\nOriginal layout/anchor/XML cycle 2 passed\nOriginal layout/anchor/XML cycle 3 passed\n",
+      "stderr": "",
+      "asan_options": "detect_leaks=1:halt_on_error=1",
+      "ubsan_options": "halt_on_error=1:print_stacktrace=1"
+    },
+    {
+      "name": "sanitizer-NativeXMLCheck",
+      "command": [
+        "/tmp/m3-layout-evidence/m3-linux-layout-asan-8e4de17077fd39972148f7b0aa1101a28e711dd6/bin/NativeXMLCheck",
+        "--original-data",
+        "/mnt/games/3.3.5aClean/Data",
+        "/tmp/m3-layout-evidence/sanitizer/xml-settings",
+        "/tmp/m3-layout-evidence/sanitizer/xml-cache"
+      ],
+      "binary_sha256": "545998c8b13098161d4abee09106fb3ed2dbf5f9627b629738c6ddea46a2a6e3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.876,
+      "stdout": "original-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=0 workers=0\noriginal-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=1 workers=0\noriginal-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=2 workers=0\n",
+      "stderr": "",
+      "asan_options": "detect_leaks=1:halt_on_error=1",
+      "ubsan_options": "halt_on_error=1:print_stacktrace=1"
+    },
+    {
+      "name": "release-NativeLayoutCheck",
+      "command": [
+        "/tmp/m3-layout-evidence/m3-linux-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6/bin/NativeLayoutCheck"
+      ],
+      "binary_sha256": "4b3a53eb443890adfc72be0a3b87a47e844ff3410f66d9cc99fb57950c67820d",
+      "exit_code": 0,
+      "elapsed_seconds": 0.003,
+      "stdout": "Original layout/anchor/XML cycle 1 passed\nOriginal layout/anchor/XML cycle 2 passed\nOriginal layout/anchor/XML cycle 3 passed\n",
+      "stderr": "",
+      "asan_options": null,
+      "ubsan_options": null
+    },
+    {
+      "name": "release-NativeXMLCheck",
+      "command": [
+        "/tmp/m3-layout-evidence/m3-linux-layout-8e4de17077fd39972148f7b0aa1101a28e711dd6/bin/NativeXMLCheck",
+        "--original-data",
+        "/mnt/games/3.3.5aClean/Data",
+        "/tmp/m3-layout-evidence/release/xml-settings",
+        "/tmp/m3-layout-evidence/release/xml-cache"
+      ],
+      "binary_sha256": "756fef0b7edbbe70f37c860795ea47287e3b73e4cf36b3ea30553fdb54f9f01b",
+      "exit_code": 0,
+      "elapsed_seconds": 0.212,
+      "stdout": "original-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=0 workers=0\noriginal-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=1 workers=0\noriginal-signaturefile=authenticated records=28948\noriginal-interface=Interface\\GlueXML\\GlueXML.toc result=3 files=60 bytes=776106 md5=b44247235136edcfbbc314797eb2c705\noriginal-interface=Interface\\FrameXML\\FrameXML.toc result=3 files=267 bytes=5076247 md5=51b264400410d3409c4e79f6f4257711\noriginal-xml-cycle=2 workers=0\n",
+      "stderr": "",
+      "asan_options": null,
+      "ubsan_options": null
+    }
+  ],
+  "local_source_checks": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -q",
+    "tests": 46,
+    "passed": 45,
+    "skipped": 1,
+    "skip_reason": "CMake unavailable; source-selection checks run in Actions",
+    "client_or_dependency_compiled_locally": false
+  },
+  "prior_failures": [
+    {
+      "implementation_head": "0e44652ba00b0b990e94c8390a4b14ebc710269f",
+      "hosted_checkout": "37977ff08c382cd9eda948d6a70707547235f180",
+      "run_id": 39517440770,
+      "observed_job_id": 118952893251,
+      "job_url": "https://github.com/RovxBot/wowdecomp/actions/runs/39517440770/job/118952893251",
+      "failure": "ARM64 link missing fequalz and fnotequal; original scalar helpers omitted from native source selection",
+      "resolution": "Move unchanged original comparison bodies into shared Tempest/LayoutMath.cpp and explicitly audit/select that source; preserve Windows bodies/epsilon",
+      "disposition": "Failed evidence retained; superseded run cancellation was used to free runners, not counted as a pass"
+    },
+    {
+      "implementation_head": "ba43d1673bd743a3048c6cd9b8049b249c716f74",
+      "hosted_checkout": "071928c03e950aefaf5a9c9c1ee43c47a8ac157c",
+      "run_id": 39517608843,
+      "failed_jobs": [
+        118953863878,
+        118953863915,
+        118953863965,
+        118953863992
+      ],
+      "failure": "All four compiled native configurations reached the authored layout check and failed a coordinate expectation",
+      "resolution": "Synthetic root used X/Y aggregate ordering, but original CRect is minY/minX/maxY/maxX; use named fields and detailed numeric diagnostics. Original solver unchanged",
+      "detectors": "ASan/UBSan/leak detection retained unchanged"
+    }
+  ],
+  "qualification_limits": [
+    "No original-data Frame layout, font/string/region/root factory, GlueXML execution or login rendering acceptance",
+    "Original-data XML regressions authenticate original GlueXML and FrameXML digests and parse AccountLogin only; layout geometry is authored evidence",
+    "No new desktop GPU, physical-input, Windows runtime, macOS graphics/desktop or server session evidence",
+    "Layout owners reject object destruction during resize callbacks; actual root deferred destruction requires adaptation",
+    "Native layout bounded to 1024 live frames and 64 frames per anchor path; public legacy fields require owner-thread lifetime discipline",
+    "Disk/atlas/default image policy, full image modes/TGA/streaming, ordered FrameXML factories, transport/authentication and observed gameplay remain open"
+  ],
+  "preserved_policy": {
+    "package_authentication": "Original 12340 RSA key and registered member MD5 verification enabled",
+    "interface_authentication": "Original InterfaceKey and post-creation digest gate remain required; this layout package does not create the original interface",
+    "original_data": "Read-only /mnt/games/3.3.5aClean; inventory docs/m2/clean-data-inventory.json; no data added to Git/hosted CI",
+    "server": "No new session or policy change; external package-tag/embedded-revision discrepancy remains in docs/m3/SERVER_IDENTITY.md",
+    "credentials": "User will sign in interactively when native login is ready"
+  }
+}
