@@ -40,6 +40,12 @@ InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& ev
             throw std::invalid_argument("Invalid Frame committed text event");
         EVENT_DATA_CHAR data{event.param[0], root.m_nativeMetaKeys, uint32_t(event.param[1])};
         propagate = CSimpleTop::OnChar(&data, &root);
+    } else if (event.id == OS_INPUT_IME) {
+        // OsQueueGet installs this event's retained composition snapshot. Deliver
+        // immediately, before another dequeue replaces the OsIME getter state.
+        if (event.param[0] == 0) return InputResult::Unsupported;
+        EVENT_DATA_IME data{event.param[0], event.param[1], event.param[2], 65001};
+        propagate = CSimpleTop::OnIme(&data, &root);
     } else if (event.id == OS_INPUT_KEY_DOWN || event.id == OS_INPUT_KEY_UP) {
         const auto index = uint32_t(event.param[0]);
         if (index >= KEY_LAST || event.param[1] < 1)

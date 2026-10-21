@@ -1225,13 +1225,7 @@ void CSimpleFrame::OnFrameSizeChanged(const CRect& rect) {
 // OFFSET: 0x004899F0
 int32_t CSimpleFrame::OnLayerIme(const CImeEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
     return 0;
-
-#endif
 }
 
 // VERIFY: c81f847b auto

@@ -237,7 +237,8 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
     std::cout<<"sdl-frame-resize-restore-callback-guards-recovery=passed callbacks="<<sizeCallbacks<<'\n';
 }
 #include "KeyboardChecks.h"
-static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,const std::string& snapshot,bool windowEvents,bool keyboardEvents) {
+#include "ImeChecks.h"
+static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
@@ -258,6 +259,7 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     Equal(first,Draw(device,root));
     if(windowEvents) WindowEvents(context,device,root,*text,first);
     if(keyboardEvents) {KeyboardEvents(context,root);Equal(first,Draw(device,root));}
+    if(imeEvents) {ImeEvents(context,root);Equal(first,Draw(device,root));}
     parent->AllowAttributeChanges(1);parent->AllowAttributeChanges(1);
     Check(root.m_destroyed.Head()==parent && !root.m_destroyed.Next(parent),"Attribute permission cleanup queued twice");
     root.OnLayerUpdate(0.016f);Check(!parent->AttributeChangesAllowed() && !root.m_destroyed.Head(),"Original temporary attribute permission did not expire");
@@ -326,9 +328,10 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
 int main(int argc,char** argv) {
     bool started=false;
     try {
-        std::string data,settings,cache,font,snapshot;bool windowEvents=false,keyboardEvents=false;
+        std::string data,settings,cache,font,snapshot;bool windowEvents=false,keyboardEvents=false,imeEvents=false;
         for(int i=1;i<argc;++i){std::string key=argv[i];if(key=="--window-events"){windowEvents=true;continue;}
             if(key=="--keyboard-events"){keyboardEvents=true;continue;}
+            if(key=="--ime-events"){imeEvents=true;continue;}
             Check(i+1<argc,"Missing option value");std::string value=argv[++i];
             if(key=="--data")data=value;else if(key=="--settings")settings=value;else if(key=="--cache")cache=value;else if(key=="--font")font=value;else if(key=="--snapshot")snapshot=value;else throw std::invalid_argument("Unknown region option");}
         Check(data.empty()==settings.empty() && data.empty()==cache.empty(),"Separate original data/user roots required");Check(!data.empty() || !font.empty(),"Supply authored font or original data");
@@ -353,7 +356,7 @@ int main(int argc,char** argv) {
                     CSimpleFont* selected;
                     if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight((windowEvents?20.0f:32.0f)/480),0),"Authored font creation");}
                     else selected=Original(source);
-                    Hierarchy(context,device,*selected,cycle?"":snapshot,windowEvents,keyboardEvents);
+                    Hierarchy(context,device,*selected,cycle?"":snapshot,windowEvents,keyboardEvents,imeEvents);
                     renderer.CheckCanClose();factories.CheckCanClose();}
                 Check(!source.queue.Pending(),"Region left pending file work");
             }

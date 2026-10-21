@@ -331,9 +331,17 @@ int32_t CSimpleTop::OnChar(const void* data, void* param) {
 int32_t CSimpleTop::OnIme(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    const auto& input = *static_cast<const EVENT_DATA_IME*>(data);
+    // SDL supplies UTF-8 composition/candidates, not Windows ACP/language mode.
+    // Validate raw action/flags before invoking any consumer or changing a queue.
+    if (input.m_action < 1 || input.m_action > 6 || input.unused_0004 || input.m_codePage != 65001 ||
+        (input.m_action == 2 ? input.m_param < 1 || input.m_param > 7 : input.m_param != 0))
+        throw std::invalid_argument("Invalid native Frame IME payload");
+    Frame::Native::ResizeScope inputGuard; // Keep consumers alive through dispatch.
+#endif
     const EVENT_DATA_IME* imeData = static_cast<const EVENT_DATA_IME*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -362,8 +370,6 @@ int32_t CSimpleTop::OnIme(const void* data, void* param) {
     }
 
     return handled == 0;
-
-#endif
 }
 
 // VERIFY: 81128119 manual
