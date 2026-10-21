@@ -228,6 +228,15 @@ int32_t LegacyDevice::BufUnlock(CGxBuf *buf, uint32_t size) {
     buf->m_dirty = 1;
     return 1;
 }
+void LegacyDevice::AbortBufferWrite(CGxBuf *buf) {
+    Check();
+    auto found = state->storage.find(buf);
+    if (found == state->storage.end() || !found->second.write)
+        throw std::logic_error("Legacy buffer is not locked");
+    found->second.write.reset();
+    m_bufLocked[buf->m_pool->m_target] = nullptr;
+    buf->m_hasData = 0;
+}
 void LegacyDevice::BufData(CGxBuf *buf, const void *bytes, uint32_t size, uint32_t offset) {
     auto &resource = Buffer(buf);
     state->buffers.Upload(resource, bytes, size, offset);
@@ -443,6 +452,14 @@ void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char 
         out[i] = list.Ptr(keys[i].c_str());
         ++out[i]->m_refCount;
     }
+}
+void LegacyDevice::RetainShader(CGxShader *shader) {
+    Check();
+    if (!shader || !state->programs.count(shader))
+        throw std::invalid_argument("Foreign legacy shader");
+    if (!shader->m_refCount || shader->m_refCount == UINT32_MAX)
+        throw std::overflow_error("Legacy shader reference count");
+    ++shader->m_refCount;
 }
 void LegacyDevice::ShaderDestroy(CGxShader *&shader) {
     Check();
