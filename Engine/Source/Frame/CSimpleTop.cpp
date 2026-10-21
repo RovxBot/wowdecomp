@@ -1053,6 +1053,7 @@ void CSimpleTop::OnLayerRender() {
     Frame::Native::RequireRoot();
     Frame::Native::RequireTreeMutation();
     Frame::Native::ClearDirtyBatches(*this);
+    Frame::Native::CollectScope scope;
 #endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::SetRootProjection(*this);

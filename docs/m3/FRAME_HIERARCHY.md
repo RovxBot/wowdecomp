@@ -23,7 +23,7 @@ existing native owners. Strata/nodes and direct Frames use matching C++ allocati
 Original `m_destroyed` expires temporary attribute permissions; it is not an
 object deletion queue. `DestroyLater` is a separate owner-thread queue processed
 before the next update. Duplicate requests coalesce, and recursive parent deletion
-retires requests for its children. Hierarchy changes/destruction during updates or
+retires requests for its children. Hierarchy changes/destruction during updates, batch collection or
 resize/draw callbacks are rejected; update callbacks can request deferred deletion.
 Native dirty-batch release precedes all root rebuilding, preserving the single Gxu
 intrusive batch link when the same block moves to an earlier level/strata/layer.

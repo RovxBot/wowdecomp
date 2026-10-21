@@ -17,6 +17,13 @@ void DestroyLater(CSimpleFrame*);
 void DrainDestroyQueue();
 void ClearDirtyBatches(CSimpleTop&);
 void SetRootProjection(CSimpleTop&);
+class CollectScope final {
+public:
+    CollectScope();
+    ~CollectScope();
+    CollectScope(const CollectScope&) = delete;
+    CollectScope& operator=(const CollectScope&) = delete;
+};
 class UpdateScope final {
 public:
     UpdateScope();

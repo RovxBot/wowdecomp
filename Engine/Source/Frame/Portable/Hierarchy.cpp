@@ -10,7 +10,7 @@ namespace Frame { namespace Native {
 namespace {
 std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
-bool updating = false;
+bool updating = false, collecting = false;
 constexpr size_t MaxDepth = 64;
 }
 void RequireRoot() {
@@ -19,7 +19,7 @@ void RequireRoot() {
 }
 void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
-    if (updating) throw std::logic_error("Defer Frame hierarchy mutation until layer update completes");
+    if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
 }
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();
@@ -96,6 +96,10 @@ void DrainDestroyQueue() {
         delete frame; // Parent destruction removes queued descendants too.
     }
 }
+CollectScope::CollectScope() {
+    RequireTreeMutation(); collecting = true;
+}
+CollectScope::~CollectScope() { collecting = false; }
 UpdateScope::UpdateScope() {
     RequireTreeMutation(); updating = true;
 }

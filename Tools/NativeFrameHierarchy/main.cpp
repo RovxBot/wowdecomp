@@ -140,6 +140,15 @@ struct UpdateFrame final : CSimpleFrame {
         Frame::Native::DestroyLater(this);
     }
 };
+struct GuardedText final : CSimpleFontString {
+    explicit GuardedText(CSimpleFrame* parent):CSimpleFontString(parent,2,true) {}
+    void Draw(CRenderBatch* batch) override {
+        Reject([&]{SetFrame(m_parent,0,1);});
+        Reject([&]{Hide();});
+        Reject([&]{m_parent->SetParent(nullptr);});
+        CSimpleFontString::Draw(batch);
+    }
+};
 static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string& snapshot) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
@@ -150,7 +159,7 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
     parent->SetSize(0.7f,0.5f);
     parent->SetPoint(FRAMEPOINT_BOTTOMLEFT,&root,FRAMEPOINT_BOTTOMLEFT,0.05f,0.05f,1);
     child->SetAllPoints(parent,1);
-    auto* text=new CSimpleFontString(child,2,true);
+    auto* text=new GuardedText(child);
     text->SetAllPoints(child,1);
     text->SetFontObject(&font);text->SetText("AV Frame parent",0);
     Check(text->m_parent==child && text->m_visible && child->m_drawLayers[2].Head()==text,"Original parent region/layer registration");
