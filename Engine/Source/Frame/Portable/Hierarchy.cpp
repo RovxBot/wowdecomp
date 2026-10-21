@@ -31,12 +31,18 @@ void RequireParent(CScriptRegion* child, CSimpleFrame* parent) {
     // Validate proposed edges over all descendants before unlinking anything.
     for (auto* leaf : frames) {
         size_t depth = 0;
+        double scale = 1;
         for (auto* current = leaf; current;) {
             RequireSimpleFrame(current);
             if (++depth > MaxDepth) throw std::invalid_argument("Cyclic or excessive Frame parent graph");
+            scale *= current->m_frameScale;
             current = static_cast<CScriptRegion*>(current) == child ? parent : current->m_parent;
         }
+        if (!std::isfinite(float(scale)) || float(scale) <= 0)
+            throw std::invalid_argument("Unrepresentable reparented Frame scale");
     }
+    for (auto* frame : frames)
+        if (static_cast<CScriptRegion*>(frame) == child) RequireLevel(frame, parent ? parent->m_level + 1 : 0);
     if (!child && parent) {
         size_t depth = 1;
         for (auto* current = parent; current; current = current->m_parent)
@@ -44,6 +50,16 @@ void RequireParent(CScriptRegion* child, CSimpleFrame* parent) {
     }
     if (parent && parent->m_level >= 128)
         throw std::invalid_argument("Native Frame parent level limit");
+}
+void RequireLevel(CSimpleFrame* target, int32_t proposed) {
+    // Preserve original negative-to-zero clamping and +128 step, while bounding
+    // all potentially shifted descendants before the first list mutation.
+    if (proposed > 128) throw std::invalid_argument("Native Frame level limit");
+    const int delta = std::min(std::max(proposed, 0) - target->m_level, 128);
+    for (auto* leaf : frames)
+        for (auto* current = leaf; current; current = current->m_parent)
+            if (current == target && leaf->m_level + delta > 128)
+                throw std::invalid_argument("Native descendant Frame level limit");
 }
 void RequireScale(CSimpleFrame* target, float proposed) {
     // Original recursive scale multiplication must remain finite before mutation.

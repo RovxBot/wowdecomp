@@ -183,6 +183,15 @@ static void Hierarchy(LegacyDevice& device, CSimpleFont& font,const std::string&
     parent->SetFrameScale(1.25f,true);Draw(device,root);
     Check(child->m_layoutScale==1.25f && text->m_layoutScale==1.25f,"Inherited Frame scale");
     parent->SetFrameScale(1.0f,true);Equal(first,Draw(device,root));
+    // Parent graph bounds/cycles are rejected before any original list changes.
+    std::vector<CSimpleFrame*> deep{new CSimpleFrame(nullptr)};
+    for (int i=1;i<64;++i) deep.push_back(new CSimpleFrame(deep.back()));
+    Reject([&]{new CSimpleFrame(deep.back());});
+    Reject([&]{deep.front()->SetParent(deep.back());});
+    delete deep.front();
+    const int oldLevel=parent->m_level;
+    Reject([&]{parent->SetFrameLevel(128,1);});
+    Check(parent->m_level==oldLevel && child->m_parent==parent,"Rejected level change mutated hierarchy");
     Reject([&]{parent->SetParent(child);});
     Reject([&]{parent->SetParent(parent);});
     Reject([&]{text->SetFrame(reinterpret_cast<CSimpleFrame*>(uintptr_t(1)),2,1);});

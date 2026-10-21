@@ -40,6 +40,9 @@ uint8_t CSimpleRegion::GetVertexAlpha() {
 // OFFSET: 0x00482C20
 void CSimpleRegion::Hide() {
     FRAME_REGION_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     this->m_shown = 0;
     this->HideThis();
 }
@@ -162,6 +165,9 @@ void CSimpleRegion::SetVertexGradient(ORIENTATION orientation, const CImVector& 
 // OFFSET: 0x00487BF0
 void CSimpleRegion::HideThis() {
     FRAME_REGION_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
 
     if (!this->m_visible || !this->m_parent) {
         return;
@@ -180,6 +186,9 @@ void CSimpleRegion::HideThis() {
 // OFFSET: 0x00487C40
 void CSimpleRegion::ShowThis() {
     FRAME_REGION_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
 
     if (!this->m_shown || !this->m_parent || !this->m_parent->m_isVisible || this->m_visible) {
         return;

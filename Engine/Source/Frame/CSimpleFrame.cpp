@@ -2085,7 +2085,7 @@ void CSimpleFrame::SetFrameLevel(int32_t level, int32_t shiftChildren) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    if (level > 128) throw std::invalid_argument("Native Frame level limit");
+    Frame::Native::RequireLevel(this, level);
 #endif
     if (level < 0) {
         level = 0;

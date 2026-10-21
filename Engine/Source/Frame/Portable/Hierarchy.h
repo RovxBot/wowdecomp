@@ -9,6 +9,7 @@ void RequireRoot();
 void SimpleFrameCreated(CSimpleFrame*);
 void SimpleFrameDestroyed(CSimpleFrame*);
 void RequireScale(CSimpleFrame*, float);
+void RequireLevel(CSimpleFrame*, int32_t);
 [[noreturn]] void UnavailableFrameFeature();
 // Deferral is separate from CSimpleTop::m_destroyed's attribute-permission list.
 // Call on the owner outside batch rendering; it is allowed during layer updates.
