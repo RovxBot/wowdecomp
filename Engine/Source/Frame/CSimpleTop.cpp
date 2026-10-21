@@ -7,6 +7,7 @@
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include <cmath>
 #include <cstring>
+#include <memory>
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Handle.h"
 #include "Engine/Source/BLPFile/Types.h"
@@ -287,9 +288,13 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
 int32_t CSimpleTop::OnChar(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    const auto scalar = uint32_t(static_cast<const EVENT_DATA_CHAR*>(data)->m_ch);
+    if (scalar > 0x10ffff || (scalar >= 0xd800 && scalar <= 0xdfff)) throw std::invalid_argument("Invalid Frame Unicode scalar");
+    Frame::Native::ResizeScope inputGuard; // Hold consumers alive through callbacks.
+#endif
     const EVENT_DATA_CHAR* charData = static_cast<const EVENT_DATA_CHAR*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -319,7 +324,6 @@ int32_t CSimpleTop::OnChar(const void* data, void* param) {
 
     return handled == 0;
 
-#endif
 }
 
 // VERIFY: f2b35fa9 manual
@@ -367,9 +371,13 @@ int32_t CSimpleTop::OnIme(const void* data, void* param) {
 int32_t CSimpleTop::OnKeyDown(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    const auto key = static_cast<const EVENT_DATA_KEY*>(data)->m_key;
+    if (uint32_t(key) >= KEY_LAST) throw std::invalid_argument("Invalid Frame key index");
+    Frame::Native::ResizeScope inputGuard; // Hold consumers alive through callbacks.
+#endif
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     int32_t handled = 0;
@@ -409,7 +417,6 @@ int32_t CSimpleTop::OnKeyDown(const void* data, void* param) {
 
     return handled == 0;
 
-#endif
 }
 
 // VERIFY: ab5a5ea6 manual
@@ -417,9 +424,18 @@ int32_t CSimpleTop::OnKeyDown(const void* data, void* param) {
 int32_t CSimpleTop::OnKeyUp(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    const auto key = static_cast<const EVENT_DATA_KEY*>(data)->m_key;
+    if (uint32_t(key) >= KEY_LAST) throw std::invalid_argument("Invalid Frame key index");
+    if (key == KEY_PRINTSCREEN && !CSimpleTop::s_instance->m_keydownCapture[key]) {
+        auto result = CSimpleTop::OnKeyDown(data, param);
+        CSimpleTop::s_instance->m_keydownCapture[key] = nullptr;
+        return result;
+    }
+    Frame::Native::ResizeScope inputGuard; // Hold consumers alive through callbacks.
+#endif
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     CSimpleFrame* frame = top->m_keydownCapture[keyData->m_key];
@@ -441,7 +457,6 @@ int32_t CSimpleTop::OnKeyUp(const void* data, void* param) {
 
     return !handled;
 
-#endif
 }
 
 // VERIFY: 060c6392 manual
@@ -449,9 +464,13 @@ int32_t CSimpleTop::OnKeyUp(const void* data, void* param) {
 int32_t CSimpleTop::OnKeyDownRepeat(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    const auto key = static_cast<const EVENT_DATA_KEY*>(data)->m_key;
+    if (uint32_t(key) >= KEY_LAST) throw std::invalid_argument("Invalid Frame key index");
+    Frame::Native::ResizeScope inputGuard; // Hold consumers alive through callbacks.
+#endif
     const EVENT_DATA_KEY* keyData = static_cast<const EVENT_DATA_KEY*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     CSimpleFrame* frame = top->m_keydownCapture[keyData->m_key];
@@ -467,7 +486,6 @@ int32_t CSimpleTop::OnKeyDownRepeat(const void* data, void* param) {
 
     return handled == 0;
 
-#endif
 }
 
 // VERIFY: dbfbf7f9 manual
@@ -675,9 +693,11 @@ int32_t CSimpleTop::OnMouseWheel(const void* data, void* param) {
 int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireRoot();
+    if (!data || param != CSimpleTop::s_instance) throw std::invalid_argument("Invalid Frame input callback");
+    Frame::Native::ResizeScope inputGuard; // Hold consumers alive through callbacks.
+#endif
     const EVENT_DATA_FOCUS* focusData = static_cast<const EVENT_DATA_FOCUS*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     void (*callback)(const CFocusEvent&) = top->m_focusChangedCallback;
@@ -693,7 +713,6 @@ int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
 
     return 1;
 
-#endif
 }
 
 // VERIFY: 3330b0b2 manual
@@ -1189,38 +1208,61 @@ void CSimpleTop::NotifyFrameMovedOrResized(CSimpleFrame* frame) {
 
 // VERIFY: e3307852 manual
 // OFFSET: 0x00495880
-void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4, int32_t priority) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, uint32_t event, int32_t a4, int32_t priority)
+#else
+void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4, int32_t priority)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+    if (event != SIMPLE_EVENT_KEY && event != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+    if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
+    for (uint32_t i=0; i<m_eventqueue[event][frame->m_strata].m_count; ++i)
+        if (m_eventqueue[event][frame->m_strata].m_array[i]->m_frame == frame)
+            throw std::logic_error("Duplicate Frame event registration");
+#endif
     CSimpleSortedArray<FRAMEPRIORITY*>& queue = this->m_eventqueue[event][frame->m_strata];
 
     if (priority == -1) {
         priority = frame->m_level;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    auto ownedPriority = std::make_unique<FRAMEPRIORITY>();
+    FRAMEPRIORITY* framePriority = ownedPriority.get();
+#else
     FRAMEPRIORITY* framePriority = static_cast<FRAMEPRIORITY*>(SMemAlloc(sizeof(FRAMEPRIORITY), __FILE__, __LINE__, 0));
+#endif
     framePriority->m_frame = frame;
     framePriority->m_priority = priority;
     queue.Insert(framePriority);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    ownedPriority.release();
+#endif
 
     if (!a4 && event == SIMPLE_EVENT_MOUSE) {
         this->m_checkFocus = 1;
     }
 
-#endif
 }
 
 // VERIFY: 4939f5d1 manual
 // OFFSET: 0x00495900
-void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, uint32_t event, int32_t a4)
+#else
+void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event, int32_t a4)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+    if (event != SIMPLE_EVENT_KEY && event != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+#endif
     CSimpleSortedArray<FRAMEPRIORITY*>& queue = this->m_eventqueue[event][frame->m_strata];
 
     for (uint32_t i = 0; i < queue.m_count; i++) {
@@ -1261,7 +1303,6 @@ void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event,
         return;
     }
 
-#endif
 }
 
 // VERIFY: f41311c7 auto

@@ -9,5 +9,10 @@ namespace Frame { namespace Native {
 // than replay stale event dimensions. Zero-sized drawables wait for a later event.
 // Root, device and context must be live on their owner, outside all traversals.
 bool DispatchWindowEvent(Gx::Native::GlContext&, const OSEVENT&);
+// Committed Unicode text, keys (including captured repeats) and focus only.
+// Unsupported events remain with the host. Unhandled selected events may also
+// propagate to other consumers. This does not install Lua/XML input factories.
+enum class InputResult { Unsupported, Unhandled, Handled };
+InputResult DispatchInputEvent(Gx::Native::GlContext&, const OSEVENT&);
 }}
 #endif

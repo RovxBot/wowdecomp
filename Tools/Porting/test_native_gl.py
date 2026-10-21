@@ -240,6 +240,15 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
+    def test_frame_keyboard_selects_injected_input_mode(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        self.target_script('import sys\nassert sys.argv[1:] == ["--keyboard-events"]\n', 'NativeFrameHierarchyCheck')
+        result = self.run_wrapper('--frame-keyboard')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(json.loads(self.output.read_text())['frame_keyboard_events'])
+        result = self.run_wrapper('--frame-keyboard', '--frame-window')
+        self.assertNotEqual(result.returncode, 0)
+
     def test_frame_window_selects_event_mode_and_checks_hierarchy_binary(self):
         self.script('raise SystemExit("preview must not execute")\n')
         binary = self.target_script('import sys\nassert sys.argv[1:] == ["--window-events"]\n', 'NativeFrameHierarchyCheck')

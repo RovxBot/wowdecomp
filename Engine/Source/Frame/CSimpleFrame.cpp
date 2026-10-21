@@ -550,16 +550,14 @@ void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
 void CSimpleFrame::RegisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_enabledEventsBitmask) Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+#endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
             this->m_simpleTop->RegisterForEvent(this, static_cast<CSimpleEventType>(i), a2, -1);
         }
     }
 
-#endif
 }
 
 // VERIFY: 68083be0 auto
@@ -567,16 +565,14 @@ void CSimpleFrame::RegisterForEvents(int32_t a2) {
 void CSimpleFrame::UnregisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_enabledEventsBitmask) Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+#endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
             this->m_simpleTop->UnregisterForEvent(this, static_cast<CSimpleEventType>(i), a2);
         }
     }
 
-#endif
 }
 
 // VERIFY: b74e77a5 auto
@@ -802,16 +798,14 @@ void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
 void CSimpleFrame::RunOnKeyUpScript(const char* key) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    if (this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
     if (this->m_onKeyUp.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushstring(L, key);
         this->RunScript(this->m_onKeyUp, 1, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: a4db5488 auto
@@ -1025,12 +1019,18 @@ int32_t CSimpleFrame::Show() {
 
 // VERIFY: ec84450f auto
 // OFFSET: 0x0048F6A0
-void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleFrame::EnableEvent(uint32_t eventType, int32_t priority)
+#else
+void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    if (eventType != SIMPLE_EVENT_KEY && eventType != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+    if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
+#endif
     if ((1 << eventType) & this->m_enabledEventsBitmask) {
         return;
     }
@@ -1041,17 +1041,21 @@ void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority) {
 
     this->m_enabledEventsBitmask |= 1 << eventType;
 
-#endif
 }
 
 // VERIFY: 219cc709 auto
 // OFFSET: 0x0048F6F0
-void CSimpleFrame::DisableEvent(CSimpleEventType eventType) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleFrame::DisableEvent(uint32_t eventType)
+#else
+void CSimpleFrame::DisableEvent(CSimpleEventType eventType)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    Frame::Native::RequireTreeMutation();
+    if (eventType != SIMPLE_EVENT_KEY && eventType != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+#endif
     if (!((1 << eventType) & this->m_enabledEventsBitmask)) {
         return;
     }
@@ -1062,7 +1066,6 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType) {
 
     this->m_enabledEventsBitmask &= ~(1 << eventType);
 
-#endif
 }
 
 // VERIFY: bbfb8171 manual
@@ -1235,13 +1238,8 @@ int32_t CSimpleFrame::OnLayerIme(const CImeEvent& evt) {
 // OFFSET: 0x004899F0
 int32_t CSimpleFrame::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
     return 0;
 
-#endif
 }
 
 // VERIFY: 6103df2d auto
@@ -1249,9 +1247,8 @@ int32_t CSimpleFrame::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
 int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    if (this->m_onChar.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
     if (!this->m_isVisible || !this->m_onChar.m_luaRef) {
         return 0;
     }
@@ -1267,7 +1264,6 @@ int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
 
     return 1;
 
-#endif
 }
 
 // VERIFY: 5ad01abe auto
@@ -1275,9 +1271,8 @@ int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
 int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    if (this->m_onKeyDown.m_luaRef || this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
     if (!this->m_isVisible || (!this->m_onKeyDown.m_luaRef && !this->m_onKeyUp.m_luaRef)) {
         return 0;
     }
@@ -1292,7 +1287,6 @@ int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
 
     return 1;
 
-#endif
 }
 
 // VERIFY: b11bf9fd auto
@@ -1300,9 +1294,8 @@ int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
 int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
-
+    if (this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
     if (!this->m_isVisible || !this->m_onKeyUp.m_luaRef) {
         return 0;
     }
@@ -1310,7 +1303,6 @@ int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
     this->RunOnKeyUpScript(KeyCodeToString(evt.m_data.m_key));
     return 1;
 
-#endif
 }
 
 // VERIFY: f962ad69 auto

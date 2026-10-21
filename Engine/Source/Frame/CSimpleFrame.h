@@ -179,10 +179,18 @@ class CSimpleFrame : public CScriptRegion {
     void AllowAttributeChanges(int32_t allow);
     int32_t AttributeChangesAllowed();
     void DisableDrawLayer(uint32_t drawLayer);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void DisableEvent(uint32_t eventType);
+#else
     void DisableEvent(CSimpleEventType eventType);
+#endif
     int32_t DragBy(float offsetX, float offsetY, FRAMEPOINT point);
     void EnableDrawLayer(uint32_t drawLayer);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void EnableEvent(uint32_t eventType, int32_t priority);
+#else
     void EnableEvent(CSimpleEventType eventType, int32_t priority);
+#endif
     bool GetAttribute(const char* name, int32_t& luaRef);
     uint8_t GetEffectiveAlpha();
     int32_t GetHitRect(CRect& rect);
