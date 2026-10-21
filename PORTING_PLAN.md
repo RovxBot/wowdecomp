@@ -507,6 +507,20 @@ identities, hashes and earlier fixture failures. Regions/Frame/root deferred
 lifetimes, SDL size invalidation, texture modes and full signed ordered GlueXML/
 login remain open, followed by transport/gameplay. M3 remains incomplete.
 
+The [original unparented font-string regions](docs/m3/FRAME_REGIONS.md) are
+qualified in [PR #47](https://github.com/RovxBot/wowdecomp/pull/47), selected head
+`01ac7deb547aa3216a92d78f93b6eb07e59eb9a0`, merged as
+`259518fd512a7c9cf4f4dcd8a4e0b0998058f282`. All thirteen workflows passed,
+including 33 tests per Linux GL configuration and full Windows x64 compilation.
+The [record](docs/m3/frame-regions-validation.json) retains matching-tree hosted
+checkout `c71a91a609e2a301415cd46e81cfff84b826613e`, three verified archives/49
+packaged binaries and clean release/strict sanitizer original-data GPU cycles.
+Actual C++ regions now consume layout/font inheritance and retained batches;
+Frame parent/layer/root traversal, region Lua/XML/animation, texture factories,
+actual SDL size delivery and full signed GlueXML/login remain open. Callback
+screen invalidation is injected evidence; no new operator or gameplay acceptance.
+M3 remains incomplete; signatures and interactive user sign-in stay intact.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

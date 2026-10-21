@@ -35,7 +35,53 @@ and `CGlueMgr::Resume`'s post-creation digest gate remain open.
 
 All client/dependency compilation and CTest run in GitHub Actions, including
 strict ASan/UBSan/leak checks and separate full Windows x64 compilation. Hosted
-and downloaded original-data qualification will be recorded after validation.
+and downloaded original-data qualification is recorded below. The native batch
+entry dispatches through the selected region implementation, keeping unselected
+Frame/Texture RTTI out of lower targets while retaining vptr checks. Unavailable
+metatables reject before Lua stack/taint/name mutation. Failed font replacement
+returns the original failure result and preserves live block/font handles.
+
+## Qualification
+
+[PR #47](https://github.com/RovxBot/wowdecomp/pull/47) is qualified at
+`01ac7deb547aa3216a92d78f93b6eb07e59eb9a0`, merged as
+`259518fd512a7c9cf4f4dcd8a4e0b0998058f282`. The
+[durable record](frame-regions-validation.json) retains all thirteen passing PR
+workflows, 33 CTest checks per Linux release/strict ASan/UBSan/leak configuration
+and full Windows x64 compilation with signatures enabled. Hosted checkout
+`c71a91a609e2a301415cd46e81cfff84b826613e` has the same tree as the selected
+implementation and merge. Three archive digests, all 49 packaged executable
+hashes/types and notices verified. Prerequisites retain actual ARM64 macOS and
+Windows CPU coverage; this graphics target is Linux only.
+
+Downloaded exact-source release and strict sanitizer binaries each passed three
+authored region, three original-data region and three each of Frame batch,
+GlueFonts, image and Gxu cycles on RX 7900 XTX / Mesa 26.2.5 / SDL X11. All twelve
+main executions exited zero with empty stderr and zero workers at shutdown.
+Each native target/transform/buffer/texture fixture passed three cycles per mode.
+Original-key authentication observed 28,948 signaturefile records; registered
+member MD5 policy remained enabled. GlueXML authenticated before/after construction
+of all eighteen original GlueFonts definitions in every original region cycle.
+
+The actual region rendered the authored red string `AV Frame region`, with
+explicit anchors and scale 1.25, using a selected original outlined font at its
+original logical height. It produced 213 red-ink pixels per original-data cycle;
+repeat readback and release/sanitizer capture bytes match SHA-256
+`6e0dbb222f3ff87e5444c326a689c9a8100710966a7c3d8cb52ef7ba5dd51fb3`.
+The 640x480 release capture was inspected. Image-regression loading-bar hashes
+still match prior qualification. This is authored composition with original
+resources, separate from original login layout or physical-input acceptance.
+
+Two earlier release runs passed 32/33 checks: the fixture drew after shadow-offset
+mutation without processing the original pending layout queue. Diagnostics showed
+pending flags and a missing text block. The fixture now processes that queue;
+the pixel assertion is unchanged. Earlier strict linking also exposed references
+to unselected Frame/Texture and font-string RTTI. Native dispatch and branches now
+select only complete classes; no detector was disabled. The failures and cancelled,
+unqualified sanitizer run remain recorded. Local Python: 52 passed, one CMake
+availability skip; 113 original Windows body comparisons and whitespace passed.
+The two additional scalar comparisons moved unchanged into `LayoutMath.cpp`.
+No client/dependency compiled locally.
 
 Run a downloaded, manifest-verified package without local compilation:
 
@@ -50,3 +96,18 @@ Use `--sanitizers` and separate writable roots for the sanitizer package. The
 installation stays read-only. No new physical-input, Windows runtime, macOS
 graphics or server acceptance is claimed. M3 remains open; preserve original
 signatures, server revision discrepancies and interactive user sign-in.
+
+## Next original callers
+
+1. Select actual Frame parent/child and region/layer lists, animation ownership,
+   root batches and deferred destruction. Native region heap allocation is not
+   the original pooled factory; adapt actual factory allocation before selection.
+2. Connect region Lua/XML methods, language processing and template inheritance;
+   the C++ region surface currently rejects those paths. Select actual Frame
+   texture factories/image modes and embedded-texture ownership against the
+   qualified image/atlas service.
+3. Wire real SDL size events to both original Gxu invalidation and font-string/
+   Frame callbacks. Preserve original pending-layout processing before batching.
+4. Execute complete signed ordered GlueXML/FrameXML creation and the full second
+   digest gate in `CGlueMgr::Resume`, then render original login before interactive
+   user sign-in. Transport/authentication and observed gameplay follow.

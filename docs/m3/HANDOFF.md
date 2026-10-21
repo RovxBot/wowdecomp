@@ -1,4 +1,4 @@
-# M3 Linux game integration — 2026-10-20
+# M3 Linux game integration — 2026-10-21
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client
@@ -479,11 +479,36 @@ Actual Frame-object queues, parent/animation/layer/root and deferred lifetimes, 
 size invalidation and texture modes remain open. No new physical-input, Windows
 runtime, macOS graphics or server acceptance; M3 remains incomplete.
 
+The [original unparented font-string regions](FRAME_REGIONS.md) in
+[PR #47](https://github.com/RovxBot/wowdecomp/pull/47) are qualified at
+`01ac7deb547aa3216a92d78f93b6eb07e59eb9a0`, merged as
+`259518fd512a7c9cf4f4dcd8a4e0b0998058f282`. The
+[record](frame-regions-validation.json) retains thirteen passing workflows,
+33 checks per Linux GL configuration, full signature-enabled Windows compilation
+at matching-tree checkout `c71a91a609e2a301415cd46e81cfff84b826613e`, three archive
+digests and 49 packaged executable hashes/types. Downloaded release and strict
+sanitizer binaries each passed three authored/original region cycles and three
+each of Frame batch/GlueFonts/image/Gxu regressions, plus all four resource
+fixtures, with empty stderr and zero workers. Original region captures match.
+
+Actual `CScriptRegion`/`CSimpleRegion`/`CSimpleFontString` now consume qualified
+font attributes/layout/Services and retained batching through direct unparented
+C++ calls. Font replacement preserves block-before-font cleanup; queued resources
+survive consumer destruction. Callback/layout guards, native field initialization,
+logical-pixel rounding and script-factory rejection preserve ownership. Prior
+pending-layout fixture and RTTI linkage failures remain recorded with detectors
+enabled. Original resources and eighteen GlueFonts definitions are used in authored
+composition; this is not original login. Root/parent/layer, animation/Lua/XML,
+texture factories and real SDL size delivery remain open. No new physical-input,
+Windows runtime, macOS graphics or server acceptance; M3 is incomplete.
+
 Next dependencies, in order:
 
-1. Connect actual regions/font strings/root batching to the qualified
-   [font/name factories](FRAME_FONTS.md), Gxu/Services and [layout owners](LAYOUT.md).
-   Adapt deferred destruction and SDL font/size invalidation before those callers.
+1. Connect actual Frame parent/child and region/layer lists, animation ownership
+   and root batching to the qualified [direct font-string regions](FRAME_REGIONS.md),
+   [font/name factories](FRAME_FONTS.md) and [layout owners](LAYOUT.md).
+   Adapt pooled factories, deferred destruction, region Lua/XML/language callers
+   and actual SDL font/size invalidation before selecting those consumers.
    Connect actual Frame texture factories and image-mode shaders to the qualified
    [image lookup/atlas surface](IMAGE_SOURCES.md); retain readiness and atlas
    coordinates. Extend device/state/
