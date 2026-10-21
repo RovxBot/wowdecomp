@@ -60,24 +60,6 @@ static int32_t Script_GetText(lua_State* L) {
     return 1;
 }
 
-// VERIFY: 5d8fa6da auto
-// OFFSET: 0x0081B7B0
-static int32_t Script_CreateFont(lua_State* L) {
-    if (!lua_isstring(L, 1)) {
-        luaL_error(L, "Usage: CreateFont(\"name\")");
-        return 0;
-    }
-
-    CSimpleFont* font = CSimpleFont::GetFont(lua_tolstring(L, 1, nullptr), 1);
-
-    if (!font->m_luaRegistered) {
-        font->RegisterScriptObject(nullptr);
-    }
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, font->m_luaObjectRef);
-    return 1;
-}
-
 // VERIFY: 9415d77e auto
 // OFFSET: 0x0081B820
 static int32_t Script_GetCurrentKeyBoardFocus(lua_State* L) {
@@ -283,7 +265,7 @@ static FrameScript_Method s_ScriptFunctions[] = {
     { "GetText", &Script_GetText },
     { "GetNumFrames", &Script_GetNumFrames },
     { "EnumerateFrames", &Script_EnumerateFrames },
-    { "CreateFont", &Script_CreateFont },
+    { "CreateFont", &SimpleFrameScript_CreateFont },
     { "CreateFrame", &Script_CreateFrame },
     { "GetFramesRegisteredForEvent", &Script_GetFramesRegisteredForEvent },
     { "GetCurrentKeyBoardFocus", &Script_GetCurrentKeyBoardFocus },

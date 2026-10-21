@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <utility>
 namespace Gxu { namespace Native {
-namespace { LegacyFonts* active = nullptr; }
+namespace { LegacyFonts* active = nullptr; size_t consumers = 0; }
 LegacyFonts::LegacyFonts(FontBytes bytes) : device(g_theGxDevicePtr), provider(std::move(bytes)) {
     if (!device || !provider || active)
         throw std::logic_error("Native Gxu requires one installed device and font provider");
@@ -18,6 +18,7 @@ LegacyFonts::LegacyFonts(FontBytes bytes) : device(g_theGxDevicePtr), provider(s
 LegacyFonts::~LegacyFonts() {
     try {
         Check();
+        RequireNoFontConsumers();
         GxuFontShutdown();
         // External face references must not outlive the shared FreeType library.
         if (s_faceHash.m_fulllist.Head()) std::terminate();
@@ -42,5 +43,13 @@ void RequireFontOwner() {
 std::vector<uint8_t> ReadFontBytes(const char* name) {
     RequireFontOwner();
     return active->Read(name);
+}
+FontOwnerLease::FontOwnerLease() { RequireFontOwner(); ++consumers; }
+FontOwnerLease::~FontOwnerLease() {
+    try { RequireFontOwner(); --consumers; } catch (...) { std::terminate(); }
+}
+void RequireNoFontConsumers() {
+    RequireFontOwner();
+    if (consumers) throw std::logic_error("Close Frame font factories before Gxu");
 }
 }}

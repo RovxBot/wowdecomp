@@ -24,6 +24,13 @@ private:
     FontBytes provider;
 };
 void RequireFontOwner();
+struct FontOwnerLease final {
+    FontOwnerLease();
+    ~FontOwnerLease();
+    FontOwnerLease(const FontOwnerLease&) = delete;
+    FontOwnerLease& operator=(const FontOwnerLease&) = delete;
+};
+void RequireNoFontConsumers();
 std::vector<uint8_t> ReadFontBytes(const char*);
 }}
 #endif

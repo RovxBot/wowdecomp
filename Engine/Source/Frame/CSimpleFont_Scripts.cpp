@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Fonts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleFont.h"
@@ -16,9 +19,13 @@ static int32_t CSimpleFont_CopyFontObject(const char* name, CSimpleFont* font, l
     CSimpleFont* source;
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        source = dynamic_cast<CSimpleFont*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         source = static_cast<CSimpleFont*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!source) {
             luaL_error(L, "%s:CopyFontObject(): Couldn't find 'this' in font object", name);
@@ -56,6 +63,10 @@ static int32_t CSimpleFont_SetAlpha(const char* name, CSimpleFont* font, lua_Sta
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(lua_tonumber(L, 2)) || lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) > 1)
+        return luaL_error(L, "Alpha must be finite and within [0,1]");
+#endif
     uint8_t alpha = static_cast<uint8_t>(lua_tonumber(L, 2) * 255.0);
 
     if (alpha != font->m_attributes.m_color.a || !(font->m_attributes.m_flags & 0x400)) {
@@ -82,9 +93,13 @@ int32_t CSimpleFont_SetFontObject(const char* name, CSimpleFont* font, lua_State
     CSimpleFont* parent = nullptr;
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        parent = dynamic_cast<CSimpleFont*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         parent = static_cast<CSimpleFont*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!parent) {
             luaL_error(L, "%s:SetFontObject(): Couldn't find 'this' in font object", name);
@@ -243,6 +258,10 @@ int32_t CSimpleFont_SetShadowOffset(const char* name, CSimpleFont* font, lua_Sta
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(static_cast<float>(lua_tonumber(L, 2))) || !std::isfinite(static_cast<float>(lua_tonumber(L, 3))))
+        return luaL_error(L, "Shadow offset must be finite");
+#endif
     float x = static_cast<float>(lua_tonumber(L, 2));
     float y = static_cast<float>(lua_tonumber(L, 3));
 
@@ -272,6 +291,10 @@ int32_t CSimpleFont_GetShadowOffset(const char* name, CSimpleFont* font, lua_Sta
 // OFFSET: 0x004A3F90
 int32_t CSimpleFont_SetSpacing(const char* name, CSimpleFont* font, lua_State* L) {
     if (lua_isnumber(L, 2)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!std::isfinite(static_cast<float>(lua_tonumber(L, 2))))
+            return luaL_error(L, "Font spacing must be finite");
+#endif
         float value = static_cast<float>(lua_tonumber(L, 2));
         float spacing = NDCToDDCWidth(value / (CoordinateGetAspectCompensation() * 1024.0f));
 
@@ -392,12 +415,19 @@ int32_t CSimpleFont_SetIndentedWordWrap(const char* name, CSimpleFont* font, lua
 // VERIFY: f86914df auto
 // OFFSET: 0x004A4910
 void CSimpleFont::CreateScriptMetaTable() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFontFactories();
+    if (CSimpleFont::s_metatable != LUA_NOREF) return;
+#endif
     CSimpleFont::s_metatable = FrameScript_Object::CreateScriptMetaTable(FrameScript_GetContext(), &CSimpleFont::RegisterScriptMethods);
 }
 
 // VERIFY: 954a81b3 auto
 // OFFSET: 0x004A3710
 void CSimpleFont::DestroyScriptMetaTable() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFontFactories();
+#endif
     luaL_unref(FrameScript_GetContext(), LUA_REGISTRYINDEX, CSimpleFont::s_metatable);
     CSimpleFont::s_metatable = LUA_NOREF;
 }

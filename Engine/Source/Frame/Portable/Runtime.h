@@ -16,6 +16,12 @@ public:
 private:
     FrameXML::Native::OwnerLease lifetime;
 };
+struct OwnerLease final {
+    OwnerLease();
+    ~OwnerLease();
+    OwnerLease(const OwnerLease&) = delete;
+    OwnerLease& operator=(const OwnerLease&) = delete;
+};
 void RequireOwner();
 void RequireNoObjects();
 void FrameCreated(CLayoutFrame*);

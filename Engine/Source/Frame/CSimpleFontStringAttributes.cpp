@@ -1,14 +1,24 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Fonts.h"
+#define FRAME_FONT_CHECK() Frame::Native::RequireFontFactories()
+#else
+#define FRAME_FONT_CHECK() ((void)0)
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleFontStringAttributes.h"
 #include <cmath>
+#include <exception>
 #include "Engine/Source/Base/Handle.h"
-#include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Services/TextBlock.h"
 #include "Engine/Source/Storm/H/storm.h"
 
 // INLINED
 CSimpleFontStringAttributes::CSimpleFontStringAttributes() {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_shadowOffset.x = this->m_shadowOffset.y = 0.0f;
+#endif
     this->m_fontHeight = 0.0f;
     this->m_spacing = 0.0f;
     this->m_fontFlags = 0;
@@ -20,6 +30,10 @@ CSimpleFontStringAttributes::CSimpleFontStringAttributes() {
 // VERIFY: bbf3b0cd auto
 // OFFSET: 0x00482D10
 int32_t CSimpleFontStringAttributes::SetFont(const char* fontName, float fontHeight, uint32_t fontFlags) {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(fontHeight)) return 0;
+#endif
     if (!fontName) {
         return 0;
     }
@@ -32,7 +46,13 @@ int32_t CSimpleFontStringAttributes::SetFont(const char* fontName, float fontHei
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    HTEXTFONT font;
+    try { font = TextBlockGenerateFont(fontName, fontFlags, fontHeight); }
+    catch (const std::exception&) { return 0; } // Original SetFont reports an unavailable face as failure.
+#else
     HTEXTFONT font = TextBlockGenerateFont(fontName, fontFlags, fontHeight);
+#endif
 
     if (!font) {
         return 0;
@@ -50,6 +70,10 @@ int32_t CSimpleFontStringAttributes::SetFont(const char* fontName, float fontHei
 // VERIFY: da866dc0 auto
 // OFFSET: 0x00482DC0
 void CSimpleFontStringAttributes::SetShadow(const CImVector& color, const C2Vector& offset) {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFinite(offset.x); Frame::Native::RequireFinite(offset.y);
+#endif
     if (*reinterpret_cast<const uint32_t*>(&color) != *reinterpret_cast<uint32_t*>(&this->m_shadowColor) || offset.x != this->m_shadowOffset.x || offset.y != this->m_shadowOffset.y || !(this->m_flags & 0x800)) {
         this->m_shadowColor = color;
         this->m_shadowOffset = offset;
@@ -60,12 +84,14 @@ void CSimpleFontStringAttributes::SetShadow(const CImVector& color, const C2Vect
 // VERIFY: b65d65ae manual
 // OFFSET: 0x004A3740
 void CSimpleFontStringAttributes::SetShadowOffset(const C2Vector& offset) {
+    FRAME_FONT_CHECK();
     this->SetShadow(this->m_shadowColor, offset);
 }
 
 // VERIFY: 1018d942 auto
 // OFFSET: 0x00483510
 void CSimpleFontStringAttributes::Update(CSimpleFontStringAttributes& attributes, int32_t flags) {
+    FRAME_FONT_CHECK();
     uint32_t mask = this->m_flags & flags;
 
     if ((this->m_flags & 0x100) && (mask & 0x1)) {
@@ -98,45 +124,10 @@ void CSimpleFontStringAttributes::Update(CSimpleFontStringAttributes& attributes
     }
 }
 
-// VERIFY: 988687b9 manual
-// OFFSET: 0x004872F0
-void CSimpleFontStringAttributes::Update(CSimpleFontString* string, int32_t flags) {
-    if (!string) {
-        DebugValidate("string");
-        SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
-        return;
-    }
-
-    uint32_t mask = this->m_flags & flags;
-
-    if ((this->m_flags & 0x100) && (mask & 0x1)) {
-        string->SetFont(this->m_font.m_str, this->m_fontHeight, this->m_fontFlags, false);
-    }
-
-    if ((this->m_flags & 0x200) && (mask & 0x2)) {
-        string->SetStyleFlags(this->m_styleFlags);
-    }
-
-    if ((this->m_flags & 0x400) && (mask & 0x4)) {
-        string->SetVertexColor(this->m_color);
-    }
-
-    if ((this->m_flags & 0x800) && (mask & 0x8)) {
-        if (this->m_shadowOffset.x == 0.0f && this->m_shadowOffset.y == 0.0f) {
-            string->RemoveShadow();
-        } else {
-            string->AddShadow(this->m_shadowColor, this->m_shadowOffset);
-        }
-    }
-
-    if ((this->m_flags & 0x1000) && (mask & 0x10)) {
-        string->SetSpacing(this->m_spacing);
-    }
-}
-
 // VERIFY: 00763e2e auto
 // OFFSET: 0x00483600
 CSimpleFontStringAttributes& CSimpleFontStringAttributes::operator=(const CSimpleFontStringAttributes& source) {
+    FRAME_FONT_CHECK();
     if (source.m_flags & 0x100) {
         this->SetFont(source.m_font.m_str, source.m_fontHeight, source.m_fontFlags);
     }
@@ -172,6 +163,7 @@ CSimpleFontStringAttributes& CSimpleFontStringAttributes::operator=(const CSimpl
 // VERIFY: ec752594 auto
 // OFFSET: 0x00496390
 void CSimpleFontStringAttributes::SetJustifyH(uint8_t justify) {
+    FRAME_FONT_CHECK();
     uint32_t styleFlags = (this->m_styleFlags & ~0x7u) | (justify & 0x7);
 
     if (styleFlags != this->m_styleFlags || !(this->m_flags & 0x200)) {
@@ -183,6 +175,7 @@ void CSimpleFontStringAttributes::SetJustifyH(uint8_t justify) {
 // VERIFY: 15b1ef9e auto
 // OFFSET: 0x004963C0
 void CSimpleFontStringAttributes::SetJustifyV(uint8_t justify) {
+    FRAME_FONT_CHECK();
     uint32_t styleFlags = (this->m_styleFlags & ~0x38u) | (justify & 0x38);
 
     if (styleFlags != this->m_styleFlags || !(this->m_flags & 0x200)) {

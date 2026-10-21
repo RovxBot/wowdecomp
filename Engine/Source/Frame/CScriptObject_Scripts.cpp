@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CScriptObject.h"
@@ -12,9 +15,15 @@ CScriptObject* FrameScript_GetObjectThis(lua_State* L, int32_t type) {
         return nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Font is a direct FrameScript_Object, not a CScriptObject. Validate and
+    // dispatch through the true base before returning the legacy opaque result.
+    auto* object = FrameScript::Native::GetObject(L, 1);
+#else
     lua_rawgeti(L, 1, 0);
     CScriptObject* object = static_cast<CScriptObject*>(lua_touserdata(L, -1));
     lua_settop(L, -2);
+#endif
 
     if (!object) {
         luaL_error(L, "Attempt to find 'this' in non-framescript object");
@@ -26,7 +35,11 @@ CScriptObject* FrameScript_GetObjectThis(lua_State* L, int32_t type) {
         return nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return reinterpret_cast<CScriptObject*>(object);
+#else
     return object;
+#endif
 }
 
 // VERIFY: d7726c6e manual

@@ -23,54 +23,6 @@ void CSimpleModel::DestroyScriptMetaTable() {
     CSimpleModel::s_metatable = LUA_NOREF;
 }
 
-// VERIFY: 1d94299e manual
-// OFFSET: 0x00960420
-int32_t FrameScript_GetColor(lua_State* L, int32_t index, CImVector& color) {
-    float r = lua_tonumber(L, index);
-    r = r < 0.0f ? 0.0f : (r >= 1.0f ? 1.0f : r);
-    index++;
-
-    float g = lua_tonumber(L, index);
-    g = g < 0.0f ? 0.0f : (g >= 1.0f ? 1.0f : g);
-    index++;
-
-    float b = lua_tonumber(L, index);
-    b = b < 0.0f ? 0.0f : (b >= 1.0f ? 1.0f : b);
-    index++;
-
-    float a;
-
-    if (lua_isnumber(L, index)) {
-        a = lua_tonumber(L, index);
-        a = a < 0.0f ? 0.0f : (a >= 1.0f ? 1.0f : a);
-        index++;
-    } else {
-        a = 1.0f;
-    }
-
-    color.Set(a, r, g, b);
-    return index;
-}
-
-// VERIFY: 51dc23ed manual
-// OFFSET: 0x0061BE50
-int32_t FrameScript_GetColorNoAlpha(lua_State* L, int32_t index, CImVector& color) {
-    float r = lua_tonumber(L, index);
-    r = r < 0.0f ? 0.0f : (r >= 1.0f ? 1.0f : r);
-    index++;
-
-    float g = lua_tonumber(L, index);
-    g = g < 0.0f ? 0.0f : (g >= 1.0f ? 1.0f : g);
-    index++;
-
-    float b = lua_tonumber(L, index);
-    b = b < 0.0f ? 0.0f : (b >= 1.0f ? 1.0f : b);
-    index++;
-
-    color.Set(1.0f, r, g, b);
-    return index;
-}
-
 // VERIFY: e336fe44 auto
 // OFFSET: 0x00960530
 static int32_t Script_SetModel(lua_State* L) {

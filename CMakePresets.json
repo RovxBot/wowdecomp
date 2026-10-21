@@ -187,7 +187,12 @@
       "name": "linux-gl",
       "inherits": "linux-window",
       "cacheVariables": {
-        "WOWDECOMP_BUILD_NATIVE_GL": "ON"
+        "WOWDECOMP_BUILD_NATIVE_GL": "ON",
+        "WOWDECOMP_BUILD_NATIVE_LUA": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT": "ON",
+        "WOWDECOMP_BUILD_NATIVE_XML": "ON",
+        "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAME_FONTS": "ON"
       }
     },
     {
