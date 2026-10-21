@@ -736,3 +736,29 @@ remaining checks need another machine.
   ordered GlueXML and full post-creation digest gate, original login and transport/
   gameplay remain open. M3 is incomplete; preserve signatures, server revision
   discrepancies and interactive user sign-in.
+
+- M3 SDL keyboard/text/focus [PR #53](https://github.com/RovxBot/wowdecomp/pull/53)
+  is qualified at `75225260de3b03a17b2f280ab75f377a9f295d42`, merged as
+  `74eeee2399937ed72da27f308e9d66ba370d8f23`. Read [input contracts](docs/m3/FRAME_KEYBOARD.md)
+  and [validation](docs/m3/frame-keyboard-validation.json). All thirteen PR
+  workflows passed; both Linux GL configurations passed 36 CTest checks. Full
+  signature-enabled Windows x64 compiled at matching-tree checkout
+  `c2f06f3b20e3335f976682bb28fc1f709828663c`. Three archive digests, all 51 packaged binary
+  hashes/types and notices verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL
+  X11 release/strict ASan/UBSan/leak packages passed 22 authored/original-data
+  keyboard/window/hierarchy and prior-resource executions, three cycles each,
+  with empty stderr/zero workers; all four resource fixtures passed three cycles
+  per mode. Preserve original priority/stratum queues, captured repeat/up and
+  PrintScreen behavior, native KEY_LAST-sized storage, raw unsigned index checks,
+  original modifier bits/event IDs/timestamps and matching priority allocation.
+  Focus retires residual held keys/modifiers/captures; Window queues held-key
+  releases before focus loss. Input guards reject root mutation/update/render/
+  destruction and reentry; deferred deletion remains allowed. Nonempty native Lua
+  input handlers reject before stack mutation pending actual pooled factories.
+  Three Unicode scalars and thirteen key callbacks per cycle are authored SDL
+  injections, not physical-input or IME/language acceptance. Captures match PR #51.
+  Mouse/occlusion/drag/IME, pooled Lua/XML/language/template factories, other Frame
+  consumers, full signed ordered GlueXML/post-creation digest gate, actual login
+  and transport/gameplay remain open. No new physical-input, Windows runtime,
+  macOS graphics or server acceptance. M3 stays open; preserve signatures,
+  server revision discrepancies and interactive user sign-in.

@@ -4,7 +4,8 @@ This native host prerequisite connects the existing SDL `Window::Pump` and Os
 queue to the qualified original Frame root. `DispatchWindowEvent` handles size
 events after the host dequeues them; it returns false for other events so the host
 can deliver them to their own consumers. It never drains or owns the queue.
-Keyboard, mouse, focus, IME and animation delivery to Frames remain open.
+Keyboard, committed text and focus now use the separate
+[input adapter](FRAME_KEYBOARD.md). Mouse, IME and animation delivery remain open.
 
 The dispatcher queries the live logical and drawable dimensions, avoiding stale
 queued sizes. It refreshes Gx window/viewport state, sets the original coordinate
