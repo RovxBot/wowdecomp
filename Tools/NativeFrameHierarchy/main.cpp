@@ -341,7 +341,7 @@ int main(int argc,char** argv) {
                 Gxu::Native::LegacyFonts gxu([&](const std::string& path){return source.Font(path);});
                 {Frame::Native::Fonts factories;Frame::Native::Renderer renderer;
                     CSimpleFont* selected;
-                    if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight(32.0f/480),0),"Authored font creation");}
+                    if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight((windowEvents?20.0f:32.0f)/480),0),"Authored font creation");}
                     else selected=Original(source);
                     Hierarchy(context,device,*selected,cycle?"":snapshot,windowEvents);
                     renderer.CheckCanClose();factories.CheckCanClose();}
