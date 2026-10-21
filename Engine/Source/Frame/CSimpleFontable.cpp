@@ -1,3 +1,9 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Fonts.h"
+#define FRAME_FONT_CHECK() Frame::Native::RequireFontFactories()
+#else
+#define FRAME_FONT_CHECK() ((void)0)
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleFontable.h"
@@ -5,6 +11,10 @@
 
 // INLINED
 CSimpleFontable::CSimpleFontable() {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FontableCreated(this);
+#endif
     this->m_fontableFlags = 0x1F;
     this->m_fontObject = nullptr;
 }
@@ -12,12 +22,20 @@ CSimpleFontable::CSimpleFontable() {
 // VERIFY: 85bbcb87 auto
 // OFFSET: [0x004851B0, 0x00485210]
 CSimpleFontable::~CSimpleFontable() {
+    FRAME_FONT_CHECK();
     this->SetFontObject(nullptr);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FontableDestroyed(this);
+#endif
 }
 
 // VERIFY: c87fff35 auto
 // OFFSET: 0x00485160
 void CSimpleFontable::SetFontObject(CSimpleFont* font) {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFontParent(this, font);
+#endif
     if (this->m_fontObject == font) {
         return;
     }

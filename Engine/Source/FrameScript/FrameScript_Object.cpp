@@ -103,7 +103,7 @@ FrameScript_Object::ScriptIx::~ScriptIx() {
 // OFFSET: 0x00819830
 FrameScript_Object::FrameScript_Object() {
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
-    FrameScript::Native::ObjectCreated();
+    FrameScript::Native::ObjectCreated(this);
 #endif
     FS_NATIVE_CHECK();
     this->m_luaRegistered = 0;
@@ -117,7 +117,7 @@ FrameScript_Object::~FrameScript_Object() {
     FS_NATIVE_CHECK();
     this->UnregisterAllScriptEvents();
     while (this->m_luaRegistered) this->UnregisterScriptObject(nullptr);
-    FrameScript::Native::ObjectDestroyed();
+    FrameScript::Native::ObjectDestroyed(this);
 #endif
 }
 

@@ -11,7 +11,7 @@ namespace Frame { namespace Native {
 namespace {
 bool installed = false;
 std::unordered_set<CLayoutFrame*> frames;
-size_t resizing = 0;
+size_t resizing = 0, consumers = 0;
 std::unordered_set<CFramePoint*> points;
 // Initial bounded layout surface; larger graphs require separate qualification.
 constexpr size_t MaxFrames = 1024, MaxDepth = 64;
@@ -54,8 +54,12 @@ void RequireOwner() {
 }
 void RequireNoObjects() {
     RequireOwner();
-    if (!frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
+}
+OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
+OwnerLease::~OwnerLease() {
+    try { RequireOwner(); --consumers; } catch (...) { std::terminate(); }
 }
 void FrameCreated(CLayoutFrame* frame) {
     RequireOwner();

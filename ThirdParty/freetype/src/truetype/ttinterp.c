@@ -1489,6 +1489,33 @@
     zone->tags[point]  |= FT_Curve_Tag_Touch_Y;
   }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+  /* Native TT_Move_Func takes FT_UInt, whereas the original movement bodies
+   * take FT_UShort. Keep their index conversion behind typed bridges rather
+   * than calling functions through incompatible pointer types. */
+  static void
+  wow_native_direct_move( EXEC_OP_ TT_GlyphZone* zone,
+                                   FT_UInt point, FT_F26Dot6 distance )
+  {
+    Direct_Move( EXEC_ARG_ zone, (FT_UShort)point, distance );
+  }
+
+  static void
+  wow_native_direct_move_x( EXEC_OP_ TT_GlyphZone* zone,
+                                     FT_UInt point, FT_F26Dot6 distance )
+  {
+    Direct_Move_X( EXEC_ARG_ zone, (FT_UShort)point, distance );
+  }
+
+  static void
+  wow_native_direct_move_y( EXEC_OP_ TT_GlyphZone* zone,
+                                     FT_UInt point, FT_F26Dot6 distance )
+  {
+    Direct_Move_Y( EXEC_ARG_ zone, (FT_UShort)point, distance );
+  }
+#endif
+
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -2149,16 +2176,28 @@
         CUR.func_dualproj = (TT_Project_Func)Dual_Project;
     }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    CUR.func_move = wow_native_direct_move;
+#else
     CUR.func_move = (TT_Move_Func)Direct_Move;
+#endif
 
     if ( CUR.F_dot_P == 0x40000000L )
     {
       if ( CUR.GS.freeVector.x == 0x4000 )
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        CUR.func_move = wow_native_direct_move_x;
+#else
         CUR.func_move = (TT_Move_Func)Direct_Move_X;
+#endif
       else
       {
         if ( CUR.GS.freeVector.y == 0x4000 )
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+          CUR.func_move = wow_native_direct_move_y;
+#else
           CUR.func_move = (TT_Move_Func)Direct_Move_Y;
+#endif
       }
     }
 

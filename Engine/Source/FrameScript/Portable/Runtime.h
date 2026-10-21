@@ -6,6 +6,8 @@
 #include <thread>
 #include <vector>
 
+class FrameScript_Object;
+struct lua_State;
 namespace FrameScript { namespace Native {
 enum class SourceKind { Interface, SavedVariables };
 // Return completed reads, delivered on the owner thread by the retained file
@@ -28,8 +30,9 @@ private:
 };
 void RequireOwner();
 void RequireIdle();
-void ObjectCreated();
-void ObjectDestroyed();
+void ObjectCreated(FrameScript_Object*);
+void ObjectDestroyed(FrameScript_Object*);
+FrameScript_Object* GetObject(lua_State*, int index);
 bool ReadSource(SourceKind, const char*, std::string&, std::vector<uint8_t>&);
 // Prevent Flush/Destroy from closing an executing VM, including nested C calls.
 struct Execution final {

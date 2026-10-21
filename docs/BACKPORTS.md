@@ -601,3 +601,17 @@ and source inspection are different evidence levels.
   behavior without requiring a specific host CPU, preserve/refresh verification
   annotations, run the Windows baseline build in Actions and record results.
 - Disposition: queued for a small implementation change after the M0 inventory.
+
+## NP-020 — Original Frame font/name factories in the native ABI
+
+- Status: implementation pending hosted qualification; [contracts](m3/FRAME_FONTS.md).
+- Source: product main `edeb6b3`, following qualified layout PR #39/closeout #40.
+  Original 12340 font/name factories and scalar XML/color helpers; no donor import,
+  new dependency, asset enhancement or new OFFSET/VERIFY claim.
+- Adaptation: owner leases, canonical live Lua tables, correctly typed native
+  dispatch, bounded inheritance/names, finite numeric inputs and consumer shutdown.
+  Existing fontable lists/override masks, Services font validation and original
+  Lua APIs remain selected. Windows paths and signature defaults stay intact.
+- Validation: planned authored three-cycle Linux release/strict sanitizer fixtures,
+  actual original GlueFonts definitions and Services/Gxu rendering, plus full
+  Windows x64 compilation. No original login, input, server or gameplay claim.

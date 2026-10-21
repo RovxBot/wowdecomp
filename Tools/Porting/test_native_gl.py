@@ -52,6 +52,21 @@ class NativeGlGraphTests(unittest.TestCase):
         target['compileGroups'][0]['defines'].pop()
         self.assertIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
 
+    def test_frame_fonts_reject_unadapted_region_and_model_sources(self):
+        target = self.target('WowNativeFrameFonts', 'Engine/Source/Frame/CSimpleFont.cpp')
+        target['sources'] = [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
+            ['CScriptObject', 'CScriptObject_Scripts', 'CreateFont', 'CSimpleFont',
+             'CSimpleFont_Scripts', 'CSimpleFontable', 'CSimpleFontStringAttributes',
+             'ScriptColor', 'Portable/Fonts']]
+        target['sources'] += [{'path': path} for path in
+            ['Engine/Source/FrameXML/FontXML.cpp', 'Engine/Source/Tempest/CImVector.cpp']]
+        message = 'WowNativeFrameFonts: unexpected native Frame font source/ABI'
+        self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
+        for path in ['Engine/Source/Frame/CSimpleRender.cpp', 'Engine/Source/Frame/CSimpleModel.cpp']:
+            changed = copy.deepcopy(target)
+            changed['sources'].append({'path': path})
+            self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))
+
     def test_gl_rejects_signature_bypass_and_windows_definitions(self):
         target = self.target('NativeGlCheck', 'Tools/NativeGx/main.cpp')
         message = 'NativeGlCheck: Windows/client definitions leaked into core'
@@ -141,6 +156,18 @@ class NativeGlLauncherTests(unittest.TestCase):
         record = json.loads(self.output.read_text())
         self.assertEqual(record['probe'], 'LegacyGxuCheck')
         self.assertEqual(record['stdout'], ['original-gxu-passed'])
+
+    def test_frame_font_probe_requires_its_own_binary_hash(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('print("frame-fonts-passed")\n', 'NativeFrameFontsCheck')
+        result = self.run_wrapper('--frame-fonts')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.output.read_text())['probe'], 'NativeFrameFontsCheck')
+        binary.write_text('tampered')
+        result = self.run_wrapper('--frame-fonts')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
 
     def test_target_failure_is_recorded_separately_and_fails_combined_run(self):
         self.script('print("probe-passed")\n')

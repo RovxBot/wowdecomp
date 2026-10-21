@@ -1,3 +1,9 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Fonts.h"
+#define FRAME_FONT_CHECK() Frame::Native::RequireFontFactories()
+#else
+#define FRAME_FONT_CHECK() ((void)0)
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleFont.h"
@@ -26,7 +32,11 @@ const char* CSimpleFont::s_objectTypeName = "Font";
 
 // INLINED
 SIMPLEFONT::SIMPLEFONT() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_font = new CSimpleFont;
+#else
     this->m_font = new (SMemAlloc(sizeof(CSimpleFont), __FILE__, __LINE__, 0)) CSimpleFont;
+#endif
 }
 
 // INLINED
@@ -36,6 +46,7 @@ SIMPLEFONT::~SIMPLEFONT() {
 
 // INLINED
 int32_t CSimpleFont::GetObjectType() {
+    FRAME_FONT_CHECK();
     if (!CSimpleFont::s_objectType) {
         CSimpleFont::s_objectType = ++FrameScript_Object::s_objectTypes;
     }
@@ -46,36 +57,46 @@ int32_t CSimpleFont::GetObjectType() {
 // VERIFY: a2632992 auto
 // OFFSET: 0x004965C0
 const char* CSimpleFont::GetName() {
+    FRAME_FONT_CHECK();
     return this->m_name;
 }
 
 // VERIFY: eddc0268 auto
 // OFFSET: 0x00496610
 bool CSimpleFont::IsA(int32_t type) {
+    FRAME_FONT_CHECK();
     return type == CSimpleFont::s_objectType;
 }
 
 // VERIFY: c1008cf1 manual
 // OFFSET: 0x00496630
 bool CSimpleFont::IsA(const char* typeName) {
+    FRAME_FONT_CHECK();
     return SStrCmpI(typeName, CSimpleFont::s_objectTypeName, STORM_MAX_STR) == 0;
 }
 
 // VERIFY: 3d0bc1be auto
 // OFFSET: 0x00496660
 const char* CSimpleFont::GetObjectTypeName() {
+    FRAME_FONT_CHECK();
     return CSimpleFont::s_objectTypeName;
 }
 
 // VERIFY: 4925c45f auto
 // OFFSET: 0x00496670
 int32_t CSimpleFont::GetScriptMetaTable() {
+    FRAME_FONT_CHECK();
     return CSimpleFont::s_metatable;
 }
 
 // VERIFY: dd9273cb manual
 // OFFSET: 0x00496F70
 CSimpleFont* CSimpleFont::GetFont(const char* name, int32_t create) {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!create && (!name || !*name || SStrLen(name) >= 1024)) return nullptr;
+    Frame::Native::RequireFontName(name);
+#endif
     SIMPLEFONT* node = s_fontList.Ptr(name);
 
     if (!node) {
@@ -83,6 +104,9 @@ CSimpleFont* CSimpleFont::GetFont(const char* name, int32_t create) {
             return nullptr;
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::RequireFontCapacity();
+#endif
         node = s_fontList.New(name, 0, 0);
 
         const char* fontName = node->m_key.m_str;
@@ -105,6 +129,10 @@ CSimpleFont* CSimpleFont::GetFont(const char* name, int32_t create) {
 // VERIFY: 4e49d100 manual
 // OFFSET: 0x00496870
 CSimpleFont::CSimpleFont() {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FontCreated(this);
+#endif
     this->m_name = nullptr;
     this->m_attributeMask = 0;
     s_fontCount++;
@@ -113,6 +141,7 @@ CSimpleFont::CSimpleFont() {
 // VERIFY: afaa75af manual
 // OFFSET: [0x004964D0, 0x00963560, 0x009652B0]
 CSimpleFont::~CSimpleFont() {
+    FRAME_FONT_CHECK();
     if (this->m_name) {
         this->UnregisterScriptObject(this->m_name);
     }
@@ -126,23 +155,32 @@ CSimpleFont::~CSimpleFont() {
     }
 
     s_fontCount--;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FontDestroyed(this);
+#endif
 }
 
 // VERIFY: 6f8f4fa0 manual
 // OFFSET: 0x004964C0
 void CSimpleFont::Destroy() {
+    FRAME_FONT_CHECK();
     s_fontList.Clear();
 }
 
 // VERIFY: a26db561 auto
 // OFFSET: 0x00484AB0
 void CSimpleFont::RemoveFontable(CSimpleFontable* fontable) {
+    FRAME_FONT_CHECK();
     this->m_fontableList.UnlinkNode(fontable);
 }
 
 // VERIFY: 687fcec6 auto
 // OFFSET: 0x004963F0
 void CSimpleFont::UpdateObjects() {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FontUpdate updating;
+#endif
     if (!this->m_attributes.m_flags) {
         return;
     }
@@ -157,6 +195,14 @@ void CSimpleFont::UpdateObjects() {
 // VERIFY: de3bab57 manual
 // OFFSET: 0x00496440
 CSimpleFont& CSimpleFont::operator=(const CSimpleFont& source) {
+    FRAME_FONT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFont(const_cast<CSimpleFont*>(&source));
+    CSimpleFont* proposed = source.m_fontObject;
+    for (auto* ancestor = proposed; ancestor; ancestor = ancestor->m_fontObject)
+        if (ancestor == this) { proposed = nullptr; break; }
+    Frame::Native::RequireFontParent(this, proposed);
+#endif
     this->m_attributeMask = source.m_attributeMask;
     this->m_attributes = source.m_attributes;
     this->m_attributes.m_flags &= this->m_attributeMask;
@@ -191,6 +237,7 @@ CSimpleFont& CSimpleFont::operator=(const CSimpleFont& source) {
 // VERIFY: 5c6e0d80 auto
 // OFFSET: 0x004965D0
 void CSimpleFont::FontObjectUpdated(CSimpleFontStringAttributes& attributes) {
+    FRAME_FONT_CHECK();
     attributes.Update(this->m_attributes, this->m_fontableFlags);
     this->UpdateObjects();
 }
@@ -198,6 +245,7 @@ void CSimpleFont::FontObjectUpdated(CSimpleFontStringAttributes& attributes) {
 // VERIFY: 4695fb39 manual
 // OFFSET: 0x00497070
 void CSimpleFont::LoadXML(XMLNode* node, CStatus* status) {
+    FRAME_FONT_CHECK();
     const char* inherits = node->GetAttributeByName("inherits");
 
     if (inherits && *inherits) {
@@ -261,6 +309,9 @@ void CSimpleFont::LoadXML(XMLNode* node, CStatus* status) {
     if (spacingAttr && *spacingAttr) {
         float spacing = SStrToFloat(spacingAttr);
         float ddcSpacing = NDCToDDCWidth(spacing / (CoordinateGetAspectCompensation() * 1024.0f));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::RequireFinite(ddcSpacing);
+#endif
 
         if (fabsf(ddcSpacing - this->m_attributes.m_spacing) >= 0.00000023841858f || !(this->m_attributes.m_flags & 0x1000)) {
             this->m_attributes.m_flags |= 0x1010;
@@ -337,6 +388,9 @@ void CSimpleFont::LoadXML(XMLNode* node, CStatus* status) {
                 LoadXML_Dimensions(offsetNode, offset.x, offset.y, status);
             }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::RequireFinite(offset.x); Frame::Native::RequireFinite(offset.y);
+#endif
             if (*reinterpret_cast<uint32_t*>(&color) != *reinterpret_cast<uint32_t*>(&this->m_attributes.m_shadowColor) || offset.x != this->m_attributes.m_shadowOffset.x || offset.y != this->m_attributes.m_shadowOffset.y || !(this->m_attributes.m_flags & 0x800)) {
                 this->m_attributes.m_shadowColor = color;
                 this->m_attributes.m_flags |= 0x808;

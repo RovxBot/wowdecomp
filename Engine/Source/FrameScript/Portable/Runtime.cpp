@@ -1,13 +1,16 @@
 #include "Runtime.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include <atomic>
+#include <unordered_set>
+#include "Engine/Source/FrameScript/FrameScript_Object.h"
 #include <stdexcept>
 #include <utility>
 
 namespace FrameScript { namespace Native {
 namespace {
 std::atomic<Runtime*> active{nullptr};
-size_t objects = 0, executions = 0;
+std::unordered_set<FrameScript_Object*> objects;
+size_t executions = 0;
 bool Normalize(const char* name, std::string& normalized) {
     normalized.clear();
     if (!name || !*name || name[0] == '/' || name[0] == '\\') return false;
@@ -74,14 +77,30 @@ void RequireOwner() {
 }
 void RequireIdle() {
     RequireOwner();
-    if (objects || executions) throw std::logic_error("Close FrameScript objects and finish execution before VM reset");
+    if (!objects.empty() || executions) throw std::logic_error("Close FrameScript objects and finish execution before VM reset");
 }
-void ObjectCreated() {
+void ObjectCreated(FrameScript_Object* object) {
     RequireOwner();
     if (!s_context) throw std::logic_error("FrameScript objects require an initialized VM");
-    ++objects;
+    objects.insert(object);
 }
-void ObjectDestroyed() { RequireOwner(); --objects; }
+void ObjectDestroyed(FrameScript_Object* object) {
+    RequireOwner(); objects.erase(object);
+    if (objects.empty()) std::unordered_set<FrameScript_Object*>().swap(objects);
+}
+FrameScript_Object* GetObject(lua_State* L, int index) {
+    RequireOwner();
+    if (L != s_context || lua_type(L, index) != LUA_TTABLE) return nullptr;
+    lua_rawgeti(L, index, 0);
+    auto* object = static_cast<FrameScript_Object*>(lua_touserdata(L, -1));
+    lua_pop(L, 1);
+    if (!objects.count(object) || !object->m_luaRegistered) return nullptr;
+    lua_rawgeti(L, LUA_REGISTRYINDEX, object->m_luaObjectRef);
+    // All callers supply a positive stack index.
+    bool same = lua_rawequal(L, index, -1);
+    lua_pop(L, 1);
+    return same ? object : nullptr;
+}
 bool ReadSource(SourceKind kind, const char* name, std::string& path, std::vector<uint8_t>& bytes) {
     RequireOwner(); return active.load()->Read(kind, name, path, bytes);
 }

@@ -11,13 +11,13 @@ def audit(targets, mode, target_os, cpu):
     build_utilities = {t['id'] for t in targets if t['type'] == 'UTILITY' and 'id' in t}
     names = {t['name'] for t in compiled}
     expected = {'WowPortableCore', 'PortableCoreCheck', 'WowCoreServices', 'CoreServicesCheck', 'NativeCore'}
-    if mode in {'lua', 'framescript', 'xml', 'layout'}:
+    if mode in {'lua', 'framescript', 'xml', 'layout', 'gl'}:
         expected |= {'WowNativeLua', 'NativeLuaCheck'}
-    if mode in {'framescript', 'xml', 'layout'}:
+    if mode in {'framescript', 'xml', 'layout', 'gl'}:
         expected |= {'WowNativeFrameScript', 'NativeFrameScriptCheck'}
-    if mode in {'xml', 'layout'}:
+    if mode in {'xml', 'layout', 'gl'}:
         expected |= {'WowNativeExpat', 'WowNativeXML', 'NativeXMLCheck'}
-    if mode == 'layout':
+    if mode in {'layout', 'gl'}:
         expected |= {'WowNativeLayout', 'NativeLayoutCheck'}
     if mode == 'packets':
         expected |= {'WowNativePackets', 'NativePacketCheck'}
@@ -30,7 +30,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'window', 'gl'}:
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
-        expected |= {'WowNativeGxu', 'LegacyGxuCheck', 'NativeImageCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
+        expected |= {'WowNativeFrameFonts', 'NativeFrameFontsCheck', 'WowNativeGxu', 'LegacyGxuCheck', 'NativeImageCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
     if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml', 'layout'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
@@ -198,7 +198,7 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native packet source/ABI")
-        if mode in {'lua', 'framescript', 'xml', 'layout'} and target['name'] in {'WowNativeLua', 'NativeLuaCheck'}:
+        if mode in {'lua', 'framescript', 'xml', 'layout', 'gl'} and target['name'] in {'WowNativeLua', 'NativeLuaCheck'}:
             allowed = (['Engine/Source/lua-5.1/src/' + name + '.c' for name in
                 ['lapi', 'lauxlib', 'lbaselib', 'lbitlib', 'lcode', 'ldebug', 'ldo', 'ldump',
                  'lfunc', 'lgc', 'llex', 'lmathlib', 'lmem', 'lobject', 'lopcodes', 'lparser',
@@ -210,7 +210,7 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native Lua source/ABI")
-        if mode in {'framescript', 'xml', 'layout'} and target['name'] in {'WowNativeFrameScript', 'NativeFrameScriptCheck'}:
+        if mode in {'framescript', 'xml', 'layout', 'gl'} and target['name'] in {'WowNativeFrameScript', 'NativeFrameScriptCheck'}:
             allowed = (['Engine/Source/FrameScript/' + name + '.cpp' for name in
                 ['FrameScript', 'FrameScript_Object', 'FrameScript_Scripts', 'Portable/Runtime']] +
                 ['Engine/Source/Base/Status.cpp'] if target['name'] == 'WowNativeFrameScript'
@@ -219,7 +219,7 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native FrameScript source/ABI")
-        if mode in {'xml', 'layout'} and target['name'] in {'WowNativeExpat', 'WowNativeXML', 'NativeXMLCheck'}:
+        if mode in {'xml', 'layout', 'gl'} and target['name'] in {'WowNativeExpat', 'WowNativeXML', 'NativeXMLCheck'}:
             allowed = {
                 'WowNativeExpat': ['ThirdParty/expat/lib/' + n + '.c' for n in ['xmlparse', 'xmlrole', 'xmltok']],
                 'WowNativeXML': ['Engine/Source/FrameXML/' + n + '.cpp' for n in ['XMLTree', 'Portable/Runtime', 'Portable/Signature']] +
@@ -230,7 +230,7 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native XML source/ABI")
-        if mode == 'layout' and target['name'] in {'WowNativeLayout', 'NativeLayoutCheck'}:
+        if mode in {'layout', 'gl'} and target['name'] in {'WowNativeLayout', 'NativeLayoutCheck'}:
             allowed = (['Engine/Source/Frame/' + n + '.cpp' for n in ['CLayoutFrame', 'CFramePoint', 'Portable/Runtime']] +
                 ['Engine/Source/FrameXML/LayoutXML.cpp', 'Engine/Source/Base/Coordinate.cpp', 'Engine/Source/Tempest/CRect.cpp', 'Engine/Source/Tempest/C2Vector.cpp', 'Engine/Source/Tempest/LayoutMath.cpp']
                 if target['name'] == 'WowNativeLayout' else ['Tools/NativeLayout/main.cpp'])
@@ -238,6 +238,16 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native layout source/ABI")
+        if mode == 'gl' and target['name'] in {'WowNativeFrameFonts', 'NativeFrameFontsCheck'}:
+            allowed = (['Engine/Source/Frame/' + n + '.cpp' for n in
+                ['CScriptObject', 'CScriptObject_Scripts', 'CreateFont', 'CSimpleFont', 'CSimpleFont_Scripts',
+                 'CSimpleFontable', 'CSimpleFontStringAttributes', 'ScriptColor', 'Portable/Fonts']] +
+                ['Engine/Source/FrameXML/FontXML.cpp', 'Engine/Source/Tempest/CImVector.cpp']
+                if target['name'] == 'WowNativeFrameFonts' else ['Tools/NativeFrameFonts/main.cpp'])
+            if (len(sources) != len(allowed) or
+                    any(not any(s.endswith(p) for s in sources) for p in allowed) or
+                    'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
+                errors.append(f"{target['name']}: unexpected native Frame font source/ABI")
         if mode == 'windows' and target['name'] in {'Wow', 'WowClient'}:
             if not any(s.endswith(f'/{expected_platform}/WinMain.cpp') for s in sources):
                 errors.append(f"{target['name']}: selected Windows entry missing")

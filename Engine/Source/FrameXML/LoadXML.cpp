@@ -48,27 +48,10 @@ static const XMLENUMVALUE s_blendModes[] = {
     { GxBlend_Mod, "MOD" },
 };
 
-// STATIC: 0x00A44010
-static const XMLENUMVALUE s_justify[] = {
-    { 0x1, "LEFT" },
-    { 0x2, "CENTER" },
-    { 0x4, "RIGHT" },
-    { 0x8, "TOP" },
-    { 0x10, "MIDDLE" },
-    { 0x20, "BOTTOM" },
-};
-
 // STATIC: 0x00A44040
 static const XMLENUMVALUE s_orientations[] = {
     { ORIENTATION_HORIZONTAL, "HORIZONTAL" },
     { ORIENTATION_VERTICAL, "VERTICAL" },
-};
-
-// STATIC: 0x00A44050
-static const XMLENUMVALUE s_fontFlags[] = {
-    { 0x1, "OUTLINE" },
-    { 0x4, "THICKOUTLINE" },
-    { 0x2, "MONOCHROME" },
 };
 
 // STATIC: 0x00A44068
@@ -102,9 +85,6 @@ static const XMLENUMVALUE s_curveTypes[] = {
 
 // STATIC: 0x00A4421C
 static const uint8_t s_signaturePublicExponent[4] = { 0x01, 0x00, 0x01, 0x00 };
-
-// STATIC: 0x00D3F730
-static char s_fontFlagsString[64];
 
 // VERIFY: d37bc6e0 auto
 // OFFSET: 0x00814E40
@@ -181,31 +161,6 @@ const char* BlendModeToString(EGxBlend blend) {
     return "UNKNOWN";
 }
 
-// VERIFY: 987b1717 auto
-// OFFSET: 0x00815080
-int32_t StringToJustify(const char* string, uint32_t& justify) {
-    for (uint32_t i = 0; i < sizeof(s_justify) / sizeof(s_justify[0]); i++) {
-        if (!SStrCmpI(s_justify[i].m_name, string, STORM_MAX_STR)) {
-            justify = s_justify[i].m_value;
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-// VERIFY: f9e9e7b3 auto
-// OFFSET: 0x008150D0
-const char* JustifyToString(uint32_t justify) {
-    for (uint32_t i = 0; i < sizeof(s_justify) / sizeof(s_justify[0]); i++) {
-        if (justify & s_justify[i].m_value) {
-            return s_justify[i].m_name;
-        }
-    }
-
-    return "UNKNOWN";
-}
-
 // VERIFY: c9627a19 auto
 // OFFSET: 0x00815110
 int32_t StringToOrientation(const char* string, ORIENTATION& orientation) {
@@ -229,38 +184,6 @@ const char* OrientationToString(ORIENTATION orientation) {
     }
 
     return "UNKNOWN";
-}
-
-// VERIFY: 45fda266 auto
-// OFFSET: 0x008151A0
-uint32_t StringToFontFlags(const char* string) {
-    uint32_t flags = 0;
-
-    for (uint32_t i = 0; i < sizeof(s_fontFlags) / sizeof(s_fontFlags[0]); i++) {
-        if (SStrStrI(string, s_fontFlags[i].m_name)) {
-            flags |= s_fontFlags[i].m_value;
-        }
-    }
-
-    return flags;
-}
-
-// VERIFY: 9e674fdc auto
-// OFFSET: 0x008151E0
-const char* FontFlagsToString(uint32_t flags) {
-    s_fontFlagsString[0] = '\0';
-
-    for (uint32_t i = 0; i < sizeof(s_fontFlags) / sizeof(s_fontFlags[0]); i++) {
-        if (flags & s_fontFlags[i].m_value) {
-            if (s_fontFlagsString[0]) {
-                SStrPack(s_fontFlagsString, ", ", sizeof(s_fontFlagsString));
-            }
-
-            SStrPack(s_fontFlagsString, s_fontFlags[i].m_name, sizeof(s_fontFlagsString));
-        }
-    }
-
-    return s_fontFlagsString;
 }
 
 // VERIFY: 580b9450 manual
@@ -339,75 +262,6 @@ const char* CurveTypeToString(SimpleAnimCurveType curve) {
     return "UNKNOWN";
 }
 
-// VERIFY: 89581c53 auto
-// OFFSET: 0x00815400
-static int32_t StringToBOOL(const char* string, int32_t defaultValue) {
-    if (!string) {
-        return defaultValue;
-    }
-
-    switch (*string) {
-        case '0':
-        case 'F':
-        case 'N':
-        case 'f':
-        case 'n':
-            return 0;
-
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case 'T':
-        case 'Y':
-        case 't':
-        case 'y':
-            return 1;
-    }
-
-    if (!SStrCmpI(string, "off", STORM_MAX_STR) || !SStrCmpI(string, "disabled", STORM_MAX_STR)) {
-        return 0;
-    }
-
-    if (!SStrCmpI(string, "on", STORM_MAX_STR) || !SStrCmpI(string, "enabled", STORM_MAX_STR)) {
-        return 1;
-    }
-
-    return defaultValue;
-}
-
-// VERIFY: e0b63df6 auto
-// OFFSET: 0x008154E0
-int32_t StringToBOOL(const char* string) {
-    return StringToBOOL(string, 0);
-}
-
-// VERIFY: ed82a3ea auto
-// OFFSET: 0x00815500
-int32_t StringToBOOL(lua_State* L, int32_t index, int32_t defaultValue) {
-    switch (lua_type(L, index)) {
-        case LUA_TNIL:
-            return 0;
-
-        case LUA_TBOOLEAN:
-            return lua_toboolean(L, index);
-
-        case LUA_TNUMBER:
-            return static_cast<int32_t>(lua_tonumber(L, index)) != 0;
-
-        case LUA_TSTRING:
-            return StringToBOOL(lua_tolstring(L, index, nullptr), defaultValue);
-
-        default:
-            return defaultValue;
-    }
-}
-
 // VERIFY: 41e6d008 auto
 // OFFSET: 0x00815590
 const char* SmoothWeightsToString(float in, float out) {
@@ -418,55 +272,6 @@ const char* SmoothWeightsToString(float in, float out) {
     }
 
     return "UNKNOWN";
-}
-
-// VERIFY: 785739a1 auto
-// OFFSET: 0x00815600
-int32_t LoadXML_Value(XMLNode* node, float& value, CStatus* status) {
-    value = 0.0f;
-
-    const char* valueString = node->GetAttributeByName("val");
-
-    if (valueString && *valueString) {
-        float ndc = SStrToFloat(valueString) / (CoordinateGetAspectCompensation() * 1024.0f);
-        value = NDCToDDCWidth(ndc);
-    }
-
-    XMLNode* child = node->m_child;
-
-    if (!child) {
-        if (!valueString) {
-            status->Add(STATUS_WARNING, "No \"val\" attribute in element: %s", node->m_name.m_str);
-            return 0;
-        }
-
-        return 1;
-    }
-
-    if (!SStrCmpI(child->m_name.m_str, "AbsValue", STORM_MAX_STR)) {
-        const char* absString = child->GetAttributeByName("val");
-
-        if (absString && *absString) {
-            float ndc = SStrToFloat(absString) / (CoordinateGetAspectCompensation() * 1024.0f);
-            value = NDCToDDCWidth(ndc);
-        }
-
-        return 1;
-    }
-
-    if (!SStrCmpI(child->m_name.m_str, "RelValue", STORM_MAX_STR)) {
-        const char* relString = child->GetAttributeByName("val");
-
-        if (relString && *relString) {
-            value = SStrToFloat(relString);
-        }
-
-        return 1;
-    }
-
-    status->Add(STATUS_WARNING, "Unknown child node in %s element: %s", node->m_name.m_str, child->m_name.m_str);
-
-    return 0;
 }
 
 // VERIFY: 60497307 auto
@@ -579,43 +384,6 @@ int32_t LoadXML_Insets(XMLNode* node, float& left, float& right, float& top, flo
     status->Add(STATUS_WARNING, "Unknown child node in %s element: %s", node->m_name.m_str, child->m_name.m_str);
 
     return 0;
-}
-
-// VERIFY: e06fe5f5 auto
-// OFFSET: 0x00815C30
-int32_t LoadXML_Color(XMLNode* node, CImVector& color, CStatus* status) {
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
-    float a = 1.0f;
-
-    const char* rString = node->GetAttributeByName("r");
-
-    if (rString && *rString) {
-        r = (SStrToFloat(rString) < 1.0f && !(SStrToFloat(rString) > 0.0f)) ? 0.0f : (SStrToFloat(rString) >= 1.0f ? 1.0f : SStrToFloat(rString));
-    }
-
-    const char* gString = node->GetAttributeByName("g");
-
-    if (gString && *gString) {
-        g = (SStrToFloat(gString) < 1.0f && !(SStrToFloat(gString) > 0.0f)) ? 0.0f : (SStrToFloat(gString) >= 1.0f ? 1.0f : SStrToFloat(gString));
-    }
-
-    const char* bString = node->GetAttributeByName("b");
-
-    if (bString && *bString) {
-        b = (SStrToFloat(bString) < 1.0f && !(SStrToFloat(bString) > 0.0f)) ? 0.0f : (SStrToFloat(bString) >= 1.0f ? 1.0f : SStrToFloat(bString));
-    }
-
-    const char* aString = node->GetAttributeByName("a");
-
-    if (aString && *aString) {
-        a = (SStrToFloat(aString) < 1.0f && !(SStrToFloat(aString) > 0.0f)) ? 0.0f : (SStrToFloat(aString) >= 1.0f ? 1.0f : SStrToFloat(aString));
-    }
-
-    color.Set(a, r, g, b);
-
-    return 1;
 }
 
 // VERIFY: 91664f60 auto
