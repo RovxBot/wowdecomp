@@ -24,6 +24,9 @@ class CFramePoint {
     /* 000C */ uint32_t m_flags : 24;
 
     CFramePoint(CLayoutFrame* relative, FRAMEPOINT framePoint, float x, float y);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    ~CFramePoint();
+#endif
     int32_t GetRelativeRect(CRect& rect);
     void MarkUnused();
     void SetRelative(CLayoutFrame* relative, FRAMEPOINT framePoint, float x, float y);
