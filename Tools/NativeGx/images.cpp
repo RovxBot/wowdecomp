@@ -351,7 +351,11 @@ void SourcesAndAtlas(LegacyDevice& device, FileQueue& queue) {
             C2Vector offset; float scale = 0;
             Require(TextureGetAtlasOffsetAndScale(texture, offset, scale) && scale == 0.125f &&
                 offset.x == float(i & 7) * scale && offset.y == float(i >> 3) * scale, "Atlas UV coordinates changed");
-            auto pixels = Draw(device, texture);
+        }
+        // Complete several cells before drawing: Gx dirty rectangles do not
+        // accumulate across updates, so each original atlas update must finish.
+        for (auto& member : members) {
+            auto pixels = Draw(device, member->value);
             Pixel(pixels,8,24,255,0,0,255); Pixel(pixels,24,8,255,255,255,255);
         }
         auto* sheet = members.front()->value->m_atlas;

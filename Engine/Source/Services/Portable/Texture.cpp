@@ -97,7 +97,10 @@ struct Atlas {
             if (source) std::copy_n(source + row * side * 4, side * 4, dest);
             else std::fill_n(dest, side * 4, 0);
         }
-        GxTexUpdate(legacy.m_gxTex, x, y, x + side, y + side, 0);
+        // Original CTextureAtlas::Update uploads immediately. The legacy dirty
+        // rectangle is replaced by each mark, so deferring several completions
+        // until the next draw would lose all but the last cell's update.
+        GxTexUpdate(legacy.m_gxTex, x, y, x + side, y + side, 1);
     }
 };
 
