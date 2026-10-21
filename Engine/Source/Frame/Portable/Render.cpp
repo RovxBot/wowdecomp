@@ -95,7 +95,7 @@ void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCou
     NativeCheck();
     // The first native surface is the original UI quad, with one or four colors.
     if (!texture || !shader || posCount != 4 || idxCount != 6 || !positions || !coords || !indices ||
-        (colorCount != 0 && colorCount != 4) || (!colors && colorCount) || uint32_t(blend) >= GxBlends_Last)
+        (colorCount != 0 && colorCount != 4) || (!colors && colorCount) || uint32_t(blend) >= GxBlend_ConstantAlpha)
         throw std::invalid_argument("Invalid native Frame quad");
     if (m_count >= 32768) throw std::length_error("Native Frame batch limit");
     if (!shader->Valid() || shader->m_target != GxSh_Pixel || !shader->m_refCount || shader->m_refCount == UINT32_MAX)

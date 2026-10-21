@@ -159,11 +159,21 @@ static void Sorting() {
         Check(reinterpret_cast<uintptr_t>(batch.m_texturelist[i-1].m_shader)<reinterpret_cast<uintptr_t>(batch.m_texturelist[i].m_shader),"Frame shader sort truncated pointer keys");
 }
 static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer& owner) {
-    TextureService service(queue,[](const std::string&,const Cancellation&){ReadResult result;result.file.bytes=AtlasBlp();return result;});
+    TextureService service(queue,[](const std::string& name,const Cancellation&){
+        ReadResult result;result.file.bytes=AtlasBlp();
+        if(name=="INTERFACE\\RED.BLP" || name=="INTERFACE\\WHITE.BLP") {
+            auto& bytes=result.file.bytes;bytes[4]=1;
+            for(size_t i=148;i<bytes.size();i+=4) {
+                bytes[i]=bytes[i+1]=name=="INTERFACE\\WHITE.BLP"?255:0;
+                bytes[i+2]=255;
+            }
+        }
+        return result;
+    });
     PixelShader shader(device);
     CRenderBatch batch;
     Reject([&]{owner.CheckCanClose();});
-    Handle red(reinterpret_cast<HOBJECT>(TextureCreateSolid(CImVector(0,0,255,255))));
+    Handle red(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\red.blp",CGxTexFlags(GxTex_Nearest),nullptr,1)));
     auto* texture=reinterpret_cast<CTexture*>(red.value);Check(texture,"Solid texture creation failed");
     const auto sharedShaderRefs=shader.value->m_refCount;
     Quad(batch,texture,shader.value);red.Close();
@@ -182,13 +192,14 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     Check(device.m_stackOffsets.Count()==depth,"Callback failure leaked render state");
     batch.Clear();Check(!batch.m_count && !batch.m_stringbatch && !batch.m_texturelist.Count(),"Frame batch clear");
     PixelShader nextShader(device);
-    Handle white(reinterpret_cast<HOBJECT>(TextureCreateSolid(CImVector(255,255,255,255))));texture=reinterpret_cast<CTexture*>(white.value);
+    Handle white(reinterpret_cast<HOBJECT>(TextureCreate("Interface\\white.blp",CGxTexFlags(GxTex_Nearest),nullptr,1)));texture=reinterpret_cast<CTexture*>(white.value);
     C3Vector positions[]={{-1,1,0},{-1,-1,0},{1,1,0},{1,-1,0}};C2Vector coords[]={{0,0},{0,1},{1,0},{1,1}};uint16_t indices[]={0,1,2,2,1,3};
     Reject([&]{batch.Queue(nullptr,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});
     positions[0].x=std::numeric_limits<float>::infinity();Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});positions[0].x=-1;
     Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,CSimpleRender::s_vertexShader[0]);});
     indices[5]=4;Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});indices[5]=3;
     Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,3,nullptr,6,indices,nextShader.value);});
+    Reject([&]{batch.Queue(texture,GxBlend_ConstantAlpha,4,positions,coords,0,nullptr,6,indices,nextShader.value);});
     Reject([&]{batch.QueueCallback(nullptr,nullptr);});Reject([&]{batch.QueueTexture(nullptr);});
     CImVector green(0,255,0,255);
     batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,&green,6,indices,nextShader.value);
@@ -203,11 +214,15 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     ClearScreen();CSimpleRender::DrawBatch(&batch);Solid(Pixels(device),240*640+320,0,255,0);batch.Clear();
     // Merging reaches the original uint16 vertex boundary with actual owned quads.
     CSimpleRender::s_mergeEnable=1;
-    for(int i=0;i<16384;++i)Quad(batch,texture,nextShader.value);
+    // Clip the first group: the boundary needs real geometry submission, while
+    // billions of identical fullscreen fragments add no coverage on hosted Mesa.
+    for(int i=0;i<16383;++i)Quad(batch,texture,nextShader.value,2,3);
+    Quad(batch,texture,nextShader.value);
     std::vector<uint32_t> verts(16384),idx(16384);
     Check(CSimpleRender::CalcBatchCounts(&batch,verts.data(),idx.data())==2 && verts[0]==65532 && verts[1]==4 && idx[0]==98298 && idx[1]==6,"Frame merge boundary");
     ClearScreen();CSimpleRender::DrawBatch(&batch);Solid(Pixels(device),240*640+320,255,255,255);batch.Clear();
     Check(!device.m_bufLocked[GxPoolTarget_Vertex] && !device.m_bufLocked[GxPoolTarget_Index],"Frame merge left buffers locked");
+    white.Close();
     // A nonzero atlas cell must be transformed by the original draw path.
     TextureEnableAtlas(1);std::vector<std::unique_ptr<Handle>> members;
     for(int i=0;i<10;++i){auto name="Interface\\batch"+std::to_string(i)+".blp";auto h=std::make_unique<Handle>(reinterpret_cast<HOBJECT>(TextureCreate(name.c_str(),CGxTexFlags(GxTex_Nearest),nullptr,0x17)));Check(h->value,"Atlas fixture handle");Check(TextureGetGxTex(reinterpret_cast<CTexture*>(h->value),1,nullptr),"Atlas fixture upload");members.push_back(std::move(h));}
