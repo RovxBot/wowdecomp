@@ -630,3 +630,28 @@ Complete authorized, reversible work without routine confirmation requests. When
 external prerequisite is missing, continue independent work and state the specific
 validation gap. Do not mark a milestone complete because its code compiles or its
 remaining checks need another machine.
+
+- M3 original Frame render batching [PR #45](https://github.com/RovxBot/wowdecomp/pull/45)
+  is qualified at `d09ad319696fa7a05767bcc2af5f810af4378b3d`, merged as
+  `d4b213b01e9a9d50a538c50f3247614930058517`. Read [batch contracts/next callers](docs/m3/FRAME_RENDER.md)
+  and [validation](docs/m3/frame-render-validation.json). All thirteen implementation
+  PR workflows passed; both Linux GL configurations passed 32 CTest checks. Full
+  Windows x64 compiled with signatures enabled at matching-tree checkout
+  `08dbdbc46ee4b5b0100aeaa427facc731d81332c`. Three archive digests/all 47 packaged
+  binary hashes/types verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11
+  release and strict ASan/UBSan/leak binaries each passed three authored batch,
+  three original-data batch, three original GlueFonts, three image and three Gxu
+  cycles, plus three cycles of each resource fixture, with empty stderr/zero workers.
+  Preserve quad snapshots, retained texture/shader/font/block handles, block-before-
+  font close, single intrusive string-batch membership, full-width sorting and
+  original merge thresholds/atlas UVs. Finish draws before callback/list mutation;
+  unwind only staging writes acquired by the batch. Close batches before renderer,
+  Gxu and device/context. Original Windows bodies and all three earlier fixture
+  failures remain recorded, with vptr and other detectors enabled. Captures match
+  release/sanitizer; the authored composition uses original resources but is not
+  original Frame objects/login. Actual Frame queues/regions/font strings, parent/
+  animation/layer/root and deferred lifetimes, SDL size invalidation, texture modes
+  and full signed ordered GlueXML plus post-creation digest gate remain open, then
+  transport/gameplay. No new physical-input, Windows runtime, macOS graphics or
+  server acceptance. M3 stays open; preserve signatures/server discrepancies and
+  interactive user sign-in.

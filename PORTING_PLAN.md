@@ -496,6 +496,17 @@ Exit: a native Linux executable can complete an observed world session with
 unchanged data. Audio or movie limitations must be listed; this milestone alone
 does not qualify as the complete Linux release.
 
+The [original Frame batching prerequisite](docs/m3/FRAME_RENDER.md) is qualified
+and merged via [PR #45](https://github.com/RovxBot/wowdecomp/pull/45). Actual
+`CRenderBatch`/`CSimpleRender` bodies now retain native quad/resource lifetimes,
+with full-width sorting and failure recovery. Thirteen PR workflows passed,
+including 32 tests per Linux GL configuration and full Windows compilation.
+Downloaded release/strict sanitizer GPU checks passed against unchanged clean
+12340 data; the [record](docs/m3/frame-render-validation.json) preserves exact
+identities, hashes and earlier fixture failures. Regions/Frame/root deferred
+lifetimes, SDL size invalidation, texture modes and full signed ordered GlueXML/
+login remain open, followed by transport/gameplay. M3 remains incomplete.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

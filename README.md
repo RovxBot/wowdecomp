@@ -105,6 +105,13 @@ pixels are authored evidence; the original loading bar remains standalone.
 Actual regions/font strings/root, Frame texture modes, broader image formats and
 full original GlueXML/login rendering remain open. M3 is incomplete.
 
+The [original Frame render batcher](docs/m3/FRAME_RENDER.md) now retains native
+quad snapshots and texture/shader/font/block resources through consumption. Both
+Linux GL configurations passed 32 tests; full Windows compilation and downloaded
+release/strict sanitizer GPU checks passed with original resources. Actual
+regions/Frame/root lifetimes and full signed GlueXML/login remain open; M3 is
+incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
