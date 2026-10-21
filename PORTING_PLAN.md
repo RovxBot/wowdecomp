@@ -454,6 +454,28 @@ SDL size invalidation, disk/atlas images and full GlueXML/login remain open.
 There is no new physical-input, Windows runtime, macOS graphics or server session
 acceptance. M3 remains incomplete; signatures and interactive sign-in stay intact.
 
+The subsequent [image lookup/atlas package](docs/m3/IMAGE_SOURCES.md) in
+[PR #43](https://github.com/RovxBot/wowdecomp/pull/43) is qualified at
+`e308d2e7eedc1e8f8cba7cfc8cec885e8fe5bfa6`, merged as
+`dbb4a00d8c85b74ad11f34a8a5f68aa91692aa1e`. Its
+[record](docs/m3/image-source-validation.json) retains thirteen passing workflows,
+31 checks per Linux GL configuration, full Windows x64 compilation with signatures
+enabled and three verified archives/all 45 packaged executable hashes/types.
+Hosted checkout `e520213854a27c5fb2c694e3effbb0b9e3443821` matches the implementation
+tree. Downloaded release/strict sanitizer checks passed eighteen authored image,
+original-data image and original GlueFonts cycles in total, with empty stderr and
+zero workers. Loading-bar captures match the prior qualification; its unmarked
+BLP remains standalone. Shared-atlas/loose-source pixels are authored evidence.
+
+The native service now accepts Frame `0x17` eligibility, explicit read-only loose
+roots, original atlas coordinates/slot lifetimes and default filtering. The initial
+atlas supports single-level clamped nearest/linear sources; repeat/mip and other
+ineligible sources remain standalone. Actual regions/font strings/root, Frame
+texture modes, TGA/streaming and full signed GlueXML/login remain open. The first
+fixture's queued-read expectation failure remains recorded; no detector was
+disabled. No new input, Windows runtime, macOS graphics or server acceptance.
+M3 is incomplete; signatures, server discrepancies and interactive sign-in stay.
+
 1. Replace WGL/window ownership and extension loading in the existing OpenGL
    backend with SDL integration. Keep compatibility-profile requirements explicit
    and detect missing capabilities with actionable errors.
