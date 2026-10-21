@@ -551,6 +551,33 @@ and source inspection are different evidence levels.
   empty stderr. Prior missing-helper link and authored CRect field-order failures
   remain recorded. No new GPU/input/desktop/server or gameplay acceptance.
 
+## NP-020 — Original Frame font/name factories in the native ABI
+
+- Status: qualified in [PR #41](https://github.com/RovxBot/wowdecomp/pull/41) at
+  `c87df98ab5b8f05cab034941dece92a78f81d726`, merged as
+  `829904d849546a224201a885fdb4e1c55ce578e5`. See [contracts](m3/FRAME_FONTS.md)
+  and [validation](m3/frame-font-validation.json). M3 remains incomplete.
+- Source: product main `edeb6b3aaa2358e782635fdb0a84027f367aecaa`, following layout
+  PR #39/closeout #40. Original 12340 font/name/Lua/XML consumers; no donor import,
+  new dependency, asset enhancement or new OFFSET/VERIFY claim.
+- Adaptation: owner leases, canonical live Lua tables/typed dispatch, bounded font
+  inheritance/names, finite numeric inputs and callback-list lifetime guards.
+  Native-only bundled FreeType general/X/Y movement bridges preserve original
+  index conversion and Windows bodies. Existing fontable lists, override/dirty
+  masks and Services/Gxu font validation remain selected. Signature defaults stay.
+- Validation: thirteen passing implementation PR workflows, 31 checks per Linux
+  GL configuration, full Windows x64 compilation; three archives and 45 packaged
+  hashes/types verified. Downloaded release/strict ASan/UBSan/leak font/authored
+  movement/original-data Gxu runs passed 18 cycles total, empty stderr/zero workers.
+  Eighteen original GlueFonts definitions constructed; one selected outlined font
+  rendered with matching exact-repeat/release/sanitizer pixels. Prior small-font
+  expectation and incompatible FreeType callback failures remain recorded; the
+  authored movement font reproduces the latter in the prior verified binary.
+  Historical tiny/cache font bytes and all sanitizer detectors remain intact.
+- Limits: actual regions/font strings/root, disk/atlas image policy, full GlueXML/
+  login and gameplay remain open. Sample text/red tint are authored inputs. No
+  new physical-input, Windows runtime, macOS graphics or server-session acceptance.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate
@@ -601,17 +628,3 @@ and source inspection are different evidence levels.
   behavior without requiring a specific host CPU, preserve/refresh verification
   annotations, run the Windows baseline build in Actions and record results.
 - Disposition: queued for a small implementation change after the M0 inventory.
-
-## NP-020 — Original Frame font/name factories in the native ABI
-
-- Status: implementation pending hosted qualification; [contracts](m3/FRAME_FONTS.md).
-- Source: product main `edeb6b3`, following qualified layout PR #39/closeout #40.
-  Original 12340 font/name factories and scalar XML/color helpers; no donor import,
-  new dependency, asset enhancement or new OFFSET/VERIFY claim.
-- Adaptation: owner leases, canonical live Lua tables, correctly typed native
-  dispatch, bounded inheritance/names, finite numeric inputs and consumer shutdown.
-  Existing fontable lists/override masks, Services font validation and original
-  Lua APIs remain selected. Windows paths and signature defaults stay intact.
-- Validation: planned authored three-cycle Linux release/strict sanitizer fixtures,
-  actual original GlueFonts definitions and Services/Gxu rendering, plus full
-  Windows x64 compilation. No original login, input, server or gameplay claim.

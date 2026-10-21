@@ -410,6 +410,28 @@ it does not turn a documentation request into authorization to start the whole p
   remain open. No new GPU, physical-input, Windows runtime, macOS desktop or server
   acceptance. M3 stays open; preserve signatures/server discrepancies/interactive
   user sign-in.
+- M3 original Frame font/name factories [PR #41](https://github.com/RovxBot/wowdecomp/pull/41)
+  are qualified at `c87df98ab5b8f05cab034941dece92a78f81d726`, merged as
+  `829904d849546a224201a885fdb4e1c55ce578e5`. Read [font factory contracts/next callers](docs/m3/FRAME_FONTS.md)
+  and [validation](docs/m3/frame-font-validation.json). Thirteen implementation PR
+  workflows passed; both Linux GL configurations passed 31 CTest checks. Full
+  Windows x64 compiled with signatures enabled at matching-tree checkout
+  `ba54f09734f163123155e378048cadf3bcfde61b`. Three archive digests and all 45 packaged
+  binary hashes/types were verified. Exact-source RX 7900 XTX / Mesa 26.2.5 /
+  SDL X11 release and strict ASan/UBSan/leak checks each passed three authored
+  movement/font-factory, three original GlueFonts and three original-data Gxu
+  cycles, with empty stderr/zero workers. Eighteen original font definitions were
+  constructed; one selected small outlined font rendered with exact repeat pixels
+  and matching release/sanitizer captures. The sample text/red tint are authored.
+  Native typed FreeType movement callbacks preserve original index conversion and
+  Windows paths; retain the prior strict failure, authored reproducer and pixel
+  expectation failure. Font/name pointers are borrowed; close external script
+  objects/fontables/text blocks/handles before factories, then Gxu/layout/XML/VM/
+  device/context/queue. Preserve canonical live Lua tables and update-list guards.
+  Actual regions/font strings/root, SDL size invalidation, disk/atlas images and
+  complete FrameXML/GlueXML/login remain open. No new physical-input, Windows
+  runtime, macOS graphics or server acceptance; M3 stays incomplete. Preserve
+  signatures, server revision discrepancies and interactive sign-in.
 - Native packages support read-only retail MPQ v0/v1 data. Keep original-key RSA
   authentication and registered file MD5s enabled; the signaturefile prints four
   uint32 MD5 words in the original little-endian conversion convention. The
