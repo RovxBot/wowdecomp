@@ -655,3 +655,31 @@ remaining checks need another machine.
   transport/gameplay. No new physical-input, Windows runtime, macOS graphics or
   server acceptance. M3 stays open; preserve signatures/server discrepancies and
   interactive user sign-in.
+
+- M3 original unparented FontString regions [PR #47](https://github.com/RovxBot/wowdecomp/pull/47)
+  are qualified at `01ac7deb547aa3216a92d78f93b6eb07e59eb9a0`, merged as
+  `259518fd512a7c9cf4f4dcd8a4e0b0998058f282`. Read [region contracts/next callers](docs/m3/FRAME_REGIONS.md)
+  and [validation](docs/m3/frame-regions-validation.json). Thirteen workflows
+  passed; both Linux GL configurations passed 33 checks and full Windows x64
+  compiled with signatures enabled at matching-tree checkout
+  `c71a91a609e2a301415cd46e81cfff84b826613e`. Three archive digests and all 49
+  packaged executable hashes/types verified. Exact-source RX 7900 XTX / Mesa
+  26.2.5 / SDL X11 release and strict ASan/UBSan/leak binaries each passed three
+  authored region, three original-data region and three each of Frame batch,
+  GlueFonts, image and Gxu cycles; all four resource fixtures also passed three
+  cycles per mode, with empty stderr and zero workers. Actual unparented C++
+  regions now consume original layout/font attributes/Services and retained
+  batches. Preserve block-before-font cleanup, lower-handle retention across
+  consumer destruction, native field initialization, logical-pixel rounding,
+  callback/layout guards and preflight rejection before Lua stack/taint/name
+  mutation. Process pending layout after shadow-offset changes before batching;
+  the two earlier fixture failures and strict unselected-class RTTI failure
+  remain recorded without disabling detectors or changing pixel requirements.
+  Original GlueXML/font definitions are consumed in authored text/anchor/scale
+  composition, not login layout. Screen callbacks are injected, not SDL event
+  acceptance. Actual Frame parent/layer/root, pooled factories, animation,
+  region Lua/XML/language and texture/embedded consumers, full signed ordered
+  GlueXML plus post-creation digest gate and original login remain open, followed
+  by transport/gameplay. No new physical-input, Windows runtime, macOS graphics
+  or server acceptance. M3 stays open; preserve signatures, server discrepancies
+  and interactive user sign-in.

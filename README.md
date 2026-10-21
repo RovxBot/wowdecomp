@@ -112,6 +112,13 @@ release/strict sanitizer GPU checks passed with original resources. Actual
 regions/Frame/root lifetimes and full signed GlueXML/login remain open; M3 is
 incomplete.
 
+The [original unparented FontString regions](docs/m3/FRAME_REGIONS.md) now connect
+actual region/layout/font inheritance and retained text batching through a bounded
+C++ surface. Both Linux GL configurations passed 33 checks; full Windows compilation
+and downloaded release/strict sanitizer original-data GPU cycles passed. Frame
+parent/layer/root traversal, region Lua/XML/animation, SDL size delivery and full
+signed GlueXML/login remain open. M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
