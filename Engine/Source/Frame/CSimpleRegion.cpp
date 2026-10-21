@@ -254,6 +254,9 @@ void CSimpleRegion::AddAnimAlpha(int16_t alpha) {
 // OFFSET: 0x00487D70
 void CSimpleRegion::OnColorChanged(bool changed) {
     FRAME_REGION_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_parent) Frame::Native::UnavailableRegionFeature();
+#else
     if (this->m_parent) {
         if ((uint8_t)(this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255) < 0xFE) {
             if (!this->m_colorCount) {
@@ -289,6 +292,7 @@ void CSimpleRegion::OnColorChanged(bool changed) {
         }
     }
 
+#endif
     if (changed) {
         this->OnRegionChanged();
     }

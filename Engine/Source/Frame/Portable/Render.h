@@ -2,6 +2,7 @@
 #define WOWDECOMP_NATIVE_FRAME_RENDER_H
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
 class CRenderBatch;
+class CSimpleFontString;
 namespace Frame { namespace Native {
 // Owns original UI vertex shaders inside Gxu/device/context ownership. Close
 // every batch first. Mesh submissions snapshot their arrays and retain resources;
@@ -20,6 +21,11 @@ void RequireRenderer();
 // Also guards region/font-string mutation from batch callbacks. An installed
 // renderer is only required when actually queuing/drawing a batch.
 void RequireRenderIdle();
+using RegionTextQueue = void (*)(CRenderBatch*, CSimpleFontString*);
+// Installed by the selected region implementation; lower-level batch fixtures
+// keep this entry visibly unavailable without linking unselected class RTTI.
+void SetRegionTextQueue(RegionTextQueue);
+void QueueRegionText(CRenderBatch*, CSimpleFontString*);
 class RenderScope final {
 public:
     explicit RenderScope(CRenderBatch*);

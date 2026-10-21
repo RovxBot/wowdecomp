@@ -40,7 +40,11 @@ int32_t CScriptRegion::GetObjectType() {
 // OFFSET: 0x00482B40
 CScriptObject* CScriptRegion::GetScriptObjectParent() {
     FRAME_REGION_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return nullptr;
+#else
     return this->m_parent;
+#endif
 }
 
 // VERIFY: 35de1b9a auto

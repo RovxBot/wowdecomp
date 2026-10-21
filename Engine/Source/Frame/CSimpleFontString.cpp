@@ -48,6 +48,19 @@
 #include "Engine/Source/Tempest/CRect.h"
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+namespace {
+void QueueRegionText(CRenderBatch* batch, CSimpleFontString* string) {
+    Frame::Native::RequireScript(string);
+    if (!string->IsA("FontString")) throw std::invalid_argument("Frame batch requires a font-string region");
+    CRect rect;
+    if (!string->GetRect(&rect) || rect.maxY < 0 || rect.minY > 1 || rect.maxX < 0 || rect.minX > 1 || !string->m_string)
+        return;
+    batch->NativeQueueText(string->m_fontHandle, string->m_string);
+}
+}
+#endif
+
 // Original font-string consumers shared with the Windows client.
 // STATIC: 0x00AC0F14
 static TSExplicitList<CSimpleEmbeddedTexture, offsetof(CSimpleEmbeddedTexture, m_link)> s_embeddedTextureStorage;
@@ -416,6 +429,9 @@ CSimpleFontString::CSimpleFontString(CSimpleFrame* frame, uint32_t drawLayer, bo
     this->m_styleFlags = 0x212;
     this->m_settableStyleFlags = 0x2107F;
     this->m_maxLines = (this->m_maxLines & 0xFE000000) | 0x1000000;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::SetRegionTextQueue(&QueueRegionText);
+#endif
     s_fontStringCount++;
 }
 
@@ -433,6 +449,9 @@ CSimpleFontString::~CSimpleFontString() {
     this->SetFont(nullptr, 0.0f, 0, false);
 
     s_fontStringCount--;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!s_fontStringCount) Frame::Native::SetRegionTextQueue(nullptr);
+#endif
 }
 
 // VERIFY: f646e84a manual
@@ -634,7 +653,12 @@ int32_t CSimpleFontString::SetFont(const char* fontName, float fontHeight, uint3
     HTEXTFONT font = nullptr;
 
     if (fontName && fontHeight != 0.0f) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        try { font = TextBlockGenerateFont(fontName, fontFlags, fontHeight * this->m_layoutScale); }
+        catch (const std::exception&) { return 0; }
+#else
         font = TextBlockGenerateFont(fontName, fontFlags, fontHeight * this->m_layoutScale);
+#endif
 
         if (!font) {
             return 0;
@@ -955,7 +979,7 @@ void CSimpleFontString::OnColorChanged(bool changed) {
             C2Vector shadowOffset;
             shadowOffset.x = this->m_shadowOffset.x * this->m_layoutScale;
             shadowOffset.y = this->m_shadowOffset.y * this->m_layoutScale;
-    #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
             uint8_t alpha = 255; // Unparented region; parent integration remains gated.
 #else
             uint8_t alpha = this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255;
@@ -965,6 +989,9 @@ void CSimpleFontString::OnColorChanged(bool changed) {
         }
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_textures.Head()) Frame::Native::UnavailableRegionFeature();
+#else
     for (CSimpleEmbeddedTexture* embedded = this->m_textures.Head(); !TSList<CSimpleEmbeddedTexture, TSGetExplicitLink<CSimpleEmbeddedTexture> >::IsEnd(embedded); embedded = this->m_textures.RawNext(embedded)) {
         if (embedded->m_texture && embedded->m_texture->m_texture) {
             CImVector color;
@@ -977,6 +1004,7 @@ void CSimpleFontString::OnColorChanged(bool changed) {
             texture->SetVertexColor(textureColor);
         }
     }
+#endif
 }
 
 // VERIFY: 1148256f manual
@@ -1054,7 +1082,7 @@ void CSimpleFontString::UpdateString() {
 
         if (this->m_styleFlags & 0x100) {
             CImVector shadowColor = this->m_shadowColor;
-    #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
             uint8_t alpha = 255;
 #else
             uint8_t alpha = this->m_parent->GetEffectiveAlpha();

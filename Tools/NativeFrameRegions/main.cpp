@@ -166,6 +166,8 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     Reject([&]{text->SetText("|Tunsupported:16|t",0);});
     Reject([&]{text->SetTextLength(65535);});
     Reject([&]{text->SetFont("bad.ttf",std::numeric_limits<float>::infinity(),0,false);});
+    const auto savedFont=text->m_fontHandle;const auto savedBlock=text->m_string;
+    Check(!text->SetFont("bad.ttf",text->m_fontHeight,0,true) && text->m_fontHandle==savedFont && text->m_string==savedBlock,"Failed FontString font replacement changed live resources");
     Reject([&]{text->SetSpacing(std::numeric_limits<float>::quiet_NaN());});
     Reject([&]{text->SetAlphaGradient(40000,1);});
     {CRenderBatch batch;CallbackProbe callback{*text};text->Draw(&batch);batch.QueueCallback(&CallbackProbe::Run,&callback);Draw(device,batch);}
@@ -180,6 +182,10 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     text->AddShadow(CImVector(0,0,0,255),C2Vector(0.001f,-0.001f));
     text->SetShadowOffset(C2Vector(0.002f,-0.002f));text->RemoveShadow();
     text->SetVertexColor(CImVector(0,0,255,255));
+    // Offset mutation clears the block. The actual root update loop is still
+    // gated, so this direct C++ fixture must process the original pending queue.
+    Check(!text->m_string && text->IsResizePending(),"Shadow offset did not invalidate text layout");
+    CLayoutFrame::ResizePending();Check(text->m_string,"Shadow layout did not regenerate the text block");
     CRenderBatch retained;
     text->Draw(&retained);auto first=Draw(device,retained);
     size_t ink=0,lit=0;uint8_t red=0,green=0,blue=0;

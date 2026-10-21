@@ -19,6 +19,7 @@ namespace {
 Frame::Native::Renderer* renderer = nullptr;
 size_t batches = 0;
 bool drawing = false;
+Frame::Native::RegionTextQueue regionTextQueue = nullptr;
 struct Handle {
     HOBJECT value = nullptr;
     Handle() = default;
@@ -44,6 +45,12 @@ struct Text {
 };
 }
 namespace Frame { namespace Native {
+void SetRegionTextQueue(RegionTextQueue queue) { RequireRenderIdle(); regionTextQueue = queue; }
+void QueueRegionText(CRenderBatch* batch, CSimpleFontString* string) {
+    RequireRenderIdle();
+    if (!regionTextQueue) throw std::logic_error("Native Frame font-string regions are not installed");
+    regionTextQueue(batch, string);
+}
 void RequireRenderIdle() {
     Gxu::Native::RequireFontOwner();
     if (drawing) throw std::logic_error("Finish Frame rendering before region mutation");
