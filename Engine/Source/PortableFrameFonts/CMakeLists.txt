@@ -20,7 +20,7 @@ if(WOWDECOMP_CORE_SANITIZERS)
 endif()
 if(BUILD_TESTING)
     add_test(NAME native-frame-font-factories COMMAND NativeFrameFontsCheck
-        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/cache.ttf)
+        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf)
     set_tests_properties(native-frame-font-factories PROPERTIES TIMEOUT 120
         ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
 endif()

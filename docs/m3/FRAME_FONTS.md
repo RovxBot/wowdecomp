@@ -39,7 +39,13 @@ That fixture does not perform the complete FrameXML factory traversal or replace
 `CGlueMgr::Resume`'s required post-creation digest check.
 
 All compilation runs in [M3 GL Actions](../../.github/workflows/m3-gl.yml), including
-strict ASan/UBSan/leak checks. Full Windows x64 compilation remains the separate
+strict ASan/UBSan/leak checks. The new authored movement font executes X, Y and
+non-axis-aligned interpreter displacement during size initialization, even for
+unhinted glyphs. Native bundled FreeType uses correctly typed movement adapters;
+its original Windows callback selection and body/index conversion remain intact.
+The strict original-data callback failure and the authored before-fix reproducer
+remain failed evidence; no detector is disabled.
+Full Windows x64 compilation remains the separate
 regression check. Hosted and original-data results are pending qualification.
 
 Actual regions/font strings/root batching, SDL resize invalidation, disk/atlas

@@ -53,3 +53,23 @@ builder.save(Path(__file__).with_name('tiny.ttf'))
 builder.setupCharacterMap({32:'space', 65:'A', 86:'V', 81:'curve', 0x100:'reflected',
                            **{code:'A' for code in range(0x400, 0xC00)}})
 builder.save(Path(__file__).with_name('cache.ttf'))
+
+# Separate movement fixture exercises general/X/Y TT_Move_Func dispatch during
+# size-time fpgm execution, including unhinted glyph consumers. No retail code.
+# Twilight point zero is valid because maxTwilightPoints is explicitly one.
+move_program = [
+    0xB0, 0, 0x16,             # PUSHB[1] 0; SZPS (twilight)
+    0x00,                     # SVTCA[y] -> Direct_Move_Y
+    0xB1, 0, 64, 0x48,        # point 0, distance 64; SCFS
+    0x01,                     # SVTCA[x] -> Direct_Move_X
+    0xB1, 0, 128, 0x48,
+    0xB9, 0x2D, 0x41, 0x2D, 0x41, 0x0A, # diagonal SPVFS
+    0x0E,                     # SFVTPV -> general Direct_Move
+    0xB1, 0, 192, 0x48,
+    0x01, 0xB0, 1, 0x16,      # restore default X vectors and glyph zones
+]
+fpgm.program.fromBytecode(move_program)
+builder.font['maxp'].maxZones = 2
+builder.font['maxp'].maxTwilightPoints = 1
+builder.font['maxp'].maxStackElements = 4
+builder.save(Path(__file__).with_name('moves.ttf'))
