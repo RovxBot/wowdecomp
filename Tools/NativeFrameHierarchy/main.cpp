@@ -128,9 +128,11 @@ static std::vector<CImVector> Draw(LegacyDevice& device, CSimpleTop& root, int w
     CiRect rect{};rect.maxX=width;rect.maxY=height;TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect,pixels);return {pixels.Ptr(),pixels.Ptr()+pixels.Count()};
 }
-static void Equal(const std::vector<CImVector>& a,const std::vector<CImVector>& b) {
-    Check(a.size()==b.size() && !std::memcmp(a.data(),b.data(),a.size()*sizeof(CImVector)),"Frame root repeat pixels changed");
+static void EqualAt(const std::vector<CImVector>& a,const std::vector<CImVector>& b,int line) {
+    if(a.size()!=b.size() || std::memcmp(a.data(),b.data(),a.size()*sizeof(CImVector)))
+        throw std::runtime_error("Frame root repeat pixels changed at fixture line "+std::to_string(line));
 }
+#define Equal(a,b) EqualAt(a,b,__LINE__)
 static size_t Ink(const std::vector<CImVector>& pixels) {
     return std::count_if(pixels.begin(),pixels.end(),[](const CImVector& p){return p.r>8 || p.g>8 || p.b>8;});
 }
