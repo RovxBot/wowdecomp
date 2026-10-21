@@ -438,7 +438,15 @@
           "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=cab4c81888ca6dfc1ab36c0fa8cce2284ed8c2d8, for GNU/Linux 3.2.0, with debug_info, not stripped"
         }
       ],
-      "extracted_to": "/tmp/m3-image-sources-evidence/m3-linux-gl-asan-e520213854a27c5fb2c694e3effbb0b9e3443821"
+      "extracted_to": "/tmp/m3-image-sources-evidence/m3-linux-gl-asan-e520213854a27c5fb2c694e3effbb0b9e3443821",
+      "unpackaged_manifest_binaries": [
+        "AssetDecodersCheck",
+        "AsyncFileCheck",
+        "CoreServicesCheck",
+        "PortableCoreCheck",
+        "ShaderPackageCheck",
+        "ShellSettingsCheck"
+      ]
     },
     {
       "artifact_id": 12312668153,
@@ -735,7 +743,15 @@
           "machine": "ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=b6661d12760bdb8b8b9520b67f1fb6a2e62f5e68, for GNU/Linux 3.2.0, not stripped"
         }
       ],
-      "extracted_to": "/tmp/m3-image-sources-evidence/m3-linux-gl-e520213854a27c5fb2c694e3effbb0b9e3443821"
+      "extracted_to": "/tmp/m3-image-sources-evidence/m3-linux-gl-e520213854a27c5fb2c694e3effbb0b9e3443821",
+      "unpackaged_manifest_binaries": [
+        "AssetDecodersCheck",
+        "AsyncFileCheck",
+        "CoreServicesCheck",
+        "PortableCoreCheck",
+        "ShaderPackageCheck",
+        "ShellSettingsCheck"
+      ]
     },
     {
       "artifact_id": 12313022876,
@@ -865,7 +881,8 @@
           "machine": "PE32+ executable for MS Windows 6.00 (DLL), x86-64, 7 sections"
         }
       ],
-      "extracted_to": "/tmp/m3-image-sources-evidence/windows-x64-baseline-e520213854a27c5fb2c694e3effbb0b9e3443821"
+      "extracted_to": "/tmp/m3-image-sources-evidence/windows-x64-baseline-e520213854a27c5fb2c694e3effbb0b9e3443821",
+      "unpackaged_manifest_binaries": []
     }
   ],
   "local_executions": [
