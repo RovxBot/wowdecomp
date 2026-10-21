@@ -152,8 +152,8 @@ CRenderBatch::~CRenderBatch() {
 void CRenderBatch::QueueFontString(CSimpleFontString* string) {
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
     this->NativeCheck();
-    if (!string) throw std::invalid_argument("Null Frame font string");
-#endif
+    throw std::logic_error("Native Frame font string objects are not installed");
+#else
     CRect rect;
 
     if (!string->GetRect(&rect)) {
@@ -168,9 +168,6 @@ void CRenderBatch::QueueFontString(CSimpleFontString* string) {
         return;
     }
 
-#if defined(WOWDECOMP_PORTABLE_RUNTIME)
-    this->NativeQueueText(string->m_fontHandle, string->m_string);
-#else
     CGxString* gxString = TextBlockGetStringPtr(string->m_string);
 
     if (!gxString) {

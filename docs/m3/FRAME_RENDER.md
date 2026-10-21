@@ -41,7 +41,9 @@ uses unchanged Friz Quadrata, UI shaders and loading-bar BLP in an authored
 composition; it is not original Frame objects or a login screen. All compilation
 and CTest execution run in [M3 GL Actions](../../.github/workflows/m3-gl.yml),
 including strict ASan/UBSan/leak checks and separate full Windows x64 compilation.
-Implementation qualification is pending.
+Native Frame-object queue entry points fail visibly until their actual class
+lifetimes are selected; `NativeQueueText` accepts qualified Services handles.
+UBSan vptr checks remain enabled. Implementation qualification is pending.
 
 After downloading and verifying Actions artifacts, run without local compilation:
 

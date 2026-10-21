@@ -200,7 +200,7 @@ static void Meshes(LegacyDevice& device,FileQueue& queue,Frame::Native::Renderer
     indices[5]=4;Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,nullptr,6,indices,nextShader.value);});indices[5]=3;
     Reject([&]{batch.Queue(texture,GxBlend_Opaque,4,positions,coords,3,nullptr,6,indices,nextShader.value);});
     Reject([&]{batch.Queue(texture,GxBlend_ConstantAlpha,4,positions,coords,0,nullptr,6,indices,nextShader.value);});
-    Reject([&]{batch.QueueCallback(nullptr,nullptr);});Reject([&]{batch.QueueTexture(nullptr);});
+    Reject([&]{batch.QueueCallback(nullptr,nullptr);});Reject([&]{batch.QueueTexture(nullptr);});Reject([&]{batch.QueueFontString(nullptr);});
     CImVector green(0,255,0,255);
     batch.Queue(texture,GxBlend_Opaque,4,positions,coords,0,&green,6,indices,nextShader.value);
     green=CImVector(255,0,0,255);
