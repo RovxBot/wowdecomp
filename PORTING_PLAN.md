@@ -605,6 +605,35 @@ No new physical-input, Windows runtime, macOS graphics or server acceptance.
 M3 stays incomplete; preserve signatures, server revision discrepancies and
 interactive user sign-in.
 
+The [SDL IME adapter](docs/m3/FRAME_IME.md) in
+[PR #55](https://github.com/RovxBot/wowdecomp/pull/55) is qualified at
+`77177a99bcd2ef524c42bfb9bdeba1081cd07f61`, merged as
+`da722de8093aba62baa59805c11e35c7e6b857b9`. Its [record](docs/m3/frame-ime-validation.json)
+retains thirteen passing PR workflows, 37 CTest checks per Linux GL configuration,
+signature-enabled full Windows x64 compilation at matching-tree checkout
+`5629a4093141fe46d9e140c4793620bac0066828`, three verified archives and all 51 packaged
+executable hashes/types. Candidate-only focus cancellation also passed on the
+SDL-only actual ARM64 macOS, Windows and three Linux configurations.
+
+Downloaded RX 7900 XTX release/strict ASan/UBSan/leak packages passed 26 authored/
+original-data IME, keyboard/window/hierarchy and prior-resource executions, three
+cycles each, with empty stderr/zero workers; all four resource fixtures passed
+three cycles per mode. Captures match the prior baseline and each other. Native
+composition/candidate/result events now use original stratum/priority CHAR queues,
+typed consumers and event ID with explicit UTF-8 code page 65001. Deliver immediately
+after OsQueueGet, before another dequeue replaces the borrowed OsIME snapshot;
+consumers must not pump/drain the queue. Raw actions/flags are bounded before
+callbacks, and traversal guards permit deferred deletion while rejecting mutation,
+destruction and reentry. Focus loss cancels candidate-only sessions. Native
+language-mode action zero remains unsupported by SDL. This is injected input,
+not physical IME/language acceptance or actual edit-box/candidate UI.
+
+Pooled Lua/XML/language/template factories, mouse/occlusion/drag, other Frame
+consumers, full signed ordered GlueXML plus post-creation digest gate, actual login
+rendering and transport/gameplay remain open. No new physical-input, Windows
+runtime, macOS graphics or server acceptance. M3 remains incomplete; preserve
+signatures, server revision discrepancies and interactive user sign-in.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

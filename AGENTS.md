@@ -762,3 +762,29 @@ remaining checks need another machine.
   and transport/gameplay remain open. No new physical-input, Windows runtime,
   macOS graphics or server acceptance. M3 stays open; preserve signatures,
   server revision discrepancies and interactive user sign-in.
+
+- M3 SDL IME [PR #55](https://github.com/RovxBot/wowdecomp/pull/55) is qualified at
+  `77177a99bcd2ef524c42bfb9bdeba1081cd07f61`, merged as
+  `da722de8093aba62baa59805c11e35c7e6b857b9`. Read [IME contracts](docs/m3/FRAME_IME.md)
+  and [validation](docs/m3/frame-ime-validation.json). All thirteen PR workflows
+  passed; both Linux GL configurations passed 37 CTest checks. Full signature-enabled
+  Windows x64 compiled at matching-tree checkout `5629a4093141fe46d9e140c4793620bac0066828`.
+  Three archive digests, all 51 packaged executable hashes/types and notices verified.
+  SDL-only candidate cancellation passed actual ARM64 macOS, Windows and three Linux
+  configurations. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release/strict
+  ASan/UBSan/leak packages passed 26 authored/original-data IME, keyboard/window/
+  hierarchy and prior-resource executions, three cycles each, empty stderr/zero
+  workers; all four resource fixtures passed three cycles per mode. Captures match.
+  Original OnIme stratum/priority CHAR queues now deliver typed composition/candidate/
+  result consumers. Preserve event ID, raw action/flag validation and UTF-8 code page
+  65001. Dispatch immediately after OsQueueGet before another dequeue replaces the
+  borrowed OsIME snapshot; consumers must not pump/drain input. Traversal guards
+  reject mutation/destruction/reentry; defer deletion and unwind guards on failure.
+  Focus loss cancels candidate-only sessions. Native language-mode action zero
+  remains unsupported by SDL. Eight ordered snapshots per cycle and additional
+  cancellation/guard checks are authored injections, not physical IME/language or
+  actual edit-box/candidate UI acceptance. Pooled Lua/XML/language/template factories,
+  mouse/occlusion/drag, other Frame consumers, full signed ordered GlueXML plus full
+  post-creation digest gate, original login and transport/gameplay remain open.
+  No new physical-input, Windows runtime, macOS graphics or server acceptance. M3
+  stays incomplete; preserve signatures/server discrepancies and interactive sign-in.
