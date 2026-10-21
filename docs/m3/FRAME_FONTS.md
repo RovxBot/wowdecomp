@@ -108,7 +108,8 @@ For the authored movement/font fixture, replace data/settings/cache with
    bitfields, retain font handles until text-block close in `SetFont`, and connect
    `FontStringAttributes.cpp`'s original string overload. Naming now shares the
    qualified VM owner; region parent/animation/layer lists still need adaptation.
-2. Connect `CSimpleTop`/`CRenderBatch` with deferred consumer destruction and real
+2. Connect `CSimpleTop` and actual Frame-object queues to the qualified
+   [retained batcher](FRAME_RENDER.md), with deferred consumer destruction and real
    SDL size events. `CSimpleFontString::OnScreenSizeChanged` and original Gxu font
    invalidation must both execute; Services text readback alone does not test them.
 3. Adapt `CSimpleTexture::SetTexture`'s disk/atlas `0x17` request, atlas coordinates,

@@ -127,10 +127,11 @@ revision discrepancies and interactive user sign-in remain intact.
    storage before masking. Bound image-mode indices and qualify the original UI
    and Desaturate shaders, handle replacement, wait-2 diagnostics and atlas UVs.
    Services accepting `0x17` alone does not establish these consumers.
-3. Select `CRenderBatch` and `CSimpleTop` with deferred destruction and real SDL
-   size events. The original batch comparator narrows pointer differences to
-   `int32_t`; native ordering needs a consistent full-width comparison before
-   sorting. Keep queued regions/textures/fonts alive through batch consumption.
+3. Connect actual `CSimpleTop`/Frame consumers to the qualified
+   [retained batcher](FRAME_RENDER.md), with deferred destruction and real SDL
+   size events. Full-width sorting and low-level resource retention are qualified;
+   actual region/list lifetimes and native Frame-object queue entry points remain
+   open. Keep queued regions alive through batch consumption.
    Execute both `GxuFontWindowSizeChanged` and each original frame/font-string
    screen-size callback, then close consumers before layout/font/device owners.
 4. Connect actual FrameXML factories, retained templates and ordered Lua traversal.

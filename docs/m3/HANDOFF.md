@@ -458,6 +458,27 @@ lookup and streaming remain unavailable. Actual Frame regions/root/image modes,
 full GlueXML/login and gameplay remain open. No new physical-input, Windows
 runtime, macOS graphics or server acceptance is recorded. M3 remains incomplete.
 
+The [original Frame render batcher](FRAME_RENDER.md) in
+[PR #45](https://github.com/RovxBot/wowdecomp/pull/45) is qualified at
+`d09ad319696fa7a05767bcc2af5f810af4378b3d`, merged as
+`d4b213b01e9a9d50a538c50f3247614930058517`. Its [record](frame-render-validation.json)
+retains thirteen passing workflows, 32 CTest checks per Linux GL configuration,
+full signature-enabled Windows x64 compilation at matching-tree checkout
+`08dbdbc46ee4b5b0100aeaa427facc731d81332c`, three archive digests and all 47 packaged
+binary hashes/types. Release and strict sanitizer binaries each passed three
+authored batch, three original-data batch, three GlueFonts, three image and three
+Gxu cycles on RX 7900 XTX / Mesa 26.2.5 / SDL X11, with empty stderr and zero workers.
+All four resource fixtures passed three cycles per mode; captures match.
+
+Actual `CRenderBatch`/`CSimpleRender` counting and draw bodies now retain quad
+snapshots and texture/shader/font/block handles, use full-width sorting, preserve
+merge splits and atlas UVs, guard callbacks and recover partial staging writes.
+Three earlier fixture failures remain recorded. The original-resource composition
+is authored, with original fonts/shaders/BLP; it is not original Frame/GlueXML/login.
+Actual Frame-object queues, parent/animation/layer/root and deferred lifetimes, SDL
+size invalidation and texture modes remain open. No new physical-input, Windows
+runtime, macOS graphics or server acceptance; M3 remains incomplete.
+
 Next dependencies, in order:
 
 1. Connect actual regions/font strings/root batching to the qualified
