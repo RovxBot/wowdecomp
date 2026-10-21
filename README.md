@@ -126,6 +126,16 @@ passed 34 checks; Windows compilation and downloaded original-data release/stric
 sanitizer GPU cycles passed. Pooled factories, input/animation/texture consumers,
 actual SDL size delivery and full signed GlueXML/login remain open. M3 is incomplete.
 
+The [SDL display-size path](docs/m3/FRAME_WINDOW.md) now connects actual
+programmatic window events to Gx dimensions, original Gxu/font and Frame callbacks,
+and pending layout before rendering. Both Linux GL configurations passed 35 checks;
+full Windows compilation and downloaded release/strict sanitizer original-data
+GPU cycles passed. Captures match release/sanitizer; the probe now initializes
+coordinate math in original Glue startup order. This does not qualify physical
+input, independent high-DPI changes or original login. Pooled Lua/XML factories,
+remaining Frame/input/texture/animation consumers and full signed GlueXML/login
+remain open; M3 is incomplete.
+
 ## Progress
 
 Native 12340 packet buffer/cipher [prerequisites](docs/m3/PACKETS.md) passed
