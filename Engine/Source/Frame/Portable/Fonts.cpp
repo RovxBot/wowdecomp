@@ -52,7 +52,7 @@ void RequireFontName(const char* name) {
     RequireFontFactories();
     if (!name || !*name) throw std::invalid_argument("Empty Frame font name");
     size_t length = 0;
-    while (name[length] && length < 1024) ++length;
+    while (length < 1024 && name[length]) ++length;
     if (length == 1024) throw std::length_error("Frame font name exceeds 1023 bytes");
 }
 void RequireFontCapacity() {

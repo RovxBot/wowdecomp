@@ -22,6 +22,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <stdexcept>
 #include <thread>
 using Bytes = std::vector<uint8_t>;
 using namespace Gx::Native;
@@ -62,7 +64,9 @@ struct Source {
             auto ticket=queue.Submit([&](const Cancellation&) {
                 packages=Blizzard::Mopaq::Native::Packages::Open12340(paths,"enUS");return ReadResult{};
             },[](const ReadResult& result) { Check(result.status==ReadStatus::Success,"Original package authentication failed"); });
-            Check(queue.Wait(ticket,std::chrono::seconds(60)),"Package open timeout");
+            if (!queue.Wait(ticket,std::chrono::seconds(60))) {
+                queue.Shutdown();throw std::runtime_error("Package open timeout");
+            }
             for (const char* path : {"Shaders\\Vertex\\arbvp1\\UI.bls","Shaders\\Pixel\\arbfp1\\UI.bls"}) {
                 Bytes bytes;Check(Read(path,bytes),"Original shader read failed");shaders[path]=std::move(bytes);
             }
@@ -83,8 +87,8 @@ struct Source {
 };
 static void Lua(const char* source) {
     CStatus status;
-    Check(FrameScript_ExecuteBuffer(source,std::strlen(source),"FrameFontFixture",&status,nullptr),"Font Lua chunk failed");
-    if (!status.IsEmpty()) {char error[2048];throw std::runtime_error(status.GetErrorStr(error,sizeof(error),STATUS_WARNING,"; "));}
+    int result=FrameScript_ExecuteBuffer(source,std::strlen(source),"FrameFontFixture",&status,nullptr);
+    if (!result || !status.IsEmpty()) {char error[2048];throw std::runtime_error(status.GetErrorStr(error,sizeof(error),STATUS_WARNING,"; "));}
 }
 struct Script final : CScriptObject {
     CScriptObject* parent=nullptr;
@@ -191,6 +195,8 @@ assert(not BaseFont:SetFont('bad.ttf',12))
     }
     auto* overflow=CSimpleFont::GetFont("DeepOverflow",1);
     Reject([&]{overflow->SetFontObject(previous);});
+    Reject([&]{CSimpleFont::GetFont("Deep0",0)->SetFontObject(overflow);});
+    Lua("assert(not pcall(BaseFont.CopyFontObject,BaseFont,Deep63))");
     Lua("assert(not pcall(DeepOverflow.SetFontObject,DeepOverflow,Deep63));assert(not pcall(BaseFont.SetFontObject,BaseFont,''))");
     // Destroy registered parents while children and external Lua tables remain.
     Lua("OldFont=BaseFont");
@@ -199,51 +205,68 @@ assert(not BaseFont:SetFont('bad.ttf',12))
     Check(!CSimpleFont::GetFont("BaseFont",0),"Factory cache survived destruction");
     // Rebuild and apply actual XML dimensions/color/inheritance, not a proxy font.
     const std::string source="<Ui><Font name='XMLBase' font='"+std::string(face)+"' justifyH='LEFT'><FontHeight><AbsValue val='32'/></FontHeight><Color r='1' g='0' b='0'/></Font><Font name='XMLChild' inherits='XMLBase' spacing='1'><Shadow><Color r='0' g='0' b='0'/><Offset x='1' y='-1'/></Shadow></Font></Ui>";
-    auto* tree=XMLTree_Load(source.data(),uint32_t(source.size()));Check(tree,"Authored font XML parse");
+    std::unique_ptr<XMLTree,decltype(&XMLTree_Free)> tree(XMLTree_Load(source.data(),uint32_t(source.size())),&XMLTree_Free);
+    Check(bool(tree),"Authored font XML parse");
     CStatus status;
-    for (auto* node=XMLTree_GetRoot(tree)->m_child;node;node=node->m_next)
+    for (auto* node=XMLTree_GetRoot(tree.get())->m_child;node;node=node->m_next)
         CSimpleFont::GetFont(node->GetAttributeByName("name"),1)->LoadXML(node,&status);
-    XMLTree_Free(tree);Check(status.IsEmpty(),"Authored font XML warnings");
+    tree.reset();Check(status.IsEmpty(),"Authored font XML warnings");
     Lua("assert(XMLChild:GetFontObject()==XMLBase and XMLChild:GetFont()==XMLBase:GetFont());assert(math.abs(XMLChild:GetSpacing()-1)<0.001)");
     Check(CSimpleFont::GetFont("XMLChild",0)->m_attributes.m_fontHeight>0,"XML inherited font height");
 }
+struct Handle {
+    HOBJECT value;
+    ~Handle(){if(value)HandleClose(value);}
+};
+struct Batch {
+    CGxStringBatch* value=GxuFontCreateBatch(false,false);
+    ~Batch(){GxuFontDestroyBatch(value);}
+};
 static size_t Render(LegacyDevice& device,CSimpleFont& font,const std::string& snapshot) {
     auto& a=font.m_attributes;
     HTEXTFONT hfont=TextBlockGenerateFont(a.m_font.m_str,a.m_fontFlags,a.m_fontHeight);
     Check(hfont,"Frame attributes did not generate Services font");
+    Handle ownedFont{reinterpret_cast<HOBJECT>(hfont)};
     // Text blocks borrow the font: close blocks/batch before the font handle.
     HTEXTBLOCK block=TextBlockCreate(hfont,"AV Frame",CImVector(0,0,255,255),C3Vector(0.1f,0.1f,0),
         a.m_fontHeight,0.6f,0.4f,0x21,0,0,1);
     Check(block,"Frame Services block failed");
-    auto* batch=GxuFontCreateBatch(false,false);
-    Check(GxuFontAddToBatch(batch,TextBlockGetStringPtr(block)),"Frame text batch failed");
-    GxSceneClear(GxBufferBit_Color,CImVector(0,0,0,255));GxuFontRenderBatch(batch);
+    Handle ownedBlock{reinterpret_cast<HOBJECT>(block)};
+    Batch batch;
+    Check(GxuFontAddToBatch(batch.value,TextBlockGetStringPtr(block)),"Frame text batch failed");
+    GxSceneClear(GxBufferBit_Color,CImVector(0,0,0,255));GxuFontRenderBatch(batch.value);
     CiRect rect{};rect.maxX=640;rect.maxY=480;TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect,pixels);
-    size_t red=0;for(uint32_t i=0;i<pixels.Count();++i)red+=pixels[i].r>240 && pixels[i].g<4 && pixels[i].b<4;
-    Check(red>4,"Frame font attributes did not render original Gxu glyphs");
+    size_t red=0,ink=0;uint8_t peak=0;
+    for(uint32_t i=0;i<pixels.Count();++i) {
+        const auto& p=pixels[i];red+=p.r>240 && p.g<4 && p.b<4;
+        ink+=p.r>16 && p.g<4 && p.b<4;peak=std::max(peak,p.r);
+    }
+    std::cout<<"frame-font-pixels font="<<font.GetName()<<" height-ddc="<<a.m_fontHeight
+             <<" flags="<<a.m_fontFlags<<" fully-red="<<red<<" red-ink="<<ink<<" peak-red="<<int(peak)<<'\n';
     if (!snapshot.empty()) {
         std::ofstream out(snapshot,std::ios::binary);out<<"P6\n640 480\n255\n";
         for (int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=pixels[y*640+x];char rgb[]={char(p.r),char(p.g),char(p.b)};out.write(rgb,3);}
         Check(bool(out),"Frame font snapshot write failed");
     }
-    GxuFontDestroyBatch(batch);HandleClose(reinterpret_cast<HOBJECT>(block));HandleClose(reinterpret_cast<HOBJECT>(hfont));
+    Check(red>4,"Frame font attributes did not render original Gxu glyphs");
     return red;
 }
 static CSimpleFont* Original(Source& source) {
     uint8_t before[16],after[16];
     Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),before)==3,"Original GlueXML interface signature");
     CStatus status;
-    auto* tree=FrameXML_LoadXML("Interface\\GlueXML\\GlueFonts.xml",nullptr,&status);Check(tree,"Original GlueFonts XML read");
+    std::unique_ptr<XMLTree,decltype(&XMLTree_Free)> tree(FrameXML_LoadXML("Interface\\GlueXML\\GlueFonts.xml",nullptr,&status),&XMLTree_Free);
+    Check(bool(tree),"Original GlueFonts XML read");
     size_t count=0;CSimpleFont* selected=nullptr;
-    for (auto* node=XMLTree_GetRoot(tree)->m_child;node;node=node->m_next) {
+    for (auto* node=XMLTree_GetRoot(tree.get())->m_child;node;node=node->m_next) {
         Check(!SStrCmpI(node->m_name.m_str,"Font",STORM_MAX_STR),"Unsupported original font definition tag");
         auto* font=CSimpleFont::GetFont(node->GetAttributeByName("name"),1);font->LoadXML(node,&status);
         Check(font->m_attributes.m_flags&0x100,"Original font definition did not resolve a font");
         if (!selected) selected=font;
         ++count;
     }
-    XMLTree_Free(tree);
+    tree.reset();
     if(!status.IsEmpty()){char error[4096];throw std::runtime_error(status.GetErrorStr(error,sizeof(error),STATUS_WARNING,"; "));}
     Check(selected && count>10,"Original GlueFonts factory count");
     Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),after)==3 && !std::memcmp(before,after,16),"Original content changed during font construction");

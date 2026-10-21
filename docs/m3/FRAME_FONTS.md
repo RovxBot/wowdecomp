@@ -45,3 +45,22 @@ open. This package's rendered text does not establish an original login screen,
 physical-input acceptance, macOS graphics, Windows runtime or gameplay. M3 remains
 incomplete; preserve signatures, server revision discrepancies and interactive
 user sign-in.
+
+## Next original callers
+
+1. Select `CScriptRegion`, `CSimpleRegion` and the actual `CSimpleFontString`
+   bodies in `CSimpleRender.cpp`. Initialize native `m_maxLines` before preserving
+   bitfields, retain font handles until text-block close in `SetFont`, and connect
+   `FontStringAttributes.cpp`'s original string overload. Naming now shares the
+   qualified VM owner; region parent/animation/layer lists still need adaptation.
+2. Connect `CSimpleTop`/`CRenderBatch` with deferred consumer destruction and real
+   SDL size events. `CSimpleFontString::OnScreenSizeChanged` and original Gxu font
+   invalidation must both execute; Services text readback alone does not test them.
+3. Adapt `CSimpleTexture::SetTexture`'s disk/atlas `0x17` request, atlas coordinates,
+   supported image modes and default filtering before selecting real textures.
+   Preserve the local wait-2 and authored-mip contracts; unsupported lookup and
+   streaming must remain visible failures.
+4. Connect the actual `FrameXML_ProcessFile`/`FrameXML_CreateFrames` traversal,
+   virtual templates and ordered Lua execution. The direct GlueFonts fixture is
+   a font subset. Preserve the full second digest comparison in `CGlueMgr::Resume`
+   before FRAMES_LOADED and render original login before interactive sign-in.
