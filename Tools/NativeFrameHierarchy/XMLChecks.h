@@ -17,7 +17,7 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
       <Frame name="NativeXMLCycleA" virtual="true" inherits="NativeXMLCycleB"/>
       <Frame name="NativeXMLCycleB" virtual="true" inherits="NativeXMLCycleA"/>
       <Frame name="NativeXMLUnsupported" virtual="true"><Layers><Layer><Texture/></Layer></Layers></Frame>
-      <FontString name="NativeXMLTextTemplate" virtual="true"/>
+      <FontString name="NativeXMLTextTemplate" virtual="true" text="NativeXMLToken"/>
       <Frame name="NativeXMLDimensions" virtual="true"><Size x="200" y="80"/></Frame>
     </Ui>)";
     std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), &XMLTree_Free);
@@ -49,6 +49,11 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         assert(f == NativeXMLParentInstance and f:GetParent() == NativeXMLParent)
         assert(f.Label == NativeXMLParentInstanceText and f.Label:GetText() == '2 templates')
         assert(f.Label:GetParent() == f and f:GetChildren() == NativeXMLParentInstanceChild)
+        local extra = f:CreateFontString('$parentExtra','OVERLAY','NativeXMLTextTemplate')
+        assert(extra:GetParent() == f and extra:GetText() == '2 templates')
+        assert(not pcall(f.CreateFontString,f,'$parentExtra','OVERLAY','NativeXMLTextTemplate'))
+        assert(not pcall(f.CreateFontString,f,'RejectedText','OVERLAY','NativeXMLBase'))
+        assert(RejectedText == nil)
         assert(f:GetTitleRegion():GetParent() == f)
         local w,h = f:GetSize()
         assert(math.abs(w-300) < .001 and math.abs(h-120) < .001)

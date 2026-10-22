@@ -220,6 +220,26 @@ void ApplyTemplates(XMLNode* node, const std::function<void(XMLNode*)>& apply, b
         apply(scope.node);
     }
 }
+CSimpleFontString* CreateFontString(CSimpleFrame* parent, const char* name, unsigned layer, const char* inherits) {
+    RequireFactories();
+    XMLNode node(nullptr, "FontString");
+    if (name && *name) node.SetAttribute("name", name);
+    if (inherits && *inherits) node.SetAttribute("inherits", inherits);
+    ValidateCreation(&node);
+    std::unique_ptr<CSimpleFontString> string(Frame::Native::CreateFontString(parent, layer, true));
+    RequireAvailableName(string.get(), name);
+    if (name && *name) string->SetName(name);
+    if (inherits && *inherits) {
+        if (auto* font = CSimpleFont::GetFont(inherits, 0)) string->SetFontObject(font);
+        else ApplyTemplates(&node, [&](XMLNode* inherited) {
+            CStatus status;
+            string->LoadXML(inherited, &status);
+            string->PostLoadXML(inherited, &status);
+        }, false);
+    }
+    string->GetLuaObjectRef();
+    return string.release();
+}
 }}
 int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*), bool unique) {
     FrameXML::Native::RequireFactories(); Name(name);

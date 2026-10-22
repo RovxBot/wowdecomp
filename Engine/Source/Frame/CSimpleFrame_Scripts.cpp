@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #endif
 #include <cstddef>
@@ -155,18 +156,8 @@ static int32_t Script_CreateFontString(lua_State* L) {
     const char* name = lua_isstring(L, 2) ? lua_tolstring(L, 2, nullptr) : nullptr;
     uint32_t drawLayer = 2;
     if (lua_isstring(L, 3)) StringToDrawLayer(lua_tolstring(L, 3, nullptr), drawLayer);
-    CSimpleFont* font = nullptr;
-    if (lua_type(L, 4) == LUA_TSTRING) {
-        font = CSimpleFont::GetFont(lua_tolstring(L, 4, nullptr), 0);
-        if (!font) return luaL_error(L, "CreateFontString(): native XML templates are not installed");
-    }
-    if (name && *name) Frame::Native::RequireFontName(name);
-    CSimpleFontString* string = Frame::Native::CreateFontString(frame, drawLayer, true);
-    try {
-        if (name && *name) string->SetName(name);
-        if (font) string->SetFontObject(font);
-        if (!string->m_luaRegistered) string->RegisterScriptObject(nullptr);
-    } catch (...) { delete string; throw; }
+    const char* inherits = lua_type(L, 4) == LUA_TSTRING ? lua_tostring(L, 4) : nullptr;
+    CSimpleFontString* string = FrameXML::Native::CreateFontString(frame, name, drawLayer, inherits);
     lua_rawgeti(L, LUA_REGISTRYINDEX, string->m_luaObjectRef);
     return 1;
 #else
