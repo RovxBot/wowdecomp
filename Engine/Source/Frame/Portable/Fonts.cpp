@@ -1,11 +1,14 @@
 // Native lifetime boundary for the original 12340 Frame font factories.
 #include "Fonts.h"
+#include "Storage.h"
 #include "Engine/Source/Frame/SimpleFrameScript.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/Frame/CSimpleFont.h"
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
 #include <stdexcept>
 #include <unordered_set>
+#include <algorithm>
+#include <vector>
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
@@ -14,6 +17,33 @@ std::unordered_set<CSimpleFontable*> fontables;
 std::unordered_set<CScriptObject*> scripts;
 constexpr size_t MaxFonts = 512, MaxDepth = 64;
 size_t updates = 0;
+std::vector<CDataAllocator*> regionPools;
+}
+void* AllocateRegionStorage(CDataAllocator& pool, size_t bytes, size_t alignment) {
+    RequireFontFactories();
+    // Original blocks start after a pointer-sized header and use a literal
+    // byte stride. Admit only representations that preserve native alignment.
+    if (bytes != pool.m_bytesPerData || !alignment || alignment > alignof(CDataAllocator::Block) ||
+        bytes % alignment)
+        throw std::invalid_argument("Unsupported native Frame pool representation");
+    if (std::find(regionPools.begin(), regionPools.end(), &pool) == regionPools.end())
+        regionPools.push_back(&pool);
+    return pool.GetData(0, __FILE__, __LINE__);
+}
+void FreeRegionStorage(CDataAllocator& pool, void* pointer) {
+    RequireFontFactories();
+    if (!pointer) return;
+    const auto address = reinterpret_cast<uintptr_t>(pointer);
+    for (auto* block = pool.m_blockList; block; block = block->m_next) {
+        const auto begin = reinterpret_cast<uintptr_t>(block + 1);
+        if (address >= begin && address - begin < size_t(pool.m_bytesPerData) * pool.m_dataPerBlock) {
+            if ((address - begin) % pool.m_bytesPerData || !pool.m_dataUsed)
+                throw std::logic_error("Invalid native Frame pool release");
+            pool.PutData(pointer, nullptr, 0);
+            return;
+        }
+    }
+    ::operator delete(pointer);
 }
 Fonts::Fonts() {
     Gxu::Native::RequireFontOwner();
@@ -33,6 +63,8 @@ void Fonts::CheckCanClose() const {
         throw std::logic_error("Close external Frame fontables/script objects before font factories");
     for (auto* font : fonts)
         if (!font->m_name) throw std::logic_error("Close standalone Frame fonts before the factory owner");
+    for (auto* pool : regionPools)
+        if (pool->m_dataUsed) throw std::logic_error("Close pooled Frame allocations before font factories");
 }
 Fonts::~Fonts() {
     try {
@@ -42,6 +74,8 @@ Fonts::~Fonts() {
             throw std::logic_error("Close standalone Frame fonts before the factory owner");
         FrameScript_UnregisterFunction("CreateFont");
         CSimpleFont::DestroyScriptMetaTable();
+        for (auto* pool : regionPools) pool->Clear(nullptr, 0, 0);
+        std::vector<CDataAllocator*>().swap(regionPools);
         std::unordered_set<CSimpleFont*>().swap(fonts);
         std::unordered_set<CSimpleFontable*>().swap(fontables);
         std::unordered_set<CScriptObject*>().swap(scripts);

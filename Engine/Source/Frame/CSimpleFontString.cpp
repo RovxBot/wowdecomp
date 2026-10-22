@@ -1,5 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Regions.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_REGION_CHECK() ((void)0)
@@ -393,7 +394,7 @@ void CSimpleFontString::RefreshEmbeddedTextures() {
 void CSimpleFontString::operator delete(void* ptr) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    ::operator delete(ptr);
+    Frame::Native::FreeRegionStorage(CSimpleFontString::s_allocator, ptr);
 #else
 
     if (ptr) {

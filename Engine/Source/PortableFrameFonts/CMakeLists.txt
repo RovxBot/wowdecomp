@@ -31,6 +31,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/CFrameStrataNode.cpp
     ../Frame/Portable/Hierarchy.cpp
     ../Frame/Portable/WindowEvents.cpp
+    ../FrameXML/CreateFrame.cpp
     ../Event/CEvent.cpp
     ../Event/CMouseEvent.cpp
     ../Services/ScreenProjection.cpp)
