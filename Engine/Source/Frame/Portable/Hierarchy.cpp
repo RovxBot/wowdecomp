@@ -1,4 +1,6 @@
 #include "Hierarchy.h"
+#include "Engine/Source/Frame/CSimpleTitleRegion.h"
+#include <memory>
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CFrameStrataNode.h"
 #include "Engine/Source/Services/Camera.h"
@@ -13,6 +15,14 @@ std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
 constexpr size_t MaxDepth = 64;
+}
+CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame* frame) {
+    RequireTreeMutation(); RequireSimpleFrame(frame);
+    if (frame->m_titleRegion) return static_cast<CSimpleTitleRegion*>(frame->m_titleRegion);
+    auto title = std::make_unique<CSimpleTitleRegion>();
+    title->m_parent = frame;
+    frame->m_titleRegion = title.release();
+    return static_cast<CSimpleTitleRegion*>(frame->m_titleRegion);
 }
 void RequireRoot() {
     RequireRegions(); RequireRenderer();

@@ -128,8 +128,9 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     high->Show();root.OnLayerUpdate(0.01f);Check(root.m_mouseFocus==high,"Shown consumer focus refresh");
     high->DisableEvent(SIMPLE_EVENT_MOUSE);Check(!root.m_mouseFocus,"Disable retained focus");
     high->EnableEvent(SIMPLE_EVENT_MOUSE,20);root.OnLayerUpdate(0.01f);
-    // Movement and Lua handlers remain explicitly unavailable.
-    root.m_moveResizeEnabled=1;Reject([&]{deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);});root.m_moveResizeEnabled=0;
+    // Lua handlers remain explicitly unavailable before pooled factories.
+    root.m_moveResizeEnabled=1;deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
+    deliver(OS_INPUT_MOUSE_UP,MOUSE_BUTTON_LEFT);root.m_moveResizeEnabled=0;
     Reject([&]{high->EnableEvent(SIMPLE_EVENT_4,0);});
     high->m_onMouseDown.m_luaRef=1;
     CMouseEvent empty;Reject([&]{high->CSimpleFrame::OnLayerMouseDown(empty,nullptr);});high->m_onMouseDown.m_luaRef=0;

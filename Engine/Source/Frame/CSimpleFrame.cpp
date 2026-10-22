@@ -476,9 +476,8 @@ void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    // Only top-level policy is exposed; movement/backdrop/scroll flags retain
-    // their explicit unavailable paths until their consumers are installed.
-    if (flag != 1) Frame::Native::UnavailableFrameFeature();
+    // Top-level, movable, resizable and user-placed flags only.
+    if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000) Frame::Native::UnavailableFrameFeature();
     this->m_simpleTop->m_strata[this->m_strata]->m_levelsDirty = 1;
     this->m_simpleTop->m_checkFocus = 1;
 #endif
@@ -515,10 +514,17 @@ int32_t CSimpleFrame::Lower() {
 
 // VERIFY: 7a7cdf5e auto
 // OFFSET: 0x0048E9C0
-int32_t CSimpleFrame::DragBy(float offsetX, float offsetY, FRAMEPOINT point) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+int32_t CSimpleFrame::DragBy(float offsetX, float offsetY, uint32_t point)
+#else
+int32_t CSimpleFrame::DragBy(float offsetX, float offsetY, FRAMEPOINT point)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequirePoint(point);
+    return CLayoutFrame::DragBy(this->m_simpleTop, offsetX, offsetY, static_cast<FRAMEPOINT>(point));
 #else
 
     return CLayoutFrame::DragBy(this->m_simpleTop, offsetX, offsetY, point);

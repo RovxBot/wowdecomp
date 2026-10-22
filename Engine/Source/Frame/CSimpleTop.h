@@ -86,6 +86,7 @@ class CSimpleTop : public CLayoutFrame {
     uint32_t m_nativeMetaKeys = 0;
     uint32_t m_nativeButtonsDown = 0;
     bool m_nativeMouseSeen = false;
+    bool m_nativeMoveRaisePending = false;
 #else
     /* 0080 */ CSimpleFrame* m_keydownCapture [787];
 #endif
@@ -117,6 +118,7 @@ class CSimpleTop : public CLayoutFrame {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     // Cancel native pointer capture/focus outside traversal, including host loss.
     void CancelMouseInput();
+    void FlushMoveRaise();
 #endif
     void DisableEvents();
     void EnableEvents();
@@ -140,9 +142,15 @@ class CSimpleTop : public CLayoutFrame {
     void SetCursor(MipBits* image);
     void SetMouseFocus(CSimpleFrame* frame);
     void ShowFrame(CSimpleFrame* frame, int32_t a3);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    int32_t StartMoveOrResizeFrame(const CMouseEvent& evt, uint32_t reason, int32_t resize);
+    int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, uint32_t reason, float x, float y, uint32_t point);
+    int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, uint32_t reason, float x, float y, int32_t resize);
+#else
     int32_t StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_REASON reason, int32_t resize);
     int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, FRAMEPOINT point);
     int32_t StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, int32_t resize);
+#endif
     void StopMoveOrResizeFrame();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     void UnregisterForEvent(CSimpleFrame* frame, uint32_t event, int32_t a4);

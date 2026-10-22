@@ -27,6 +27,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/FramePixel.cpp
     ../Frame/CSimpleFrame.cpp
     ../Frame/CSimpleTop.cpp
+    ../Frame/CSimpleTitleRegion.cpp
     ../Frame/CFrameStrataNode.cpp
     ../Frame/Portable/Hierarchy.cpp
     ../Frame/Portable/WindowEvents.cpp

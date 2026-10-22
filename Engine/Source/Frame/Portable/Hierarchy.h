@@ -2,10 +2,12 @@
 #define WOWDECOMP_NATIVE_FRAME_HIERARCHY_H
 #include "Regions.h"
 class CSimpleTop;
+class CSimpleTitleRegion;
 namespace Frame { namespace Native {
 // Direct C++ Frames are owned by their parent/root. Borrow them until destruction;
 // heap allocation is required, and no native XML/Lua Frame factory is advertised.
 void RequireRoot();
+CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);
 void SimpleFrameCreated(CSimpleFrame*);
 void SimpleFrameDestroyed(CSimpleFrame*);
 void RequireScale(CSimpleFrame*, float);

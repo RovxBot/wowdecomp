@@ -184,7 +184,11 @@ class CSimpleFrame : public CScriptRegion {
 #else
     void DisableEvent(CSimpleEventType eventType);
 #endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    int32_t DragBy(float offsetX, float offsetY, uint32_t point);
+#else
     int32_t DragBy(float offsetX, float offsetY, FRAMEPOINT point);
+#endif
     void EnableDrawLayer(uint32_t drawLayer);
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     void EnableEvent(uint32_t eventType, int32_t priority);
