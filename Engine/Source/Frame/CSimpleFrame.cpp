@@ -475,8 +475,13 @@ uint8_t CSimpleFrame::GetEffectiveAlpha() {
 void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    // Only top-level policy is exposed; movement/backdrop/scroll flags retain
+    // their explicit unavailable paths until their consumers are installed.
+    if (flag != 1) Frame::Native::UnavailableFrameFeature();
+    this->m_simpleTop->m_strata[this->m_strata]->m_levelsDirty = 1;
+    this->m_simpleTop->m_checkFocus = 1;
+#endif
 
     if (set) {
         this->m_frameFlags |= flag;
@@ -484,20 +489,15 @@ void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
         this->m_frameFlags &= ~flag;
     }
 
-#endif
 }
 
 // VERIFY: c5f65169 auto
 // OFFSET: 0x0048E9A0
 void CSimpleFrame::Raise() {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
     this->m_simpleTop->RaiseFrame(this, 1);
 
-#endif
 }
 
 // VERIFY: cd9f8146 auto

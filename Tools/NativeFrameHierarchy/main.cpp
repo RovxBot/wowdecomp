@@ -239,6 +239,7 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "KeyboardChecks.h"
 #include "ImeChecks.h"
 #include "MouseChecks.h"
+#include "StackingChecks.h"
 static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
@@ -261,7 +262,7 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     if(windowEvents) WindowEvents(context,device,root,*text,first);
     if(keyboardEvents) {KeyboardEvents(context,root);Equal(first,Draw(device,root));}
     if(imeEvents) {ImeEvents(context,root);Equal(first,Draw(device,root));}
-    if(mouseEvents) {MouseEvents(context,root);Equal(first,Draw(device,root));}
+    if(mouseEvents) {MouseEvents(context,root);StackingEvents(context,device,root,font);Equal(first,Draw(device,root));}
     parent->AllowAttributeChanges(1);parent->AllowAttributeChanges(1);
     Check(root.m_destroyed.Head()==parent && !root.m_destroyed.Next(parent),"Attribute permission cleanup queued twice");
     root.OnLayerUpdate(0.016f);Check(!parent->AttributeChangesAllowed() && !root.m_destroyed.Head(),"Original temporary attribute permission did not expire");

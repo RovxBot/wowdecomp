@@ -10,6 +10,7 @@ struct MouseFrame final : CSimpleFrame {
     void Record(const CMouseEvent& event) {
         Check(!event.m_param,"Mouse event param initialized");
         Reject([&]{Hide();});Reject([&]{SetParent(nullptr);});
+        Reject([&]{Raise();});Reject([&]{SetFrameFlag(1,1);});
         Reject([&]{Frame::Native::RequireDestroyable();});
         records.push_back({identity,event.m_id,event.m_data});
         if(defer) Frame::Native::DestroyLater(this);
@@ -127,8 +128,8 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     high->Show();root.OnLayerUpdate(0.01f);Check(root.m_mouseFocus==high,"Shown consumer focus refresh");
     high->DisableEvent(SIMPLE_EVENT_MOUSE);Check(!root.m_mouseFocus,"Disable retained focus");
     high->EnableEvent(SIMPLE_EVENT_MOUSE,20);root.OnLayerUpdate(0.01f);
-    // Explicitly unselected raising/movement and Lua handlers reject visibly.
-    high->m_frameFlags|=1;Reject([&]{deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);});high->m_frameFlags&=~1u;
+    // Movement and Lua handlers remain explicitly unavailable.
+    root.m_moveResizeEnabled=1;Reject([&]{deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);});root.m_moveResizeEnabled=0;
     Reject([&]{high->EnableEvent(SIMPLE_EVENT_4,0);});
     high->m_onMouseDown.m_luaRef=1;
     CMouseEvent empty;Reject([&]{high->CSimpleFrame::OnLayerMouseDown(empty,nullptr);});high->m_onMouseDown.m_luaRef=0;
