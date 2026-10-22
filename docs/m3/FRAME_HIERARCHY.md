@@ -96,12 +96,16 @@ installation stays read-only. No new physical-input, Windows runtime, macOS
 graphics or server acceptance is claimed. M3 remains open; preserve original
 signatures, server revision discrepancies and interactive user sign-in.
 
+The subsequent [pooled allocation package](FRAME_POOLS.md) qualifies original
+base Frame and typed FontString pool construction with mixed heap/pool ownership.
+The Lua/XML registry, metatables and remaining widget allocators stay open.
+
 ## Next original callers
 
-1. Adapt the actual pooled factory allocation before selecting
-   `CSimpleFrame_Scripts`, `FrameXML_CreateFrame` and `LoadXML_String`/texture
-   consumers. Current native class deletion matches direct C++ heap allocation,
-   not the original `s_allocator.GetData` placement-new callers.
+1. Use the qualified base Frame/FontString pooled constructors when selecting
+   `CSimpleFrame_Scripts`, `FrameXML_CreateFrame` and `LoadXML_String`. Adapt each
+   remaining widget allocator/deletion before selecting its factory; direct raw
+   pool calls do not establish owner registration or constructor rollback.
 2. Connect original region/frame Lua/XML methods, named-parent lookup, virtual
    template retention/inheritance, language processing and animation ownership.
    Preserve canonical live Lua objects and borrowed XML nodes through consumers.

@@ -751,3 +751,34 @@ full post-creation digest gate, actual login rendering, transport/authentication
 and observed gameplay remain open. No new physical-input, Windows runtime,
 macOS graphics or server acceptance. M3 stays incomplete; preserve signatures,
 historical identities, server revision discrepancies and interactive user sign-in.
+
+The [pooled Frame allocation package](FRAME_POOLS.md) in
+[PR #64](https://github.com/RovxBot/wowdecomp/pull/64) is qualified at
+`d2088a7cab528ca915b5fb1faa3cb354048ebd0a`, merged as
+`f3e74f19562583ded6c8aeb414f4dccf60782da0`. [Durable validation](frame-pool-validation.json)
+retains thirteen passing PR workflows, 38 CTest checks per Linux release/strict
+ASan/UBSan/leak configuration and full signature-enabled Windows x64 compilation
+at matching-tree checkout `eb7985d3665dcbd81f9c1c40b9be4543938f15ab`. Three archives,
+all 51 executable hashes/types and notices verified. RX 7900 XTX / Mesa 26.2.5 /
+SDL X11 packages passed 30 three-cycle input/UI/resource executions, empty stderr
+and zero workers; all fifteen capture pairs match. Four resource fixtures also
+passed three cycles per mode. The initial restricted X11-unavailable launch remains
+failed evidence; the same binary passed with desktop access and unchanged detectors.
+
+Original `Create_SimpleFrame` and a typed native FontString constructor now use
+original class pools. Preserve native slot alignment, exception rollback, mixed
+heap/pool deletion and parent/root ownership. Pools register with the Fonts owner;
+close all consumers/raw slots before it clears blocks. Growth to 101/810 slots,
+reuse, throwing construction, recursive/deferred/root destruction, actual pooled
+text rendering/repeat pixels and owner release are qualified. This does not install
+Lua/XML registry/metatables, templates/language or remaining widget factories.
+Route each selected allocator/deletion before enabling those callers. Original
+signatures and before/after GlueFonts-subset interface checks stay enabled.
+
+Region/frame/title/FontString metatables, named-parent/template/language processing,
+nonempty Lua input handlers, remaining widgets and physical mouse/IME/edit-box/
+candidate UI acceptance remain open. Complete signed ordered GlueXML and its full
+post-creation digest gate, actual login rendering, transport/authentication and
+observed gameplay remain open. No new physical-input, Windows runtime, macOS
+graphics or server acceptance. M3 is incomplete; preserve historical identities,
+signatures, server revision discrepancies and interactive user sign-in.
