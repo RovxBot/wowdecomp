@@ -666,6 +666,45 @@ no detector was disabled. No new physical-input, Windows runtime, macOS graphics
 or server acceptance. M3 stays incomplete; preserve signatures, server revision
 discrepancies and interactive user sign-in.
 
+The [original top-level Frame package](docs/m3/FRAME_STACKING.md) in
+[PR #60](https://github.com/RovxBot/wowdecomp/pull/60) is qualified at
+`1d675153d9fb6a18f70feb46e5808ceec2749138`, merged as
+`2e81a1978a5dc34b82db5ce6457b69950199a415`. The [durable record](docs/m3/frame-stacking-validation.json)
+retains all four triggered implementation PR workflows: source audit, Linux GL,
+CPU layout matrix and full signature-enabled Windows x64 compilation. Both Linux
+GL configurations passed 38 checks; CPU layout also executed on actual ARM64 macOS
+and Windows. Hosted checkout `d45d48d3efe6a995cbfdc19e6f1bc154bcb795ee`
+has the same source tree as the selected implementation and merge. Three archive
+digests, all 51 packaged executable hashes/types and notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict ASan/UBSan/leak
+packages passed 30 input/UI/resource executions with three owner cycles each,
+empty stderr and zero workers. Each target/transform/buffer/texture fixture passed
+three cycles per mode. All fifteen release/sanitizer capture pairs match; final
+original-data hierarchy/input captures retain the prior baseline. The inspected
+640x480 original-data mouse capture is authored white text with original Friz
+Quadrata/UI shaders, not original login rendering. Intermediate stacking buffers
+assert red/green draw-order changes, repeat pixels and restoration; those buffers
+are not exported captures.
+
+Original same-stratum positive-rectangle occlusion, descendant exclusion, nearest
+top-level ancestor raising, hidden registered level preservation and literal sparse
+compression now run in the native adapter. Preflight final raised descendants
+before list mutation. Retire dirty batches across every allocated level, including
+old source levels above the compressed active range. Keep callback guards on both
+sides of internal mouse-down raising and retain resize-callback guards. The first
+hosted release failure (37/38, duplicate text-batch ownership after compression)
+and superseded runs remain recorded; no ownership/pixel assertion or detector was
+disabled. Windows-selected source tokens match the immutable pre-PR base.
+
+Title/layout move/resize, pooled Lua/XML/language/template factories, complete
+widget behavior and physical mouse/IME/edit-box/candidate acceptance remain open.
+Full signed ordered GlueXML creation and its post-creation digest gate, actual
+login rendering, transport/authentication and observed gameplay remain open.
+No new physical-input, Windows runtime, macOS graphics or server acceptance.
+M3 remains incomplete; preserve signatures, historical identities, server revision
+discrepancies and interactive user sign-in.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.
