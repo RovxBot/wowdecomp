@@ -3,7 +3,8 @@
 This work package selects original 12340 `LanguageProcess` rules 1, 2 and 4 for
 native FontStrings and enables original Lua `SetText`/`SetFormattedText`.
 The rules and static buffers move from `CSimpleRender.cpp` to `Language.cpp`;
-Windows-selected language and setter bodies remain unchanged. Native execution
+Windows-selected language and setter bodies remain unchanged. The native target
+selects the original Storm Unicode conversion source used by these rules. Native execution
 uses the qualified Frame/Gxu/layout/VM owner and the existing guarded Lua method
 boundary. Every region and external script reference closes before Scripts,
 renderer/Fonts/Gxu/layout/XML/VM/device/context/queue.

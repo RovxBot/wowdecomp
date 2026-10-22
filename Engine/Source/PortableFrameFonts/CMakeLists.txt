@@ -27,6 +27,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/Portable/Scripts.cpp
     ../Frame/CScriptRegion.cpp
     ../Frame/CSimpleRegion.cpp
+    ../Storm/Source/SUni.cpp
     ../Frame/Language.cpp
     ../Frame/CSimpleFontString.cpp
     ../Frame/FontStringAttributes.cpp
