@@ -788,3 +788,26 @@ remaining checks need another machine.
   post-creation digest gate, original login and transport/gameplay remain open.
   No new physical-input, Windows runtime, macOS graphics or server acceptance. M3
   stays incomplete; preserve signatures/server discrepancies and interactive sign-in.
+
+- M3 bounded SDL pointer [PR #58](https://github.com/RovxBot/wowdecomp/pull/58) is
+  qualified at `205d3d5770c3ca756909f9c0de63c7a0f3a294a3`, merged as
+  `53c259f20cb48db3e5e6a4011074b5d0644ad447`. Read [mouse contracts](docs/m3/FRAME_MOUSE.md)
+  and [validation](docs/m3/frame-mouse-validation.json). Thirteen PR workflows
+  passed; both Linux GL configurations passed 38 checks and full signature-enabled
+  Windows x64 compiled at matching-tree checkout `51970b1b468c9a5f5310a56d742895fe913bf414`.
+  Three archive digests/all 51 packaged binary hashes/types/notices verified.
+  Exact-source RX 7900 XTX release/strict ASan/UBSan/leak packages passed 30 input/
+  UI/resource executions, three owner cycles each, with empty stderr/zero workers;
+  all fifteen capture pairs match. Preserve logical-pixel/inverted-Y and original
+  raw-relative-to-DDC conversion, masks/identities/timestamps, raw unsigned/finite
+  preflight, guarded callbacks, stationary priority/inset refresh and cancellation
+  cleanup after callback failure. Hide/disable/destruction retire focus/capture/
+  drag state; defer deletion through traversal. Original typed C++ drag/drop and
+  empty Lua handlers are selected. Top-level occlusion/raising, title/layout moves,
+  nonempty Lua handlers/pooled factories and complete widget drag remain open.
+  Source-graph/local fixture corrections remain failed evidence; no detector was
+  disabled. Actual edit boxes/physical IME, other Frame consumers, complete signed
+  ordered GlueXML/full second digest gate, original login and transport/gameplay
+  remain open. No new physical-input, Windows runtime, macOS graphics or server
+  acceptance. M3 is incomplete; preserve signatures/server discrepancies and
+  interactive user sign-in.
