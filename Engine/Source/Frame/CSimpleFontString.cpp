@@ -1294,7 +1294,7 @@ void CSimpleFontString::LoadXML(XMLNode* node, CStatus* status) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
             FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) {
                 this->LoadXML(inherited, status);
-            });
+            }, false); // Original FontString template loads borrow without Frame taint switching.
 #else
             const char* taint;
             bool locked;

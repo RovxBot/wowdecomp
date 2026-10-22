@@ -67,19 +67,24 @@ struct TemplateScope {
     XMLNode* node;
     const char* savedTaint = lua_tainted;
     const char* savedTag = lua_gctag;
-    explicit TemplateScope(const char* value) : name(value) {
+    bool applyTaint;
+    TemplateScope(const char* value, bool tainted) : name(value), applyTaint(tainted) {
         const char* taint = nullptr;
         bool locked = false;
         node = FrameXML_AcquireHashNode(name, taint, locked);
         if (!node || locked) throw std::invalid_argument("Missing or recursively inherited XML template");
-        ++lua_taintexpected;
-        if (!lua_taintedclosure) lua_tainted = taint;
-        lua_gctag = taint;
+        if (applyTaint) {
+            ++lua_taintexpected;
+            if (!lua_taintedclosure) lua_tainted = taint;
+            lua_gctag = taint;
+        }
     }
     ~TemplateScope() {
-        lua_gctag = savedTag;
-        if (lua_taintexpected && !lua_taintedclosure) lua_tainted = savedTaint;
-        if (--lua_taintexpected < 0) lua_taintexpected = 0;
+        if (applyTaint) {
+            lua_gctag = savedTag;
+            if (lua_taintexpected && !lua_taintedclosure) lua_tainted = savedTaint;
+            if (--lua_taintexpected < 0) lua_taintexpected = 0;
+        }
         FrameXML_ReleaseHashNode(name);
     }
 };
@@ -208,10 +213,10 @@ void RequireAvailableName(CScriptObject* object, const char* name) {
     lua_pop(L, 1);
     if (occupied) throw std::invalid_argument("Native XML object name already exists");
 }
-void ApplyTemplates(XMLNode* node, const std::function<void(XMLNode*)>& apply) {
+void ApplyTemplates(XMLNode* node, const std::function<void(XMLNode*)>& apply, bool applyTaint) {
     RequireFactories();
     for (auto& name : Names(node->GetAttributeByName("inherits"))) {
-        TemplateScope scope(name.c_str());
+        TemplateScope scope(name.c_str(), applyTaint);
         apply(scope.node);
     }
 }

@@ -18,12 +18,14 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
       <Frame name="NativeXMLCycleB" virtual="true" inherits="NativeXMLCycleA"/>
       <Frame name="NativeXMLUnsupported" virtual="true"><Layers><Layer><Texture/></Layer></Layers></Frame>
       <FontString name="NativeXMLTextTemplate" virtual="true"/>
+      <Frame name="NativeXMLDimensions" virtual="true"><Size x="200" y="80"/></Frame>
     </Ui>)";
     std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), &XMLTree_Free);
     Check(bool(tree), "Authored Frame factory XML parse");
     auto* first = XMLTree_GetRoot(tree.get())->m_child;
     auto* label = first->GetChildByName("Layers")->m_child->m_child;
-    label->SetAttribute("inherits", font.GetName());
+    label->SetAttribute("inherits", "NativeXMLTextTemplate");
+    XMLTree_GetRoot(tree.get())->GetChildByName("FontString")->SetAttribute("inherits", font.GetName());
     for (auto* node = first; node;) {
         auto* next = node->m_next;
         FrameXML_StoreHashNode(node, node->GetAttributeByName("name"), nullptr, &status);
@@ -41,6 +43,8 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         assert(not pcall(CreateFrame,'Frame','RejectedXML',{[0]=NativeXMLParent[0]}))
         assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,nil,'2147483648'))
         assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,nil,'nan'))
+        assert(not pcall(CreateFrame,'Frame','NativeXMLParent'))
+        assert(NativeXMLParent:GetName() == 'NativeXMLParent')
         local f = CreateFrame('Frame','$parentInstance',nil,'NativeXMLDerived',17)
         assert(f == NativeXMLParentInstance and f:GetParent() == NativeXMLParent)
         assert(f.Label == NativeXMLParentInstanceText and f.Label:GetText() == '2 templates')
@@ -48,8 +52,10 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         assert(f:GetTitleRegion():GetParent() == f)
         local w,h = f:GetSize()
         assert(math.abs(w-300) < .001 and math.abs(h-120) < .001)
-        local override = CreateFrame('Frame','NativeXMLOverride',f,'NativeXMLBase')
+        local override = CreateFrame('Frame','NativeXMLOverride',f,'NativeXMLBase, NativeXMLDimensions')
         assert(override:GetParent() == f and NativeXMLOverrideText:GetParent() == override)
+        local ow,oh = override:GetSize()
+        assert(math.abs(ow-200) < .001 and math.abs(oh-80) < .001)
         StaleXMLFrame,StaleXMLText = f,f.Label
     )");
     auto* instance = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeXMLParentInstance", CSimpleFrame::GetObjectType()));
@@ -70,11 +76,14 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
     Reject([&] { FrameXML_FreeHashNodes(); });
     FrameXML_ReleaseHashNode("NativeXMLDerived");
     // Failure during a later nested child rolls back the entire allocated tree.
-    const char* invalid = R"(<Frame name="RolledBackXML"><Frames><Frame name="$parentChild" parent="AbsentXMLParent"/></Frames></Frame>)";
+    const char* invalid = R"(<Frame name="RolledBackXML"><Frames>
+        <Frame name="EscapedXMLChild" parent="NativeXMLParent"/>
+        <Frame name="$parentChild" parent="AbsentXMLParent"/>
+      </Frames></Frame>)";
     tree.reset(XMLTree_Load(invalid, std::strlen(invalid)));
     Reject([&] { FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status); });
     tree.reset();
-    RegionLua("assert(RolledBackXML == nil and RolledBackXMLChild == nil)");
+    RegionLua("assert(RolledBackXML == nil and RolledBackXMLChild == nil and EscapedXMLChild == nil)");
     {
         Frame::Native::CollectScope traversal;
         RegionLua("assert(not pcall(CreateFrame,'Frame','RejectedTraversal')); assert(RejectedTraversal == nil)");

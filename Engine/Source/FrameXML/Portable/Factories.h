@@ -10,6 +10,6 @@ void CloseFactories();
 void RequireFactories();
 void ValidateCreation(XMLNode*);
 void RequireAvailableName(CScriptObject*, const char*);
-void ApplyTemplates(XMLNode*, const std::function<void(XMLNode*)>&);
+void ApplyTemplates(XMLNode*, const std::function<void(XMLNode*)>&, bool applyTaint = true);
 }}
 #endif
