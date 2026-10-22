@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Regions.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
 #else
@@ -583,15 +584,15 @@ void ApplyScaleAnim(C3Vector* positions, FRAMEPOINT origin, const C2Vector& offs
 // OFFSET: 0x004814F0
 void CSimpleRegion::PreLoadXML(XMLNode* node, CStatus* status) {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
-#else
 
     const char* name = node->GetAttributeByName("name");
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireAvailableName(this, name);
+#endif
 
     if (name && *name) {
         this->SetName(name);
     }
 
-#endif
 }

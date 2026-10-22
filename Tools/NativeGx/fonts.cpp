@@ -1,6 +1,7 @@
 #include "Engine/Source/Gxu/Portable/FontFace.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include <freetype/internal/ftstream.h>
+#include <freetype/internal/ftobjs.h>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -15,6 +16,15 @@ template<class E,class F> void Reject(F f) {
     Require(rejected,"Invalid font operation accepted");
 }
 void StreamChecks() {
+    // Empty loaders need no allocation. Exercise the original glyph-copy path
+    // before any raster can populate point/contour storage, including extras.
+    FT_GlyphLoader emptySource{}, emptyTarget{};
+    Require(!FT_GlyphLoader_Copy_Points(&emptyTarget, &emptySource), "Empty glyph outline copy failed");
+    emptySource.use_extra = emptyTarget.use_extra = 1;
+    Require(!FT_GlyphLoader_Copy_Points(&emptyTarget, &emptySource) &&
+            !emptyTarget.base.outline.n_points && !emptyTarget.base.outline.n_contours &&
+            !emptyTarget.base.outline.points && !emptyTarget.base.extra_points,
+            "Empty glyph copy allocated or changed outline storage");
     FT_Byte big[]={0xDE,0xAD,0xBE,0xEF}, little[]={0xEF,0xBE,0xAD,0xDE};
     FT_Byte negative[]={0xFF,0xDF}, offset[]={0x80,0x00,0x00};
     FT_Byte* p=big; Require(NEXT_Long(p)==-559038737L && p==big+4,"Signed big-endian font word changed");

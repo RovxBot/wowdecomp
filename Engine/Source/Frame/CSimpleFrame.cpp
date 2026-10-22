@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
@@ -818,9 +819,6 @@ void CSimpleFrame::RunOnKeyUpScript(const char* key) {
 // OFFSET: 0x0048F1F0
 void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
     for (XMLNode* layerNode = node->m_child; layerNode; layerNode = layerNode->m_next) {
         if (SStrCmpI(layerNode->m_name.m_str, "Layer", STORM_MAX_STR)) {
@@ -838,8 +836,12 @@ void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
 
         for (XMLNode* child = layerNode->m_child; child; child = child->m_next) {
             if (!SStrCmpI(child->m_name.m_str, "Texture", STORM_MAX_STR)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                Frame::Native::UnavailableFrameFeature();
+#else
                 CSimpleTexture* texture = LoadXML_Texture(child, this, status);
                 texture->SetFrame(this, drawLayer, texture->m_shown);
+#endif
             } else if (!SStrCmpI(child->m_name.m_str, "FontString", STORM_MAX_STR)) {
                 CSimpleFontString* string = LoadXML_String(child, this, status);
                 string->SetFrame(this, drawLayer, string->m_shown);
@@ -850,7 +852,6 @@ void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
         }
     }
 
-#endif
 }
 
 // INLINED
@@ -882,10 +883,12 @@ FrameScriptFunctionRef::~FrameScriptFunctionRef() {
 // OFFSET: 0x0048F400
 void CSimpleFrame::LoadXMLInheritance(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) {
+        this->LoadXMLInheritance(inherited, status);
+    });
+#else
     const char* inherits = node->GetAttributeByName("inherits");
 
     if (inherits && *inherits) {
@@ -931,6 +934,8 @@ void CSimpleFrame::LoadXMLInheritance(XMLNode* node, CStatus* status) {
         } while (name[0]);
     }
 
+#endif
+
     XMLNode* frames = node->GetChildByName("Frames");
 
     if (frames) {
@@ -939,7 +944,6 @@ void CSimpleFrame::LoadXMLInheritance(XMLNode* node, CStatus* status) {
         }
     }
 
-#endif
 }
 
 // VERIFY: 08c5569f auto
@@ -1650,10 +1654,14 @@ void CSimpleFrame::OnFrameSizeChanged(float width, float height) {
 void CSimpleFrame::PreLoadXML(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    FrameXML::Native::ValidateCreation(node);
+#endif
 
     const char* name = node->GetAttributeByName("name");
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::RequireAvailableName(this, name);
+#endif
 
     if (name && *name) {
         this->SetName(name);
@@ -1680,16 +1688,12 @@ void CSimpleFrame::PreLoadXML(XMLNode* node, CStatus* status) {
         region->SetDeferredResize(1);
     }
 
-#endif
 }
 
 // VERIFY: b8ec6f00 manual
 // OFFSET: 0x00490410
 void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
     this->m_isLoading = 0;
 
@@ -1709,6 +1713,7 @@ void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
 
     this->LoadXMLInheritance(node, status);
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     int32_t active;
     int32_t activeAlpha;
     this->GetActiveAnimInfo(CSimpleAlphaAnim::GetObjectType(), active, activeAlpha);
@@ -1723,6 +1728,8 @@ void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
         }
     }
 
+#endif
+
     if (this->m_onLoad.m_luaRef) {
         this->RunScript(this->m_onLoad, 0, nullptr);
     }
@@ -1731,7 +1738,6 @@ void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
         this->RunScript(this->m_onShow, 0, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: d6b8f34e manual
@@ -2735,9 +2741,14 @@ void CSimpleFrame::SetAttribute(const char* name, int32_t luaRef) {
 void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    FrameXML::Native::ValidateCreation(node);
+#endif
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) {
+        this->LoadXML(inherited, status);
+    });
+#else
     const char* inherits = node->GetAttributeByName("inherits");
 
     if (inherits && *inherits) {
@@ -2786,6 +2797,8 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
             }
         } while (name[0]);
     }
+
+#endif
 
     CScriptRegion::LoadXML(node, status);
 
@@ -2898,10 +2911,14 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
         if (!SStrCmpI(child->m_name.m_str, "TitleRegion", STORM_MAX_STR)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            CSimpleTitleRegion* titleRegion = Frame::Native::CreateTitleRegion(this);
+#else
             void* mem = SMemAlloc(sizeof(CSimpleTitleRegion), __FILE__, __LINE__, 0);
             CSimpleTitleRegion* titleRegion = mem ? new (mem) CSimpleTitleRegion : nullptr;
 
             titleRegion->SetParent(this);
+#endif
             titleRegion->LoadXML(child, status);
             this->m_titleRegion = titleRegion;
             titleRegion->SetDeferredResize((this->m_layoutFlags >> 8) & 2);
@@ -2928,11 +2945,15 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
             this->m_resizeRect.maxY = maxHeight;
             this->m_resizeRect.maxX = maxWidth;
         } else if (!SStrCmpI(child->m_name.m_str, "Backdrop", STORM_MAX_STR)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::UnavailableFrameFeature();
+#else
             void* mem = SMemAlloc(sizeof(CBackdropGenerator), __FILE__, __LINE__, 0);
             CBackdropGenerator* backdrop = mem ? new (mem) CBackdropGenerator() : nullptr;
 
             backdrop->LoadXML(child, status);
             this->SetBackdrop(backdrop);
+#endif
         } else if (!SStrCmpI(child->m_name.m_str, "HitRectInsets", STORM_MAX_STR)) {
             float left;
             float right;
@@ -2951,5 +2972,4 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
         }
     }
 
-#endif
 }
