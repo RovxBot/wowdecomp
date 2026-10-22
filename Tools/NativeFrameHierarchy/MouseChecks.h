@@ -113,6 +113,8 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     deliver(OS_INPUT_MOUSE_MOVE,0,128);deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
     deliver(OS_INPUT_FOCUS,0,0,0);
     Check(!root.m_mouseFocus && !root.m_mouseCapture && !root.m_nativeButtonsDown && !high->m_isMouseDown,"Focus loss retained mouse state");
+    deliver(OS_INPUT_MOUSE_MOVE,0,128);
+    Check(root.m_mouseFocus==high,"Unchanged pointer position did not regain focus after cancellation");
     // Hide, disable and destruction remove borrowed pointers and queue entries.
     deliver(OS_INPUT_MOUSE_MOVE,0,129);deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
     high->Hide();Check(!root.m_mouseCapture && !root.m_mouseFocus && !high->m_isMouseDown,"Hide retained pointer capture");

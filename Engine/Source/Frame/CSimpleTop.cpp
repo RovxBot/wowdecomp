@@ -529,9 +529,18 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
 
     CSimpleFrame* newFocus = nullptr;
     int32_t motion = mouseData != &top->m_mousePosition;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const bool refresh = !top->m_nativeMouseSeen || top->m_checkFocus;
+    top->m_nativeMouseSeen = true;
+    top->m_checkFocus = 0;
+#endif
 
     if (motion) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!refresh && mouseData->m_x == top->m_mousePosition.m_x && mouseData->m_y == top->m_mousePosition.m_y) {
+#else
         if (mouseData->m_x == top->m_mousePosition.m_x && mouseData->m_y == top->m_mousePosition.m_y) {
+#endif
             return 0;
         }
 

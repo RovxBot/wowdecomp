@@ -63,7 +63,6 @@ InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& ev
         data.m_x = relative ? float(event.param[1]) : float(event.param[1]) / width;
         data.m_y = relative ? float(event.param[2]) : 1.0f - float(event.param[2]) / height;
         if (event.id == OS_INPUT_MOUSE_WHEEL) data.m_wheelDistance = event.param[0];
-        if (!relative) root.m_nativeMouseSeen = true;
         if (relative) propagate = CSimpleTop::OnMouseMoveRelative(&data, &root);
         else if (down) propagate = CSimpleTop::OnMouseDown(&data, &root);
         else if (up) propagate = CSimpleTop::OnMouseUp(&data, &root);
