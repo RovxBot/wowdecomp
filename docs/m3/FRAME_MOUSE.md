@@ -63,6 +63,10 @@ The subsequent [top-level stacking package](FRAME_STACKING.md) qualifies origina
 occlusion and click raising. Title/layout movement and the remaining factory/widget
 gates stay open. The pointer qualification below retains its historical identities.
 
+The subsequent [movement package](FRAME_MOVEMENT.md) qualifies original title/layout
+move/resize and direct parent-owned title regions. Pooled factories, complete
+widgets and physical input acceptance remain open.
+
 ## Qualification
 
 [PR #58](https://github.com/RovxBot/wowdecomp/pull/58) is qualified at

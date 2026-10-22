@@ -60,4 +60,38 @@ digest gate remain open, as do pooled factories, other widgets, physical input,
 actual login rendering, transport/authentication and observed gameplay. M3 stays
 open; preserve server revision discrepancies and interactive user sign-in.
 
-Qualification is pending hosted compilation and exact-source GPU execution.
+## Qualification
+
+[PR #62](https://github.com/RovxBot/wowdecomp/pull/62) is qualified at
+`e0540e9b194d71b26459b1d78c0832b910688de4`, merged as
+`3b9f9f820905e04ce38a18f91661acbd6e4de7db`. The [durable record](frame-movement-validation.json)
+retains all thirteen passing implementation PR workflows, 38 CTest checks in each
+Linux release/strict ASan/UBSan/leak configuration and signature-enabled full
+Windows x64 compilation at matching-tree checkout
+`534d8eb6e229ba3f63fdb4aae0a19df85ce8765c`. Three archive digests, all 51 packaged
+binary hashes/types and notices verified. Graphics remain Linux x86-64; the
+prerequisite matrices retain actual ARM64 macOS and Windows CPU/shell execution.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed 30 input/UI/resource executions, three owner cycles each, with empty stderr
+and zero workers. Each target/transform/buffer/texture fixture passed three cycles
+per mode. All fifteen final release/sanitizer capture pairs match; final
+original-data hierarchy/input captures retain the prior baseline. The inspected
+640x480 mouse capture shows authored white text through original Friz Quadrata/UI
+shaders. Intermediate title-movement readbacks assert changed attached-text pixels
+and exact repeats; those buffers are not exported captures or original login UI.
+
+Every authored/original-data mouse execution passed three title/layout movement,
+nine-point geometry, resize-bound, scale, cancellation and callback/lifetime cycles.
+Original-key signaturefile authentication observed 28,948 records; selective MD5
+checks stayed enabled. Original-data cycles authenticated GlueXML before/after
+the eighteen GlueFonts subset. Complete signed ordered creation and the full
+post-creation digest gate remain open.
+
+Local Python: 57 passed, one unavailable-CMake skip; Windows-selected source tokens
+and whitespace match the immutable pre-PR base. All compilation ran in Actions.
+No failed hosted/runtime attempt or detector suppression was needed. Duplicate
+push runs were cancelled or completed separately; the thirteen PR runs qualify.
+Pooled factories, remaining widgets, physical mouse/IME/edit-box/candidate UI,
+full GlueXML/login and transport/gameplay remain open. M3 is incomplete; preserve
+signatures, server revision discrepancies and interactive user sign-in.

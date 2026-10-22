@@ -832,3 +832,25 @@ remaining checks need another machine.
   GlueXML/full second digest gate, actual login and transport/gameplay remain open.
   No new physical-input, Windows runtime, macOS graphics or server acceptance.
   Preserve original signatures/server discrepancies/interactive sign-in; M3 is open.
+
+- M3 original Frame movement [PR #62](https://github.com/RovxBot/wowdecomp/pull/62)
+  is qualified at `e0540e9b194d71b26459b1d78c0832b910688de4`, merged as
+  `3b9f9f820905e04ce38a18f91661acbd6e4de7db`. Read [movement contracts](docs/m3/FRAME_MOVEMENT.md)
+  and [validation](docs/m3/frame-movement-validation.json). All thirteen PR
+  workflows passed, with 38 checks per Linux GL configuration and full signatures-
+  enabled Windows x64 compilation at matching-tree checkout
+  `534d8eb6e229ba3f63fdb4aae0a19df85ce8765c`. Three archives/all 51 binaries/notices
+  verified. RX 7900 XTX release/strict ASan/UBSan/leak packages passed 30 three-cycle
+  input/UI/resource executions, empty stderr/zero workers; fifteen capture pairs
+  match. Original title/layout move/resize, nine-point geometry, scale/bounds and
+  flatten/unflatten are selected. Direct C++ title regions belong to parents;
+  pooled factories remain open. Retire the movement pointer before stop callbacks;
+  hide/disable/destruction, capture/focus loss and deferred deletion retire movement.
+  Defer raising until resize traversal ends; keep external callbacks guarded.
+  Movement readback/pixels and final authored hierarchy captures are not original
+  login rendering or physical input acceptance. No failed hosted/runtime attempt
+  or detector suppression was needed. Pooled factories, remaining widgets,
+  physical mouse/IME/edit-box acceptance, complete signed ordered GlueXML/full
+  second digest gate, login and transport/gameplay remain open. No new Windows
+  runtime/macOS graphics/server acceptance. Preserve signatures/server revision
+  discrepancies/interactive user sign-in; M3 is incomplete.
