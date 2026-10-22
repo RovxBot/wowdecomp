@@ -708,13 +708,10 @@ void CSimpleFontString::SetText(const char* text, int32_t process) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     if (text && SStrLen(text) > 65534) throw std::length_error("Native FontString text limit");
-    if (text && process) Frame::Native::UnavailableRegionFeature();
     if (text && std::strstr(text, "|T")) Frame::Native::UnavailableRegionFeature();
 #endif
     if (text && process) {
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
         text = LanguageProcess(text);
-#endif
     }
 
     if ((!text || !*text) && (!this->m_text || !*this->m_text)) {

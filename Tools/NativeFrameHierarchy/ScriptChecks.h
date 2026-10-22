@@ -53,14 +53,61 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
         title:SetAllPoints(f)
         assert(title == f:CreateTitleRegion())
         assert(not pcall(f.CreateTexture,f) and not pcall(f.SetScript,f,'OnKeyDown',function() end))
-        assert(not pcall(t.SetText,t,'language caller remains closed') and t:GetText() == nil)
+        assert(t:GetText() == nil)
+        local function text(input, expected)
+            t:SetText(input)
+            assert(t:GetText() == expected, input .. ': ' .. tostring(t:GetText()))
+        end
+        text('1 |4apple:apples;', '1 apple')
+        text('2 |4apple:apples;', '2 apples')
+        text('A|1은;는;', 'A는')
+        text('B|1은;는;', 'B은')
+        text('가|1은;는;', '가는')
+        text('각|1은;는;', '각은')
+        text('길|1으로;로;', '길로')
+        text('|2Le roi', 'du roi')
+        text('|2La reine', 'de la reine')
+        text("|2L'ami", "de l'ami")
+        text('|2Les enfants', 'des enfants')
+        text('|2Étoile', "d'Étoile")
+        text('||4literal;', '||4literal;')
+        text('|cffffffff2|r |4item:items;', '|cffffffff2|r items')
+        text('2 |4|2Le roi:|2Les rois;', '2 des rois')
+        text('plain UTF-8: é 가 😀', 'plain UTF-8: é 가 😀')
+        t:SetText(123); assert(t:GetText() == '123')
+        t:SetText(nil); assert(t:GetText() == nil)
+        t:SetText(false); assert(t:GetText() == nil)
+        t:SetFormattedText('%2$s %1$d |4item:items; %%', 2, 'Count')
+        assert(t:GetText() == 'Count 2 items %')
+        local formatted = t:GetText()
+        t:SetText(string.rep('x',4095)); assert(#t:GetText() == 4095)
+        t:SetText(formatted)
+        local stable = t:GetText()
+        for _,bad in ipairs({'|', '|1', '|1one;', '|2 ', '|4one:many', '|3-1(word)',
+                            '2147483648 |4one:many;', string.rep('x',4096), string.rep('|2x ',1000),
+                            string.char(0xc0,0x80), string.char(0xed,0xa0,0x80),
+                            string.char(0xf0,0x9f), '|Tunsupported:10|t'}) do
+            assert(not pcall(t.SetText,t,bad))
+            assert(t:GetText() == stable)
+        end
+        assert(not pcall(t.SetFormattedText,t,'%q',1) and t:GetText() == stable)
+        local nofont = f:CreateFontString()
+        assert(not pcall(nofont.SetText,nofont,'without font'))
+        t:SetText('AV Lua factory')
         StaleFrame,StaleText,StaleTitle,StaleChild = f,t,title,NativeLuaFrameChild
     )");
     auto* text = static_cast<CSimpleFontString*>(CScriptObject::GetScriptObjectByName("NativeLuaFrameLabel", CSimpleFontString::GetObjectType()));
-    Check(text && CSimpleFontString::s_allocator.m_dataUsed == 1, "Lua FontString bypassed original pool");
-    // LanguageProcess remains a separate prerequisite. Rendering uses explicit
-    // authored C++ text with process=0, then real Lua visibility/anchor consumers.
-    text->SetText("AV Lua factory", 0);
+    Check(text && CSimpleFontString::s_allocator.m_dataUsed == 2, "Lua FontString bypassed original pool");
+    // Authored content now flows through the original Lua setter and language
+    // pipeline before original Gxu layout/cache/batch rendering.
+    FrameScript_SetPluralRule(PLURAL_RULE_2);
+    RegionLua("StaleText:SetText('21 |4one:few:many;'); assert(StaleText:GetText() == '21 one'); "
+              "StaleText:SetText('22 |4one:few:many;'); assert(StaleText:GetText() == '22 few'); "
+              "StaleText:SetText('11 |4one:few:many;'); assert(StaleText:GetText() == '11 many')");
+    FrameScript_SetPluralRule(PLURAL_RULE_1);
+    RegionLua("StaleText:SetText('0 |4one:many;'); assert(StaleText:GetText() == '0 one')");
+    FrameScript_SetPluralRule(PLURAL_RULE_0);
+    RegionLua("StaleText:SetText('AV Lua factory')");
     auto pixels = Draw(device, root);
     Check(Ink(pixels) > 4, "Lua-created pooled FontString did not render");
     Equal(pixels, Draw(device, root));
@@ -73,8 +120,10 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     // Traversal admission must fail before allocation, stack/name/taint mutation.
     {
         Frame::Native::CollectScope traversal;
-        RegionLua("assert(not pcall(NativeLuaFrame.CreateFontString,NativeLuaFrame,'RejectedTraversal')); assert(RejectedTraversal == nil)");
+        RegionLua("assert(not pcall(NativeLuaFrame.CreateFontString,NativeLuaFrame,'RejectedTraversal')); assert(RejectedTraversal == nil); "
+                  "assert(not pcall(StaleText.SetText,StaleText,'blocked'))");
     }
+    RegionLua("assert(StaleText:GetText() == 'AV Lua factory')");
     Check(lua_gettop(L) == top && lua_taintexpected == expectedTaint, "Region Lua left stack/taint nesting");
     delete parent;
     RegionLua(R"(
@@ -87,5 +136,5 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     Check(!CSimpleFrame::s_allocator.m_dataUsed && !CSimpleFontString::s_allocator.m_dataUsed,
           "Lua-created hierarchy retained pool slots");
     Check(!Ink(Draw(device, root)), "Destroyed Lua region retained batches");
-    std::cout << "frame-lua-pooled-fontstring-canonical-layout-rejection-render-teardown=passed\n";
+    std::cout << "frame-lua-pooled-fontstring-language-format-canonical-layout-rejection-render-teardown=passed\n";
 }
