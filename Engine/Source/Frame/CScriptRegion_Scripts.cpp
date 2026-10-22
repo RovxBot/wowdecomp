@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CScriptRegion.h"
@@ -71,9 +74,13 @@ static int32_t Script_SetParent(lua_State* L) {
         if (lua_isstring(L, 2)) {
             parent = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName(lua_tolstring(L, 2, nullptr), CSimpleFrame::GetObjectType()));
         } else if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            parent = dynamic_cast<CSimpleFrame*>(FrameScript::Native::GetObject(L, 2));
+#else
             lua_rawgeti(L, 2, 0);
             parent = static_cast<CSimpleFrame*>(lua_touserdata(L, -1));
             lua_settop(L, -2);
+#endif
 
             if (!parent) {
                 luaL_error(L, "%s:SetParent(): Couldn't find 'this' in parent object", region->GetDisplayName());
@@ -105,7 +112,11 @@ static int32_t Script_SetParent(lua_State* L) {
         return 0;
     }
 
-    if (region->IsA(CSimpleFontString::GetObjectType()) || region->IsA(CSimpleTexture::GetObjectType())) {
+    if (region->IsA(CSimpleFontString::GetObjectType())
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
+        || region->IsA(CSimpleTexture::GetObjectType())
+#endif
+    ) {
         const char* name = region->GetName();
         luaL_error(L, "%s:SetParent(): Cannot set a 'nil' parent for fonts or textures", name ? name : "<unnamed>");
         return 0;
@@ -408,6 +419,10 @@ static int32_t Script_GetPoint(lua_State* L) {
     int32_t index = 0;
 
     if (lua_isnumber(L, 2)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 2) < 1 || lua_tonumber(L, 2) > FRAMEPOINT_NUMPOINTS)
+            return luaL_error(L, "Frame point index must be within [1,9]");
+#endif
         index = static_cast<int32_t>(lua_tonumber(L, 2)) - 1;
     }
 
@@ -444,7 +459,12 @@ static int32_t Script_GetPoint(lua_State* L) {
     if (relative == CSimpleTop::s_instance) {
         lua_pushnil(L);
     } else {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CScriptRegion* relativeRegion = dynamic_cast<CScriptRegion*>(relative);
+        if (!relativeRegion) return luaL_error(L, "Anchor is not a script region");
+#else
         CScriptRegion* relativeRegion = static_cast<CScriptRegion*>(relative);
+#endif
 
         if (!relativeRegion->m_luaRegistered) {
             relativeRegion->RegisterScriptObject(nullptr);
@@ -496,9 +516,13 @@ static int32_t Script_SetPoint(lua_State* L) {
         relative = region->GetLayoutFrameByName(lua_tolstring(L, 3, nullptr));
         argIndex = 4;
     } else if (lua_type(L, 3) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        relative = dynamic_cast<CScriptRegion*>(FrameScript::Native::GetObject(L, 3));
+#else
         lua_rawgeti(L, 3, 0);
         relative = static_cast<CScriptRegion*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
         argIndex = 4;
     } else if (lua_type(L, 3) == LUA_TNIL) {
         relative = CSimpleTop::s_instance;
@@ -564,9 +588,13 @@ static int32_t Script_SetAllPoints(lua_State* L) {
     if (lua_isstring(L, 2)) {
         relative = region->GetLayoutFrameByName(lua_tolstring(L, 2, nullptr));
     } else if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        relative = dynamic_cast<CScriptRegion*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         relative = static_cast<CScriptRegion*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
     } else if (lua_type(L, 2) == LUA_TNIL) {
         relative = CSimpleTop::s_instance;
     }
@@ -614,11 +642,13 @@ static int32_t Script_ClearAllPoints(lua_State* L) {
 
 // VERIFY: 830a3e47 manual
 // OFFSET: 0x0049E070
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_StopAnimating(lua_State* L) {
     CScriptRegion* region = static_cast<CScriptRegion*>(FrameScript_GetObjectThis(L, CScriptRegion::GetObjectType()));
     region->StopAnimating();
     return 0;
 }
+#endif
 
 // VERIFY: afda47e5 manual
 // OFFSET: 0x0049E0B0
@@ -630,6 +660,7 @@ static int32_t Script_IsDragging(lua_State* L) {
 
 // VERIFY: cad49304 auto
 // OFFSET: 0x0049E100
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMouseOver(lua_State* L) {
     CScriptRegion* region = static_cast<CScriptRegion*>(FrameScript_GetObjectThis(L, CScriptRegion::GetObjectType()));
     float top = lua_isnumber(L, 2) ? static_cast<float>(lua_tonumber(L, 2)) : 0.0f;
@@ -645,9 +676,11 @@ static int32_t Script_IsMouseOver(lua_State* L) {
     lua_pushboolean(L, region->IsMouseOver(top, bottom, left, right));
     return 1;
 }
+#endif
 
 // VERIFY: 3092723d manual
 // OFFSET: 0x0049E260
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetAnimationGroups(lua_State* L) {
     CScriptRegion* region = static_cast<CScriptRegion*>(FrameScript_GetObjectThis(L, CScriptRegion::GetObjectType()));
     TSExplicitList<CSimpleAnimGroup, offsetof(CSimpleAnimGroup, m_regionLink)>* groups = region->m_animGroups;
@@ -678,9 +711,11 @@ static int32_t Script_GetAnimationGroups(lua_State* L) {
 
     return count;
 }
+#endif
 
 // VERIFY: 12c26586 manual
 // OFFSET: 0x0049E350
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_CreateAnimationGroup(lua_State* L) {
     XMLNode* inheritNode = nullptr;
     CScriptRegion* region = static_cast<CScriptRegion*>(FrameScript_GetObjectThis(L, CScriptRegion::GetObjectType()));
@@ -729,8 +764,38 @@ static int32_t Script_CreateAnimationGroup(lua_State* L) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, group->m_luaObjectRef);
     return 1;
 }
+#endif
 
 // STATIC: 0x00AC1480
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "IsProtected", &Frame::Native::ScriptMethod<&Script_IsProtected> },
+    { "CanChangeProtectedState", &Frame::Native::ScriptMethod<&Script_CanChangeProtectedState> },
+    { "SetParent", &Frame::Native::ScriptMethod<&Script_SetParent> },
+    { "GetRect", &Frame::Native::ScriptMethod<&Script_GetRect> },
+    { "GetCenter", &Frame::Native::ScriptMethod<&Script_GetCenter> },
+    { "GetLeft", &Frame::Native::ScriptMethod<&Script_GetLeft> },
+    { "GetRight", &Frame::Native::ScriptMethod<&Script_GetRight> },
+    { "GetTop", &Frame::Native::ScriptMethod<&Script_GetTop> },
+    { "GetBottom", &Frame::Native::ScriptMethod<&Script_GetBottom> },
+    { "GetWidth", &Frame::Native::ScriptMethod<&Script_GetWidth> },
+    { "SetWidth", &Frame::Native::ScriptMethod<&Script_SetWidth> },
+    { "GetHeight", &Frame::Native::ScriptMethod<&Script_GetHeight> },
+    { "SetHeight", &Frame::Native::ScriptMethod<&Script_SetHeight> },
+    { "SetSize", &Frame::Native::ScriptMethod<&Script_SetSize> },
+    { "GetSize", &Frame::Native::ScriptMethod<&Script_GetSize> },
+    { "GetNumPoints", &Frame::Native::ScriptMethod<&Script_GetNumPoints> },
+    { "GetPoint", &Frame::Native::ScriptMethod<&Script_GetPoint> },
+    { "SetPoint", &Frame::Native::ScriptMethod<&Script_SetPoint> },
+    { "SetAllPoints", &Frame::Native::ScriptMethod<&Script_SetAllPoints> },
+    { "ClearAllPoints", &Frame::Native::ScriptMethod<&Script_ClearAllPoints> },
+    { "CreateAnimationGroup", &Frame::Native::UnavailableScriptMethod },
+    { "GetAnimationGroups", &Frame::Native::UnavailableScriptMethod },
+    { "StopAnimating", &Frame::Native::UnavailableScriptMethod },
+    { "IsDragging", &Frame::Native::ScriptMethod<&Script_IsDragging> },
+    { "IsMouseOver", &Frame::Native::UnavailableScriptMethod },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "IsProtected", &Script_IsProtected },
     { "CanChangeProtectedState", &Script_CanChangeProtectedState },
@@ -758,6 +823,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "IsDragging", &Script_IsDragging },
     { "IsMouseOver", &Script_IsMouseOver },
 };
+#endif
 
 // VERIFY: 7348b001 auto
 // OFFSET: 0x0049CA90

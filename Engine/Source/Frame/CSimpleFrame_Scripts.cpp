@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -51,6 +54,11 @@ static int32_t Script_CreateTitleRegion(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CScriptRegion* titleRegion = frame->m_titleRegion;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    titleRegion = Frame::Native::CreateTitleRegion(frame);
+    titleRegion->MarkFramePointsUnused();
+    titleRegion->SetDeferredResize((frame->m_layoutFlags >> 8) & 2);
+#else
     if (titleRegion) {
         titleRegion->MarkFramePointsUnused();
     } else {
@@ -60,6 +68,8 @@ static int32_t Script_CreateTitleRegion(lua_State* L) {
         frame->m_titleRegion = titleRegion;
         titleRegion->SetDeferredResize((frame->m_layoutFlags >> 8) & 2);
     }
+
+#endif
 
     if (!titleRegion->m_luaRegistered) {
         titleRegion->RegisterScriptObject(nullptr);
@@ -71,6 +81,7 @@ static int32_t Script_CreateTitleRegion(lua_State* L) {
 
 // VERIFY: 3033acd4 manual
 // OFFSET: 0x004A2010
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_CreateTexture(lua_State* L) {
     XMLNode* inheritNode = nullptr;
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
@@ -134,10 +145,31 @@ static int32_t Script_CreateTexture(lua_State* L) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, texture->m_luaObjectRef);
     return 1;
 }
+#endif
 
 // VERIFY: e8e49864 manual
 // OFFSET: 0x004A2240
 static int32_t Script_CreateFontString(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
+    const char* name = lua_isstring(L, 2) ? lua_tolstring(L, 2, nullptr) : nullptr;
+    uint32_t drawLayer = 2;
+    if (lua_isstring(L, 3)) StringToDrawLayer(lua_tolstring(L, 3, nullptr), drawLayer);
+    CSimpleFont* font = nullptr;
+    if (lua_type(L, 4) == LUA_TSTRING) {
+        font = CSimpleFont::GetFont(lua_tolstring(L, 4, nullptr), 0);
+        if (!font) return luaL_error(L, "CreateFontString(): native XML templates are not installed");
+    }
+    if (name && *name) Frame::Native::RequireFontName(name);
+    CSimpleFontString* string = Frame::Native::CreateFontString(frame, drawLayer, true);
+    try {
+        if (name && *name) string->SetName(name);
+        if (font) string->SetFontObject(font);
+        if (!string->m_luaRegistered) string->RegisterScriptObject(nullptr);
+    } catch (...) { delete string; throw; }
+    lua_rawgeti(L, LUA_REGISTRYINDEX, string->m_luaObjectRef);
+    return 1;
+#else
     XMLNode* inheritNode = nullptr;
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     const char* name = nullptr;
@@ -207,10 +239,12 @@ static int32_t Script_CreateFontString(lua_State* L) {
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, string->m_luaObjectRef);
     return 1;
+#endif
 }
 
 // VERIFY: a2154491 auto
 // OFFSET: 0x0049E700
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetBoundsRect(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CRect rect = { 3.4028235e38f, 3.4028235e38f, 0.0f, 0.0f };
@@ -229,6 +263,7 @@ static int32_t Script_GetBoundsRect(lua_State* L) {
 
     return 4;
 }
+#endif
 
 // VERIFY: 754a3d6c manual
 // OFFSET: 0x004A1E80
@@ -316,15 +351,18 @@ static int32_t Script_GetChildren(lua_State* L) {
 
 // VERIFY: 4b50cd06 manual
 // OFFSET: 0x0049E830
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetFrameStrata(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushstring(L, FrameStrataToString(static_cast<FRAME_STRATA>(frame->m_strata)));
     return 1;
 }
+#endif
 
 // VERIFY: 8fa95d1a manual
 // OFFSET: 0x0049E880
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetFrameStrata(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -353,18 +391,22 @@ static int32_t Script_SetFrameStrata(lua_State* L) {
     frame->SetFrameStrata(strata);
     return 0;
 }
+#endif
 
 // VERIFY: afff24c6 manual
 // OFFSET: 0x0049E980
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_level);
     return 1;
 }
+#endif
 
 // VERIFY: 2dedbf38 manual
 // OFFSET: 0x0049E9D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -393,9 +435,11 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
     frame->SetFrameLevel(level, 1);
     return 0;
 }
+#endif
 
 // VERIFY: 24a44dfc auto
 // OFFSET: 0x0049EAB0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_HasScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -415,9 +459,11 @@ static int32_t Script_HasScript(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 6acdff0d auto
 // OFFSET: 0x0049EB70
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -448,9 +494,11 @@ static int32_t Script_GetScript(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 95f390db auto
 // OFFSET: 0x0049EC80
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -479,9 +527,11 @@ static int32_t Script_SetScript(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 287347b4 auto
 // OFFSET: 0x0049EDB0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_HookScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -551,9 +601,11 @@ static int32_t Script_HookScript(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 0a32559b manual
 // OFFSET: 0x0049EFE0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_RegisterEvent(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -566,9 +618,11 @@ static int32_t Script_RegisterEvent(lua_State* L) {
     frame->RegisterScriptEvent(lua_tolstring(L, 2, nullptr));
     return 0;
 }
+#endif
 
 // VERIFY: 1edce814 manual
 // OFFSET: 0x0049F060
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_UnregisterEvent(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -581,27 +635,33 @@ static int32_t Script_UnregisterEvent(lua_State* L) {
     frame->UnregisterScriptEvent(lua_tolstring(L, 2, nullptr));
     return 0;
 }
+#endif
 
 // VERIFY: ea0c6858 manual
 // OFFSET: 0x0049F0E0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_RegisterAllEvents(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->RegisterAllScriptEvents();
     return 0;
 }
+#endif
 
 // VERIFY: a0775ed2 manual
 // OFFSET: 0x0049F120
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_UnregisterAllEvents(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->UnregisterAllScriptEvents();
     return 0;
 }
+#endif
 
 // VERIFY: d19d3294 manual
 // OFFSET: 0x0049F160
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsEventRegistered(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -619,9 +679,11 @@ static int32_t Script_IsEventRegistered(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 42b41dfb manual
 // OFFSET: 0x0049F210
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_AllowAttributeChanges(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -631,9 +693,11 @@ static int32_t Script_AllowAttributeChanges(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 5986af16 auto
 // OFFSET: 0x0049F260
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_CanChangeAttribute(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -645,9 +709,11 @@ static int32_t Script_CanChangeAttribute(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: da0c30ad manual
 // OFFSET: 0x0049F2D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetAttribute(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -776,9 +842,11 @@ static int32_t Script_GetAttribute(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 0e32dc1d auto
 // OFFSET: 0x0049F610
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetAttribute(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -825,27 +893,33 @@ static int32_t Script_SetAttribute(lua_State* L) {
     frame->SetAttribute(name, luaRef);
     return 0;
 }
+#endif
 
 // VERIFY: 2a342b1f manual
 // OFFSET: 0x0049F790
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetEffectiveScale(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_layoutScale);
     return 1;
 }
+#endif
 
 // VERIFY: 4c57c3d1 manual
 // OFFSET: 0x0049F7D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetScale(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_frameScale);
     return 1;
 }
+#endif
 
 // VERIFY: adb5dccc manual
 // OFFSET: 0x0049F820
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetScale(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -874,9 +948,11 @@ static int32_t Script_SetScale(lua_State* L) {
     frame->SetFrameScale(static_cast<float>(scale), false);
     return 0;
 }
+#endif
 
 // VERIFY: 64ebae78 manual
 // OFFSET: 0x0049F900
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetEffectiveAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -884,18 +960,22 @@ static int32_t Script_GetEffectiveAlpha(lua_State* L) {
     lua_pushnumber(L, alpha / 255.0);
     return 1;
 }
+#endif
 
 // VERIFY: a54be776 manual
 // OFFSET: 0x0049F980
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_alpha / 255.0);
     return 1;
 }
+#endif
 
 // VERIFY: 01f637f0 manual
 // OFFSET: 0x0049F9E0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -916,18 +996,22 @@ static int32_t Script_SetAlpha(lua_State* L) {
     frame->SetFrameAlpha(static_cast<uint8_t>(alpha * 255.0f));
     return 0;
 }
+#endif
 
 // VERIFY: 0dd1fea4 manual
 // OFFSET: 0x0049FAB0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_id);
     return 1;
 }
+#endif
 
 // VERIFY: f0877b88 manual
 // OFFSET: 0x0049FB00
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -948,9 +1032,11 @@ static int32_t Script_SetID(lua_State* L) {
     frame->m_id = static_cast<int32_t>(lua_tonumber(L, 2));
     return 0;
 }
+#endif
 
 // VERIFY: 8a7deb8f auto
 // OFFSET: 0x0049FBB0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetToplevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -965,9 +1051,11 @@ static int32_t Script_SetToplevel(lua_State* L) {
     frame->SetFrameFlag(0x1, StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: 985841a3 auto
 // OFFSET: 0x0049FC30
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsToplevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -979,9 +1067,11 @@ static int32_t Script_IsToplevel(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 105092bf auto
 // OFFSET: 0x0049FC90
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableDrawLayer(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     uint32_t drawLayer = 2;
@@ -993,9 +1083,11 @@ static int32_t Script_EnableDrawLayer(lua_State* L) {
     frame->EnableDrawLayer(drawLayer);
     return 0;
 }
+#endif
 
 // VERIFY: b06b8e8b auto
 // OFFSET: 0x0049FD00
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_DisableDrawLayer(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     uint32_t drawLayer = 2;
@@ -1007,6 +1099,7 @@ static int32_t Script_DisableDrawLayer(lua_State* L) {
     frame->DisableDrawLayer(drawLayer);
     return 0;
 }
+#endif
 
 // VERIFY: f7adca17 auto
 // OFFSET: 0x0049FD70
@@ -1072,6 +1165,7 @@ static int32_t Script_IsShown(lua_State* L) {
 
 // VERIFY: 1266fd3b auto
 // OFFSET: 0x0049FEF0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_Raise(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1086,9 +1180,11 @@ static int32_t Script_Raise(lua_State* L) {
     frame->Raise();
     return 0;
 }
+#endif
 
 // VERIFY: e0dae823 auto
 // OFFSET: 0x0049FF50
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_Lower(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1103,9 +1199,11 @@ static int32_t Script_Lower(lua_State* L) {
     frame->Lower();
     return 0;
 }
+#endif
 
 // VERIFY: be552d32 auto
 // OFFSET: 0x0049FFB0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetHitRectInsets(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1122,9 +1220,11 @@ static int32_t Script_GetHitRectInsets(lua_State* L) {
 
     return 4;
 }
+#endif
 
 // VERIFY: 978a6468 auto
 // OFFSET: 0x004A0090
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetHitRectInsets(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1154,9 +1254,11 @@ static int32_t Script_SetHitRectInsets(lua_State* L) {
     frame->SetHitRectInsets(left, right, top, bottom);
     return 0;
 }
+#endif
 
 // VERIFY: 16d0f612 auto
 // OFFSET: 0x004A0230
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetClampRectInsets(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1173,9 +1275,11 @@ static int32_t Script_GetClampRectInsets(lua_State* L) {
 
     return 4;
 }
+#endif
 
 // VERIFY: b63fefda auto
 // OFFSET: 0x004A0310
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetClampRectInsets(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1197,9 +1301,11 @@ static int32_t Script_SetClampRectInsets(lua_State* L) {
     frame->SetClampRectInsets(left, right, top, bottom);
     return 0;
 }
+#endif
 
 // VERIFY: 1412bfc6 manual
 // OFFSET: 0x004A0480
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetMinResize(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CRect bounds = frame->m_resizeRect;
@@ -1209,9 +1315,11 @@ static int32_t Script_GetMinResize(lua_State* L) {
 
     return 2;
 }
+#endif
 
 // VERIFY: cb5dfa41 auto
 // OFFSET: 0x004A0520
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetMinResize(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CRect bounds = frame->m_resizeRect;
@@ -1230,9 +1338,11 @@ static int32_t Script_SetMinResize(lua_State* L) {
     frame->m_resizeRect = bounds;
     return 0;
 }
+#endif
 
 // VERIFY: a538f7cc manual
 // OFFSET: 0x004A0640
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetMaxResize(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CRect bounds = frame->m_resizeRect;
@@ -1242,9 +1352,11 @@ static int32_t Script_GetMaxResize(lua_State* L) {
 
     return 2;
 }
+#endif
 
 // VERIFY: b6a4680e auto
 // OFFSET: 0x004A06E0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetMaxResize(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CRect bounds = frame->m_resizeRect;
@@ -1263,18 +1375,22 @@ static int32_t Script_SetMaxResize(lua_State* L) {
     frame->m_resizeRect = bounds;
     return 0;
 }
+#endif
 
 // VERIFY: 917ab7d3 manual
 // OFFSET: 0x004A0800
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetMovable(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->SetFrameFlag(0x100, StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: dd01c476 auto
 // OFFSET: 0x004A0850
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMovable(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1286,18 +1402,22 @@ static int32_t Script_IsMovable(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: a268a2c0 manual
 // OFFSET: 0x004A08C0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetDontSavePosition(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->SetFrameFlag(0x80000, StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: 5284d4fe auto
 // OFFSET: 0x004A0910
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetDontSavePosition(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1309,18 +1429,22 @@ static int32_t Script_GetDontSavePosition(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 5d104c1c manual
 // OFFSET: 0x004A0980
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetResizable(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->SetFrameFlag(0x200, StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: 7bdfa91f auto
 // OFFSET: 0x004A09D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsResizable(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1332,9 +1456,11 @@ static int32_t Script_IsResizable(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 9cf30e0a auto
 // OFFSET: 0x004A0A40
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_StartMoving(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1358,9 +1484,11 @@ static int32_t Script_StartMoving(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 37d00c11 auto
 // OFFSET: 0x004A0B10
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_StartSizing(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1390,9 +1518,11 @@ static int32_t Script_StartSizing(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 371dc747 manual
 // OFFSET: 0x004A0C20
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_StopMovingOrSizing(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CSimpleTop* top = frame->m_simpleTop;
@@ -1403,9 +1533,11 @@ static int32_t Script_StopMovingOrSizing(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 3ea1c472 auto
 // OFFSET: 0x004A0C70
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetUserPlaced(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1418,9 +1550,11 @@ static int32_t Script_SetUserPlaced(lua_State* L) {
     frame->SetFrameFlag(0x1000, StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: 91daf374 auto
 // OFFSET: 0x004A0D00
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsUserPlaced(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1432,18 +1566,22 @@ static int32_t Script_IsUserPlaced(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 7f7fa83b manual
 // OFFSET: 0x004A0D70
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetClampedToScreen(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->SetClampedToScreen(StringToBOOL(L, 2, 1));
     return 0;
 }
+#endif
 
 // VERIFY: 567c57a2 auto
 // OFFSET: 0x004A0DC0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsClampedToScreen(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1455,9 +1593,11 @@ static int32_t Script_IsClampedToScreen(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: cb95c496 auto
 // OFFSET: 0x004A0E20
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_RegisterForDrag(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     uint32_t buttons = 0;
@@ -1469,9 +1609,11 @@ static int32_t Script_RegisterForDrag(lua_State* L) {
     frame->m_dragButtons = buttons;
     return 0;
 }
+#endif
 
 // VERIFY: 9efb8fdc auto
 // OFFSET: 0x004A0EC0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableKeyboard(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1493,9 +1635,11 @@ static int32_t Script_EnableKeyboard(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 71851cc6 manual
 // OFFSET: 0x004A0F60
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsKeyboardEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1507,9 +1651,11 @@ static int32_t Script_IsKeyboardEnabled(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 2c085835 auto
 // OFFSET: 0x004A0FD0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableMouse(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1529,9 +1675,11 @@ static int32_t Script_EnableMouse(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 4b5eab9b manual
 // OFFSET: 0x004A1060
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMouseEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1543,9 +1691,11 @@ static int32_t Script_IsMouseEnabled(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: cf928975 auto
 // OFFSET: 0x004A10D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableMouseWheel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1565,9 +1715,11 @@ static int32_t Script_EnableMouseWheel(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: e5a1e6f9 manual
 // OFFSET: 0x004A1160
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMouseWheelEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1579,9 +1731,11 @@ static int32_t Script_IsMouseWheelEnabled(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 63f09962 auto
 // OFFSET: 0x004A11D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableJoystick(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1601,9 +1755,11 @@ static int32_t Script_EnableJoystick(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: ea522235 manual
 // OFFSET: 0x004A1260
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsJoystickEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1615,9 +1771,11 @@ static int32_t Script_IsJoystickEnabled(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: b6dbd478 auto
 // OFFSET: 0x004A12D0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetBackdrop(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CBackdropGenerator* backdrop = frame->m_backdropGenerator;
@@ -1696,9 +1854,11 @@ static int32_t Script_GetBackdrop(lua_State* L) {
     lua_settop(L, -2);
     return 1;
 }
+#endif
 
 // VERIFY: 738e45f8 manual
 // OFFSET: 0x004A15A0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetBackdrop(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1825,9 +1985,11 @@ static int32_t Script_SetBackdrop(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 7c7423df manual
 // OFFSET: 0x004A19A0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetBackdropColor(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CBackdropGenerator* backdrop = frame->m_backdropGenerator;
@@ -1844,9 +2006,11 @@ static int32_t Script_GetBackdropColor(lua_State* L) {
 
     return 4;
 }
+#endif
 
 // VERIFY: 6a2539aa auto
 // OFFSET: 0x004A1A80
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetBackdropColor(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CImVector color;
@@ -1859,9 +2023,11 @@ static int32_t Script_SetBackdropColor(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 30dbb765 manual
 // OFFSET: 0x004A1AF0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetBackdropBorderColor(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CBackdropGenerator* backdrop = frame->m_backdropGenerator;
@@ -1878,9 +2044,11 @@ static int32_t Script_GetBackdropBorderColor(lua_State* L) {
 
     return 4;
 }
+#endif
 
 // VERIFY: c0bee394 auto
 // OFFSET: 0x004A1BD0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetBackdropBorderColor(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     CImVector color;
@@ -1893,9 +2061,11 @@ static int32_t Script_SetBackdropBorderColor(lua_State* L) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 0177d245 manual
 // OFFSET: 0x004A1C40
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetDepth(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1908,9 +2078,11 @@ static int32_t Script_SetDepth(lua_State* L) {
     frame->SetFrameDepth(static_cast<float>(lua_tonumber(L, 2)), false);
     return 0;
 }
+#endif
 
 // VERIFY: c5dd7db9 manual
 // OFFSET: 0x004A1CC0
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetDepth(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1921,9 +2093,11 @@ static int32_t Script_GetDepth(lua_State* L) {
     lua_pushnumber(L, frame->m_depth);
     return 1;
 }
+#endif
 
 // VERIFY: 1ad27240 manual
 // OFFSET: 0x004A1D20
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetEffectiveDepth(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1934,9 +2108,11 @@ static int32_t Script_GetEffectiveDepth(lua_State* L) {
     lua_pushnumber(L, frame->m_parentDepth + frame->m_depth);
     return 1;
 }
+#endif
 
 // VERIFY: 63402433 manual
 // OFFSET: 0x004A1D80
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IgnoreDepth(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1949,9 +2125,11 @@ static int32_t Script_IgnoreDepth(lua_State* L) {
     frame->m_ignoreDepth = lua_toboolean(L, 2);
     return 0;
 }
+#endif
 
 // VERIFY: 721e2faf auto
 // OFFSET: 0x004A1E00
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsIgnoringDepth(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1963,6 +2141,7 @@ static int32_t Script_IsIgnoringDepth(lua_State* L) {
 
     return 1;
 }
+#endif
 
 // VERIFY: e54f54a8 auto
 // OFFSET: 0x004A1E60
@@ -1978,6 +2157,95 @@ void CSimpleFrame::DestroyScriptMetaTable() {
 }
 
 // STATIC: 0x00AC1550
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "GetTitleRegion", &Frame::Native::ScriptMethod<&Script_GetTitleRegion> },
+    { "CreateTitleRegion", &Frame::Native::ScriptMethod<&Script_CreateTitleRegion> },
+    { "CreateTexture", &Frame::Native::UnavailableScriptMethod },
+    { "CreateFontString", &Frame::Native::ScriptMethod<&Script_CreateFontString> },
+    { "GetBoundsRect", &Frame::Native::UnavailableScriptMethod },
+    { "GetNumRegions", &Frame::Native::ScriptMethod<&Script_GetNumRegions> },
+    { "GetRegions", &Frame::Native::ScriptMethod<&Script_GetRegions> },
+    { "GetNumChildren", &Frame::Native::ScriptMethod<&Script_GetNumChildren> },
+    { "GetChildren", &Frame::Native::ScriptMethod<&Script_GetChildren> },
+    { "GetFrameStrata", &Frame::Native::UnavailableScriptMethod },
+    { "SetFrameStrata", &Frame::Native::UnavailableScriptMethod },
+    { "GetFrameLevel", &Frame::Native::UnavailableScriptMethod },
+    { "SetFrameLevel", &Frame::Native::UnavailableScriptMethod },
+    { "HasScript", &Frame::Native::UnavailableScriptMethod },
+    { "GetScript", &Frame::Native::UnavailableScriptMethod },
+    { "SetScript", &Frame::Native::UnavailableScriptMethod },
+    { "HookScript", &Frame::Native::UnavailableScriptMethod },
+    { "RegisterEvent", &Frame::Native::UnavailableScriptMethod },
+    { "UnregisterEvent", &Frame::Native::UnavailableScriptMethod },
+    { "RegisterAllEvents", &Frame::Native::UnavailableScriptMethod },
+    { "UnregisterAllEvents", &Frame::Native::UnavailableScriptMethod },
+    { "IsEventRegistered", &Frame::Native::UnavailableScriptMethod },
+    { "AllowAttributeChanges", &Frame::Native::UnavailableScriptMethod },
+    { "CanChangeAttribute", &Frame::Native::UnavailableScriptMethod },
+    { "GetAttribute", &Frame::Native::UnavailableScriptMethod },
+    { "SetAttribute", &Frame::Native::UnavailableScriptMethod },
+    { "GetEffectiveScale", &Frame::Native::UnavailableScriptMethod },
+    { "GetScale", &Frame::Native::UnavailableScriptMethod },
+    { "SetScale", &Frame::Native::UnavailableScriptMethod },
+    { "GetEffectiveAlpha", &Frame::Native::UnavailableScriptMethod },
+    { "GetAlpha", &Frame::Native::UnavailableScriptMethod },
+    { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
+    { "GetID", &Frame::Native::UnavailableScriptMethod },
+    { "SetID", &Frame::Native::UnavailableScriptMethod },
+    { "SetToplevel", &Frame::Native::UnavailableScriptMethod },
+    { "IsToplevel", &Frame::Native::UnavailableScriptMethod },
+    { "EnableDrawLayer", &Frame::Native::UnavailableScriptMethod },
+    { "DisableDrawLayer", &Frame::Native::UnavailableScriptMethod },
+    { "Show", &Frame::Native::ScriptMethod<&Script_Show> },
+    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide> },
+    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible> },
+    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown> },
+    { "Raise", &Frame::Native::UnavailableScriptMethod },
+    { "Lower", &Frame::Native::UnavailableScriptMethod },
+    { "GetHitRectInsets", &Frame::Native::UnavailableScriptMethod },
+    { "SetHitRectInsets", &Frame::Native::UnavailableScriptMethod },
+    { "GetClampRectInsets", &Frame::Native::UnavailableScriptMethod },
+    { "SetClampRectInsets", &Frame::Native::UnavailableScriptMethod },
+    { "GetMinResize", &Frame::Native::UnavailableScriptMethod },
+    { "SetMinResize", &Frame::Native::UnavailableScriptMethod },
+    { "GetMaxResize", &Frame::Native::UnavailableScriptMethod },
+    { "SetMaxResize", &Frame::Native::UnavailableScriptMethod },
+    { "SetMovable", &Frame::Native::UnavailableScriptMethod },
+    { "IsMovable", &Frame::Native::UnavailableScriptMethod },
+    { "SetDontSavePosition", &Frame::Native::UnavailableScriptMethod },
+    { "GetDontSavePosition", &Frame::Native::UnavailableScriptMethod },
+    { "SetResizable", &Frame::Native::UnavailableScriptMethod },
+    { "IsResizable", &Frame::Native::UnavailableScriptMethod },
+    { "StartMoving", &Frame::Native::UnavailableScriptMethod },
+    { "StartSizing", &Frame::Native::UnavailableScriptMethod },
+    { "StopMovingOrSizing", &Frame::Native::UnavailableScriptMethod },
+    { "SetUserPlaced", &Frame::Native::UnavailableScriptMethod },
+    { "IsUserPlaced", &Frame::Native::UnavailableScriptMethod },
+    { "SetClampedToScreen", &Frame::Native::UnavailableScriptMethod },
+    { "IsClampedToScreen", &Frame::Native::UnavailableScriptMethod },
+    { "RegisterForDrag", &Frame::Native::UnavailableScriptMethod },
+    { "EnableKeyboard", &Frame::Native::UnavailableScriptMethod },
+    { "IsKeyboardEnabled", &Frame::Native::UnavailableScriptMethod },
+    { "EnableMouse", &Frame::Native::UnavailableScriptMethod },
+    { "IsMouseEnabled", &Frame::Native::UnavailableScriptMethod },
+    { "EnableMouseWheel", &Frame::Native::UnavailableScriptMethod },
+    { "IsMouseWheelEnabled", &Frame::Native::UnavailableScriptMethod },
+    { "EnableJoystick", &Frame::Native::UnavailableScriptMethod },
+    { "IsJoystickEnabled", &Frame::Native::UnavailableScriptMethod },
+    { "GetBackdrop", &Frame::Native::UnavailableScriptMethod },
+    { "SetBackdrop", &Frame::Native::UnavailableScriptMethod },
+    { "GetBackdropColor", &Frame::Native::UnavailableScriptMethod },
+    { "SetBackdropColor", &Frame::Native::UnavailableScriptMethod },
+    { "GetBackdropBorderColor", &Frame::Native::UnavailableScriptMethod },
+    { "SetBackdropBorderColor", &Frame::Native::UnavailableScriptMethod },
+    { "SetDepth", &Frame::Native::UnavailableScriptMethod },
+    { "GetDepth", &Frame::Native::UnavailableScriptMethod },
+    { "GetEffectiveDepth", &Frame::Native::UnavailableScriptMethod },
+    { "IgnoreDepth", &Frame::Native::UnavailableScriptMethod },
+    { "IsIgnoringDepth", &Frame::Native::UnavailableScriptMethod },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "GetTitleRegion", &Script_GetTitleRegion },
     { "CreateTitleRegion", &Script_CreateTitleRegion },
@@ -2065,6 +2333,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "IgnoreDepth", &Script_IgnoreDepth },
     { "IsIgnoringDepth", &Script_IsIgnoringDepth },
 };
+#endif
 
 // VERIFY: c7ad299d auto
 // OFFSET: 0x0049E540

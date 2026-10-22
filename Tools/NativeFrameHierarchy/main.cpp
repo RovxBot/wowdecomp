@@ -1,4 +1,5 @@
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/WindowEvents.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CFrameStrataNode.h"
@@ -245,11 +246,13 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "StackingChecks.h"
 #include "MovementChecks.h"
 #include "PoolChecks.h"
+#include "ScriptChecks.h"
 static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
     PoolChecks(device,root,font,owner);
+    ScriptChecks(device,root,font);
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");
@@ -313,7 +316,8 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     Reject([&]{child->SetFrameScale(0,false);});
     Reject([&]{child->EnableEvent(SIMPLE_EVENT_4,0);});
     Reject([&]{child->LoadXML(nullptr,nullptr);});
-    Reject([&]{child->SetName("UnavailableFrame");});
+    child->SetName("NamedFrame");
+    Check(CScriptObject::GetScriptObjectByName("NamedFrame",CSimpleFrame::GetObjectType())==child,"Frame canonical name lookup");
     bool foreign=false;std::thread thread([&]{try{child->Hide();}catch(const std::logic_error&){foreign=true;}});thread.join();Check(foreign,"Foreign Frame mutation accepted");
     EVENT_DATA_SIZE size{};CSimpleTop::OnDisplaySizeChanged(&size,&root);
     Equal(first,Draw(device,root)); // Direct event injection, not SDL acceptance.
@@ -363,7 +367,7 @@ int main(int argc,char** argv) {
                 FrameScript::Native::Runtime scripts([&](FrameScript::Native::SourceKind kind,const std::string& path,Bytes& bytes){return kind==FrameScript::Native::SourceKind::Interface && source.Read(path,bytes);});
                 FrameXML::Native::Runtime xml;Frame::Native::Runtime layout;
                 Gxu::Native::LegacyFonts gxu([&](const std::string& path){return source.Font(path);});
-                {Frame::Native::Fonts factories;Frame::Native::Renderer renderer;
+                {Frame::Native::Fonts factories;Frame::Native::Renderer renderer;Frame::Native::Scripts scripts;
                     CSimpleFont* selected;
                     if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight((windowEvents?20.0f:32.0f)/480),0),"Authored font creation");}
                     else selected=Original(source);

@@ -86,15 +86,15 @@ class NativeGlGraphTests(unittest.TestCase):
             changed['sources'].append({'path': 'Engine/Source/Frame/' + name + '.cpp'})
             self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))
 
-    def test_regions_select_root_and_reject_unselected_script_factories(self):
+    def test_regions_select_root_and_bounded_script_factories(self):
         target = self.target('WowNativeFrameRegions', 'Engine/Source/Frame/CScriptRegion.cpp')
         target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
-            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
+            ['CScriptRegion_Scripts', 'CSimpleFrame_Scripts', 'CSimpleFontString_Scripts', 'CSimpleTitleRegion_Scripts', 'Portable/Scripts', 'CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
         target['sources'] += [{'path': path} for path in ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp', 'Engine/Source/Event/CMouseEvent.cpp']]
         target['sources'].append({'path': 'Engine/Source/FrameXML/CreateFrame.cpp'})
         message = 'WowNativeFrameRegions: unexpected native Frame region source/ABI'
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
-        for name in ['CSimpleFrame_Scripts', 'CSimpleTexture', 'CSimpleFontString_Scripts', 'CSimpleAnimGroup']:
+        for name in ['CSimpleTexture', 'CSimpleEditBox', 'CSimpleAnimGroup']:
             changed = copy.deepcopy(target)
             changed['sources'].append({'path': 'Engine/Source/Frame/' + name + '.cpp'})
             self.assertIn(message, audit([changed], 'gl', 'LINUX', 'X86_64'))

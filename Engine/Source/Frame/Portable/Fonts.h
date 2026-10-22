@@ -32,6 +32,7 @@ void RequireFontParent(CSimpleFontable*, CSimpleFont*);
 void RequireFontName(const char*);
 void RequireFontCapacity();
 void RequireScript(CScriptObject*);
+void RequireNoScripts();
 struct FontUpdate final {
     FontUpdate();
     ~FontUpdate();

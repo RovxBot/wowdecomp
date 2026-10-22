@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Regions.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
@@ -128,7 +129,8 @@ const char* CSimpleFontString::GetObjectTypeName() {
 int32_t CSimpleFontString::GetScriptMetaTable() {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
+    Frame::Native::RequireRegionScripts();
+    return CSimpleFontString::s_metatable;
 #else
 
     return CSimpleFontString::s_metatable;
