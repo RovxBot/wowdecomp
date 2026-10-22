@@ -89,9 +89,9 @@ class NativeGlGraphTests(unittest.TestCase):
     def test_regions_select_root_and_bounded_script_factories(self):
         target = self.target('WowNativeFrameRegions', 'Engine/Source/Frame/CScriptRegion.cpp')
         target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
-            ['CScriptRegion_Scripts', 'CSimpleFrame_Scripts', 'CSimpleFontString_Scripts', 'CSimpleTitleRegion_Scripts', 'Portable/Scripts', 'CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
+            ['CScriptRegion_Scripts', 'CSimpleFrame_Scripts', 'CSimpleFontString_Scripts', 'CSimpleTitleRegion_Scripts', 'Portable/Scripts', 'Language', 'CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
         target['sources'] += [{'path': path} for path in ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp', 'Engine/Source/Event/CMouseEvent.cpp']]
-        target['sources'].append({'path': 'Engine/Source/FrameXML/CreateFrame.cpp'})
+        target['sources'] += [{'path': path} for path in ['Engine/Source/FrameXML/CreateFrame.cpp', 'Engine/Source/Storm/Source/SUni.cpp']]
         message = 'WowNativeFrameRegions: unexpected native Frame region source/ABI'
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))
         for name in ['CSimpleTexture', 'CSimpleEditBox', 'CSimpleAnimGroup']:

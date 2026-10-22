@@ -162,7 +162,11 @@ static void Regions(LegacyDevice& device,CSimpleFont& font,Frame::Native::Fonts&
     Reject([&]{text->RegisterScriptObject(nullptr);});
     Reject([&]{text->SetName("UnavailableRegion");});
     Check(lua_gettop(s_context)==stack && lua_taintexpected==expected && lua_tainted==taint && !text->GetName(),"Unavailable region script factory changed VM/name state");
-    Reject([&]{text->SetText("processed",1);});
+    const auto processedBlock=text->m_string;
+    text->SetText("|4 AV:AV Frame region;",1);
+    Check(!std::strcmp(text->m_text,"AV Frame region") && text->m_string==processedBlock,
+          "Processed identical text changed contents or retained block");
+    Reject([&]{text->SetText("|3-1(word)",1);});
     Reject([&]{text->SetText("|Tunsupported:16|t",0);});
     Reject([&]{text->SetTextLength(65535);});
     Reject([&]{text->SetFont("bad.ttf",std::numeric_limits<float>::infinity(),0,false);});

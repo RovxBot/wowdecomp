@@ -19,7 +19,7 @@ void RequireRegionScripts();
 inline int UnavailableScriptMethod(lua_State* L) {
     return luaL_error(L, "This native Frame method requires an unavailable widget, XML, language or animation service");
 }
-template<int (*Method)(lua_State*)> int ScriptMethod(lua_State* L) {
+template<int (*Method)(lua_State*), bool Coordinates = true> int ScriptMethod(lua_State* L) {
     // Lua errors longjmp. Convert C++ failures only after their stack unwinds;
     // no owning automatic object may surround the subsequent luaL_error call.
     bool failed = false;
@@ -28,7 +28,7 @@ template<int (*Method)(lua_State*)> int ScriptMethod(lua_State* L) {
         RequireRoot();
         RequireTreeMutation();
         for (int i = 2; i <= lua_gettop(L); ++i)
-            if (lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
+            if (Coordinates && lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
                 std::fabs(lua_tonumber(L, i)) > FLT_MAX))
                 return luaL_error(L, "Native Frame coordinates must fit finite floats");
         return Method(L);

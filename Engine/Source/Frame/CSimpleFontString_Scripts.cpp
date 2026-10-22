@@ -360,7 +360,6 @@ static int32_t Script_GetFieldSize(lua_State* L) {
 
 // VERIFY: 8e283226 auto
 // OFFSET: 0x0048D780
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetText(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -373,11 +372,9 @@ static int32_t Script_SetText(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: ba475506 auto
 // OFFSET: 0x0048D800
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetFormattedText(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -391,7 +388,6 @@ static int32_t Script_SetFormattedText(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 5c9814f7 manual
 // OFFSET: 0x0048D890
@@ -788,8 +784,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetFont", &Frame::Native::UnavailableScriptMethod },
     { "GetText", &Frame::Native::ScriptMethod<&Script_GetText> },
     { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize> },
-    { "SetText", &Frame::Native::UnavailableScriptMethod },
-    { "SetFormattedText", &Frame::Native::UnavailableScriptMethod },
+    { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false> },
+    { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false> },
     { "GetTextColor", &Frame::Native::UnavailableScriptMethod },
     { "SetTextColor", &Frame::Native::UnavailableScriptMethod },
     { "GetShadowColor", &Frame::Native::UnavailableScriptMethod },
