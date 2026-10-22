@@ -1,6 +1,7 @@
 // Native adaptation of original 12340 FrameXML registry/template creation and
 // SimpleFrameScript_Scripts.cpp::Script_CreateFrame. No new address/VERIFY claim.
 #include "Factories.h"
+#include "Engine/Source/FrameXML/LoadXML.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
