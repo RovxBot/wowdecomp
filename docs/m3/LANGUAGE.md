@@ -34,12 +34,44 @@ on rejection, rendered text/repeat pixels and pool/cache teardown over three own
 cycles. It uses authored text with original or authored fonts; it does not establish
 physical input/IME/edit-box acceptance or actual login composition.
 
-Compilation and runtime qualification are pending GitHub Actions and downloaded
-exact-source package execution. All client/dependency compilation runs in Actions;
-clean original data stays read-only and outside Git/ordinary hosted CI. Preserve
-original-key archive authentication, selective member MD5 policy and the existing
-before/after GlueFonts-subset signature checks. Complete ordered signed GlueXML
-creation and the full post-creation digest comparison remain open, as do XML
-registry/templates, other widgets, full login, transport and observed gameplay.
-The user will sign in interactively when ready; server revision discrepancies
-remain recorded separately. M3 is incomplete.
+## Qualification
+
+[PR #68](https://github.com/RovxBot/wowdecomp/pull/68) is qualified at
+`f0f522c467177cb1c044758c0f686d3001e9f3a4`, merged as
+`2a0e3f5105fcb81064d287ba515fec2639c20151`. [Durable validation](language-validation.json)
+records thirteen passing implementation PR workflows, 38 CTest checks per Linux
+release/strict ASan/UBSan/leak configuration and full signature-enabled Windows
+x64 compilation at matching-tree hosted checkout `fb6ba2fe87c3129ca078a8182c8ff952777c9ebf`.
+Three archive digests and all 51 packaged executable hashes/types/notices verified.
+Implementation, hosted checkout and merge share the same source tree.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed 30 authored/original-data input/UI/resource executions, three owner cycles
+each, with empty stderr and zero workers. All fifteen release/sanitizer capture
+pairs match; final original-data hierarchy captures retain the prior identity.
+Intermediate readbacks assert authored text after actual Lua/language processing;
+the final capture is authored hierarchy text through original fonts/UI shaders,
+not original login. Four resource fixtures passed three cycles per mode.
+Original-key archive authentication, selective member MD5 and before/after original
+GlueXML signatures around eighteen GlueFonts definitions stayed enabled.
+
+The missing native Storm Unicode provider produced a hosted link failure; a prior
+region fixture then retained its superseded all-language-rejection expectation
+(37/38 checks passed). Both failed runs remain in the record. Selecting the
+unchanged provider and replacing that expectation with processed-text/cache
+assertions plus unsupported-declension rejection resolved them. No detector was
+disabled. Source review also added rejection of French article prefixes with no
+following noun before the unchanged original rule can advance past its terminator.
+Local source/launcher tests: 57 passed, one unavailable-CMake skip. Whitespace and
+original language/renderer/setter token comparisons passed; no local compilation.
+
+## Next original callers
+
+Connect the original FrameXML registry/global `CreateFrame`, retained XML templates
+and named parents, then remaining widget factories and nonempty Lua input handlers.
+DB-backed declensions and broader locale/style qualification remain open. Complete
+signed ordered GlueXML creation and its full post-creation digest gate, physical
+IME/edit-box/candidate acceptance, full login rendering, portable transport and
+observed gameplay remain open. Keep signatures and server revision discrepancies
+intact; the user will sign in interactively. No new physical-input, Windows runtime,
+macOS graphics or server acceptance is recorded. M3 remains incomplete.

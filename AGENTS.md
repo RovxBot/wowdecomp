@@ -901,3 +901,27 @@ remaining checks need another machine.
   digest gate, login and transport/gameplay remain open. No new Windows runtime,
   macOS graphics or server acceptance. Preserve signatures/historical identities/
   server revision discrepancies/interactive sign-in; M3 is incomplete.
+
+
+- M3 original Frame language [PR #68](https://github.com/RovxBot/wowdecomp/pull/68)
+  is qualified at `f0f522c467177cb1c044758c0f686d3001e9f3a4`, merged as
+  `2a0e3f5105fcb81064d287ba515fec2639c20151`. Read [language contracts/next callers](docs/m3/LANGUAGE.md)
+  and [validation](docs/m3/language-validation.json). Thirteen implementation PR
+  workflows passed, with 38 CTest checks per Linux GL configuration and full
+  signature-enabled Windows x64 compilation at matching-tree checkout
+  `fb6ba2fe87c3129ca078a8182c8ff952777c9ebf`. Three archives/all 51 packaged executable
+  hashes/types/notices verified. RX 7900 XTX / Mesa 26.2.5 / SDL X11 release/strict
+  ASan/UBSan/leak packages passed 30 three-cycle authored/original-data executions,
+  empty stderr/zero workers; fifteen capture pairs match. Original Korean particle/
+  rieul, French article/vowel and plural rules now back Lua SetText/SetFormattedText.
+  Preserve owner-thread borrowed scratch, 4095-byte valid UTF-8 intermediate bounds,
+  complete grammar/article nouns, signed counters, 64 passes and original numeric
+  formatting separate from coordinate checks. DB-backed declension rule 3 remains
+  unavailable. Original language/renderer/setter tokens and signatures stay intact.
+  Keep the hosted missing-provider link failure and stale region-fixture expectation
+  as failed evidence; no detector was disabled. Rendered text is authored, not full
+  login. XML registry/global CreateFrame/templates/named parents, remaining widgets,
+  physical IME/edit-box/candidate acceptance, full signed ordered GlueXML/second
+  digest gate, login/transport/gameplay remain open. No new physical-input, Windows
+  runtime, macOS graphics or server acceptance. Preserve server revision discrepancies
+  and interactive sign-in; M3 remains incomplete.
