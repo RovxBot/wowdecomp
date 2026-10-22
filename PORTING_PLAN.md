@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-21. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-22. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -633,6 +633,38 @@ consumers, full signed ordered GlueXML plus post-creation digest gate, actual lo
 rendering and transport/gameplay remain open. No new physical-input, Windows
 runtime, macOS graphics or server acceptance. M3 remains incomplete; preserve
 signatures, server revision discrepancies and interactive user sign-in.
+
+The [bounded SDL pointer adapter](docs/m3/FRAME_MOUSE.md) in
+[PR #58](https://github.com/RovxBot/wowdecomp/pull/58) is qualified at
+`205d3d5770c3ca756909f9c0de63c7a0f3a294a3`, merged as
+`53c259f20cb48db3e5e6a4011074b5d0644ad447`. Its [record](docs/m3/frame-mouse-validation.json)
+retains thirteen passing PR workflows, 38 CTest checks per Linux release/strict
+ASan/UBSan/leak configuration, signature-enabled full Windows x64 compilation at
+matching-tree checkout `51970b1b468c9a5f5310a56d742895fe913bf414`, three verified
+archives and all 51 packaged binary hashes/types/notices. Downloaded RX 7900 XTX /
+Mesa 26.2.5 / SDL X11 packages passed 30 authored/original-data input/UI/resource
+executions, three owner cycles each, with empty stderr/zero workers; each of four
+resource fixtures passed three cycles per mode. All fifteen release/sanitizer
+capture pairs match, including the prior original-data hierarchy/input baseline.
+
+Original queues now deliver hit/inset tracking, enter/leave, captured multi-button
+release, wheel, relative callbacks and typed C++ drag/drop consumers. Preserve
+logical-pixel/inverted-Y conversion, original raw-relative-to-DDC behavior, button/
+modifier masks/event identities/timestamps, raw unsigned/finite preflight, owner/
+current-context and traversal guards. Stationary focus refresh follows update
+traversal and priority/inset changes; cancellation finishes exit cleanup even when
+a release consumer throws. Defer deletion until traversal ends and retire focus,
+capture and drag state on hide/disable/destruction/loss. Empty base Lua handlers
+are selected; nonempty handlers remain unavailable before stack mutation.
+
+Top-level occlusion/raising, title/layout movement and complete widget drag remain
+open. Pooled Lua/XML/language/template factories, actual edit boxes and physical
+IME/mouse acceptance, other Frame consumers, full signed ordered GlueXML plus its
+post-creation digest gate, actual login and transport/gameplay remain open. The
+source-graph/local fixture corrections and superseded attempts remain recorded;
+no detector was disabled. No new physical-input, Windows runtime, macOS graphics
+or server acceptance. M3 stays incomplete; preserve signatures, server revision
+discrepancies and interactive user sign-in.
 
 ### M4 — Complete the Linux experience and select modern graphics
 
