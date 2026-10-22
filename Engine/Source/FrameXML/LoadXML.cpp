@@ -30,15 +30,6 @@ static const XMLENUMVALUE s_frameStrata[] = {
     { FRAME_STRATA_TOOLTIP, "TOOLTIP" },
 };
 
-// STATIC: 0x00A43FC0
-static const XMLENUMVALUE s_drawLayers[] = {
-    { 0, "BACKGROUND" },
-    { 1, "BORDER" },
-    { 2, "ARTWORK" },
-    { 3, "OVERLAY" },
-    { 4, "HIGHLIGHT" },
-};
-
 // STATIC: 0x00A43FE8
 static const XMLENUMVALUE s_blendModes[] = {
     { GxBlend_Opaque, "DISABLE" },
@@ -105,31 +96,6 @@ const char* FrameStrataToString(FRAME_STRATA strata) {
     for (uint32_t i = 0; i < sizeof(s_frameStrata) / sizeof(s_frameStrata[0]); i++) {
         if (strata == s_frameStrata[i].m_value) {
             return s_frameStrata[i].m_name;
-        }
-    }
-
-    return "UNKNOWN";
-}
-
-// VERIFY: 8a25e9ea auto
-// OFFSET: 0x00814F60
-int32_t StringToDrawLayer(const char* string, uint32_t& layer) {
-    for (uint32_t i = 0; i < sizeof(s_drawLayers) / sizeof(s_drawLayers[0]); i++) {
-        if (!SStrCmpI(s_drawLayers[i].m_name, string, STORM_MAX_STR)) {
-            layer = s_drawLayers[i].m_value;
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-// VERIFY: ab06cece auto
-// OFFSET: 0x00814FB0
-const char* DrawLayerToString(uint32_t layer) {
-    for (uint32_t i = 0; i < sizeof(s_drawLayers) / sizeof(s_drawLayers[0]); i++) {
-        if (layer == s_drawLayers[i].m_value) {
-            return s_drawLayers[i].m_name;
         }
     }
 

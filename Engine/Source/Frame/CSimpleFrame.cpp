@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
 #define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
@@ -349,7 +350,8 @@ const char* CSimpleFrame::GetObjectTypeName() {
 int32_t CSimpleFrame::GetScriptMetaTable() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    Frame::Native::RequireRegionScripts();
+    return CSimpleFrame::s_metatable;
 #else
 
     return CSimpleFrame::s_metatable;

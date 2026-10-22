@@ -107,6 +107,10 @@ void RequireScript(CScriptObject* object) {
     RequireFontFactories();
     if (!scripts.count(object)) throw std::invalid_argument("Script parent is not live");
 }
+void RequireNoScripts() {
+    RequireFontFactories();
+    if (!scripts.empty()) throw std::logic_error("Close Frame script objects before metatables");
+}
 FontUpdate::FontUpdate() { RequireFontFactories(); ++updates; }
 FontUpdate::~FontUpdate() { --updates; }
 void RequireFont(CSimpleFont* font) {

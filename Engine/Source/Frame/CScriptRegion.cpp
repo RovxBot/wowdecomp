@@ -142,9 +142,6 @@ CLayoutFrame* CScriptRegion::GetLayoutParent() {
 // OFFSET: 0x004884D0
 CLayoutFrame* CScriptRegion::GetLayoutFrameByName(const char* name) {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
-#else
 
     char fullName[1024];
     this->CreateName(name, fullName, sizeof(fullName));
@@ -152,7 +149,6 @@ CLayoutFrame* CScriptRegion::GetLayoutFrameByName(const char* name) {
     CScriptRegion* region = static_cast<CScriptRegion*>(CScriptObject::GetScriptObjectByName(fullName, CScriptRegion::GetObjectType()));
     return region;
 
-#endif
 }
 
 // VERIFY: 6a00f6bb manual

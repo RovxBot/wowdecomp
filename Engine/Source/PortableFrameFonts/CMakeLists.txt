@@ -20,6 +20,11 @@ add_library(WowNativeFrameRender STATIC
     ../Frame/Portable/Render.cpp)
 target_link_libraries(WowNativeFrameRender PUBLIC WowNativeFrameFonts)
 add_library(WowNativeFrameRegions STATIC
+    ../Frame/CScriptRegion_Scripts.cpp
+    ../Frame/CSimpleFrame_Scripts.cpp
+    ../Frame/CSimpleFontString_Scripts.cpp
+    ../Frame/CSimpleTitleRegion_Scripts.cpp
+    ../Frame/Portable/Scripts.cpp
     ../Frame/CScriptRegion.cpp
     ../Frame/CSimpleRegion.cpp
     ../Frame/CSimpleFontString.cpp
