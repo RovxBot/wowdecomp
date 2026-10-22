@@ -89,12 +89,12 @@ static void KeyboardEvents(GlContext& context,CSimpleTop& root) {
     deliver(OS_INPUT_KEY_DOWN,KEY_B);Check(records.back().data.m_metaKeyState==(1u<<KEY_LCONTROL),"Original modifier bits");
     deliver(OS_INPUT_KEY_UP,KEY_B);deliver(OS_INPUT_KEY_UP,KEY_LCONTROL);
     Reject([&]{high->EnableEvent(UINT32_MAX,0);});Reject([&]{high->DisableEvent(UINT32_MAX);});
-    Reject([&]{high->EnableEvent(SIMPLE_EVENT_MOUSE,0);});
+    Reject([&]{high->EnableEvent(SIMPLE_EVENT_4,0);});
     Reject([&]{root.RegisterForEvent(high,SIMPLE_EVENT_KEY,0,0);});
     Reject([&]{deliver(OS_INPUT_KEY_DOWN,-1);});Reject([&]{deliver(OS_INPUT_KEY_UP,KEY_LAST);});
     Reject([&]{deliver(OS_INPUT_KEY_DOWN,KEY_A,0);});Reject([&]{deliver(OS_INPUT_CHAR,0xd800);});
     Reject([&]{deliver(OS_INPUT_CHAR,0x110000);});Reject([&]{deliver(OS_INPUT_FOCUS,2);});
-    Check(deliver(OS_INPUT_IME,0)==InputResult::Unsupported && deliver(OS_INPUT_MOUSE_MOVE,0)==InputResult::Unsupported,"Unsupported input consumed");
+    Check(deliver(OS_INPUT_IME,0)==InputResult::Unsupported && deliver(OS_INPUT_CLOSE,0)==InputResult::Unsupported,"Unsupported input consumed");
     bool foreign=false;std::thread thread([&]{try{deliver(OS_INPUT_CHAR,'A');}catch(const std::logic_error&){foreign=true;}});
     thread.join();Check(foreign,"Foreign input dispatch accepted");
     // Actual SDL queue translation, with authored injected events.

@@ -31,6 +31,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/Portable/Hierarchy.cpp
     ../Frame/Portable/WindowEvents.cpp
     ../Event/CEvent.cpp
+    ../Event/CMouseEvent.cpp
     ../Services/ScreenProjection.cpp)
 target_link_libraries(WowNativeFrameRegions PUBLIC WowNativeFrameRender)
 add_executable(NativeFrameHierarchyCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameHierarchy/main.cpp)
@@ -51,6 +52,10 @@ if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(NativeFrameRegionsCheck PRIVATE -g1)
 endif()
 if(BUILD_TESTING)
+    add_test(NAME native-frame-sdl-mouse COMMAND NativeFrameHierarchyCheck
+        --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf --mouse-events)
+    set_tests_properties(native-frame-sdl-mouse PROPERTIES TIMEOUT 120
+        ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
     add_test(NAME native-frame-sdl-ime COMMAND NativeFrameHierarchyCheck
         --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf --ime-events)
     set_tests_properties(native-frame-sdl-ime PROPERTIES TIMEOUT 120
