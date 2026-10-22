@@ -79,10 +79,11 @@ runs remain separate from the thirteen PR qualification runs.
 
 ## Next original callers
 
-1. Select original region/frame/title/FontString script metatables and route the
-   Lua `CreateFontString` allocation through the qualified typed constructor.
-   Preserve canonical live Lua tables and reject unavailable consumers before
-   stack/name/taint mutation. Native nonempty input handlers remain unavailable.
+1. The subsequent [bounded Lua package](FRAME_SCRIPTS.md) qualifies original
+   region/frame/title/FontString metatables and pooled Lua `CreateFontString`.
+   Preserve canonical live tables and reject unavailable consumers before
+   stack/name/taint mutation. Additional methods, language/text setters, XML
+   templates and native nonempty input handlers remain open.
 2. Connect the original FrameXML factory registry, named-parent lookup, retained
    virtual templates/inheritance and language processing. Keep XML nodes alive
    through consumers and close external script references before factory teardown.

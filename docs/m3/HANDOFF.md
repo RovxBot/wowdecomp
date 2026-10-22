@@ -782,3 +782,40 @@ post-creation digest gate, actual login rendering, transport/authentication and
 observed gameplay remain open. No new physical-input, Windows runtime, macOS
 graphics or server acceptance. M3 is incomplete; preserve historical identities,
 signatures, server revision discrepancies and interactive user sign-in.
+
+The [bounded original region Lua package](FRAME_SCRIPTS.md) in
+[PR #66](https://github.com/RovxBot/wowdecomp/pull/66) is qualified at
+`56aa592edfc7685c7234119aab874f55173bf61f`, merged as
+`914a6d5b72a3edee185379559c5b56a2ebd9b273`. [Durable validation](frame-script-method-validation.json)
+retains thirteen passing PR workflows, 38 CTest checks per Linux release/strict
+ASan/UBSan/leak configuration and full signature-enabled Windows x64 compilation
+at matching-tree hosted checkout `3c9d0ba7edc0a4bc9004907a3cdafe1919e18a62`.
+Three archives/all 51 executable hashes/types/notices verified. RX 7900 XTX / Mesa
+26.2.5 / SDL X11 packages passed 30 three-cycle authored/original-data desktop
+executions, empty stderr/zero workers; all fifteen capture pairs match. Four
+resource fixtures also passed three cycles per mode. All compilation ran in Actions.
+
+Original region/Frame/title/FontString metatables now expose bounded identity,
+parent/name, dimensions/anchors, hierarchy enumeration, visibility, title reuse and
+pooled Lua `CreateFontString` with named-font inheritance. Preserve canonical live
+Lua tables, finite coordinates, checked point indices and owner/current-context/
+live-root/traversal admission. C++ failures unwind before Lua errors. Close every
+region/script object before the Scripts owner, then renderer/Fonts/Gxu/layout/XML/
+VM/device/context/queue. Original draw-layer converters moved unchanged to shared
+FontXML helpers; Windows-selected legacy tokens match the immutable base.
+
+Language/text setters and XML virtual templates remain explicit Lua errors. The
+new rendering fixture uses authored C++ `process=0` text in Lua-created objects;
+intermediate rendering/repeats are readback assertions, not exported new captures
+or login composition. Original signatures and before/after GlueFonts-subset checks
+stay enabled. A usage-limit approval-review failure interrupted one unexecuted
+sanitizer attempt; resumed strict checks passed with unchanged detectors.
+
+Original FrameXML registry/global `CreateFrame`, named-parent XML processing,
+templates/inheritance/language, additional methods/nonempty Lua input handlers,
+remaining widgets and physical mouse/IME/edit-box/candidate UI acceptance stay
+open. Complete signed ordered GlueXML and its full post-creation digest gate,
+actual login rendering, transport/authentication and observed gameplay remain open.
+No new Windows runtime, macOS graphics or server acceptance. M3 remains incomplete;
+preserve historical identities, signatures, server revision discrepancies and
+interactive user sign-in.

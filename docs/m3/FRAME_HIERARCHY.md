@@ -98,7 +98,9 @@ signatures, server revision discrepancies and interactive user sign-in.
 
 The subsequent [pooled allocation package](FRAME_POOLS.md) qualifies original
 base Frame and typed FontString pool construction with mixed heap/pool ownership.
-The Lua/XML registry, metatables and remaining widget allocators stay open.
+The subsequent [bounded Lua methods](FRAME_SCRIPTS.md) qualify region/Frame/title/
+FontString metatables and pooled Lua text creation. XML registry/templates, language
+and remaining widget allocators stay open.
 
 ## Next original callers
 
@@ -106,8 +108,9 @@ The Lua/XML registry, metatables and remaining widget allocators stay open.
    `CSimpleFrame_Scripts`, `FrameXML_CreateFrame` and `LoadXML_String`. Adapt each
    remaining widget allocator/deletion before selecting its factory; direct raw
    pool calls do not establish owner registration or constructor rollback.
-2. Connect original region/frame Lua/XML methods, named-parent lookup, virtual
-   template retention/inheritance, language processing and animation ownership.
+2. Extend the qualified bounded Lua methods into original FrameXML registry and
+   named-parent XML processing, virtual template retention/inheritance, language
+   processing and animation ownership.
    Preserve canonical live Lua objects and borrowed XML nodes through consumers.
 3. Select actual Frame texture/image-mode/backdrop consumers against qualified
    Services source lookup, readiness and atlas coordinates. Adapt scrolling and

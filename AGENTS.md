@@ -877,3 +877,27 @@ remaining checks need another machine.
   login and transport/gameplay remain open. No new Windows runtime/macOS graphics/
   server acceptance. Preserve signatures/historical identities/server revision
   discrepancies/interactive sign-in; M3 is incomplete.
+
+- M3 original region Lua [PR #66](https://github.com/RovxBot/wowdecomp/pull/66)
+  is qualified at `56aa592edfc7685c7234119aab874f55173bf61f`, merged as
+  `914a6d5b72a3edee185379559c5b56a2ebd9b273`. Read [script contracts/next callers](docs/m3/FRAME_SCRIPTS.md)
+  and [validation](docs/m3/frame-script-method-validation.json). Thirteen PR
+  workflows passed, 38 checks per Linux GL configuration and full signature-enabled
+  Windows x64 compilation at matching-tree checkout
+  `3c9d0ba7edc0a4bc9004907a3cdafe1919e18a62`. Three archives/all 51 binaries/notices
+  verified. RX 7900 XTX release/strict ASan/UBSan/leak packages passed 30 three-cycle
+  desktop executions, empty stderr/zero workers; fifteen capture pairs match.
+  Original region/Frame/title/FontString metatables expose bounded identity,
+  parent/name, geometry, enumeration, visibility and pooled Lua CreateFontString
+  with named-font inheritance. Preserve canonical tables, finite floats/checked
+  indices, live-root/traversal guards and C++ unwind before Lua errors. Close all
+  region/script objects before Scripts, then renderer/Fonts/Gxu/layout/XML/VM/
+  device/context/queue. Language/text setters and XML templates stay unavailable;
+  text rendering uses authored C++ process=0 content in Lua-created objects.
+  A usage-limit approval-review interruption prevented one attempt from executing;
+  resumed strict checks passed. FrameXML registry/global CreateFrame, named-parent
+  XML/templates/language, more methods/nonempty Lua input handlers, widgets and
+  physical IME/edit-box acceptance remain open. Full signed ordered GlueXML/second
+  digest gate, login and transport/gameplay remain open. No new Windows runtime,
+  macOS graphics or server acceptance. Preserve signatures/historical identities/
+  server revision discrepancies/interactive sign-in; M3 is incomplete.
