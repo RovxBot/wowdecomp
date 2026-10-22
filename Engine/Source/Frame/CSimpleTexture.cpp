@@ -21,9 +21,6 @@
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
 #include "Engine/Source/FrameXML/Portable/Factories.h"
-#define TEXTURE_CHECK() Frame::Native::RequireRegions()
-#else
-#define TEXTURE_CHECK() ((void)0)
 #endif
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
@@ -140,7 +137,9 @@ CDataAllocator CSimpleTexture::s_allocator(sizeof(CSimpleTexture), 0x2E0);
 // VERIFY: 323fc4f3 auto
 // OFFSET: 0x004834C0
 void CSimpleTexture::StoreAnimPosition() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     this->CSimpleRegion::StoreAnimPosition();
     this->SetPosition(this->m_rect, this->m_storedPositions);
     memcpy(this->m_positions, this->m_storedPositions, sizeof(this->m_positions));
@@ -149,7 +148,9 @@ void CSimpleTexture::StoreAnimPosition() {
 // VERIFY: c6bab0dc auto
 // OFFSET: 0x004834F0
 void CSimpleTexture::ResetAnimPosition() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     this->CSimpleRegion::ResetAnimPosition();
     this->SetPosition(this->m_rect, this->m_positions);
 }
@@ -157,7 +158,9 @@ void CSimpleTexture::ResetAnimPosition() {
 // VERIFY: 88bc13dc auto
 // OFFSET: 0x00485140
 void CSimpleTexture::Draw(CRenderBatch* batch) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (this->m_texture) {
         batch->QueueTexture(this);
     }
@@ -165,7 +168,9 @@ void CSimpleTexture::Draw(CRenderBatch* batch) {
 
 // INLINED
 int32_t CSimpleTexture::GetObjectType() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (!CSimpleTexture::s_objectType) {
         CSimpleTexture::s_objectType = ++FrameScript_Object::s_objectTypes;
     }
@@ -175,7 +180,9 @@ int32_t CSimpleTexture::GetObjectType() {
 
 // INLINED
 void CSimpleTexture::operator delete(void* ptr) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::FreeRegionStorage(s_allocator, ptr);
 #else
@@ -188,7 +195,9 @@ void CSimpleTexture::operator delete(void* ptr) {
 // VERIFY: 0a77af56 auto
 // OFFSET: 0x00481520
 int32_t CSimpleTexture::SetTexture(CTexture* texture) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (!this->m_texture || !texture || HandleCompare(reinterpret_cast<HOBJECT>(this->m_texture), reinterpret_cast<HOBJECT>(texture))) {
         CTexture* newTexture = nullptr;
 
@@ -210,7 +219,9 @@ int32_t CSimpleTexture::SetTexture(CTexture* texture) {
 // VERIFY: 66dd3b98 auto
 // OFFSET: 0x00481590
 int32_t CSimpleTexture::SetTexture(const CImVector& color) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     CTexture* texture = TextureCreateSolid(color);
 
     if (this->m_texture) {
@@ -226,7 +237,9 @@ int32_t CSimpleTexture::SetTexture(const CImVector& color) {
 // VERIFY: a001c950 auto
 // OFFSET: 0x004815E0
 int32_t CSimpleTexture::GetTexture(char* buffer, uint32_t bufferLen) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (!this->m_texture) {
         return 0;
     }
@@ -244,7 +257,9 @@ int32_t CSimpleTexture::GetTexture(char* buffer, uint32_t bufferLen) {
 // VERIFY: 289faf79 auto
 // OFFSET: 0x00481620
 void CSimpleTexture::SetBlendMode(EGxBlend blend) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     uint32_t raw; std::memcpy(&raw, &blend, sizeof(raw));
     if (raw >= GxBlend_ConstantAlpha) throw std::invalid_argument("Invalid native texture blend mode");
@@ -258,7 +273,9 @@ void CSimpleTexture::SetBlendMode(EGxBlend blend) {
 // VERIFY: ced9d67c auto
 // OFFSET: 0x00481640
 void CSimpleTexture::SetTexCoord(const C2Vector* texCoords) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     this->m_texCoords[0] = texCoords[0];
     this->m_texCoords[1] = texCoords[1];
     this->m_texCoords[2] = texCoords[2];
@@ -271,7 +288,9 @@ void CSimpleTexture::SetTexCoord(const C2Vector* texCoords) {
 // VERIFY: d3659815 auto
 // OFFSET: 0x004816A0
 void CSimpleTexture::GetTexCoord(C2Vector* texCoords) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     texCoords[0] = this->m_texCoords[0];
     texCoords[1] = this->m_texCoords[1];
     texCoords[2] = this->m_texCoords[2];
@@ -281,7 +300,9 @@ void CSimpleTexture::GetTexCoord(C2Vector* texCoords) {
 // VERIFY: 7b313c73 auto
 // OFFSET: 0x00481700
 void CSimpleTexture::SetShader(CGxShader* shader) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (shader != this->m_shader) {
         this->m_shader = shader;
         this->OnRegionChanged();
@@ -291,14 +312,18 @@ void CSimpleTexture::SetShader(CGxShader* shader) {
 // VERIFY: 1db02c26 auto
 // OFFSET: 0x00481720
 CGxTex* CSimpleTexture::GetGxTex() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     return this->m_texture ? TextureGetGxTex(this->m_texture, 1, nullptr) : nullptr;
 }
 
 // VERIFY: 09cfc6ac auto
 // OFFSET: 0x00481740
 void CSimpleTexture::AddAnimTranslation(const C2Vector& translation) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::UnavailableRegionFeature();
 #else
@@ -310,7 +335,9 @@ void CSimpleTexture::AddAnimTranslation(const C2Vector& translation) {
 // VERIFY: 0283fe37 auto
 // OFFSET: 0x00481770
 void CSimpleTexture::AddAnimRotation(FRAMEPOINT origin, const C2Vector& offset, float radians) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::UnavailableRegionFeature();
 #else
@@ -322,7 +349,9 @@ void CSimpleTexture::AddAnimRotation(FRAMEPOINT origin, const C2Vector& offset, 
 // VERIFY: 2b060cdb auto
 // OFFSET: 0x004817A0
 void CSimpleTexture::AddAnimScale(FRAMEPOINT origin, const C2Vector& offset, const C2Vector& scale) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::UnavailableRegionFeature();
 #else
@@ -334,7 +363,9 @@ void CSimpleTexture::AddAnimScale(FRAMEPOINT origin, const C2Vector& offset, con
 // VERIFY: efe353c3 auto
 // OFFSET: 0x004817D0
 float CSimpleTexture::GetWidth() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     float width = this->CLayoutFrame::GetWidth();
 
     if (width == 0.0f && this->m_texture) {
@@ -351,7 +382,9 @@ float CSimpleTexture::GetWidth() {
 // VERIFY: 9aa1bf92 auto
 // OFFSET: 0x00481850
 float CSimpleTexture::GetHeight() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     float height = this->CLayoutFrame::GetHeight();
 
     if (height == 0.0f && this->m_texture) {
@@ -368,7 +401,9 @@ float CSimpleTexture::GetHeight() {
 // VERIFY: d5f393df auto
 // OFFSET: 0x004818D0
 int32_t CSimpleTexture::IsObjectLoaded() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (this->m_texture && !TextureIsLoaded(this->m_texture)) {
         return 0;
     }
@@ -379,28 +414,36 @@ int32_t CSimpleTexture::IsObjectLoaded() {
 // VERIFY: bced6855 auto
 // OFFSET: 0x00482C60
 bool CSimpleTexture::IsA(int32_t type) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     return type == CSimpleTexture::s_objectType || type == CScriptRegion::s_objectType || type == CScriptObject::s_objectType;
 }
 
 // VERIFY: 3165fe90 auto
 // OFFSET: 0x00482C90
 bool CSimpleTexture::IsA(const char* typeName) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     return !SStrCmpI(typeName, CSimpleTexture::s_objectTypeName, STORM_MAX_STR) || !SStrCmpI(typeName, CScriptRegion::s_objectTypeName, STORM_MAX_STR) || !SStrCmpI(typeName, CScriptObject::s_objectTypeName, STORM_MAX_STR);
 }
 
 // VERIFY: 465f6c7c auto
 // OFFSET: 0x00482CF0
 const char* CSimpleTexture::GetObjectTypeName() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     return CSimpleTexture::s_objectTypeName;
 }
 
 // VERIFY: 80d103be auto
 // OFFSET: 0x00482D00
 int32_t CSimpleTexture::GetScriptMetaTable() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     return CSimpleTexture::s_metatable;
 }
 
@@ -423,7 +466,9 @@ CSimpleTexture::~CSimpleTexture() {
 // VERIFY: d7f68080 auto
 // OFFSET: 0x00483060
 void CSimpleTexture::Init() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     for (uint32_t i = 0; i < 2; i++) {
         if (CSimpleTexture::s_imageModePixelShaderNames[i]) {
             g_theGxDevicePtr->ShaderCreate(&CSimpleTexture::s_imageModePixelShaders[i], GxSh_Pixel, "Shaders\\Pixel", CSimpleTexture::s_imageModePixelShaderNames[i], 1);
@@ -438,7 +483,9 @@ void CSimpleTexture::Init() {
 // VERIFY: 61684332 manual
 // OFFSET: 0x004830A0
 void CSimpleTexture::Destroy() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     for (int32_t i = 0; i < 2; i++) {
         if (CSimpleTexture::s_imageModePixelShaders[i]) {
             g_theGxDevicePtr->ShaderDestroy(CSimpleTexture::s_imageModePixelShaders[i]);
@@ -452,7 +499,9 @@ void CSimpleTexture::Destroy() {
 // VERIFY: 3a72f2dc manual
 // OFFSET: 0x004830E0
 void CSimpleTexture::PostLoadXML(XMLNode* node, CStatus* status) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     CSimpleFrame* parent = this->m_parent;
 
     if (!parent) {
@@ -471,7 +520,9 @@ void CSimpleTexture::PostLoadXML(XMLNode* node, CStatus* status) {
 // VERIFY: 4323d6db manual
 // OFFSET: 0x00483120
 void CSimpleTexture::SetRotation(float radians, float centerX, float centerY) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     float angle = radians - 0.78539819f;
     float s = sin(angle);
     float c = cos(angle);
@@ -492,7 +543,9 @@ void CSimpleTexture::SetRotation(float radians, float centerX, float centerY) {
 // VERIFY: 8094d28a auto
 // OFFSET: 0x004831D0
 void CSimpleTexture::SetTexCoord(const CRect& texRect) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     this->m_texCoords[0].x = texRect.minX;
     this->m_texCoords[0].y = texRect.minY;
     this->m_texCoords[1].x = texRect.minX;
@@ -509,7 +562,9 @@ void CSimpleTexture::SetTexCoord(const CRect& texRect) {
 // VERIFY: 5a6638c2 auto
 // OFFSET: 0x00483220
 void CSimpleTexture::SetPosition(const CRect& rect, C3Vector* position) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     position[0].x = rect.minX;
     position[0].y = rect.maxY;
     position[0].z = this->m_layoutDepth;
@@ -527,7 +582,9 @@ void CSimpleTexture::SetPosition(const CRect& rect, C3Vector* position) {
 // VERIFY: da5e4d9e auto
 // OFFSET: 0x00483290
 CGxShader* CSimpleTexture::GetImageModePixelShader(TextureImageMode mode) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     uint32_t raw; std::memcpy(&raw, &mode, sizeof(raw));
     if (raw >= 2) throw std::invalid_argument("Invalid native texture image mode");
@@ -542,7 +599,9 @@ CGxShader* CSimpleTexture::GetImageModePixelShader(TextureImageMode mode) {
 // VERIFY: 99978bcf manual
 // OFFSET: 0x004832C0
 void CSimpleTexture::OnFrameSizeChanged(const CRect& rect) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     this->CLayoutFrame::OnFrameSizeChanged(rect);
 
     if (this->m_animating) {
@@ -579,7 +638,9 @@ void CSimpleTexture::OnFrameSizeChanged(const CRect& rect) {
 // VERIFY: a9647663 auto
 // OFFSET: 0x00483460
 void CSimpleTexture::PreOnAnimUpdate() {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
     if (this->m_animating) {
         memcpy(this->m_positions, this->m_storedPositions, sizeof(this->m_positions));
 
@@ -623,9 +684,14 @@ CSimpleTexture::CSimpleTexture(CSimpleFrame* frame, uint32_t drawLayer, int32_t 
 // VERIFY: 9d63630a manual
 // OFFSET: 0x004859E0
 int32_t CSimpleTexture::SetTexture(const char* fileName, int32_t wrapU, int32_t wrapV, EGxTexFilter filter, TextureImageMode mode) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     GetImageModePixelShader(mode); // Validate before any handle/cache mutation.
+    uint32_t rawFilter; std::memcpy(&rawFilter, &filter, sizeof(rawFilter));
+    if (rawFilter > GxTex_LinearMipLinear || (wrapU != 0 && wrapU != 1) || (wrapV != 0 && wrapV != 1))
+        throw std::invalid_argument("Invalid native Frame texture sampler");
 #endif
     if (this->m_texture && fileName && TextureIsSame(this->m_texture, fileName)) {
         return 1;
@@ -663,7 +729,9 @@ int32_t CSimpleTexture::SetTexture(const char* fileName, int32_t wrapU, int32_t 
 // VERIFY: 8453c584 manual
 // OFFSET: 0x00485F40
 void CSimpleTexture::LoadXML(XMLNode* node, CStatus* status) {
-    TEXTURE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegions();
+#endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     FrameXML::Native::ValidateCreation(node);
     FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) { LoadXML(inherited, status); }, false);

@@ -4,7 +4,7 @@ static Bytes TextureFixtureBlp() {
     auto word = [&](size_t offset, uint32_t value) {
         for (unsigned i=0;i<4;++i) bytes[offset+i] = uint8_t(value >> (i*8));
     };
-    word(0,0x32504c42);word(4,1);bytes[8]=3;bytes[9]=8;
+    word(0,0x32504c42);word(4,1);bytes[8]=3;bytes[9]=8;bytes[11]=0x10;
     word(12,8);word(16,8);word(20,148);word(84,256);
     for (unsigned y=0;y<8;++y) for(unsigned x=0;x<8;++x) {
         const uint8_t pixel[]{uint8_t(y<4?0:255),uint8_t(x<4?0:255),uint8_t(x<4?255:0),255};
@@ -14,11 +14,37 @@ static Bytes TextureFixtureBlp() {
 }
 static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original) {
     const int before = CSimpleTexture::s_count;
+    {
+        std::vector<std::unique_ptr<CSimpleTexture>> pooled;
+        for (unsigned i=0;i<737;++i) {
+            pooled.emplace_back(Frame::Native::CreateTexture(nullptr,2,false));
+            Check(reinterpret_cast<uintptr_t>(pooled.back().get()) % alignof(CSimpleTexture)==0,
+                  "Texture pool lost native alignment");
+        }
+        Check(CSimpleTexture::s_count==before+737 && CSimpleTexture::s_allocator.m_dataUsed==737,
+              "Texture pool growth bypassed original allocator");
+    }
+    Check(CSimpleTexture::s_count==before && !CSimpleTexture::s_allocator.m_dataUsed,
+          "Texture pool growth teardown retained slots");
     auto* parent = Create_SimpleFrame(nullptr);
     parent->SetName("NativeTextureParent");
     parent->SetSize(.5f,.4f);
     parent->SetPoint(FRAMEPOINT_BOTTOMLEFT,&root,FRAMEPOINT_BOTTOMLEFT,.1f,.1f,1);
+    const char* virtualXML=R"(<Ui><Texture name="NativeTextureTemplate" hidden="true" virtual="true">
+      <Color r="0" g="1" b="0" a="1"/></Texture></Ui>)";
+    {
+        std::unique_ptr<XMLTree,decltype(&XMLTree_Free)> templates(XMLTree_Load(virtualXML,std::strlen(virtualXML)),&XMLTree_Free);
+        Check(bool(templates),"Texture template parse failed");
+        CStatus status;
+        auto* node=XMLTree_GetRoot(templates.get())->m_child;
+        FrameXML_StoreHashNode(node,"NativeTextureTemplate",nullptr,&status);
+    }
     RegionLua(R"(
+        local inherited=NativeTextureParent:CreateTexture('$parentInherited','BACKGROUND','NativeTextureTemplate')
+        assert(inherited:GetParent()==NativeTextureParent and not inherited:IsShown())
+        assert(inherited:GetTexture()=='SolidTexture')
+        assert(not pcall(NativeTextureParent.CreateTexture,NativeTextureParent,'RejectedTextureList','BACKGROUND','NativeTextureTemplate,NativeTextureTemplate'))
+        assert(RejectedTextureList==nil)
         local t = NativeTextureParent:CreateTexture('$parentImage','ARTWORK')
         assert(t == NativeTextureParentImage and t:GetParent() == NativeTextureParent)
         assert(t:IsObjectType('Texture') and t:GetDrawLayer() == 'ARTWORK')
@@ -47,8 +73,11 @@ static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original)
     RegionLua("NativeTextureParentImage:SetDesaturated(false)");
     Equal(solid,Draw(device,root));
     const char* filename=original ? "Interface\\Glues\\LoadingBar\\Loading-BarFill.blp" : "fixture.blp";
+    TextureEnableAtlas(1);
     Check(texture->SetTexture(filename,0,0,GxTex_Nearest,ImageMode_Normal),"File texture replacement failed");
     auto pixels=Draw(device,root);
+    Check(bool(TextureOnAtlas(texture->m_texture))==!original,"Frame texture atlas eligibility changed");
+    TextureEnableAtlas(0);
     Check(Ink(pixels)>100,"File-backed texture region did not render");
     Equal(pixels,Draw(device,root));
     RegionLua("NativeTextureParentImage:SetTexCoord(.1,.5,.1,.9)");
@@ -86,6 +115,14 @@ static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original)
     auto xml=Draw(device,root);
     Check(Ink(xml)>100 && status.IsEmpty(),"XML-created texture region did not render");
     Equal(xml,Draw(device,root));
+    for (const char* invalid : {"<Texture horizTile='true'/>","<Texture><TexCoords left='nan'/></Texture>",
+                                "<Texture><TexCoords><Rect ULx='10001'/></TexCoords></Texture>"}) {
+        tree.reset(XMLTree_Load(invalid,std::strlen(invalid)));
+        const auto used=CSimpleTexture::s_allocator.m_dataUsed;
+        Reject([&]{LoadXML_Texture(XMLTree_GetRoot(tree.get()),parent,&status);});
+        Check(CSimpleTexture::s_allocator.m_dataUsed==used,"Rejected texture XML allocated a region");
+    }
+    tree.reset();
     delete parent;
     RegionLua(R"(
         assert(NativeTextureParent == nil and NativeTextureParentImage == nil and NativeTextureXMLFill == nil)
@@ -95,6 +132,7 @@ static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original)
     Check(CSimpleTexture::s_count==before && !CSimpleTexture::s_allocator.m_dataUsed,
           "Texture region teardown retained pooled objects");
     Check(!Ink(Draw(device,root)),"Texture XML destruction retained batches");
-    std::cout << "frame-texture-pool-file-solid-desaturate-lua-xml-uv-alpha-hide-retained-teardown=passed source="
+    FrameXML_FreeHashNodes();
+    std::cout << "frame-texture-pool-growth-file-solid-atlas-desaturate-lua-xml-template-uv-alpha-hide-retained-teardown=passed source="
               << (original?"original":"authored") << '\n';
 }
