@@ -25,6 +25,7 @@ template<int (*Method)(lua_State*)> int ScriptMethod(lua_State* L) {
     bool failed = false;
     try {
         RequireRegionScripts();
+        RequireRoot();
         RequireTreeMutation();
         for (int i = 2; i <= lua_gettop(L); ++i)
             if (lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
