@@ -83,7 +83,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
         t:SetText(string.rep('x',4095)); assert(#t:GetText() == 4095)
         t:SetText(formatted)
         local stable = t:GetText()
-        for _,bad in ipairs({'|', '|1', '|1one;', '|2 ', '|4one:many', '|3-1(word)',
+        for _,bad in ipairs({'|', '|1', '|1one;', '|2 ', "|2L'", '|2Le ', '|2La ', '|2Les ', '|4one:many', '|3-1(word)',
                             '2147483648 |4one:many;', string.rep('x',4096), string.rep('|2x ',1000),
                             string.char(0xc0,0x80), string.char(0xed,0xa0,0x80),
                             string.char(0xf0,0x9f), '|Tunsupported:10|t'}) do

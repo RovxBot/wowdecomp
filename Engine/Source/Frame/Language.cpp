@@ -479,6 +479,13 @@ int ValidateLanguage(const char* text) {
             size_t next = i+1;
             while (text[next] == ' ') ++next;
             if (!text[next]) throw std::invalid_argument("Missing article word");
+            // The original rule copies one character after a consumed article.
+            // Require it before advancing beyond the converted string terminator.
+            const char* word = text+next;
+            const size_t prefix = !std::strncmp(word, "L'", 2) ? 2 :
+                (!std::strncmp(word, "Le ", 3) || !std::strncmp(word, "La ", 3)) ? 3 :
+                !std::strncmp(word, "Les ", 4) ? 4 : 0;
+            if (prefix && !word[prefix]) throw std::invalid_argument("Missing article noun");
         } else if (!std::strchr(text+i+1, ';')) {
             throw std::invalid_argument("Unterminated plural alternatives");
         }
