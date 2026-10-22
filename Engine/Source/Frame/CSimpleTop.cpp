@@ -1,5 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include <exception>
 #define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_TREE_CHECK() ((void)0)
@@ -519,6 +520,9 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
 
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    try {
+#endif
     int32_t (*callback)(CMouseEvent*) = top->m_mouseMoveCallback;
 
     CMouseEvent evt;
@@ -606,6 +610,12 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
 
     return newFocus == nullptr;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    } catch (...) {
+        top->m_checkFocus = 1; // Retry even when the next pointer position is unchanged.
+        throw;
+    }
+#endif
 }
 
 // VERIFY: bb6eb71e manual
@@ -1301,7 +1311,12 @@ void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, i
     ownedPriority.release();
 #endif
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Reordering preserves capture but must refresh stationary hit priority.
+    if (event == SIMPLE_EVENT_MOUSE) {
+#else
     if (!a4 && event == SIMPLE_EVENT_MOUSE) {
+#endif
         this->m_checkFocus = 1;
     }
 
@@ -1622,12 +1637,16 @@ void CSimpleTop::CancelMouseInput() {
     m_mouseCapture = m_mouseFocus = nullptr;
     m_nativeButtonsDown = 0; m_nativeMouseSeen = false; m_checkFocus = 0;
     m_mousePosition.m_buttonState = 0;
+    std::exception_ptr failure;
     if (capture) {
         capture->m_isMouseDown = capture->m_isMouseDragging = 0;
         CMouseEvent event; event = m_mousePosition;
         event.m_data.m_button = 0; event.m_data.m_flags |= 1; event.m_id = 0x400500C9;
-        capture->OnLayerMouseUp(event, nullptr);
+        try { capture->OnLayerMouseUp(event, nullptr); }
+        catch (...) { failure = std::current_exception(); }
     }
-    if (focus) focus->OnLayerCursorExit(0, 1);
+    try { if (focus) focus->OnLayerCursorExit(0, 1); }
+    catch (...) { if (!failure) failure = std::current_exception(); }
+    if (failure) std::rethrow_exception(failure);
 }
 #endif

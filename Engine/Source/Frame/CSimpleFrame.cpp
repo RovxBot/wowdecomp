@@ -1105,6 +1105,12 @@ int32_t CSimpleFrame::TestHitRect(const C2Vector& pt) {
 // OFFSET: 0x0048F820
 void CSimpleFrame::SetHitRectInsets(float left, float right, float top, float bottom) {
     FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireFinite(left); Frame::Native::RequireFinite(right);
+    Frame::Native::RequireFinite(top); Frame::Native::RequireFinite(bottom);
+    this->m_simpleTop->m_checkFocus = 1;
+#endif
     this->m_hitRectInsets.minX = left;
     this->m_hitRectInsets.maxX = right;
     this->m_hitRectInsets.maxY = top;

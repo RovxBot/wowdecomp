@@ -5,7 +5,7 @@ struct MouseFrame final : CSimpleFrame {
     int identity;
     std::vector<MouseRecord>& records;
     int enters=0, exits=0, starts=0, stops=0, drops=0;
-    bool consumeWheel=false, defer=false;
+    bool consumeWheel=false, defer=false, failRelease=false;
     MouseFrame(int id,std::vector<MouseRecord>& log):CSimpleFrame(nullptr),identity(id),records(log) {}
     void Record(const CMouseEvent& event) {
         Check(!event.m_param,"Mouse event param initialized");
@@ -21,7 +21,9 @@ struct MouseFrame final : CSimpleFrame {
         Record(event);return CSimpleFrame::OnLayerMouseDown(event,name);
     }
     int32_t OnLayerMouseUp(const CMouseEvent& event,const char* name) override {
-        Record(event);return CSimpleFrame::OnLayerMouseUp(event,name);
+        Record(event);
+        if(failRelease) throw std::runtime_error("Authored pointer cancellation failure");
+        return CSimpleFrame::OnLayerMouseUp(event,name);
     }
     int32_t OnLayerMouseWheel(const CMouseEvent& event) override {Record(event);return consumeWheel;}
     void OnLayerCursorEnter(int32_t motion) override {
@@ -80,6 +82,7 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     Check(records.size()==before,"Stationary motion was redelivered");
     // Hit insets, pending-layout refresh and stratum ordering precede numeric priority.
     high->SetHitRectInsets(NDCToDDCWidth(0.15f),0,0,0);
+    root.OnLayerUpdate(0.01f);
     deliver(OS_INPUT_MOUSE_MOVE,0,129);Check(root.m_mouseFocus==low && high->exits==1,"Hit inset did not expose lower frame");
     high->SetHitRectInsets(0,0,0,0);high->SetFrameStrata(FRAME_STRATA_BACKGROUND);
     deliver(OS_INPUT_MOUSE_MOVE,0,130);Check(root.m_mouseFocus==low,"Stratum did not outrank priority");
@@ -108,7 +111,10 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     Check(!root.m_mouseCapture && !high->m_isMouseDown && !high->m_isMouseDragging && high->stops==1 && low->drops==1,"Drag/drop/final release cleanup");
     // Host capture/focus loss clears state before calling consumers.
     deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT,449);
-    deliver(OS_INPUT_CAPTURE_CHANGED,0);
+    low->failRelease=true;const auto exitsBefore=low->exits;bool cancelThrew=false;
+    try{deliver(OS_INPUT_CAPTURE_CHANGED,0);}catch(const std::runtime_error&){cancelThrew=true;}
+    low->failRelease=false;
+    Check(cancelThrew && low->exits==exitsBefore+1,"Cancellation failure skipped cursor-exit cleanup");
     Check(!root.m_mouseCapture && !root.m_mouseFocus && !root.m_nativeButtonsDown && !low->m_isMouseDown,"Capture loss retained mouse state");
     deliver(OS_INPUT_MOUSE_MOVE,0,128);deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
     deliver(OS_INPUT_FOCUS,0,0,0);
@@ -156,7 +162,9 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     throwMouseCallback=true;bool threw=false;
     try{deliver(OS_INPUT_MOUSE_MOVE,0,131);}catch(const std::runtime_error&){threw=true;}
     throwMouseCallback=false;Check(threw,"Mouse callback exception swallowed");
-    deliver(OS_INPUT_MOUSE_MOVE,0,132);Check(root.m_mouseFocus==high,"Mouse delivery did not recover");
+    const auto recordsBefore=records.size();
+    deliver(OS_INPUT_MOUSE_MOVE,0,131);
+    Check(root.m_mouseFocus==high && records.size()>recordsBefore,"Unchanged-position mouse delivery did not recover");
     consumeMouseCallback=true;
     Check(deliver(OS_INPUT_MOUSE_MOVE_RELATIVE,0,4,-3)==InputResult::Handled,"Relative callback consumption ignored");
     consumeMouseCallback=false;
