@@ -213,13 +213,6 @@ CSimpleFrame* Create_SimpleButton(CSimpleFrame* parent) {
     return data ? new (data) CSimpleButton(parent) : nullptr;
 }
 
-// VERIFY: 8993fe13 auto
-// OFFSET: 0x008128A0
-CSimpleFrame* Create_SimpleFrame(CSimpleFrame* parent) {
-    void* data = CSimpleFrame::s_allocator.GetData(0, typeid(CSimpleFrame).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleFrame(parent) : nullptr;
-}
-
 // VERIFY: f5a4d98a auto
 // OFFSET: 0x00812B90
 void FrameXML_FreeHashNodes() {

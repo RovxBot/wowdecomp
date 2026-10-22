@@ -14,6 +14,7 @@
 #include "Engine/Source/Frame/CScriptObject.h"
 #include "Engine/Source/Frame/CSimpleFont.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
+#include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/LoadXML.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
@@ -143,6 +144,7 @@ struct UpdateFrame final : CSimpleFrame {
     void OnLayerUpdate(float) override {
         Reject([&]{SetParent(nullptr);});
         Reject([&]{Frame::Native::RequireTreeMutation();});
+        Reject([&]{Create_SimpleFrame(this);});
         Frame::Native::DestroyLater(this);
         Frame::Native::DestroyLater(this);
     }
@@ -160,6 +162,7 @@ struct GuardedText final : CSimpleFontString {
         Reject([&]{SetFrame(m_parent,0,1);});
         Reject([&]{Hide();});
         Reject([&]{m_parent->SetParent(nullptr);});
+        Reject([&]{Frame::Native::CreateFontString(m_parent,2,true);});
         CSimpleFontString::Draw(batch);
     }
 };
@@ -241,10 +244,12 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "MouseChecks.h"
 #include "StackingChecks.h"
 #include "MovementChecks.h"
-static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
+#include "PoolChecks.h"
+static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
+    PoolChecks(device,root,font,owner);
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");
@@ -326,7 +331,8 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     root.OnLayerUpdate(0.016f);Check(!root.m_frames.Head() && !root.m_destroyed.Head() && CSimpleFrame::s_frameCount==0,"Parent destruction left Frames/attribute cleanup");
     Check(!Ink(Draw(device,root)),"Destroyed Frame retained rendered glyphs");
     // Root destruction also owns any Frames that remain attached to it.
-    new CSimpleFrame(nullptr);
+    auto* remaining=Create_SimpleFrame(nullptr);
+    Frame::Native::CreateFontString(remaining,2,true);
     std::cout<<"frame-parent-child-layer-root-visibility-reparent-alpha-scale-deferred=passed ink="<<ink<<'\n';
 }
 int main(int argc,char** argv) {
@@ -361,8 +367,11 @@ int main(int argc,char** argv) {
                     CSimpleFont* selected;
                     if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight((windowEvents?20.0f:32.0f)/480),0),"Authored font creation");}
                     else selected=Original(source);
-                    Hierarchy(context,device,*selected,cycle?"":snapshot,windowEvents,keyboardEvents,imeEvents,mouseEvents);
+                    Hierarchy(context,device,*selected,factories,cycle?"":snapshot,windowEvents,keyboardEvents,imeEvents,mouseEvents);
+                    Check(!CSimpleFrame::s_allocator.m_dataUsed && !CSimpleFontString::s_allocator.m_dataUsed,"Root teardown left pooled objects");
                     renderer.CheckCanClose();factories.CheckCanClose();}
+                Check(!CSimpleFrame::s_allocator.m_blockList && !CSimpleFontString::s_allocator.m_blockList,
+                      "Font factory teardown retained pool blocks");
                 Check(!source.queue.Pending(),"Region left pending file work");
             }
             Check(!s_context && !OsLiveThreadCount(),"Region shutdown left VM/workers");std::cout<<"frame-hierarchy-cycle-closed="<<cycle+1<<" workers=0\n";

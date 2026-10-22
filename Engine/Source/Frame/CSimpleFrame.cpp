@@ -1,5 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
 #define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_TREE_CHECK() ((void)0)
@@ -180,7 +181,7 @@ int32_t CSimpleFrame::GetObjectType() {
 void CSimpleFrame::operator delete(void* ptr) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    ::operator delete(ptr);
+    Frame::Native::FreeRegionStorage(CSimpleFrame::s_allocator, ptr);
 #else
 
     if (ptr) {

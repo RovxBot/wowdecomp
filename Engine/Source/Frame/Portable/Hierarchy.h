@@ -4,9 +4,10 @@
 class CSimpleTop;
 class CSimpleTitleRegion;
 namespace Frame { namespace Native {
-// Direct C++ Frames are owned by their parent/root. Borrow them until destruction;
-// heap allocation is required, and no native XML/Lua Frame factory is advertised.
+// Frames are owned by their parent/root. Heap and selected pool allocations may
+// coexist. Borrow until destruction; XML/Lua factory registration is separate.
 void RequireRoot();
+CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);
 void SimpleFrameCreated(CSimpleFrame*);
 void SimpleFrameDestroyed(CSimpleFrame*);

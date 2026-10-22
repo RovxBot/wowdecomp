@@ -1,4 +1,6 @@
 #include "Hierarchy.h"
+#include "Storage.h"
+#include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CSimpleTitleRegion.h"
 #include <memory>
 #include "Engine/Source/Frame/CSimpleTop.h"
@@ -15,6 +17,12 @@ std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
 constexpr size_t MaxDepth = 64;
+}
+CSimpleFontString* CreateFontString(CSimpleFrame* frame, uint32_t layer, bool show) {
+    RequireTreeMutation();
+    if (frame) RequireSimpleFrame(frame);
+    if (layer >= 5) throw std::invalid_argument("Invalid native FontString draw layer");
+    return ConstructRegion<CSimpleFontString>(CSimpleFontString::s_allocator, frame, layer, show);
 }
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame* frame) {
     RequireTreeMutation(); RequireSimpleFrame(frame);
