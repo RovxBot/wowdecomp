@@ -82,8 +82,17 @@ static int32_t Script_CreateTitleRegion(lua_State* L) {
 
 // VERIFY: 3033acd4 manual
 // OFFSET: 0x004A2010
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_CreateTexture(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    auto* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
+    const char* name = lua_isstring(L, 2) ? lua_tostring(L, 2) : nullptr;
+    uint32_t layer = 2;
+    if (lua_isstring(L, 3)) StringToDrawLayer(lua_tostring(L, 3), layer);
+    const char* inherits = lua_type(L, 4) == LUA_TSTRING ? lua_tostring(L, 4) : nullptr;
+    auto* texture = FrameXML::Native::CreateTexture(frame, name, layer, inherits);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, texture->m_luaObjectRef);
+    return 1;
+#else
     XMLNode* inheritNode = nullptr;
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
     const char* name = nullptr;
@@ -145,8 +154,8 @@ static int32_t Script_CreateTexture(lua_State* L) {
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, texture->m_luaObjectRef);
     return 1;
-}
 #endif
+}
 
 // VERIFY: e8e49864 manual
 // OFFSET: 0x004A2240
@@ -2152,7 +2161,7 @@ void CSimpleFrame::DestroyScriptMetaTable() {
 static FrameScript_Method s_ScriptMethods[] = {
     { "GetTitleRegion", &Frame::Native::ScriptMethod<&Script_GetTitleRegion> },
     { "CreateTitleRegion", &Frame::Native::ScriptMethod<&Script_CreateTitleRegion> },
-    { "CreateTexture", &Frame::Native::UnavailableScriptMethod },
+    { "CreateTexture", &Frame::Native::ScriptMethod<&Script_CreateTexture> },
     { "CreateFontString", &Frame::Native::ScriptMethod<&Script_CreateFontString> },
     { "GetBoundsRect", &Frame::Native::UnavailableScriptMethod },
     { "GetNumRegions", &Frame::Native::ScriptMethod<&Script_GetNumRegions> },

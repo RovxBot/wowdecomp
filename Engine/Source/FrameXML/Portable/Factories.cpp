@@ -1,6 +1,7 @@
 // Native adaptation of original 12340 FrameXML registry/template creation and
 // SimpleFrameScript_Scripts.cpp::Script_CreateFrame. No new address/VERIFY claim.
 #include "Factories.h"
+#include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
@@ -65,7 +66,7 @@ std::vector<std::string> Names(const char* value) {
 std::vector<std::string> InheritedNames(XMLNode* node) {
     const char* inherits = node->GetAttributeByName("inherits");
     // Original Frame lists tokenize; FontString inheritance is one exact key.
-    if (Is(node->m_name.m_str, "FontString")) {
+    if (Is(node->m_name.m_str, "FontString") || Is(node->m_name.m_str, "Texture")) {
         if (!inherits || !*inherits) return {};
         Name(inherits);
         return {inherits};
@@ -107,7 +108,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
     // Fail before allocation for consumers with unselected ownership/services.
     const char* supported[] = {"Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
-        "Color", "Shadow", "ResizeBounds", "minResize", "maxResize"};
+        "Color", "Shadow", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
     if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
         throw std::invalid_argument("Native XML widget or child service is unavailable");
     if (auto* name = node->GetAttributeByName("name"); name && *name) Name(name);
@@ -116,7 +117,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         const char* key = attr.m_name.m_str;
         const char* value = attr.m_value.m_str;
         if (!value || !*value) continue;
-        const char* numeric[] = {"x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing"};
+        const char* numeric[] = {"x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing", "left", "right", "top", "bottom", "ULx", "ULy", "LLx", "LLy", "URx", "URy", "LRx", "LRy"};
         const char* integer[] = {"id", "bytes", "maxLines", "frameLevel"};
         bool integral = std::any_of(std::begin(integer), std::end(integer), [&](const char* s) { return Is(key, s); });
         if (integral || std::any_of(std::begin(numeric), std::end(numeric), [&](const char* s) { return Is(key, s); })) {
@@ -269,6 +270,25 @@ CSimpleFontString* CreateFontString(CSimpleFrame* parent, const char* name, unsi
     }
     string->GetLuaObjectRef();
     return string.release();
+}
+CSimpleTexture* CreateTexture(CSimpleFrame* parent, const char* name, unsigned layer, const char* inherits) {
+    RequireFactories();
+    XMLNode node(nullptr, "Texture");
+    if (name && *name) node.SetAttribute("name", name);
+    if (inherits && *inherits) node.SetAttribute("inherits", inherits);
+    ValidateCreation(&node);
+    std::unique_ptr<CSimpleTexture> texture(Frame::Native::CreateTexture(parent, layer, true));
+    RequireAvailableName(texture.get(), name);
+    if (name && *name) texture->SetName(name);
+    if (inherits && *inherits) {
+        ApplyTemplates(&node, [&](XMLNode* inherited) {
+            CStatus status;
+            texture->LoadXML(inherited, &status);
+            texture->PostLoadXML(inherited, &status);
+        }, false);
+    }
+    texture->GetLuaObjectRef();
+    return texture.release();
 }
 }}
 int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*), bool unique) {

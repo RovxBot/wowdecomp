@@ -16,7 +16,7 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
       <Frame name="NativeXMLDerived" virtual="true" inherits="NativeXMLBase"/>
       <Frame name="NativeXMLCycleA" virtual="true" inherits="NativeXMLCycleB"/>
       <Frame name="NativeXMLCycleB" virtual="true" inherits="NativeXMLCycleA"/>
-      <Frame name="NativeXMLUnsupported" virtual="true"><Layers><Layer><Texture/></Layer></Layers></Frame>
+      <Frame name="NativeXMLUnsupported" virtual="true"><Layers><Layer><Animation/></Layer></Layers></Frame>
       <FontString name="NativeXMLTextTemplate" virtual="true" text="NativeXMLToken"/>
       <Frame name="NativeXMLDimensions" virtual="true"><Size x="200" y="80"/></Frame>
     </Ui>)";

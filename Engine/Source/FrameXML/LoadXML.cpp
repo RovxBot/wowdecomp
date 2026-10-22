@@ -18,20 +18,9 @@
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
 
-// STATIC: 0x00A43FE8
-static const XMLENUMVALUE s_blendModes[] = {
-    { GxBlend_Opaque, "DISABLE" },
-    { GxBlend_Alpha, "BLEND" },
-    { GxBlend_AlphaKey, "ALPHAKEY" },
-    { GxBlend_Add, "ADD" },
-    { GxBlend_Mod, "MOD" },
-};
 
-// STATIC: 0x00A44040
-static const XMLENUMVALUE s_orientations[] = {
-    { ORIENTATION_HORIZONTAL, "HORIZONTAL" },
-    { ORIENTATION_VERTICAL, "VERTICAL" },
-};
+
+
 
 // STATIC: 0x00A44068
 static const SMOOTHWEIGHTS s_smoothWeights[] = {
@@ -65,43 +54,11 @@ static const XMLENUMVALUE s_curveTypes[] = {
 // STATIC: 0x00A4421C
 static const uint8_t s_signaturePublicExponent[4] = { 0x01, 0x00, 0x01, 0x00 };
 
-// VERIFY: d7a0825b auto
-// OFFSET: 0x00814FF0
-int32_t StringToBlendMode(const char* string, EGxBlend& blend) {
-    for (uint32_t i = 0; i < sizeof(s_blendModes) / sizeof(s_blendModes[0]); i++) {
-        if (!SStrCmpI(s_blendModes[i].m_name, string, STORM_MAX_STR)) {
-            blend = static_cast<EGxBlend>(s_blendModes[i].m_value);
-            return 1;
-        }
-    }
 
-    return 0;
-}
 
-// VERIFY: 06e3b9e5 auto
-// OFFSET: 0x00815040
-const char* BlendModeToString(EGxBlend blend) {
-    for (uint32_t i = 0; i < sizeof(s_blendModes) / sizeof(s_blendModes[0]); i++) {
-        if (blend == s_blendModes[i].m_value) {
-            return s_blendModes[i].m_name;
-        }
-    }
 
-    return "UNKNOWN";
-}
 
-// VERIFY: c9627a19 auto
-// OFFSET: 0x00815110
-int32_t StringToOrientation(const char* string, ORIENTATION& orientation) {
-    for (uint32_t i = 0; i < sizeof(s_orientations) / sizeof(s_orientations[0]); i++) {
-        if (!SStrCmpI(s_orientations[i].m_name, string, STORM_MAX_STR)) {
-            orientation = static_cast<ORIENTATION>(s_orientations[i].m_value);
-            return 1;
-        }
-    }
 
-    return 0;
-}
 
 // VERIFY: 37b9ac8c auto
 // OFFSET: 0x00815160
@@ -203,29 +160,7 @@ const char* SmoothWeightsToString(float in, float out) {
     return "UNKNOWN";
 }
 
-// VERIFY: 91664f60 auto
-// OFFSET: 0x00815DF0
-int32_t LoadXML_Gradient(XMLNode* node, ORIENTATION& orientation, CImVector& minColor, CImVector& maxColor, CStatus* status) {
-    orientation = ORIENTATION_HORIZONTAL;
 
-    const char* orientationString = node->GetAttributeByName("orientation");
-
-    if (orientationString && *orientationString && !StringToOrientation(orientationString, orientation)) {
-        status->Add(STATUS_WARNING, "Unknown orientation %s in element %s", orientationString, node->m_name.m_str);
-    }
-
-    for (XMLNode* child = node->m_child; child; child = child->m_next) {
-        if (!SStrCmpI(child->m_name.m_str, "MinColor", STORM_MAX_STR)) {
-            LoadXML_Color(child, minColor, status);
-        }
-
-        if (!SStrCmpI(child->m_name.m_str, "MaxColor", STORM_MAX_STR)) {
-            LoadXML_Color(child, maxColor, status);
-        }
-    }
-
-    return 1;
-}
 
 // VERIFY: 4bd552ef manual
 // OFFSET: 0x00815EB0
@@ -251,18 +186,7 @@ int32_t LoadXML_AnimOrigin(XMLNode* node, FRAMEPOINT& point, C2Vector& offset, C
     return 1;
 }
 
-// VERIFY: dea072e9 auto
-// OFFSET: 0x00815F40
-CSimpleTexture* LoadXML_Texture(XMLNode* node, CSimpleFrame* frame, CStatus* status) {
-    void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
-    CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 2, 1) : nullptr;
 
-    texture->PreLoadXML(node, status);
-    texture->LoadXML(node, status);
-    texture->PostLoadXML(node, status);
-
-    return texture;
-}
 
 // VERIFY: 8282815a manual
 // OFFSET: 0x00816000

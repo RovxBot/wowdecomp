@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -389,6 +392,9 @@ static int32_t Script_SetNonBlocking(lua_State* L) {
     uint32_t nonBlocking = StringToBOOL(L, 2, 1) != 0;
 
     texture->m_textureFlags ^= (texture->m_textureFlags ^ nonBlocking) & 0x1;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    texture->OnRegionChanged();
+#endif
     return 0;
 }
 
@@ -517,6 +523,39 @@ void CSimpleTexture::DestroyScriptMetaTable() {
 }
 
 // STATIC: 0x00AC1028
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "IsObjectType", &Frame::Native::ScriptMethod<&Script_IsObjectType> },
+    { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType> },
+    { "GetDrawLayer", &Frame::Native::ScriptMethod<&Script_GetDrawLayer> },
+    { "SetDrawLayer", &Frame::Native::ScriptMethod<&Script_SetDrawLayer> },
+    { "GetBlendMode", &Frame::Native::ScriptMethod<&Script_GetBlendMode> },
+    { "SetBlendMode", &Frame::Native::ScriptMethod<&Script_SetBlendMode> },
+    { "GetVertexColor", &Frame::Native::ScriptMethod<&Script_GetVertexColor> },
+    { "SetVertexColor", &Frame::Native::ScriptMethod<&Script_SetVertexColor> },
+    { "SetGradient", &Frame::Native::ScriptMethod<&Script_SetGradient> },
+    { "SetGradientAlpha", &Frame::Native::ScriptMethod<&Script_SetGradientAlpha> },
+    { "SetAlpha", &Frame::Native::ScriptMethod<&Script_SetAlpha> },
+    { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha> },
+    { "Show", &Frame::Native::ScriptMethod<&Script_Show> },
+    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide> },
+    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible> },
+    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown> },
+    { "GetTexture", &Frame::Native::ScriptMethod<&Script_GetTexture> },
+    { "SetTexture", &Frame::Native::ScriptMethod<&Script_SetTexture> },
+    { "GetTexCoord", &Frame::Native::ScriptMethod<&Script_GetTexCoord> },
+    { "SetTexCoord", &Frame::Native::ScriptMethod<&Script_SetTexCoord> },
+    { "SetRotation", &Frame::Native::ScriptMethod<&Script_SetRotation> },
+    { "SetDesaturated", &Frame::Native::ScriptMethod<&Script_SetDesaturated> },
+    { "IsDesaturated", &Frame::Native::ScriptMethod<&Script_IsDesaturated> },
+    { "SetNonBlocking", &Frame::Native::ScriptMethod<&Script_SetNonBlocking> },
+    { "GetNonBlocking", &Frame::Native::ScriptMethod<&Script_GetNonBlocking> },
+    { "SetHorizTile", &Frame::Native::UnavailableScriptMethod },
+    { "GetHorizTile", &Frame::Native::ScriptMethod<&Script_GetHorizTile> },
+    { "SetVertTile", &Frame::Native::UnavailableScriptMethod },
+    { "GetVertTile", &Frame::Native::ScriptMethod<&Script_GetVertTile> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "IsObjectType", &Script_IsObjectType },
     { "GetObjectType", &Script_GetObjectType },
@@ -548,6 +587,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetVertTile", &Script_SetVertTile },
     { "GetVertTile", &Script_GetVertTile },
 };
+#endif
 
 // VERIFY: 6d342f5b auto
 // OFFSET: 0x0048BC20
