@@ -1,6 +1,7 @@
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/Services/Portable/Texture.h"
+#include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/WindowEvents.h"
 #include "Engine/Source/Frame/CSimpleTop.h"

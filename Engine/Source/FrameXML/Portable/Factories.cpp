@@ -65,7 +65,7 @@ std::vector<std::string> Names(const char* value) {
 }
 std::vector<std::string> InheritedNames(XMLNode* node) {
     const char* inherits = node->GetAttributeByName("inherits");
-    // Original Frame lists tokenize; FontString inheritance is one exact key.
+    // Original Frame lists tokenize; FontString/Texture inheritance is one exact key.
     if (Is(node->m_name.m_str, "FontString") || Is(node->m_name.m_str, "Texture")) {
         if (!inherits || !*inherits) return {};
         Name(inherits);
@@ -111,6 +111,11 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         "Color", "Shadow", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
     if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
         throw std::invalid_argument("Native XML widget or child service is unavailable");
+    if (Is(tag, "Texture")) {
+        for (auto* key : {"horizTile", "vertTile"})
+            if (auto* value = node->GetAttributeByName(key); value && StringToBOOL(value))
+                throw std::invalid_argument("Native texture tiling needs sampler integration");
+    }
     if (auto* name = node->GetAttributeByName("name"); name && *name) Name(name);
     for (uint32_t i = 0; i < node->m_attributes.Count(); ++i) {
         auto& attr = node->m_attributes[i];
@@ -126,6 +131,8 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             if (*end || end == value || !std::isfinite(number) || std::fabs(number) > FLT_MAX ||
                 (integral && (number < INT32_MIN || number > INT32_MAX || std::trunc(number) != number)))
                 throw std::invalid_argument("Invalid native XML numeric attribute");
+            if ((Is(tag, "TexCoords") || Is(tag, "Rect")) && std::fabs(number) > 10000)
+                throw std::invalid_argument("Native texture coordinate exceeds original range");
         }
     }
     for (auto& name : InheritedNames(node)) {

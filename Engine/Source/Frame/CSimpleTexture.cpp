@@ -427,6 +427,10 @@ void CSimpleTexture::Init() {
     for (uint32_t i = 0; i < 2; i++) {
         if (CSimpleTexture::s_imageModePixelShaderNames[i]) {
             g_theGxDevicePtr->ShaderCreate(&CSimpleTexture::s_imageModePixelShaders[i], GxSh_Pixel, "Shaders\\Pixel", CSimpleTexture::s_imageModePixelShaderNames[i], 1);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            if (!s_imageModePixelShaders[i] || !s_imageModePixelShaders[i]->Valid())
+                throw std::runtime_error("Native Frame texture image-mode shader failed");
+#endif
         }
     }
 }
@@ -662,9 +666,6 @@ void CSimpleTexture::LoadXML(XMLNode* node, CStatus* status) {
     TEXTURE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     FrameXML::Native::ValidateCreation(node);
-    if ((node->GetAttributeByName("horizTile") && StringToBOOL(node->GetAttributeByName("horizTile"))) ||
-        (node->GetAttributeByName("vertTile") && StringToBOOL(node->GetAttributeByName("vertTile"))))
-        throw std::invalid_argument("Native texture tiling needs sampler integration");
     FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) { LoadXML(inherited, status); }, false);
 #else
     const char* inherits = node->GetAttributeByName("inherits");
