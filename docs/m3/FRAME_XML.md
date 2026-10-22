@@ -37,8 +37,7 @@ close, inherited and explicit parents, pooled Lua creation, localized language t
 layers/title/nested children, rendered text/exact repeats, cycle/missing/unsupported
 rejection, acquisition failure cleanup, nested creation rollback, stale canonical
 tables, traversal guards and pool/batch teardown. Its text and composition are
-authored, with authored or original fonts/UI shaders. Hosted and downloaded GPU
-qualification is pending for this implementation.
+authored, with authored or original fonts/UI shaders. The qualification below records hosted and downloaded GPU execution.
 
 The first hosted run passed 33/38 checks in each Linux configuration. Its authored
 text contained none of the geometric fixture's visible glyphs; the pixel assertion
@@ -55,3 +54,34 @@ rendering, portable transport/authentication and observed gameplay remain open.
 The clean installation stays read-only; the user will sign in interactively when
 native login is ready. Preserve historical evidence and server revision
 discrepancies. M3 remains incomplete.
+
+## Qualification
+
+[PR #70](https://github.com/RovxBot/wowdecomp/pull/70) is qualified at
+`2932c2fdb7eac99bc1a583f3c4374e7ab49fc71c`, merged as
+`70faf33a85e5a967530ea463d7da4f9d94fc7ba1`. [Durable validation](frame-xml-validation.json)
+records all thirteen passing final-head PR workflows, 38 CTest checks per Linux
+release/strict ASan/UBSan/leak configuration and full signature-enabled Windows
+x64 compilation at matching-tree checkout `da814becf9a5a35681062ad14263e82cc07820c1`.
+Implementation, hosted checkout and merge share the same source tree. Three
+archive digests and all 51 packaged executable hashes/types/notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer
+packages passed 30 authored/original-data desktop executions, three owner cycles
+each, with empty stderr and zero workers. Four target/transform/buffer/texture
+fixtures also passed three cycles per mode. All fifteen capture pairs match;
+final original-data hierarchy/input captures retain the prior baseline. The
+inspected final capture is authored hierarchy text through original fonts/UI
+shaders; intermediate readbacks assert XML-created text and exact repeats.
+No original login capture is claimed. Original-key MPQ authentication, selective
+member MD5 and before/after original GlueXML signatures around eighteen GlueFonts
+definitions remained enabled. Complete ordered creation/full second digest gate
+remains open.
+
+The earlier no-ink fixture and strict empty-outline failure remain recorded with
+log hashes. The corrected fixture retains its pixel requirement; a focused empty
+loader tests the native-only FreeType correction before rasterization. All five
+changed Frame files, remaining LoadXML and extracted helpers, and FreeType retain
+unchanged Windows-selected tokens. Local source/launcher checks: 57 passed, one
+unavailable-CMake skip; whitespace passed. All compilation ran in Actions.
+No new physical-input, Windows runtime, macOS graphics or server acceptance.
