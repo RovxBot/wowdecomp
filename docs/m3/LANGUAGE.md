@@ -6,7 +6,8 @@ The rules and static buffers move from `CSimpleRender.cpp` to `Language.cpp`;
 Windows-selected language and setter bodies remain unchanged. The native target
 selects the original Storm Unicode conversion source used by these rules. Native execution
 uses the qualified Frame/Gxu/layout/VM owner and the existing guarded Lua method
-boundary. Every region and external script reference closes before Scripts,
+boundary. Text/format numeric arguments retain original conversions rather than
+the coordinate-method finite-float restriction. Every region and external script reference closes before Scripts,
 renderer/Fonts/Gxu/layout/XML/VM/device/context/queue.
 
 Rule 1 chooses Korean particles using the original Hangul, Latin-letter and digit
