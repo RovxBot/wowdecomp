@@ -808,6 +808,37 @@ No new Windows runtime, macOS graphics or server acceptance. M3 remains incomple
 preserve historical identities, signatures, server revision discrepancies and
 interactive user sign-in.
 
+
+The [original language/text-setter package](docs/m3/LANGUAGE.md) in
+[PR #68](https://github.com/RovxBot/wowdecomp/pull/68) is qualified at
+`f0f522c467177cb1c044758c0f686d3001e9f3a4`, merged as
+`2a0e3f5105fcb81064d287ba515fec2639c20151`. [Durable validation](docs/m3/language-validation.json)
+records thirteen passing implementation workflows, 38 CTest checks per Linux
+release/strict ASan/UBSan/leak configuration and full signature-enabled Windows
+x64 compilation at matching-tree checkout `fb6ba2fe87c3129ca078a8182c8ff952777c9ebf`.
+Three archives/all 51 executable hashes/types/notices verified. RX 7900 XTX / Mesa
+26.2.5 / SDL X11 release/strict sanitizer packages passed 30 three-cycle authored/
+original-data desktop executions, empty stderr/zero workers; fifteen capture pairs
+match. Four resource fixtures passed three cycles per mode.
+
+Original Korean particle/rieul, French article/vowel and plural decisions now back
+Lua `SetText`/positional `SetFormattedText`. Text numeric conversions are separate
+from coordinate finite-float checks. Preserve 4095-byte valid UTF-8 intermediate
+admission, grammar/article nouns, signed-32-bit counters, 64 passes, owner-thread
+borrowed scratch buffers and C++ unwind before Lua errors. Region/direct-C++ and
+Lua fixtures assert processing, unchanged text on rejection, retained caches,
+rendered transformed authored text, exact repeats and teardown. Windows language/
+renderer/setter tokens remain unchanged. The prior link and stale-fixture failures
+remain evidence; detectors stay enabled. Original-data signatures stay enabled.
+
+DB-backed declensions, XML registry/global `CreateFrame`/named-parent/templates,
+remaining widget/nonempty Lua input consumers and physical IME/edit-box/candidate
+acceptance remain open. Complete signed ordered GlueXML/full second digest gate,
+full login rendering, transport/authentication and observed gameplay remain open.
+No new physical-input, Windows runtime, macOS graphics or server acceptance. M3 is
+incomplete; preserve historical identities, signatures, server revision discrepancies
+and interactive user sign-in.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

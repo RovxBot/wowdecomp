@@ -92,3 +92,12 @@ checks passed. Superseded/duplicate runs remain separate historical records.
 No new physical-input, Windows runtime, macOS graphics or server acceptance is
 recorded. M3 stays incomplete; preserve signatures, historical identities, server
 revision discrepancies and interactive user sign-in.
+
+
+## Subsequent language integration
+
+[PR #68](https://github.com/RovxBot/wowdecomp/pull/68) qualifies the bounded original
+language rules and Lua text setters in [LANGUAGE.md](LANGUAGE.md). The PR #66
+observations above retain their historical C++ `process=0` text scope. Current
+language/transformed-text evidence and remaining DB-backed declensions are separate;
+XML registry/templates, other widgets, full login and gameplay remain open.
