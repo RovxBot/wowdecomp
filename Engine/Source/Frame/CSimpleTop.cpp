@@ -24,6 +24,9 @@
 #include "Engine/Source/Frame/CSimpleFrame.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/CSimpleTitleRegion.h"
+#endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Gxu/GxuFont.h"
@@ -90,7 +93,13 @@ void CSimpleTop::GetCursorPosition(C2Vector& position) {
 void CSimpleTop::StopMoveOrResizeFrame() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_moveResizeFrame) Frame::Native::UnavailableFrameFeature();
+    Frame::Native::RequireTreeMutation();
+    auto* moving = this->m_moveResizeFrame;
+    this->m_moveResizeFrame = nullptr;
+    this->m_moveResizeReason = MOVERESIZE_REASON_NONE;
+    this->m_nativeMoveRaisePending = false;
+    // Retire the borrowed pointer before resize callbacks, including failures.
+    if (moving) moving->UnflattenFrame(this);
 #else
 
     if (this->m_moveResizeFrame) {
@@ -146,8 +155,12 @@ void CSimpleTop::SetCursor(MipBits* image) {
 void CSimpleTop::MoveOrResizeFrame(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    if (!this->m_moveResizeFrame) return;
+    Frame::Native::RequireSimpleFrame(this->m_moveResizeFrame);
+    Frame::Native::RequireFinite(evt.m_data.m_mousePosition.x);
+    Frame::Native::RequireFinite(evt.m_data.m_mousePosition.y);
+#endif
 
     float offsetX = evt.m_data.m_mousePosition.x - this->m_moveResizeLast.x;
     float offsetY = evt.m_data.m_mousePosition.y - this->m_moveResizeLast.y;
@@ -157,8 +170,10 @@ void CSimpleTop::MoveOrResizeFrame(const CMouseEvent& evt) {
         this->m_moveResizeLast.x += offsetX;
         this->m_moveResizeLast.y += offsetY;
     }
-
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->FlushMoveRaise();
 #endif
+
 }
 
 // VERIFY: 03c64564 auto
@@ -216,11 +231,26 @@ void CSimpleTop::SetMouseFocus(CSimpleFrame* frame) {
 
 // VERIFY: 4a164119 manual
 // OFFSET: 0x00494060
-int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, FRAMEPOINT point) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, uint32_t reason, float x, float y, uint32_t point)
+#else
+int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, FRAMEPOINT point)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+    Frame::Native::RequirePoint(point);
+    Frame::Native::RequireFinite(x); Frame::Native::RequireFinite(y);
+    if (reason < MOVERESIZE_REASON_LAYOUT || reason > MOVERESIZE_REASON_SCRIPT)
+        throw std::invalid_argument("Invalid Frame movement reason");
+    if (this->m_moveResizeFrame) throw std::logic_error("Stop the current Frame movement first");
+    // Preflight a possible raise before flattening mutates layout anchors.
+    auto* ancestor = frame;
+    while (ancestor && !(ancestor->m_frameFlags & 1)) ancestor = ancestor->m_parent;
+    if (ancestor && (ancestor->m_frameFlags & 0x10)) Frame::Native::RequireRaise(ancestor);
+#endif
 
     if (!frame->FlattenFrame(this, 0.0f, 0.0f, 0.0f, 0.0f)) {
         return 0;
@@ -230,9 +260,17 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
     frame->SetFrameFlag(0x1000, true);
 
     this->m_moveResizeLast.x = x;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_moveResizeReason = static_cast<MOVERESIZE_REASON>(reason);
+#else
     this->m_moveResizeReason = reason;
+#endif
     this->m_moveResizeLast.y = y;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_moveResizePoint = static_cast<FRAMEPOINT>(point);
+#else
     this->m_moveResizePoint = point;
+#endif
     this->m_moveResizeFrame = frame;
 
     CMouseEvent evt;
@@ -241,16 +279,24 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
 
     return 1;
 
-#endif
 }
 
 // VERIFY: 01703242 manual
 // OFFSET: 0x00494120
-int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, int32_t resize) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, uint32_t reason, float x, float y, int32_t resize)
+#else
+int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASON reason, float x, float y, int32_t resize)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+    Frame::Native::RequireFinite(x); Frame::Native::RequireFinite(y);
+    if (reason < MOVERESIZE_REASON_LAYOUT || reason > MOVERESIZE_REASON_SCRIPT || (resize != 0 && resize != 1))
+        throw std::invalid_argument("Invalid Frame movement request");
+#endif
 
     FRAMEPOINT point = FRAMEPOINT_CENTER;
 
@@ -293,9 +339,12 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(CSimpleFrame* frame, MOVERESIZE_REASO
         }
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return this->StartMoveOrResizeFrame(frame, reason, x, y, uint32_t(point));
+#else
     return this->StartMoveOrResizeFrame(frame, reason, x, y, point);
-
 #endif
+
 }
 
 // VERIFY: d60ec4ff manual
@@ -515,6 +564,15 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     CheckMouseInput(data, param);
+    auto* nativeTop = static_cast<CSimpleTop*>(param);
+    if (nativeTop->m_moveResizeFrame) {
+        const auto& position = *static_cast<const EVENT_DATA_MOUSE*>(data);
+        nativeTop->m_mousePosition = position;
+        CSimpleTop::s_eventTime = position.m_time;
+        CMouseEvent event; event = position;
+        nativeTop->MoveOrResizeFrame(event);
+        return 0;
+    }
     Frame::Native::ResizeScope inputGuard;
 #endif
 
@@ -646,6 +704,12 @@ int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     CheckMouseInput(data, param);
+    auto* nativeTop = static_cast<CSimpleTop*>(param);
+    if (nativeTop->m_moveResizeReason == MOVERESIZE_REASON_LAYOUT || nativeTop->m_moveResizeReason == MOVERESIZE_REASON_TITLE) {
+        CSimpleTop::s_eventTime = static_cast<const EVENT_DATA_MOUSE*>(data)->m_time;
+        nativeTop->StopMoveOrResizeFrame();
+        return 0;
+    }
     Frame::Native::ResizeScope inputGuard;
 #endif
 
@@ -762,8 +826,10 @@ int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
 // OFFSET: 0x00494C80
 CSimpleFrame* CFrameStrata::GetHitFrame(const C2Vector& pt) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireRoot();
+    Frame::Native::RequireFinite(pt.x); Frame::Native::RequireFinite(pt.y);
+    Frame::Native::ResizeScope traversalGuard;
+#endif
 
     for (uint32_t level = this->m_topLevel; level > 0;) {
         level--;
@@ -786,7 +852,6 @@ CSimpleFrame* CFrameStrata::GetHitFrame(const C2Vector& pt) {
 
     return nullptr;
 
-#endif
 }
 
 // VERIFY: 314ab723 manual
@@ -1049,11 +1114,20 @@ int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
 
 // VERIFY: 36f05eee manual
 // OFFSET: 0x00495270
-int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_REASON reason, int32_t resize) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, uint32_t reason, int32_t resize)
+#else
+int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_REASON reason, int32_t resize)
+#endif
+{
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    if (reason < MOVERESIZE_REASON_LAYOUT || reason > MOVERESIZE_REASON_SCRIPT || (resize != 0 && resize != 1))
+        throw std::invalid_argument("Invalid Frame movement request");
+    Frame::Native::RequireFinite(evt.m_data.m_mousePosition.x);
+    Frame::Native::RequireFinite(evt.m_data.m_mousePosition.y);
+#endif
 
     CSimpleFrame* frame = nullptr;
 
@@ -1082,7 +1156,6 @@ int32_t CSimpleTop::StartMoveOrResizeFrame(const CMouseEvent& evt, MOVERESIZE_RE
 
     return this->StartMoveOrResizeFrame(frame, reason, evt.m_data.m_mousePosition.x, evt.m_data.m_mousePosition.y, resize);
 
-#endif
 }
 
 // VERIFY: 09bbf45a auto
@@ -1116,6 +1189,7 @@ void CSimpleTop::OnLayerUpdate(float elapsedSec) {
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     } // End update traversal before invoking pointer consumers.
+    this->FlushMoveRaise();
     if (this->m_checkFocus && this->m_nativeMouseSeen) {
         this->m_checkFocus = 0;
         CSimpleTop::OnMouseMove(&this->m_mousePosition, this);
@@ -1159,13 +1233,16 @@ int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
     CheckMouseInput(data, param);
     const auto* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     auto* top = static_cast<CSimpleTop*>(param);
-    if (!mouseData->m_button || top->m_moveResizeEnabled || top->m_moveResizeFrame)
-        Frame::Native::UnavailableFrameFeature();
+    if (!mouseData->m_button) throw std::invalid_argument("Missing Frame mouse button");
+    if (top->m_moveResizeFrame) return 0;
     auto* frame = top->m_mouseCapture ? top->m_mouseCapture : top->m_mouseFocus;
-    if (frame && frame->m_titleRegion) Frame::Native::UnavailableFrameFeature();
     CMouseEvent evt; evt = *mouseData; evt.m_id = 0x400500C8;
     CSimpleTop::s_eventTime = mouseData->m_time;
     top->m_mousePosition = *mouseData;
+    if (top->m_moveResizeEnabled && (top->m_nativeKeysDown[KEY_LCONTROL] || top->m_nativeKeysDown[KEY_LALT])) {
+        top->StartMoveOrResizeFrame(evt, MOVERESIZE_REASON_LAYOUT, int32_t(top->m_nativeKeysDown[KEY_LCONTROL]));
+        return 0;
+    }
     {
         Frame::Native::ResizeScope callbackGuard;
         if (top->m_mouseButtonCallback && !top->m_mouseCapture && top->m_mouseButtonCallback(&evt)) return 0;
@@ -1174,6 +1251,13 @@ int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
     // No external consumer runs between guarded callback phases. Raising may
     // reorder lists here; resize callbacks hold their own traversal guard.
     frame->Raise();
+    if (frame->m_titleRegion) {
+        C2Vector point = evt.m_data.m_mousePosition;
+        if (frame->m_titleRegion->PtInFrameRect(point)) {
+            top->StartMoveOrResizeFrame(frame, MOVERESIZE_REASON_TITLE, point.x, point.y, uint32_t(FRAMEPOINT_CENTER));
+            return 0;
+        }
+    }
     Frame::Native::ResizeScope inputGuard;
     top->m_mouseCapture = frame;
     frame->OnLayerMouseDown(evt, nullptr);
@@ -1285,7 +1369,12 @@ void CSimpleTop::NotifyFrameMovedOrResized(CSimpleFrame* frame) {
     this->m_strata[frame->m_strata]->m_levelsDirty = 1;
 
     if (this->m_moveResizeFrame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        // Resize callbacks cannot reorder the strata they are traversing.
+        this->m_nativeMoveRaisePending = true;
+#else
         this->RaiseFrame(this->m_moveResizeFrame, 0);
+#endif
     }
 
     this->m_checkFocus = 1;
@@ -1352,6 +1441,7 @@ void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event,
     Frame::Native::RequireTreeMutation();
     Frame::Native::RequireSimpleFrame(frame);
     if (event > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
+    if (!a4 && event == SIMPLE_EVENT_MOUSE && frame == this->m_moveResizeFrame) this->StopMoveOrResizeFrame();
 #endif
     CSimpleSortedArray<FRAMEPRIORITY*>& queue = this->m_eventqueue[event][frame->m_strata];
 
@@ -1646,15 +1736,23 @@ void CSimpleTop::ValidateDeletedFrame(CSimpleFrame* frame) {
 }
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleTop::FlushMoveRaise() {
+    Frame::Native::RequireTreeMutation();
+    if (this->m_nativeMoveRaisePending) {
+        this->m_nativeMoveRaisePending = false;
+        if (this->m_moveResizeFrame) this->RaiseFrame(this->m_moveResizeFrame, 0);
+    }
+}
 // Native host cancellation: clear owned state before any external callback.
 void CSimpleTop::CancelMouseInput() {
     Frame::Native::RequireRoot(); Frame::Native::RequireTreeMutation();
+    std::exception_ptr failure;
+    try { this->StopMoveOrResizeFrame(); } catch (...) { failure = std::current_exception(); }
     Frame::Native::ResizeScope guard;
     auto* capture = m_mouseCapture; auto* focus = m_mouseFocus;
     m_mouseCapture = m_mouseFocus = nullptr;
     m_nativeButtonsDown = 0; m_nativeMouseSeen = false; m_checkFocus = 0;
     m_mousePosition.m_buttonState = 0;
-    std::exception_ptr failure;
     if (capture) {
         capture->m_isMouseDown = capture->m_isMouseDragging = 0;
         CMouseEvent event; event = m_mousePosition;

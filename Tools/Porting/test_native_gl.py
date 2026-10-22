@@ -89,7 +89,7 @@ class NativeGlGraphTests(unittest.TestCase):
     def test_regions_select_root_and_reject_unselected_script_factories(self):
         target = self.target('WowNativeFrameRegions', 'Engine/Source/Frame/CScriptRegion.cpp')
         target['sources'] += [{'path': 'Engine/Source/Frame/' + name + '.cpp'} for name in
-            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
+            ['CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']]
         target['sources'] += [{'path': path} for path in ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp', 'Engine/Source/Event/CMouseEvent.cpp']]
         message = 'WowNativeFrameRegions: unexpected native Frame region source/ABI'
         self.assertNotIn(message, audit([target], 'gl', 'LINUX', 'X86_64'))

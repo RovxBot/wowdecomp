@@ -28,7 +28,7 @@ static void StackingEvents(GlContext& context,LegacyDevice& device,CSimpleTop& r
     Check(!root.RaiseFrame(hidden,1),"Non-top-level Frame was raised");
     Reject([&]{strata->FrameOccluded(reinterpret_cast<CSimpleFrame*>(uintptr_t(1)));});
     Reject([&]{root.m_strata[FRAME_STRATA_LOW]->FrameOccluded(low);});
-    Reject([&]{low->SetFrameFlag(0x100,1);});
+    Reject([&]{low->SetFrameFlag(0x2000,1);});
     // Consumed/throwing host callbacks cannot reorder Frames or reenter input.
     mouseContext=&context;root.m_mouseButtonCallback=MouseCallback;
     deliver(OS_INPUT_MOUSE_MOVE);Check(root.m_mouseFocus==low,"Exposed lower top-level focus");

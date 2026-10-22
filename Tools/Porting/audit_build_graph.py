@@ -258,7 +258,7 @@ def audit(targets, mode, target_os, cpu):
                 errors.append(f"{target['name']}: unexpected native Frame renderer source/ABI")
         if mode == 'gl' and target['name'] in {'WowNativeFrameRegions', 'NativeFrameRegionsCheck', 'NativeFrameHierarchyCheck'}:
             allowed = (['Engine/Source/Frame/' + n + '.cpp' for n in
-                ['CScriptRegion', 'CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']] + ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp', 'Engine/Source/Event/CMouseEvent.cpp']
+                ['CScriptRegion', 'CSimpleRegion', 'CSimpleFontString', 'FontStringAttributes', 'FramePixel', 'CSimpleFrame', 'CSimpleTop', 'CSimpleTitleRegion', 'CFrameStrataNode', 'Portable/Hierarchy', 'Portable/WindowEvents']] + ['Engine/Source/Services/ScreenProjection.cpp', 'Engine/Source/Event/CEvent.cpp', 'Engine/Source/Event/CMouseEvent.cpp']
                 if target['name'] == 'WowNativeFrameRegions' else ['Tools/NativeFrameHierarchy/main.cpp' if target['name'] == 'NativeFrameHierarchyCheck' else 'Tools/NativeFrameRegions/main.cpp'])
             if (len(sources) != len(allowed) or
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
