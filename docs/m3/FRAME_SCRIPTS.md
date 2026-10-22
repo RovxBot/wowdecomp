@@ -101,3 +101,13 @@ language rules and Lua text setters in [LANGUAGE.md](LANGUAGE.md). The PR #66
 observations above retain their historical C++ `process=0` text scope. Current
 language/transformed-text evidence and remaining DB-backed declensions are separate;
 XML registry/templates, other widgets, full login and gameplay remain open.
+
+
+## Subsequent base Frame XML integration
+
+[PR #70](https://github.com/RovxBot/wowdecomp/pull/70) qualifies base Frame registry,
+Lua CreateFrame, retained XML templates/named parents and Lua FontString template
+creation; see [FRAME_XML.md](FRAME_XML.md). Earlier package identities and limits
+above remain historical. Remaining widgets, broader XML/templates, nonempty Lua
+handlers, physical IME/edit-box acceptance, complete signed ordered GlueXML/full
+post-creation digest gate, original login and transport/gameplay remain open.

@@ -925,3 +925,29 @@ remaining checks need another machine.
   digest gate, login/transport/gameplay remain open. No new physical-input, Windows
   runtime, macOS graphics or server acceptance. Preserve server revision discrepancies
   and interactive sign-in; M3 remains incomplete.
+
+
+- M3 original base Frame XML [PR #70](https://github.com/RovxBot/wowdecomp/pull/70)
+  is qualified at `2932c2fdb7eac99bc1a583f3c4374e7ab49fc71c`, merged as
+  `70faf33a85e5a967530ea463d7da4f9d94fc7ba1`. Read [factory/template contracts](docs/m3/FRAME_XML.md)
+  and [validation](docs/m3/frame-xml-validation.json). Thirteen final-head PR workflows
+  passed, with 38 CTest checks per Linux release/strict ASan/UBSan/leak configuration
+  and full signature-enabled Windows x64 compilation at matching-tree checkout
+  `da814becf9a5a35681062ad14263e82cc07820c1`. Three archive digests/all 51 packaged
+  hashes/types/notices verified. RX 7900 XTX / Mesa 26.2.5 / SDL X11 packages passed
+  30 three-cycle authored/original-data executions, empty stderr/zero workers;
+  fifteen capture pairs match. Base Frame registry, Lua CreateFrame and FontString
+  template consumers now use original pools, named parents, title/layer/nested XML
+  and original text/layout/rendering. Preserve transferred nodes beyond tree close,
+  original sibling-parent precedence, exact FontString keys/class-specific taint,
+  bounded graphs/names/numerics, exception-safe locks/taint/allocated descendants
+  and rejection of assignment-hook reentry. Close consumers before Scripts and
+  retained nodes/registry storage, then renderer/Fonts/Gxu/layout/XML/VM/device/
+  context/queue. Native-only FreeType empty-outline copy guards have a focused
+  regression; Windows tokens and the earlier no-ink/UBSan failures remain intact.
+  This is authored XML/text, not full login. Texture/backdrop/animation/model/widget
+  factories, nonempty Lua handlers, broader XML/templates, DB-backed declensions,
+  physical IME/edit-box/candidate acceptance, full signed ordered GlueXML/second
+  digest gate, full login/transport/gameplay remain open. No new physical-input,
+  Windows runtime, macOS graphics or server acceptance. M3 remains incomplete;
+  preserve signatures/server revision discrepancies/interactive user sign-in.

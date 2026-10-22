@@ -607,6 +607,39 @@ and source inspection are different evidence levels.
   remain open. No new physical-input, Windows runtime, macOS graphics or server
   acceptance. Signatures/server discrepancy/interactive sign-in policy stays intact.
 
+## NP-022 — Original base Frame XML factories and retained templates
+
+- Status: qualified in [PR #70](https://github.com/RovxBot/wowdecomp/pull/70) at
+  `2932c2fdb7eac99bc1a583f3c4374e7ab49fc71c`, merged as
+  `70faf33a85e5a967530ea463d7da4f9d94fc7ba1`. See [contracts](m3/FRAME_XML.md)
+  and [durable validation](m3/frame-xml-validation.json). M3 remains incomplete.
+- Source: product main `4d8e7cef42f09b4ac91ccc73e6cfd5dd19664fa0`; original
+  12340 FrameXML registry/template creation, SimpleFrameScript CreateFrame and
+  Frame/FontString/title/layer XML consumers. No donor import, dependency upgrade,
+  new OFFSET/VERIFY claim or game asset. Scalar XML helpers move into RegionXML.
+- Adaptation: owner-bound registry and retained detached virtual nodes; original
+  class pools/canonical Lua objects, named parents, original class-specific
+  inheritance/taint, bounded graphs/numerics/names, exception-safe borrows and
+  allocated-descendant rollback. Reject assignment-hook reentry. Native-only
+  bundled FreeType empty point/tag/contour/extra copies skip null zero-byte libc
+  arguments; a focused empty-loader regression covers the observed strict failure.
+  Original Windows-selected code remains intact. Close consumers before registry/
+  scripts/Fonts/layout/XML/VM/device/context/queue.
+- Assets/defaults: authored XML/text through original or authored resources;
+  original-key archives, registered MD5 and original GlueFonts-subset InterfaceKey
+  checks remain enabled. No data/protocol/server-policy or credential change.
+  Complete signed ordered GlueXML/full post-creation digest gate stays open.
+- Validation: thirteen passing PR workflows, 38 CTest checks per Linux GL
+  configuration, full signature-enabled Windows x64 compilation at matching-tree
+  checkout `da814becf9a5a35681062ad14263e82cc07820c1`. Three archives/all 51
+  binary hashes/types/notices verified. Downloaded RX 7900 XTX release/strict
+  sanitizer packages passed 30 three-cycle executions, empty stderr/zero workers;
+  fifteen capture pairs match. Earlier no-ink fixture/empty-outline UBSan failures
+  remain recorded, without detector suppression. Local source/launcher checks:
+  57 passed, one unavailable-CMake skip; source token/whitespace checks passed.
+  All compilation ran in Actions. No new physical-input, Windows runtime,
+  macOS graphics or server acceptance; full login and transport/gameplay remain open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

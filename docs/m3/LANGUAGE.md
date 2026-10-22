@@ -75,3 +75,13 @@ IME/edit-box/candidate acceptance, full login rendering, portable transport and
 observed gameplay remain open. Keep signatures and server revision discrepancies
 intact; the user will sign in interactively. No new physical-input, Windows runtime,
 macOS graphics or server acceptance is recorded. M3 remains incomplete.
+
+
+## Subsequent base Frame XML integration
+
+[PR #70](https://github.com/RovxBot/wowdecomp/pull/70) qualifies base Frame registry,
+Lua CreateFrame, retained XML templates/named parents and Lua FontString template
+creation; see [FRAME_XML.md](FRAME_XML.md). Earlier package identities and limits
+above remain historical. Remaining widgets, broader XML/templates, nonempty Lua
+handlers, physical IME/edit-box acceptance, complete signed ordered GlueXML/full
+post-creation digest gate, original login and transport/gameplay remain open.

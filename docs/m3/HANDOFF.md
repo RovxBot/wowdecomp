@@ -850,3 +850,38 @@ full login rendering, transport/authentication and observed gameplay remain open
 No new physical-input, Windows runtime, macOS graphics or server acceptance. M3 is
 incomplete; preserve historical identities, signatures, server revision discrepancies
 and interactive user sign-in.
+
+
+The [original base Frame XML package](FRAME_XML.md) in
+[PR #70](https://github.com/RovxBot/wowdecomp/pull/70) is qualified at
+`2932c2fdb7eac99bc1a583f3c4374e7ab49fc71c`, merged as
+`70faf33a85e5a967530ea463d7da4f9d94fc7ba1`. [Durable validation](frame-xml-validation.json)
+records thirteen passing final-head PR workflows, 38 CTest checks per Linux
+release/strict ASan/UBSan/leak configuration and full signature-enabled Windows
+x64 compilation at matching-tree checkout `da814becf9a5a35681062ad14263e82cc07820c1`.
+Three archives/all 51 packaged executable hashes/types/notices verified. RX 7900
+XTX / Mesa 26.2.5 / SDL X11 release/strict sanitizer packages passed 30 three-cycle
+authored/original-data executions, empty stderr/zero workers; all fifteen capture
+pairs match. Implementation, hosted checkout and merge share one source tree.
+
+Original base Frame registry, Lua `CreateFrame` and FontString XML-template
+consumers now use the qualified pools/hierarchy/rendering. Preserve transferred
+nodes beyond XML tree close, original Frame sibling-parent precedence, exact
+FontString inheritance keys and class-specific taint semantics. Exceptions unwind
+locks/taint and allocated descendants, including explicit external parents.
+Global name/parentKey assignments reject Lua assignment-hook reentry; template
+and numeric/name admission stays bounded. Close consumers before Scripts and its
+nodes/registry storage, then renderer/Fonts/Gxu/layout/XML/VM/device/context/queue.
+Original Windows-selected code and signature defaults stay intact. The initial
+no-ink fixture and FreeType empty-outline UBSan failure remain evidence; native-only
+empty-copy guards have a focused regression and no detector was disabled.
+
+This is authored XML/text composition with original or authored resources, not
+full login layout. Texture/backdrop/animation/model and remaining widget factories,
+actual nonempty Lua handlers, broader XML/template semantics, DB-backed declensions
+and physical IME/edit-box/candidate acceptance remain open. Complete signed ordered
+GlueXML/full post-creation digest gate, full original login rendering, portable
+transport/authentication and observed gameplay remain open. No new physical-input,
+Windows runtime, macOS graphics or server acceptance. M3 remains incomplete;
+preserve signatures, historical identities, server revision discrepancies and
+interactive user sign-in. The clean client installation remains read-only.
