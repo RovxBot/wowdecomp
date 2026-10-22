@@ -18,10 +18,10 @@ coordinates are bounded before interpretation or access.
 Original hit rectangles/insets, scroll-parent clipping and track/drag thresholds
 are selected. Typed C++ consumers receive drag start/stop/drop; empty base Lua
 handlers retain their state transitions. Nonempty Lua handlers reject before Lua
-stack mutation pending pooled factories. The current direct C++ surface has no
+stack mutation pending pooled factories. The initial direct C++ surface has no
 qualified top-level occlusion/raising, title-bar movement or layout move/resize;
-mouse-down rejects those paths explicitly. Cursor depth/stereo and general widgets
-remain unqualified. This is a bounded pointer adapter, not complete mouse/widget
+that package's mouse-down rejects those paths explicitly. Cursor depth/stereo and
+general widgets remain unqualified. This is a bounded pointer adapter, not complete mouse/widget
 or original login acceptance.
 
 A traversal guard spans callbacks/virtual consumers. Hierarchy mutation,
@@ -58,6 +58,10 @@ creation and its post-creation digest gate, pooled Lua/XML/language/template
 factories, actual widgets/login rendering, transport and observed GrimGuzzler
 world entry remain open. Preserve server revision discrepancies and interactive
 user sign-in. M3 is incomplete.
+
+The subsequent [top-level stacking package](FRAME_STACKING.md) qualifies original
+occlusion and click raising. Title/layout movement and the remaining factory/widget
+gates stay open. The pointer qualification below retains its historical identities.
 
 ## Qualification
 

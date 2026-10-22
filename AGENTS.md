@@ -811,3 +811,24 @@ remaining checks need another machine.
   remain open. No new physical-input, Windows runtime, macOS graphics or server
   acceptance. M3 is incomplete; preserve signatures/server discrepancies and
   interactive user sign-in.
+
+- M3 original top-level Frame [PR #60](https://github.com/RovxBot/wowdecomp/pull/60)
+  is qualified at `1d675153d9fb6a18f70feb46e5808ceec2749138`, merged as
+  `2e81a1978a5dc34b82db5ce6457b69950199a415`. Read [stacking contracts](docs/m3/FRAME_STACKING.md)
+  and [validation](docs/m3/frame-stacking-validation.json). All four triggered PR
+  workflows passed; both Linux GL configurations passed 38 checks and full
+  signature-enabled Windows x64 compiled at matching-tree checkout
+  `d45d48d3efe6a995cbfdc19e6f1bc154bcb795ee`. Three archives/all 51 binary hashes/types/notices
+  verified. RX 7900 XTX release/strict ASan/UBSan/leak packages passed 30 input/UI/
+  resource executions, three owner cycles each, with empty stderr/zero workers;
+  all fifteen final capture pairs match. Original occlusion, nearest top-level
+  raising and sparse compression include hidden registered Frames. Preflight final
+  descendant levels before compression mutation. Retire dirty text batches across
+  every allocated level, even above compressed m_topLevel. Keep external callback
+  guards on either side of mouse-down raising and guarded resize callbacks. The
+  initial hosted duplicate-batch failure remains evidence; no ownership/pixel
+  assertion or detector was disabled. Title/layout movement, pooled factories,
+  other widgets, physical mouse/IME/edit-box acceptance, complete signed ordered
+  GlueXML/full second digest gate, actual login and transport/gameplay remain open.
+  No new physical-input, Windows runtime, macOS graphics or server acceptance.
+  Preserve original signatures/server discrepancies/interactive sign-in; M3 is open.
