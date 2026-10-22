@@ -193,9 +193,11 @@ void InstallFactories() {
     installed = true;
     try {
         FrameXML_RegisterDefault();
+        RequireTableWrite(FrameScript_GetContext(), LUA_GLOBALSINDEX, "CreateFrame");
         FrameScript_RegisterFunction("CreateFrame", &CreateFrameLua);
     } catch (...) {
         factories.InternalClear(0);
+        factories.Destroy();
         installed = false;
         throw;
     }
@@ -203,6 +205,7 @@ void InstallFactories() {
 void CloseFactories() {
     RequireFactories();
     FrameXML_FreeHashNodes(); FrameXML_ClearFactories();
+    templates.Destroy(); factories.Destroy();
     FrameScript_UnregisterFunction("CreateFrame");
     installed = false;
 }
@@ -223,6 +226,22 @@ void RequireAvailableName(CScriptObject* object, const char* name) {
     const bool occupied = !lua_isnil(L, -1);
     lua_pop(L, 1);
     if (occupied) throw std::invalid_argument("Native XML object name already exists");
+    RequireTableWrite(L, LUA_GLOBALSINDEX, fullName);
+}
+void RequireTableWrite(lua_State* L, int index, const char* key) {
+    RequireFactories();
+    // A user __newindex can longjmp through XML owners or reenter construction.
+    // Admit ordinary writes and existing raw keys, before any assignment runs.
+    const int top = lua_gettop(L);
+    if (index < 0 && index > LUA_REGISTRYINDEX) index = top + index + 1;
+    lua_pushstring(L, key); lua_rawget(L, index);
+    bool callback = false;
+    if (lua_isnil(L, -1) && lua_getmetatable(L, index)) {
+        lua_pushliteral(L, "__newindex"); lua_rawget(L, -2);
+        callback = !lua_isnil(L, -1);
+    }
+    lua_settop(L, top);
+    if (callback) throw std::logic_error("Native XML assignment metamethods are unavailable");
 }
 void ApplyTemplates(XMLNode* node, const std::function<void(XMLNode*)>& apply, bool applyTaint) {
     RequireFactories();

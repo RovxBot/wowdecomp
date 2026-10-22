@@ -572,15 +572,28 @@
       FT_Outline*  in  = &source->base.outline;
 
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+      /* Empty outlines may retain null arrays.  A zero-byte libc copy still
+         requires non-null pointers; preserve the original Windows path. */
+      if ( num_points )
+      {
+#endif
       MEM_Copy( out->points, in->points,
                 num_points * sizeof ( FT_Vector ) );
       MEM_Copy( out->tags, in->tags,
                 num_points * sizeof ( char ) );
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+      }
+      if ( num_contours )
+#endif
       MEM_Copy( out->contours, in->contours,
                 num_contours * sizeof ( short ) );
 
       /* do we need to copy the extra points? */
       if ( target->use_extra && source->use_extra )
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if ( num_points )
+#endif
         MEM_Copy( target->base.extra_points, source->base.extra_points,
                   num_points * sizeof ( FT_Vector ) );
 

@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Regions.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
 #else
@@ -220,6 +221,10 @@ void CScriptRegion::LoadXML(XMLNode* node, CStatus* status) {
             }
 
             lua_rawgeti(L, LUA_REGISTRYINDEX, parent->m_luaObjectRef);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            try { FrameXML::Native::RequireTableWrite(L, -1, parentKey); }
+            catch (...) { lua_pop(L, 1); throw; }
+#endif
             lua_pushstring(L, parentKey);
 
             if (!this->m_luaRegistered) {

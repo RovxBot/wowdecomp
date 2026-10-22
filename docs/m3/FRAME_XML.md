@@ -2,7 +2,8 @@
 
 This package connects original 12340 base Frame creation to the native pool,
 hierarchy and Lua owners. `Frame::Native::Scripts` installs the bounded FrameXML
-registry and Lua global `CreateFrame`. It closes the registry and transferred
+registry and Lua global `CreateFrame`, plus retained FontString templates through
+Lua `CreateFontString`. It closes registry storage and transferred
 virtual XML nodes before metatables, Fonts/layout/XML/VM/device/context/queue.
 All client and dependency compilation runs in GitHub Actions.
 
@@ -20,6 +21,10 @@ Missing/cyclic/incompatible templates, spoofed parents, occupied global names an
 unavailable widgets report errors. Allocated objects unwind on failure, including
 nested children whose explicit parent lies outside the new root. Parent/root
 ownership and original class pools remain responsible for successful objects.
+Frame sibling lists retain original last-template parent precedence; FontStrings
+use one exact inheritance key and borrow without Frame taint switching. Global
+name and parent-key writes reject Lua assignment hooks before invoking callbacks
+through C++ owners. This does not enable general Lua input/script handlers.
 
 The first registry admits base `Frame` only. FontStrings use their qualified typed
 pool from Layers. Texture/backdrop/animation/script/widget XML consumers remain
@@ -34,6 +39,14 @@ rejection, acquisition failure cleanup, nested creation rollback, stale canonica
 tables, traversal guards and pool/batch teardown. Its text and composition are
 authored, with authored or original fonts/UI shaders. Hosted and downloaded GPU
 qualification is pending for this implementation.
+
+The first hosted run passed 33/38 checks in each Linux configuration. Its authored
+text contained none of the geometric fixture's visible glyphs; the pixel assertion
+is retained with authored `AV` glyphs added. Strict execution also exposed null
+zero-length copies in bundled FreeType's empty-outline loader. A native-only guard
+skips empty point/tag/contour/extra-point copies; Windows tokens stay unchanged.
+A focused empty-loader regression runs before rasterization. Earlier failures stay
+in the qualification record; no sanitizer detector is disabled.
 
 The next callers are texture regions, widget factories and actual nonempty Lua
 handlers, followed by signed ordered GlueXML creation and its full second digest

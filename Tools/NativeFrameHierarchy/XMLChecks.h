@@ -34,7 +34,7 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
     tree.reset(); // Templates must outlive their original XMLTree.
     const int nesting = lua_taintexpected;
     RegionLua(R"(
-        NativeXMLToken = '2 |4template:templates;'
+        NativeXMLToken = '2 |4AV template:AV templates;'
         for _,bad in ipairs({'NativeXMLCycleA','MissingTemplate','NativeXMLUnsupported','NativeXMLTextTemplate'}) do
             assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,bad))
             assert(RejectedXML == nil)
@@ -45,12 +45,24 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,nil,'nan'))
         assert(not pcall(CreateFrame,'Frame','NativeXMLParent'))
         assert(NativeXMLParent:GetName() == 'NativeXMLParent')
+        local old = getmetatable(_G)
+        local calls = 0
+        setmetatable(_G,{__newindex=function() calls=calls+1; error('unexpected XML reentry') end})
+        local ok = pcall(CreateFrame,'Frame','RejectedGlobalHook')
+        setmetatable(_G,old)
+        assert(not ok and calls == 0 and RejectedGlobalHook == nil)
+        local meta = getmetatable(NativeXMLParent)
+        local oldassign = meta.__newindex
+        meta.__newindex = function() calls=calls+1; error('unexpected parentKey reentry') end
+        ok = pcall(CreateFrame,'Frame','RejectedParentHook',nil,'NativeXMLDerived')
+        meta.__newindex = oldassign
+        assert(not ok and calls == 0 and RejectedParentHook == nil and RejectedParentHookText == nil)
         local f = CreateFrame('Frame','$parentInstance',nil,'NativeXMLDerived',17)
         assert(f == NativeXMLParentInstance and f:GetParent() == NativeXMLParent)
-        assert(f.Label == NativeXMLParentInstanceText and f.Label:GetText() == '2 templates')
+        assert(f.Label == NativeXMLParentInstanceText and f.Label:GetText() == '2 AV templates')
         assert(f.Label:GetParent() == f and f:GetChildren() == NativeXMLParentInstanceChild)
         local extra = f:CreateFontString('$parentExtra','OVERLAY','NativeXMLTextTemplate')
-        assert(extra:GetParent() == f and extra:GetText() == '2 templates')
+        assert(extra:GetParent() == f and extra:GetText() == '2 AV templates')
         assert(not pcall(f.CreateFontString,f,'$parentExtra','OVERLAY','NativeXMLTextTemplate'))
         assert(not pcall(f.CreateFontString,f,'RejectedText','OVERLAY','NativeXMLBase'))
         assert(RejectedText == nil)
