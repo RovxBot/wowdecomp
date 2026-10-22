@@ -148,8 +148,10 @@ UpdateScope::~UpdateScope() { updating = false; }
 void ClearDirtyBatches(CSimpleTop& root) {
     // A Gxu string has one intrusive batch link. Retire every dirty source before
     // moving it to an earlier level/strata/layer, irrespective of rebuild order.
+    // Compression can lower m_topLevel while retired source batches above it
+    // still own the same intrusive links. Visit every allocated level.
     for (auto* strata : root.m_strata)
-        for (uint32_t level = 0; level < strata->m_topLevel; ++level) {
+        for (uint32_t level = 0; level < strata->m_levels.Count(); ++level) {
             auto* node = strata->m_levels[level];
             for (uint32_t layer = 0; layer < 5; ++layer)
                 if (node->m_batchDirty & (1 << layer)) node->m_batches[layer].Clear();

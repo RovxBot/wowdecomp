@@ -11,7 +11,9 @@ and descendant exclusion. Hidden Frames are absent from occluding lists but rema
 registered for compression. Failed layout rectangles are skipped in the native
 path. Batch rebuilding refreshes original bit 0x10. Mouse-down raises the nearest
 top-level ancestor before capture, retaining original priority re-registration,
-child-level shifts and stationary focus refresh. Repeated unoccluded raises do
+child-level shifts and stationary focus refresh. Dirty-batch retirement visits
+all allocated levels, including old source levels above a compressed active range.
+Repeated unoccluded raises do
 not move levels. Original sparse compression resumes its scan index after each
 gap; this is not dense level renumbering.
 
