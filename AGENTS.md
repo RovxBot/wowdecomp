@@ -854,3 +854,26 @@ remaining checks need another machine.
   second digest gate, login and transport/gameplay remain open. No new Windows
   runtime/macOS graphics/server acceptance. Preserve signatures/server revision
   discrepancies/interactive user sign-in; M3 is incomplete.
+
+- M3 pooled Frame allocation [PR #64](https://github.com/RovxBot/wowdecomp/pull/64)
+  is qualified at `d2088a7cab528ca915b5fb1faa3cb354048ebd0a`, merged as
+  `f3e74f19562583ded6c8aeb414f4dccf60782da0`. Read [pool contracts/next callers](docs/m3/FRAME_POOLS.md)
+  and [validation](docs/m3/frame-pool-validation.json). All thirteen PR workflows
+  passed, with 38 checks per Linux GL configuration and full signature-enabled
+  Windows x64 compilation at matching-tree checkout
+  `eb7985d3665dcbd81f9c1c40b9be4543938f15ab`. Three archives/all 51 binaries/notices
+  verified. RX 7900 XTX release/strict ASan/UBSan/leak packages passed 30 three-cycle
+  input/UI/resource executions, empty stderr/zero workers; fifteen capture pairs
+  match. Original Create_SimpleFrame and typed native FontString construction now
+  use original class pools; preserve native alignment, constructor rollback, mixed
+  heap/pool deletion and parent/root ownership. Close consumers/raw slots before
+  the Fonts owner clears registered blocks. Growth to 101/810 slots, reuse and
+  recursive/deferred/root teardown are qualified. The restricted X11-unavailable
+  launch remains failed evidence; unchanged binaries passed with desktop access.
+  Lua/XML registry/metatables, named parents/templates/language, remaining widget
+  factories and nonempty Lua input handlers remain open. Route every selected
+  widget allocator/deletion before enabling callers. Physical mouse/IME/edit-box/
+  candidate acceptance, full signed ordered GlueXML/post-creation digest gate,
+  login and transport/gameplay remain open. No new Windows runtime/macOS graphics/
+  server acceptance. Preserve signatures/historical identities/server revision
+  discrepancies/interactive sign-in; M3 is incomplete.

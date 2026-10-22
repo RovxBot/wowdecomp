@@ -40,4 +40,59 @@ widgets, physical mouse/IME/edit-box acceptance, original login rendering,
 transport/authentication and observed gameplay remain open. M3 is incomplete.
 Preserve historical evidence, server revision discrepancies and interactive sign-in.
 
-Hosted and downloaded validation will be recorded after qualification.
+## Qualification
+
+[PR #64](https://github.com/RovxBot/wowdecomp/pull/64) is qualified at
+`d2088a7cab528ca915b5fb1faa3cb354048ebd0a`, merged as
+`f3e74f19562583ded6c8aeb414f4dccf60782da0`. The [durable record](frame-pool-validation.json)
+retains all thirteen passing implementation PR workflows, 38 CTest checks per
+Linux release/strict ASan/UBSan/leak configuration and full signature-enabled
+Windows x64 compilation at matching-tree checkout
+`eb7985d3665dcbd81f9c1c40b9be4543938f15ab`. Three archive digests, all 51 packaged
+executable hashes/types and notices verified. Graphics remain Linux x86-64;
+prerequisite matrices retain separate actual ARM64 macOS and Windows coverage.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 packages passed 30 authored/original-
+data input/UI/resource executions, three owner cycles each, with empty stderr and
+zero workers. Each of four target/transform/buffer/texture fixtures passed three
+cycles per mode. All fifteen release/sanitizer capture pairs match; final original-
+data hierarchy/input captures retain SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`.
+The inspected final capture is authored white hierarchy text with original fonts/
+UI shaders. Intermediate readbacks assert pooled FontString rendering and exact
+repeats; those buffers are not exported captures or original login UI.
+
+Each hierarchy/input cycle passed growth to 101 Frame and 810 FontString slots,
+alignment/reuse, throwing construction, mixed heap/pool recursive/deferred/root
+teardown, factory guards and owner block release. Original-key signaturefile and
+selective MD5 checks remained enabled; original-data cycles authenticated GlueXML
+before/after eighteen GlueFonts definitions. Complete ordered creation and its
+full post-creation digest gate remain open.
+
+Local source/launcher checks: 57 passed, one unavailable-CMake skip. Original
+Windows-selected tokens and the extracted base factory match immutable pre-PR
+source; whitespace passed. All compilation ran in Actions. The initial restricted
+desktop launch failed because X11 was unavailable; the same hash-verified release
+binary passed with desktop access. Its report remains failed evidence. No assertion
+or detector was disabled; no hosted implementation failure occurred. Duplicate push
+runs remain separate from the thirteen PR qualification runs.
+
+## Next original callers
+
+1. Select original region/frame/title/FontString script metatables and route the
+   Lua `CreateFontString` allocation through the qualified typed constructor.
+   Preserve canonical live Lua tables and reject unavailable consumers before
+   stack/name/taint mutation. Native nonempty input handlers remain unavailable.
+2. Connect the original FrameXML factory registry, named-parent lookup, retained
+   virtual templates/inheritance and language processing. Keep XML nodes alive
+   through consumers and close external script references before factory teardown.
+3. Adapt each remaining widget class's allocator/deletion before selecting its
+   factory. Texture/image-mode, backdrop, scroll, animation/model and edit-box
+   consumers remain open; the base Frame pool does not qualify those classes.
+4. Execute complete signed ordered GlueXML and its full post-creation digest gate,
+   then render actual login before interactive user sign-in. Physical mouse/IME/
+   language/edit-box/candidate UI acceptance and transport/gameplay remain open.
+
+No new physical-input, Windows runtime, macOS graphics or server acceptance is
+recorded. M3 stays incomplete; preserve signatures, server revision discrepancies
+and interactive user sign-in.
