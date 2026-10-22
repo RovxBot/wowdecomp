@@ -18,18 +18,6 @@
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
 
-// STATIC: 0x00A43F38
-static const XMLENUMVALUE s_frameStrata[] = {
-    { FRAME_STRATA_BACKGROUND, "BACKGROUND" },
-    { FRAME_STRATA_LOW, "LOW" },
-    { FRAME_STRATA_MEDIUM, "MEDIUM" },
-    { FRAME_STRATA_HIGH, "HIGH" },
-    { FRAME_STRATA_DIALOG, "DIALOG" },
-    { FRAME_STRATA_FULLSCREEN, "FULLSCREEN" },
-    { FRAME_STRATA_FULLSCREEN_DIALOG, "FULLSCREEN_DIALOG" },
-    { FRAME_STRATA_TOOLTIP, "TOOLTIP" },
-};
-
 // STATIC: 0x00A43FE8
 static const XMLENUMVALUE s_blendModes[] = {
     { GxBlend_Opaque, "DISABLE" },
@@ -76,31 +64,6 @@ static const XMLENUMVALUE s_curveTypes[] = {
 
 // STATIC: 0x00A4421C
 static const uint8_t s_signaturePublicExponent[4] = { 0x01, 0x00, 0x01, 0x00 };
-
-// VERIFY: d37bc6e0 auto
-// OFFSET: 0x00814E40
-int32_t StringToFrameStrata(const char* string, FRAME_STRATA& strata) {
-    for (uint32_t i = 0; i < sizeof(s_frameStrata) / sizeof(s_frameStrata[0]); i++) {
-        if (!SStrCmpI(s_frameStrata[i].m_name, string, STORM_MAX_STR)) {
-            strata = static_cast<FRAME_STRATA>(s_frameStrata[i].m_value);
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-// VERIFY: c7635fb9 auto
-// OFFSET: 0x00814E90
-const char* FrameStrataToString(FRAME_STRATA strata) {
-    for (uint32_t i = 0; i < sizeof(s_frameStrata) / sizeof(s_frameStrata[0]); i++) {
-        if (strata == s_frameStrata[i].m_value) {
-            return s_frameStrata[i].m_name;
-        }
-    }
-
-    return "UNKNOWN";
-}
 
 // VERIFY: d7a0825b auto
 // OFFSET: 0x00814FF0
@@ -240,118 +203,6 @@ const char* SmoothWeightsToString(float in, float out) {
     return "UNKNOWN";
 }
 
-// VERIFY: 60497307 auto
-// OFFSET: 0x00815910
-int32_t LoadXML_Insets(XMLNode* node, float& left, float& right, float& top, float& bottom, CStatus* status) {
-    left = 0.0f;
-    right = 0.0f;
-    top = 0.0f;
-    bottom = 0.0f;
-
-    const char* leftString = node->GetAttributeByName("left");
-
-    if (leftString && *leftString) {
-        float ndc = SStrToFloat(leftString) / (CoordinateGetAspectCompensation() * 1024.0f);
-        left = NDCToDDCWidth(ndc);
-    }
-
-    const char* rightString = node->GetAttributeByName("right");
-
-    if (rightString && *rightString) {
-        float ndc = SStrToFloat(rightString) / (CoordinateGetAspectCompensation() * 1024.0f);
-        right = NDCToDDCWidth(ndc);
-    }
-
-    const char* topString = node->GetAttributeByName("top");
-
-    if (topString && *topString) {
-        float ndc = SStrToFloat(topString) / (CoordinateGetAspectCompensation() * 1024.0f);
-        top = NDCToDDCWidth(ndc);
-    }
-
-    const char* bottomString = node->GetAttributeByName("bottom");
-
-    if (bottomString && *bottomString) {
-        float ndc = SStrToFloat(bottomString) / (CoordinateGetAspectCompensation() * 1024.0f);
-        bottom = NDCToDDCWidth(ndc);
-    }
-
-    XMLNode* child = node->m_child;
-
-    if (!child) {
-        if (!bottomString) {
-            status->Add(STATUS_WARNING, "No \"right\", \"left\", \"top\", or \"bottom\" attributes in element: %s", node->m_name.m_str);
-            return 0;
-        }
-
-        return 1;
-    }
-
-    if (!SStrCmpI(child->m_name.m_str, "AbsInset", STORM_MAX_STR)) {
-        const char* absRight = child->GetAttributeByName("right");
-
-        if (absRight && *absRight) {
-            float ndc = SStrToFloat(absRight) / (CoordinateGetAspectCompensation() * 1024.0f);
-            right = NDCToDDCWidth(ndc);
-        }
-
-        const char* absLeft = child->GetAttributeByName("left");
-
-        if (absLeft && *absLeft) {
-            float ndc = SStrToFloat(absLeft) / (CoordinateGetAspectCompensation() * 1024.0f);
-            left = NDCToDDCWidth(ndc);
-        }
-
-        const char* absTop = child->GetAttributeByName("top");
-
-        if (absTop && *absTop) {
-            float ndc = SStrToFloat(absTop) / (CoordinateGetAspectCompensation() * 1024.0f);
-            top = NDCToDDCWidth(ndc);
-        }
-
-        const char* absBottom = child->GetAttributeByName("bottom");
-
-        if (absBottom && *absBottom) {
-            float ndc = SStrToFloat(absBottom) / (CoordinateGetAspectCompensation() * 1024.0f);
-            bottom = NDCToDDCWidth(ndc);
-        }
-
-        return 1;
-    }
-
-    if (!SStrCmpI(child->m_name.m_str, "RelInset", STORM_MAX_STR)) {
-        const char* relRight = child->GetAttributeByName("right");
-
-        if (relRight && *relRight) {
-            right = SStrToFloat(relRight);
-        }
-
-        const char* relLeft = child->GetAttributeByName("left");
-
-        if (relLeft && *relLeft) {
-            left = SStrToFloat(relLeft);
-        }
-
-        const char* relTop = child->GetAttributeByName("top");
-
-        if (relTop && *relTop) {
-            top = SStrToFloat(relTop);
-        }
-
-        const char* relBottom = child->GetAttributeByName("bottom");
-
-        if (relBottom && *relBottom) {
-            bottom = SStrToFloat(relBottom);
-        }
-
-        return 1;
-    }
-
-    status->Add(STATUS_WARNING, "Unknown child node in %s element: %s", node->m_name.m_str, child->m_name.m_str);
-
-    return 0;
-}
-
 // VERIFY: 91664f60 auto
 // OFFSET: 0x00815DF0
 int32_t LoadXML_Gradient(XMLNode* node, ORIENTATION& orientation, CImVector& minColor, CImVector& maxColor, CStatus* status) {
@@ -411,19 +262,6 @@ CSimpleTexture* LoadXML_Texture(XMLNode* node, CSimpleFrame* frame, CStatus* sta
     texture->PostLoadXML(node, status);
 
     return texture;
-}
-
-// VERIFY: 437bdf6e auto
-// OFFSET: 0x00815FA0
-CSimpleFontString* LoadXML_String(XMLNode* node, CSimpleFrame* frame, CStatus* status) {
-    void* data = CSimpleFontString::s_allocator.GetData(0, typeid(CSimpleFontString).raw_name(), SLOG_OBJECT);
-    CSimpleFontString* string = data ? new (data) CSimpleFontString(frame, 2, true) : nullptr;
-
-    string->PreLoadXML(node, status);
-    string->LoadXML(node, status);
-    string->PostLoadXML(node, status);
-
-    return string;
 }
 
 // VERIFY: 8282815a manual

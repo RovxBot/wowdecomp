@@ -107,7 +107,7 @@ void CScriptRegion::SetParent(CSimpleFrame* parent) {
 void CScriptRegion::LoadXML_Animations(XMLNode* node, CStatus* status) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
+    if (node->GetChildByName("Animations")) Frame::Native::UnavailableRegionFeature();
 #else
 
     XMLNode* animations = node->GetChildByName("Animations");
@@ -205,9 +205,6 @@ bool CScriptRegion::IsMouseOver(float top, float bottom, float left, float right
 // OFFSET: 0x00488670
 void CScriptRegion::LoadXML(XMLNode* node, CStatus* status) {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
-#else
 
     CLayoutFrame::LoadXML(node, status);
 
@@ -237,7 +234,6 @@ void CScriptRegion::LoadXML(XMLNode* node, CStatus* status) {
 
     this->LoadXML_Animations(node, status);
 
-#endif
 }
 
 // VERIFY: 23893fb6 auto

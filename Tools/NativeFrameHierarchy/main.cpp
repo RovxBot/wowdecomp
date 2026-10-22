@@ -247,12 +247,14 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "MovementChecks.h"
 #include "PoolChecks.h"
 #include "ScriptChecks.h"
+#include "XMLChecks.h"
 static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
     PoolChecks(device,root,font,owner);
     ScriptChecks(device,root,font);
+    XMLChecks(device,root,font);
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");

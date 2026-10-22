@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Regions.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
@@ -619,9 +620,6 @@ void CSimpleFontString::ClearString() {
 // OFFSET: 0x004836D0
 void CSimpleFontString::PostLoadXML(XMLNode* node, CStatus* status) {
     FRAME_REGION_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
-#else
 
     if (!this->m_parent || this->HasAnyFramepoints()) {
         return;
@@ -635,7 +633,6 @@ void CSimpleFontString::PostLoadXML(XMLNode* node, CStatus* status) {
         this->SetPoint(FRAMEPOINT_CENTER, this->m_parent, FRAMEPOINT_CENTER, 0.0f, 0.0f, 1);
     }
 
-#endif
 }
 
 // VERIFY: 96073ff2 auto
@@ -1281,8 +1278,8 @@ void CSimpleFontString::SetIndented(int32_t indented) {
 void CSimpleFontString::LoadXML(XMLNode* node, CStatus* status) {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableRegionFeature();
-#else
+    FrameXML::Native::ValidateCreation(node);
+#endif
 
     const char* inherits = node->GetAttributeByName("inherits");
 
@@ -1294,6 +1291,11 @@ void CSimpleFontString::LoadXML(XMLNode* node, CStatus* status) {
                 this->SetFontObject(font);
             }
         } else {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            FrameXML::Native::ApplyTemplates(node, [this, status](XMLNode* inherited) {
+                this->LoadXML(inherited, status);
+            });
+#else
             const char* taint;
             bool locked;
             XMLNode* inheritNode = FrameXML_AcquireHashNode(inherits, taint, locked);
@@ -1306,6 +1308,7 @@ void CSimpleFontString::LoadXML(XMLNode* node, CStatus* status) {
                 this->LoadXML(inheritNode, status);
                 FrameXML_ReleaseHashNode(inherits);
             }
+#endif
         }
     }
 
@@ -1483,7 +1486,6 @@ void CSimpleFontString::LoadXML(XMLNode* node, CStatus* status) {
         }
     }
 
-#endif
 }
 
 // VERIFY: 744f3b3c auto
