@@ -747,8 +747,8 @@ void CSimpleFrame::RunOnSizeChangedScript(float width, float height) {
 void CSimpleFrame::RunOnEnterScript(int32_t motion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onCursorEnter.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_onCursorEnter.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -756,7 +756,6 @@ void CSimpleFrame::RunOnEnterScript(int32_t motion) {
         this->RunScript(this->m_onCursorEnter, 1, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: f2d2ba21 auto
@@ -764,8 +763,8 @@ void CSimpleFrame::RunOnEnterScript(int32_t motion) {
 void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onCursorExit.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_onCursorExit.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -773,7 +772,6 @@ void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
         this->RunScript(this->m_onCursorExit, 1, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: ab9ac4fe auto
@@ -781,8 +779,8 @@ void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
 void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onMouseWheel.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_onMouseWheel.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -790,7 +788,6 @@ void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
         this->RunScript(this->m_onMouseWheel, 1, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: 4eba352f auto
@@ -1028,7 +1025,7 @@ void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority)
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    if (eventType != SIMPLE_EVENT_KEY && eventType != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+    if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
     if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
 #endif
     if ((1 << eventType) & this->m_enabledEventsBitmask) {
@@ -1054,7 +1051,7 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType)
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    if (eventType != SIMPLE_EVENT_KEY && eventType != SIMPLE_EVENT_CHAR) Frame::Native::UnavailableFrameFeature();
+    if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
 #endif
     if (!((1 << eventType) & this->m_enabledEventsBitmask)) {
         return;
@@ -1073,8 +1070,8 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType)
 int32_t CSimpleFrame::TestHitRect(const C2Vector& pt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireFinite(pt.x); Frame::Native::RequireFinite(pt.y);
+#endif
 
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;
@@ -1102,7 +1099,6 @@ int32_t CSimpleFrame::TestHitRect(const C2Vector& pt) {
     CRect clip = rect &= this->m_hitRect;
     return clip.minX <= pt.x && clip.maxX >= pt.x && clip.minY <= pt.y && clip.maxY >= pt.y;
 
-#endif
 }
 
 // VERIFY: 5bdccee1 auto
@@ -1164,8 +1160,8 @@ void CSimpleFrame::AddAnimAlpha(int16_t alpha) {
 int32_t CSimpleFrame::OnLayerTrackUpdate(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onDragStart.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     C2Vector pt = evt.m_data.m_mousePosition;
 
@@ -1191,7 +1187,6 @@ int32_t CSimpleFrame::OnLayerTrackUpdate(const CMouseEvent& evt) {
 
     return 1;
 
-#endif
 }
 
 // VERIFY: b9fc7020 manual
@@ -1304,7 +1299,13 @@ int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
 int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    if (this->m_onMouseDown.m_luaRef) Frame::Native::UnavailableFrameFeature();
+    if (!btn && (this->m_dragButtons & evt.m_data.m_button)) {
+        this->m_isMouseDown = 1; this->m_isMouseDragging = 0;
+        this->m_mouseDragButton = evt.m_data.m_button;
+        this->m_mousePosition = evt.m_data.m_mousePosition;
+    }
+    return 0;
 #else
 
     if (!btn) {
@@ -1338,7 +1339,18 @@ int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) 
 int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    if (this->m_onMouseUp.m_luaRef || this->m_onDragStop.m_luaRef)
+        Frame::Native::UnavailableFrameFeature();
+    if (!btn && (this->m_dragButtons & evt.m_data.m_button)) {
+        this->m_isMouseDown = 0;
+        if (this->m_isMouseDragging) {
+            this->OnDragStop(evt);
+            if (auto* focus = this->m_simpleTop->m_mouseFocus) focus->OnReceiveDrag(evt);
+            this->m_isMouseDragging = 0;
+            return 1;
+        }
+    }
+    return 0;
 #else
 
     if (!btn) {
@@ -1382,8 +1394,8 @@ int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
 int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onMouseWheel.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (!this->m_isVisible || !this->m_onMouseWheel.m_luaRef) {
         return 0;
@@ -1392,7 +1404,6 @@ int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
     this->RunOnMouseWheelScript(static_cast<int32_t>(evt.m_data.m_wheelAmount) >= 0 ? 1 : -1);
     return 1;
 
-#endif
 }
 
 // VERIFY: 1d376a78 auto
@@ -1400,7 +1411,7 @@ int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
 void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    if (this->m_onDragStart.m_luaRef) Frame::Native::UnavailableFrameFeature();
 #else
 
     uint32_t button = 0;
@@ -1426,14 +1437,13 @@ void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
 void CSimpleFrame::OnDragStop(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onDragStop.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_onDragStop.m_luaRef) {
         this->RunScript(this->m_onDragStop, 0, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: 7c9a0de0 auto
@@ -1441,14 +1451,13 @@ void CSimpleFrame::OnDragStop(const CMouseEvent& evt) {
 void CSimpleFrame::OnReceiveDrag(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_onReceiveDrag.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_onReceiveDrag.m_luaRef) {
         this->RunScript(this->m_onReceiveDrag, 0, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: 703bbed0 auto
@@ -1875,8 +1884,8 @@ void CSimpleFrame::OnScreenSizeChanged() {
 void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_hoverFrame || this->m_onCursorEnter.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_hoverFrame) {
         this->m_hoverFrame->Show();
@@ -1889,7 +1898,6 @@ void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
 
     this->RunOnEnterScript(motion);
 
-#endif
 }
 
 // VERIFY: ebe4e67e manual
@@ -1897,8 +1905,8 @@ void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
 void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    if (this->m_hoverFrame || this->m_onCursorExit.m_luaRef) Frame::Native::UnavailableFrameFeature();
+#endif
 
     if (this->m_hoverFrame) {
         this->m_hoverFrame->Hide();
@@ -1916,7 +1924,6 @@ void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
 
     this->RunOnLeaveScript(motion);
 
-#endif
 }
 
 // VERIFY: 05878e28 auto

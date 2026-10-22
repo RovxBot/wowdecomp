@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--snapshot', type=Path)
     parser.add_argument('--images', action='store_true', help='Run image sources, atlases and mip Services checks (three cycles)')
+    parser.add_argument('--frame-mouse', action='store_true', help='Run authored SDL Frame pointer/capture delivery (three cycles)')
     parser.add_argument('--frame-ime', action='store_true', help='Run authored SDL IME composition/candidate delivery (three cycles)')
     parser.add_argument('--frame-keyboard', action='store_true', help='Run authored SDL keyboard/text/focus delivery (three cycles)')
     parser.add_argument('--frame-window', action='store_true', help='Run SDL size delivery through original Frame/Gxu (three cycles)')
@@ -57,10 +58,10 @@ def main():
     manifest = json.loads((args.artifact / 'manifest.json').read_text())
     if manifest['preset'] not in {'linux-gl', 'linux-gl-asan'} or manifest['target_os'] != 'LINUX':
         parser.error('Expected a Linux M3 OpenGL Actions artifact')
-    if sum([args.legacy_device, args.legacy_gxu, args.frame_fonts, args.frame_hierarchy, args.frame_ime, args.frame_keyboard, args.frame_window, args.frame_regions, args.frame_render, args.images]) > 1:
+    if sum([args.legacy_device, args.legacy_gxu, args.frame_fonts, args.frame_hierarchy, args.frame_mouse, args.frame_ime, args.frame_keyboard, args.frame_window, args.frame_regions, args.frame_render, args.images]) > 1:
         parser.error('Select one legacy fixture')
-    legacy = args.legacy_device or args.legacy_gxu or args.frame_fonts or args.frame_hierarchy or args.frame_ime or args.frame_keyboard or args.frame_window or args.frame_regions or args.frame_render or args.images
-    probe_name = 'NativeFrameHierarchyCheck' if (args.frame_hierarchy or args.frame_ime or args.frame_keyboard or args.frame_window) else 'NativeFrameRegionsCheck' if args.frame_regions else 'NativeFrameRenderCheck' if args.frame_render else 'NativeImageCheck' if args.images else 'NativeFrameFontsCheck' if args.frame_fonts else 'LegacyGxuCheck' if args.legacy_gxu else 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
+    legacy = args.legacy_device or args.legacy_gxu or args.frame_fonts or args.frame_hierarchy or args.frame_mouse or args.frame_ime or args.frame_keyboard or args.frame_window or args.frame_regions or args.frame_render or args.images
+    probe_name = 'NativeFrameHierarchyCheck' if (args.frame_hierarchy or args.frame_mouse or args.frame_ime or args.frame_keyboard or args.frame_window) else 'NativeFrameRegionsCheck' if args.frame_regions else 'NativeFrameRenderCheck' if args.frame_render else 'NativeImageCheck' if args.images else 'NativeFrameFontsCheck' if args.frame_fonts else 'LegacyGxuCheck' if args.legacy_gxu else 'LegacyGxCheck' if args.legacy_device else 'NativeGlCheck'
     if args.legacy_device and args.snapshot:
         parser.error('The legacy fixture currently records pixels, without a snapshot')
     binary = args.artifact / 'bin' / probe_name
@@ -93,6 +94,8 @@ def main():
     command = [str(binary.resolve())]
     if not legacy:
         command += ['--frames', str(args.frames), '--cycles', str(args.cycles)]
+    if args.frame_mouse:
+        command += ['--mouse-events']
     if args.frame_ime:
         command += ['--ime-events']
     if args.frame_keyboard:
@@ -100,7 +103,7 @@ def main():
     if args.frame_window:
         command += ['--window-events']
     if args.font:
-        if not (args.legacy_gxu or args.frame_fonts or args.frame_hierarchy or args.frame_ime or args.frame_keyboard or args.frame_window or args.frame_regions or args.frame_render) or args.data:
+        if not (args.legacy_gxu or args.frame_fonts or args.frame_hierarchy or args.frame_mouse or args.frame_ime or args.frame_keyboard or args.frame_window or args.frame_regions or args.frame_render) or args.data:
             parser.error('--font is only for synthetic Gxu/Frame font checks')
         command += ['--font', str(args.font.resolve())]
     if args.snapshot:
@@ -136,7 +139,7 @@ def main():
     print(result.stderr, end='')
     record = dict(schema_version=1, scope='M3 SDL3/Gx context and asset probe; no original login UI or gameplay',
                   started_at=started, completed_at=datetime.now(timezone.utc).isoformat(),
-                  probe=probe_name, frame_ime_events=args.frame_ime, frame_keyboard_events=args.frame_keyboard, frame_window_events=args.frame_window, source_commit=manifest['source_commit'], workflow_run=manifest['workflow_run'],
+                  probe=probe_name, frame_mouse_events=args.frame_mouse, frame_ime_events=args.frame_ime, frame_keyboard_events=args.frame_keyboard, frame_window_events=args.frame_window, source_commit=manifest['source_commit'], workflow_run=manifest['workflow_run'],
                   binary_sha256=actual, preset=manifest['preset'], os=platform.platform(),
                   machine=platform.machine(), sdl3=manifest.get('sdl3'), video='x11',
                   original_data_requested=bool(args.data), locale=args.locale if args.data else None,

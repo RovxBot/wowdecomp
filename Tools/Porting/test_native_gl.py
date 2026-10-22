@@ -240,6 +240,20 @@ class NativeGlLauncherTests(unittest.TestCase):
         self.assertIn('binary hash does not match', result.stderr)
         self.assertFalse(self.output.exists())
 
+    def test_frame_mouse_selects_input_mode_and_verifies_binary(self):
+        self.script('raise SystemExit("preview must not execute")\n')
+        binary = self.target_script('import sys\nassert sys.argv[1:] == ["--mouse-events"]\n', 'NativeFrameHierarchyCheck')
+        result = self.run_wrapper('--frame-mouse')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(json.loads(self.output.read_text())['frame_mouse_events'])
+        result = self.run_wrapper('--frame-mouse', '--frame-ime')
+        self.assertNotEqual(result.returncode, 0)
+        binary.write_text('tampered')
+        result = self.run_wrapper('--frame-mouse')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('binary hash does not match', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_frame_ime_selects_input_mode_and_verifies_binary(self):
         self.script('raise SystemExit("preview must not execute")\n')
         binary = self.target_script('import sys\nassert sys.argv[1:] == ["--ime-events"]\n', 'NativeFrameHierarchyCheck')

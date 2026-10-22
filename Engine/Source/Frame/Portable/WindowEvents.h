@@ -9,7 +9,8 @@ namespace Frame { namespace Native {
 // than replay stale event dimensions. Zero-sized drawables wait for a later event.
 // Root, device and context must be live on their owner, outside all traversals.
 bool DispatchWindowEvent(Gx::Native::GlContext&, const OSEVENT&);
-// Committed Unicode text, keys (including captured repeats), focus and UTF-8 IME.
+// Committed Unicode text, keys, pointer move/buttons/wheel/relative, capture loss,
+// focus and UTF-8 IME. Pointer coordinates use logical pixels, not drawable size.
 // Dispatch IME immediately after OsQueueGet, before any further dequeue; OsIME
 // getters borrow that event's snapshot. Consumers must not pump/drain the queue.
 // Language-mode selection (IME action zero) remains unsupported by SDL.

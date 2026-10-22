@@ -84,6 +84,8 @@ class CSimpleTop : public CLayoutFrame {
     CSimpleFrame* m_keydownCapture[KEY_LAST];
     bool m_nativeKeysDown[KEY_LAST]{};
     uint32_t m_nativeMetaKeys = 0;
+    uint32_t m_nativeButtonsDown = 0;
+    bool m_nativeMouseSeen = false;
 #else
     /* 0080 */ CSimpleFrame* m_keydownCapture [787];
 #endif
@@ -112,6 +114,10 @@ class CSimpleTop : public CLayoutFrame {
 
     CSimpleTop();
     void CompressStrata(int32_t strata);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Cancel native pointer capture/focus outside traversal, including host loss.
+    void CancelMouseInput();
+#endif
     void DisableEvents();
     void EnableEvents();
     void GetCursorPosition(C2Vector& position);
