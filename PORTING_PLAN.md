@@ -705,6 +705,39 @@ No new physical-input, Windows runtime, macOS graphics or server acceptance.
 M3 remains incomplete; preserve signatures, historical identities, server revision
 discrepancies and interactive user sign-in.
 
+
+The [original Frame movement package](docs/m3/FRAME_MOVEMENT.md) in
+[PR #62](https://github.com/RovxBot/wowdecomp/pull/62) is qualified at
+`e0540e9b194d71b26459b1d78c0832b910688de4`, merged as
+`3b9f9f820905e04ce38a18f91661acbd6e4de7db`. [Durable validation](docs/m3/frame-movement-validation.json)
+retains all thirteen passing implementation PR workflows, 38 CTest checks per
+Linux release/strict ASan/UBSan/leak configuration and full signature-enabled
+Windows x64 compilation at matching-tree checkout
+`534d8eb6e229ba3f63fdb4aae0a19df85ce8765c`. Three archives/all 51 packaged binary
+hashes/types/notices verified. Exact-source RX 7900 XTX / Mesa 26.2.5 / SDL X11
+release and strict sanitizer packages passed 30 input/UI/resource executions,
+three cycles each, with empty stderr/zero workers; all fifteen final capture pairs
+match. Original signatures and the qualified GlueFonts subset remain enabled.
+
+Original title-region hit movement, Alt layout moves, Control edge/corner resizing,
+explicit C++ script-reason movement, nine-point DragBy, effective scale, resize
+bounds and flatten/unflatten now use the native root. Title regions are direct
+C++ parent-owned allocations, not pooled Lua/XML factories. Stop retires the
+borrowed movement pointer before unflatten callbacks. Hide/disable/destruction,
+host focus/capture loss and deferred deletion retire movement. Preserve guarded
+callbacks and defer raising until resize traversal finishes. Attached-text movement
+and exact repeats are asserted in intermediate framebuffer readbacks; final captures
+remain authored hierarchy text, not original login rendering. No failed hosted/
+runtime attempt or detector suppression was needed; duplicate push runs remain
+separate from the thirteen passing PR qualification runs.
+
+Pooled Lua/XML/language/template factories, remaining widgets, physical mouse/IME/
+edit-box/candidate UI acceptance, complete signed ordered GlueXML creation and its
+full post-creation digest gate, actual login rendering, transport/authentication
+and observed gameplay remain open. No new physical-input, Windows runtime,
+macOS graphics or server acceptance. M3 stays incomplete; preserve signatures,
+historical identities, server revision discrepancies and interactive user sign-in.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

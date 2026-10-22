@@ -52,18 +52,18 @@ identified separately in the linked reports.
 | **Linux graphics and images** | OpenGL context, original `0x10003` UI shaders, render targets, transforms, vertex/index buffers, sampled textures and bounded legacy Gx UI dispatch; BLP2 image Services, authored mip chains and atlas/loose-image lookup | [M3 handoff](docs/m3/HANDOFF.md), [Gx device](docs/m3/LEGACY_DEVICE.md), [images](docs/m3/IMAGES.md), [mips](docs/m3/IMAGE_MIPS.md), [image sources](docs/m3/IMAGE_SOURCES.md) |
 | **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions; Frame anchors, font/name factories, FontString regions, retained batches and parent/layer/root rendering | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md) |
 | **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md) |
-| **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop and top-level occlusion/click raising | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md) |
+| **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
 | **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The latest qualified package, [Frame stacking PR #60](https://github.com/RovxBot/wowdecomp/pull/60),
-passed all **four triggered implementation PR workflows**, including **38 CTest
+The latest qualified package, [Frame movement PR #62](https://github.com/RovxBot/wowdecomp/pull/62),
+passed all **thirteen implementation PR workflows**, including **38 CTest
 checks in each Linux release and strict sanitizer configuration** and full Windows
 x64 compilation
 with signature checks enabled. Downloaded packages passed **30 runtime executions**
 across mouse/IME/input/UI and prior-resource checks, with three owner cycles each,
 empty stderr and zero remaining workers. All 15 release/sanitizer capture pairs
-match. Exact source/build/artifact identities and retained failures are in the
-[validation record](docs/m3/frame-stacking-validation.json).
+match. Exact source/build/artifact identities are in the
+[validation record](docs/m3/frame-movement-validation.json).
 
 The real-GPU results cover the recorded **AMD RX 7900 XTX / Mesa 26.2.5 / SDL X11**
 profile with ASan, UBSan and leak detection. Current Frame input checks use injected
@@ -81,8 +81,8 @@ does not close that milestone.
 
 1. **Finish original UI creation and interaction.** Connect pooled Frame/region
    Lua/XML factories, templates/language handling, texture, animation/model and
-   remaining widget consumers. Complete title/layout movement and widget drag
-   consumers; connect actual edit boxes to the qualified input delivery.
+   remaining widget/drag consumers; connect actual edit boxes to the qualified input
+   delivery. Title/layout move/resize now runs through the original root.
 2. **Run and render the signed original login UI.** Execute complete ordered
    GlueXML creation, retain the full post-creation digest comparison, and validate
    the real screen and its required shaders/models. Current original-resource text
