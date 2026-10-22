@@ -291,3 +291,15 @@ CSimpleTexture* LoadXML_Texture(XMLNode* node, CSimpleFrame* frame, CStatus* sta
     return texture;
 #endif
 }
+
+// VERIFY: 37b9ac8c auto
+// OFFSET: 0x00815160
+const char* OrientationToString(ORIENTATION orientation) {
+    for (uint32_t i = 0; i < sizeof(s_orientations) / sizeof(s_orientations[0]); i++) {
+        if (orientation == s_orientations[i].m_value) {
+            return s_orientations[i].m_name;
+        }
+    }
+
+    return "UNKNOWN";
+}

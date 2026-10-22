@@ -60,18 +60,6 @@ static const uint8_t s_signaturePublicExponent[4] = { 0x01, 0x00, 0x01, 0x00 };
 
 
 
-// VERIFY: 37b9ac8c auto
-// OFFSET: 0x00815160
-const char* OrientationToString(ORIENTATION orientation) {
-    for (uint32_t i = 0; i < sizeof(s_orientations) / sizeof(s_orientations[0]); i++) {
-        if (orientation == s_orientations[i].m_value) {
-            return s_orientations[i].m_name;
-        }
-    }
-
-    return "UNKNOWN";
-}
-
 // VERIFY: 580b9450 manual
 // OFFSET: 0x00815240
 int32_t StringToSmoothWeights(const char* string, float& in, float& out) {
