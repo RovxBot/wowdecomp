@@ -93,7 +93,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
         assert(not pcall(t.SetFormattedText,t,'%q',1) and t:GetText() == stable)
         local nofont = f:CreateFontString()
         assert(not pcall(nofont.SetText,nofont,'without font'))
-        t:SetText('AV Lua factory')
+        t:SetText('|4 AV:AV Lua factory;')
         StaleFrame,StaleText,StaleTitle,StaleChild = f,t,title,NativeLuaFrameChild
     )");
     auto* text = static_cast<CSimpleFontString*>(CScriptObject::GetScriptObjectByName("NativeLuaFrameLabel", CSimpleFontString::GetObjectType()));
@@ -107,7 +107,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     FrameScript_SetPluralRule(PLURAL_RULE_1);
     RegionLua("StaleText:SetText('0 |4one:many;'); assert(StaleText:GetText() == '0 one')");
     FrameScript_SetPluralRule(PLURAL_RULE_0);
-    RegionLua("StaleText:SetText('AV Lua factory')");
+    RegionLua("StaleText:SetText('|4 AV:AV Lua factory;')");
     auto pixels = Draw(device, root);
     Check(Ink(pixels) > 4, "Lua-created pooled FontString did not render");
     Equal(pixels, Draw(device, root));
