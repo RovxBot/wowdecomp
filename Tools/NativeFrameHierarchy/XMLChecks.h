@@ -61,6 +61,8 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         assert(override:GetParent() == f and NativeXMLOverrideText:GetParent() == override)
         local ow,oh = override:GetSize()
         assert(math.abs(ow-200) < .001 and math.abs(oh-80) < .001)
+        local last = CreateFrame('Frame','NativeXMLLastParent',nil,'NativeXMLBase, NativeXMLDimensions')
+        assert(last:GetParent() == nil)
         StaleXMLFrame,StaleXMLText = f,f.Label
     )");
     auto* instance = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeXMLParentInstance", CSimpleFrame::GetObjectType()));
@@ -93,6 +95,7 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
         Frame::Native::CollectScope traversal;
         RegionLua("assert(not pcall(CreateFrame,'Frame','RejectedTraversal')); assert(RejectedTraversal == nil)");
     }
+    delete static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeXMLLastParent", CSimpleFrame::GetObjectType()));
     delete parent;
     RegionLua(R"(
         assert(NativeXMLParent == nil and NativeXMLParentInstance == nil and NativeXMLOverride == nil)

@@ -62,6 +62,16 @@ std::vector<std::string> Names(const char* value) {
     }
     return result;
 }
+std::vector<std::string> InheritedNames(XMLNode* node) {
+    const char* inherits = node->GetAttributeByName("inherits");
+    // Original Frame lists tokenize; FontString inheritance is one exact key.
+    if (Is(node->m_name.m_str, "FontString")) {
+        if (!inherits || !*inherits) return {};
+        Name(inherits);
+        return {inherits};
+    }
+    return Names(inherits);
+}
 struct TemplateScope {
     const char* name;
     XMLNode* node;
@@ -117,7 +127,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
                 throw std::invalid_argument("Invalid native XML numeric attribute");
         }
     }
-    for (auto& name : Names(node->GetAttributeByName("inherits"))) {
+    for (auto& name : InheritedNames(node)) {
         if (Is(tag, "FontString") && CSimpleFont::GetFont(name.c_str(), 0)) continue;
         auto* item = templates.Ptr(name.c_str());
         if (!item || item->m_locked || !Is(item->m_node->m_name.m_str, tag))
@@ -130,16 +140,17 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
 const char* ParentName(XMLNode* node, size_t depth = 0) {
     if (depth >= 64) throw std::invalid_argument("Excessive inherited parent lookup");
     if (auto* value = node->GetAttributeByName("parent")) return value;
-    // Original precedence: the first inherited explicit parent wins, otherwise
-    // continue down the last inherited template's chain.
+    // Original lookup overwrites parentName for each sibling template. Continue
+    // down the last inherited template's chain when it has no explicit parent.
     XMLNode* last = nullptr;
+    const char* parent = nullptr;
     for (auto& name : Names(node->GetAttributeByName("inherits"))) {
         auto* item = templates.Ptr(name.c_str());
         if (!item) throw std::invalid_argument("Missing parent template");
         last = item->m_node;
-        if (auto* value = last->GetAttributeByName("parent")) return value;
+        parent = last->GetAttributeByName("parent");
     }
-    return last ? ParentName(last, depth + 1) : nullptr;
+    return parent ? parent : last ? ParentName(last, depth + 1) : nullptr;
 }
 int CreateFrameLua(lua_State* L) {
     // No Lua longjmp surrounds XMLNode/C++ owners. Validate and unwind first.
@@ -215,7 +226,7 @@ void RequireAvailableName(CScriptObject* object, const char* name) {
 }
 void ApplyTemplates(XMLNode* node, const std::function<void(XMLNode*)>& apply, bool applyTaint) {
     RequireFactories();
-    for (auto& name : Names(node->GetAttributeByName("inherits"))) {
+    for (auto& name : InheritedNames(node)) {
         TemplateScope scope(name.c_str(), applyTaint);
         apply(scope.node);
     }
