@@ -36,4 +36,59 @@ physical IME/edit-box acceptance, actual login, transport/authentication and
 observed gameplay remain open. M3 is incomplete; preserve server revision
 discrepancies and interactive user sign-in.
 
-Qualification is pending hosted and downloaded exact-source checks.
+## Qualification
+
+[PR #66](https://github.com/RovxBot/wowdecomp/pull/66) is qualified at
+`56aa592edfc7685c7234119aab874f55173bf61f`, merged as
+`914a6d5b72a3edee185379559c5b56a2ebd9b273`. The [durable validation](frame-script-method-validation.json)
+retains all thirteen passing PR workflows, 38 CTest checks per Linux release/strict
+ASan/UBSan/leak configuration and full signature-enabled Windows x64 compilation
+at matching-tree hosted checkout `3c9d0ba7edc0a4bc9004907a3cdafe1919e18a62`.
+Implementation, hosted checkout and merge have the same source tree. Three artifact
+archive digests, all 51 packaged executable hashes/types and notices verified.
+Graphics remain Linux x86-64; prerequisite component matrices retain separate
+actual ARM64 macOS and native Windows coverage.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed 30 authored/original-data input/UI/resource executions, three owner cycles
+each, with empty stderr and zero workers. Four resource fixtures also passed three
+cycles per mode. All fifteen release/sanitizer capture pairs match. Final original-
+data hierarchy/input captures retain SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`.
+The inspected final capture is authored hierarchy text with original fonts/UI
+shaders. Intermediate readbacks assert Lua-created FontString rendering, visibility
+and exact repeats; they are not exported new captures or original login UI.
+
+Each hierarchy/input cycle ran the new Lua factory/identity/layout/stale-table
+fixture alongside qualified pool and prior hierarchy checks. Original-key archive
+authentication and selective registered-member MD5 policy stayed enabled; original-
+data cycles authenticated GlueXML before/after eighteen GlueFonts definitions.
+Complete ordered creation and the full post-creation digest gate remain open.
+Local source/launcher checks: 57 passed, one unavailable-CMake skip. Windows-selected
+tokens in seven changed legacy Frame sources match immutable pre-PR base; both
+extracted draw-layer converters match. Whitespace passed; no client/dependency
+compiled locally. The initial graph-test allowlist fixture was updated for the
+selected sources before hosted submission. No hosted implementation or actual
+runtime failure occurred and no detector/assertion was disabled. A usage-limit
+failure in automatic approval review prevented one sanitizer download/execution
+attempt from running; after the user requested continuation, the resumed strict
+checks passed. Superseded/duplicate runs remain separate historical records.
+
+## Next original callers
+
+1. Connect the original FrameXML factory registry and Lua global `CreateFrame`,
+   named-parent XML processing and retained virtual templates/inheritance. Preserve
+   original manifest order and borrowed XML nodes through creation.
+2. Adapt original language processing before selecting Lua text/format setters;
+   extend additional font/region/Frame methods in bounded packages. This package's
+   text content uses explicit C++ `process=0`, not a replacement language service.
+3. Install actual nonempty Lua input handlers and remaining widget factories only
+   after their ownership, allocator/deletion and service contracts are adapted.
+   Texture/image-mode, backdrop, scroll, animation/model and edit boxes remain open.
+4. Execute complete signed ordered GlueXML with the full post-creation digest gate,
+   then render actual login before interactive user sign-in. Physical mouse/IME/
+   language/edit-box/candidate UI acceptance and transport/gameplay remain open.
+
+No new physical-input, Windows runtime, macOS graphics or server acceptance is
+recorded. M3 stays incomplete; preserve signatures, historical identities, server
+revision discrepancies and interactive user sign-in.

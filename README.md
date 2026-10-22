@@ -51,11 +51,11 @@ identified separately in the linked reports.
 | **Native application shell** | SDL3 window/input, clipboard, settings save/reload and joined shutdown; original-data Linux X11/Wayland execution and recorded operator input acceptance | [M2 handoff](docs/m2/HANDOFF.md), [shell](docs/m2/SHELL.md), [closeout](docs/m2/closeout.json) |
 | **Linux graphics and images** | OpenGL context, original `0x10003` UI shaders, render targets, transforms, vertex/index buffers, sampled textures and bounded legacy Gx UI dispatch; BLP2 image Services, authored mip chains and atlas/loose-image lookup | [M3 handoff](docs/m3/HANDOFF.md), [Gx device](docs/m3/LEGACY_DEVICE.md), [images](docs/m3/IMAGES.md), [mips](docs/m3/IMAGE_MIPS.md), [image sources](docs/m3/IMAGE_SOURCES.md) |
 | **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions; Frame anchors, font/name factories, FontString regions, retained batches, parent/layer/root rendering and pooled base Frame/FontString allocation | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md), [pooled allocation](docs/m3/FRAME_POOLS.md) |
-| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md) |
+| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing; bounded region/Frame/title/FontString Lua metatables and pooled Lua FontString creation | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md), [Frame Lua methods](docs/m3/FRAME_SCRIPTS.md) |
 | **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
 | **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The latest qualified package, [pooled Frame allocation PR #64](https://github.com/RovxBot/wowdecomp/pull/64),
+The latest qualified package, [original region Lua PR #66](https://github.com/RovxBot/wowdecomp/pull/66),
 passed all **thirteen implementation PR workflows**, including **38 CTest
 checks in each Linux release and strict sanitizer configuration** and full Windows
 x64 compilation
@@ -63,7 +63,7 @@ with signature checks enabled. Downloaded packages passed **30 runtime execution
 across mouse/IME/input/UI and prior-resource checks, with three owner cycles each,
 empty stderr and zero remaining workers. All 15 release/sanitizer capture pairs
 match. Exact source/build/artifact identities are in the
-[validation record](docs/m3/frame-pool-validation.json).
+[validation record](docs/m3/frame-script-method-validation.json).
 
 The real-GPU results cover the recorded **AMD RX 7900 XTX / Mesa 26.2.5 / SDL X11**
 profile with ASan, UBSan and leak detection. Current Frame input checks use injected
@@ -79,8 +79,8 @@ unchanged 12340 data, signs in, selects a character, enters the world, supports
 basic play, saves settings and exits cleanly. A rendered test or successful build
 does not close that milestone.
 
-1. **Finish original UI creation and interaction.** Connect pooled Frame/region
-   Lua/XML factories, templates/language handling, texture, animation/model and
+1. **Finish original UI creation and interaction.** Connect the FrameXML registry,
+   Lua global `CreateFrame`, templates/language and text setters, texture, animation/model and
    remaining widget/drag consumers; connect actual edit boxes to the qualified input
    delivery. Title/layout move/resize now runs through the original root.
 2. **Run and render the signed original login UI.** Execute complete ordered
