@@ -3,6 +3,7 @@
 #include "Engine/Source/Frame/CFrameStrataNode.h"
 #include "Engine/Source/Services/Camera.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <unordered_set>
 #include <vector>
@@ -61,6 +62,46 @@ void RequireLevel(CSimpleFrame* target, int32_t proposed) {
             if (current == target && leaf->m_level + delta > 128)
                 throw std::invalid_argument("Native descendant Frame level limit");
 }
+void RequireRaise(CSimpleFrame* target) {
+    RequireTreeMutation(); RequireSimpleFrame(target);
+    // Predict the original compression, including hidden registered Frames.
+    // No list/level changes occur until the final subtree fits the native bound.
+    const auto top = CSimpleTop::s_instance->m_strata[target->m_strata]->m_topLevel;
+    std::array<bool, 129> used{};
+    std::array<int, 129> levels{};
+    for (auto* frame : frames)
+        if (frame->m_strata == target->m_strata) used[frame->m_level] = true;
+    for (size_t i = 0; i < levels.size(); ++i) levels[i] = int(i);
+    // Mirror the original scan, including its resumed scan index after a gap.
+    // It is not interchangeable with assigning dense ranks to occupied levels.
+    int compressedTop = int(top), empty = -1, level = 0;
+    while (level < compressedTop) {
+        if (!used[level]) {
+            if (empty == -1) empty = level;
+            ++level;
+            continue;
+        }
+        if (empty == -1) { ++level; continue; }
+        const int gap = level - empty;
+        for (int moved = level; moved < compressedTop; ++moved) {
+            for (auto& planned : levels) if (planned == moved) planned -= gap;
+            used[moved - gap] = used[moved];
+            used[moved] = false;
+        }
+        compressedTop -= gap;
+        empty = -1;
+    }
+    if (empty != -1) compressedTop = empty;
+    if (compressedTop > 128) throw std::invalid_argument("Native raised Frame level limit");
+    const int delta = compressedTop - levels[target->m_level];
+    for (auto* leaf : frames)
+        for (auto* current = leaf; current; current = current->m_parent)
+            if (current == target) {
+                const int level = leaf->m_strata == target->m_strata ? levels[leaf->m_level] : leaf->m_level;
+                if (level + delta > 128)
+                    throw std::invalid_argument("Native raised descendant level limit");
+            }
+}
 void RequireScale(CSimpleFrame* target, float proposed) {
     // Original recursive scale multiplication must remain finite before mutation.
     for (auto* leaf : frames) {
@@ -107,8 +148,10 @@ UpdateScope::~UpdateScope() { updating = false; }
 void ClearDirtyBatches(CSimpleTop& root) {
     // A Gxu string has one intrusive batch link. Retire every dirty source before
     // moving it to an earlier level/strata/layer, irrespective of rebuild order.
+    // Compression can lower m_topLevel while retired source batches above it
+    // still own the same intrusive links. Visit every allocated level.
     for (auto* strata : root.m_strata)
-        for (uint32_t level = 0; level < strata->m_topLevel; ++level) {
+        for (uint32_t level = 0; level < strata->m_levels.Count(); ++level) {
             auto* node = strata->m_levels[level];
             for (uint32_t layer = 0; layer < 5; ++layer)
                 if (node->m_batchDirty & (1 << layer)) node->m_batches[layer].Clear();

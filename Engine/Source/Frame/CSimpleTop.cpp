@@ -793,8 +793,11 @@ CSimpleFrame* CFrameStrata::GetHitFrame(const C2Vector& pt) {
 // OFFSET: 0x00494D20
 int32_t CFrameStrata::FrameOccluded(CSimpleFrame* frame) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireSimpleFrame(frame);
+    if (CSimpleTop::s_instance->m_strata[frame->m_strata] != this)
+        throw std::invalid_argument("Frame belongs to another stratum");
+    Frame::Native::ResizeScope traversalGuard;
+#endif
 
     CRect frameRect = { 0.0f, 0.0f, 0.0f, 0.0f };
     CRect otherRect = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -817,8 +820,13 @@ int32_t CFrameStrata::FrameOccluded(CSimpleFrame* frame) {
                 continue;
             }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            // Failed layout has no occluding rectangle; never reuse an old rect.
+            if (!frame->GetRect(&frameRect) || !other->GetRect(&otherRect)) continue;
+#else
             frame->GetRect(&frameRect);
             other->GetRect(&otherRect);
+#endif
             frameRect = frameRect & otherRect;
 
             if (frameRect.maxY > frameRect.minY && frameRect.maxX > frameRect.minX) {
@@ -829,27 +837,30 @@ int32_t CFrameStrata::FrameOccluded(CSimpleFrame* frame) {
 
     return 0;
 
-#endif
 }
 
 // VERIFY: 8e94ced8 manual
 // OFFSET: 0x00494E60
 void CFrameStrata::CheckOcclusion() {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireRoot();
+    Frame::Native::ResizeScope traversalGuard;
+#endif
 
     for (uint32_t level = 0; level < this->m_topLevel; level++) {
         CFrameStrataNode* node = this->m_levels[level];
 
         for (CSimpleFrame* frame = node->m_frames.Head(); frame; frame = node->m_frames.Next(frame)) {
             if (frame->m_frameFlags & 1) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                frame->m_frameFlags = (frame->m_frameFlags & ~0x10u) | (this->FrameOccluded(frame) ? 0x10u : 0);
+#else
                 frame->SetFrameFlag(0x10, this->FrameOccluded(frame));
+#endif
             }
         }
     }
 
-#endif
 }
 
 // VERIFY: 2b665fc9 manual
@@ -857,11 +868,7 @@ void CFrameStrata::CheckOcclusion() {
 int32_t CFrameStrata::BuildBatches(int32_t noMouseCapture) {
     FRAME_TREE_CHECK();
     if (this->m_levelsDirty) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    // Occlusion/top-level input policy is not selected for this UI surface.
-#else
         this->CheckOcclusion();
-#endif
         this->m_levelsDirty = 0;
     }
 
@@ -935,8 +942,9 @@ void CSimpleTop::RegisterForCleanup(CSimpleFrame* frame) {
 void CSimpleTop::CompressStrata(int32_t strata) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireRoot();
+    Frame::Native::RequireTreeMutation();
+#endif
 
     if (strata < FRAME_STRATA_WORLD || strata > FRAME_STRATA_TOOLTIP) {
         return;
@@ -992,7 +1000,6 @@ void CSimpleTop::CompressStrata(int32_t strata) {
 
     this->m_strata[strata]->m_topLevel = topLevel;
 
-#endif
 }
 
 // VERIFY: ca612c34 manual
@@ -1000,8 +1007,9 @@ void CSimpleTop::CompressStrata(int32_t strata) {
 int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+#endif
 
     while (!(frame->m_frameFlags & 1)) {
         frame = frame->m_parent;
@@ -1013,13 +1021,23 @@ int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
 
     if (checkOcclusion) {
         if (!(frame->m_layoutFlags & 0x100) || frame->IsResizePending()) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::ResizeScope resizeGuard;
+#endif
             frame->Resize(1);
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        frame->m_frameFlags = (frame->m_frameFlags & ~0x10u) | (this->m_strata[frame->m_strata]->FrameOccluded(frame) ? 0x10u : 0);
+#else
         frame->SetFrameFlag(0x10, this->m_strata[frame->m_strata]->FrameOccluded(frame));
+#endif
     }
 
     if (frame->m_frameFlags & 0x10) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::RequireRaise(frame); // Check final descendant levels before compression mutates lists.
+#endif
         this->CompressStrata(frame->m_strata);
         frame->SetFrameLevel(this->m_strata[frame->m_strata]->m_topLevel, 1);
         this->m_checkFocus = 1;
@@ -1027,7 +1045,6 @@ int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
 
     return 1;
 
-#endif
 }
 
 // VERIFY: 36f05eee manual
@@ -1140,24 +1157,24 @@ int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     CheckMouseInput(data, param);
-    Frame::Native::ResizeScope inputGuard;
     const auto* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
     auto* top = static_cast<CSimpleTop*>(param);
     if (!mouseData->m_button || top->m_moveResizeEnabled || top->m_moveResizeFrame)
         Frame::Native::UnavailableFrameFeature();
     auto* frame = top->m_mouseCapture ? top->m_mouseCapture : top->m_mouseFocus;
-    if (frame) {
-        for (auto* ancestor = frame; ancestor; ancestor = ancestor->m_parent)
-            if (ancestor->m_frameFlags & 1) Frame::Native::UnavailableFrameFeature();
-        if (frame->m_titleRegion) Frame::Native::UnavailableFrameFeature();
-    }
+    if (frame && frame->m_titleRegion) Frame::Native::UnavailableFrameFeature();
     CMouseEvent evt; evt = *mouseData; evt.m_id = 0x400500C8;
     CSimpleTop::s_eventTime = mouseData->m_time;
     top->m_mousePosition = *mouseData;
-    if (top->m_mouseButtonCallback && !top->m_mouseCapture && top->m_mouseButtonCallback(&evt)) return 0;
+    {
+        Frame::Native::ResizeScope callbackGuard;
+        if (top->m_mouseButtonCallback && !top->m_mouseCapture && top->m_mouseButtonCallback(&evt)) return 0;
+    }
     if (!frame) return 1;
-    // Original RaiseFrame has no effect without a top-level ancestor. Its
-    // occlusion/reordering path remains unavailable and is rejected above.
+    // No external consumer runs between guarded callback phases. Raising may
+    // reorder lists here; resize callbacks hold their own traversal guard.
+    frame->Raise();
+    Frame::Native::ResizeScope inputGuard;
     top->m_mouseCapture = frame;
     frame->OnLayerMouseDown(evt, nullptr);
     return 0;
