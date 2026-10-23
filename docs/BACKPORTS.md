@@ -640,6 +640,38 @@ and source inspection are different evidence levels.
   All compilation ran in Actions. No new physical-input, Windows runtime,
   macOS graphics or server acceptance; full login and transport/gameplay remain open.
 
+## NP-023 — Original Frame texture regions, XML and Lua consumers
+
+- Status: qualified in [PR #72](https://github.com/RovxBot/wowdecomp/pull/72) at
+  `6727ee12de9dd44a74dd548b63764efe35da0244`, merged as `519be5f497074a582419f0a9276e73d82ff69c3a`.
+  See [contracts](m3/FRAME_TEXTURES.md) and [validation](m3/frame-texture-validation.json).
+  M3 remains incomplete.
+- Source: product main `839ff7a961572f0a71ffea9eec9b5362aabb2323`; original
+  12340 CSimpleTexture, Frame/XML/Lua creation and retained render consumers.
+  Texture bodies and scalar XML helpers move into explicit shared sources.
+  No donor import, dependency upgrade, new binary-verification claim or game data.
+- Adaptation: native-aligned original class pools and mixed heap/pool teardown;
+  canonical Lua names/objects, exact-key retained templates and existing preflight;
+  initialized native flags, raw mode/sampler validation, dirty coordinate/nonblocking
+  edits and retained image/shader quad handles. Native 8x8 ARGB solid callbacks own
+  pixels through GPU teardown, preserving opacity without the original global
+  solid cache. Existing file/mip/atlas/read/wait contracts stay in effect.
+- Assets/defaults: authored composition with original or authored loading-bar/UI/
+  Desaturate resources; original-key archives, selective MD5 and GlueFonts-subset
+  InterfaceKey checks stay enabled. Animation/tiling and other widgets remain open;
+  no protocol/server-policy/credential changes or full login claim.
+- Validation: thirteen passing implementation PR workflows; 38 CTest checks per
+  Linux GL configuration and signature-enabled Windows x64 compilation at
+  `a8c63b738b0b45081f7c71bb77b9e3182b6d9986`. Three archives/all 51 binaries/notices verified;
+  30 three-cycle release/strict sanitizer desktop executions passed on RX 7900 XTX
+  on 2026-10-24 with empty stderr/zero workers; fifteen final captures retain the
+  prior baseline. Intermediate readbacks cover solid/file/atlas/desaturation/UV/
+  alpha/visibility and XML/template consumers, with growth to 737 pool slots.
+  Native missing-header and Windows formatter/table extraction failures remain
+  evidence. Original Windows tokens and local source/launcher/whitespace checks
+  passed. All compilation ran in Actions; physical IME/edit-box acceptance, full
+  signed GlueXML/login and transport/gameplay remain open.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

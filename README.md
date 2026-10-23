@@ -17,7 +17,7 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-22. Linux has a tested native rendering and UI foundation.
+**Updated: 2026-10-24. Linux has a tested native rendering and UI foundation.
 A playable native Linux or macOS client is still in development.**
 
 | Platform | What is demonstrated | What still blocks a playable prototype |
@@ -50,12 +50,12 @@ identified separately in the linked reports.
 | **Files and original assets** | Host paths, read-only MPQs, original-key authentication and registered-member MD5 checks; representative DBC, BLP, M2, WMO and map inspection; retained asynchronous reads | [Files](docs/m2/FILESYSTEM.md), [assets](docs/m2/ASSETS.md), [async](docs/m2/ASYNC.md) |
 | **Native application shell** | SDL3 window/input, clipboard, settings save/reload and joined shutdown; original-data Linux X11/Wayland execution and recorded operator input acceptance | [M2 handoff](docs/m2/HANDOFF.md), [shell](docs/m2/SHELL.md), [closeout](docs/m2/closeout.json) |
 | **Linux graphics and images** | OpenGL context, original `0x10003` UI shaders, render targets, transforms, vertex/index buffers, sampled textures and bounded legacy Gx UI dispatch; BLP2 image Services, authored mip chains and atlas/loose-image lookup | [M3 handoff](docs/m3/HANDOFF.md), [Gx device](docs/m3/LEGACY_DEVICE.md), [images](docs/m3/IMAGES.md), [mips](docs/m3/IMAGE_MIPS.md), [image sources](docs/m3/IMAGE_SOURCES.md) |
-| **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions; Frame anchors, font/name factories, FontString regions, retained batches, parent/layer/root rendering and pooled base Frame/FontString allocation | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md), [pooled allocation](docs/m3/FRAME_POOLS.md) |
-| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing; bounded region/Frame/title/FontString Lua metatables, pooled Lua Frame/FontString creation, retained base Frame XML templates/named parents and original Korean/French/plural text processing | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md), [Frame Lua methods](docs/m3/FRAME_SCRIPTS.md), [language/text setters](docs/m3/LANGUAGE.md), [Frame XML factories](docs/m3/FRAME_XML.md) |
+| **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions; Frame anchors, font/name factories, FontString regions, retained batches, parent/layer/root rendering; pooled base Frame/FontString/Texture allocation; file/solid/atlas texture regions | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md), [pooled allocation](docs/m3/FRAME_POOLS.md), [texture regions](docs/m3/FRAME_TEXTURES.md) |
+| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing; bounded region/Frame/title/FontString/Texture Lua metatables, pooled Lua Frame/FontString/Texture creation, retained base Frame XML templates/named parents and original Korean/French/plural text processing | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md), [Frame Lua methods](docs/m3/FRAME_SCRIPTS.md), [language/text setters](docs/m3/LANGUAGE.md), [Frame XML factories](docs/m3/FRAME_XML.md) |
 | **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
 | **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The latest qualified package, [original language/text setters PR #68](https://github.com/RovxBot/wowdecomp/pull/68),
+The latest qualified package, [original Frame texture regions PR #72](https://github.com/RovxBot/wowdecomp/pull/72),
 passed all **thirteen implementation PR workflows**, including **38 CTest
 checks in each Linux release and strict sanitizer configuration** and full Windows
 x64 compilation
@@ -63,7 +63,7 @@ with signature checks enabled. Downloaded packages passed **30 runtime execution
 across mouse/IME/input/UI and prior-resource checks, with three owner cycles each,
 empty stderr and zero remaining workers. All 15 release/sanitizer capture pairs
 match. Exact source/build/artifact identities are in the
-[validation record](docs/m3/language-validation.json).
+[validation record](docs/m3/frame-texture-validation.json).
 
 The real-GPU results cover the recorded **AMD RX 7900 XTX / Mesa 26.2.5 / SDL X11**
 profile with ASan, UBSan and leak detection. Current Frame input checks use injected
@@ -80,8 +80,9 @@ basic play, saves settings and exits cleanly. A rendered test or successful buil
 does not close that milestone.
 
 1. **Finish original UI creation and interaction.** Extend the qualified base Frame
-   XML/templates to texture, animation/model and remaining widget/drag consumers,
-   broader template semantics, nonempty Lua handlers and DB-backed declensions.
+   XML/templates to remaining widgets, backdrop, animation/model and drag consumers,
+   broader template semantics, nonempty Lua handlers, image tiling and
+   DB-backed declensions.
    Connect actual edit boxes to the qualified input delivery. Title/layout
    move/resize and base Lua Frame/FontString creation now run through the original root.
 2. **Run and render the signed original login UI.** Execute complete ordered

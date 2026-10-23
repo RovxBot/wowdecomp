@@ -85,3 +85,13 @@ changed Frame files, remaining LoadXML and extracted helpers, and FreeType retai
 unchanged Windows-selected tokens. Local source/launcher checks: 57 passed, one
 unavailable-CMake skip; whitespace passed. All compilation ran in Actions.
 No new physical-input, Windows runtime, macOS graphics or server acceptance.
+
+
+## Subsequent texture-region integration
+
+[PR #72](https://github.com/RovxBot/wowdecomp/pull/72) qualifies original Texture
+pools, Lua/XML factories, exact-key retained templates and rendering; see
+[FRAME_TEXTURES.md](FRAME_TEXTURES.md). The historical package above retains its
+own identities and scope. Remaining widgets/nonempty Lua handlers, physical IME/
+edit-box acceptance, complete signed GlueXML/full second digest gate, original
+login and transport/gameplay remain open.

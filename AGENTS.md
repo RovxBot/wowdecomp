@@ -951,3 +951,29 @@ remaining checks need another machine.
   digest gate, full login/transport/gameplay remain open. No new physical-input,
   Windows runtime, macOS graphics or server acceptance. M3 remains incomplete;
   preserve signatures/server revision discrepancies/interactive user sign-in.
+
+
+- M3 original Frame texture [PR #72](https://github.com/RovxBot/wowdecomp/pull/72)
+  is qualified at `6727ee12de9dd44a74dd548b63764efe35da0244`, merged as
+  `519be5f497074a582419f0a9276e73d82ff69c3a`. Read [texture-region contracts](docs/m3/FRAME_TEXTURES.md)
+  and [validation](docs/m3/frame-texture-validation.json). Thirteen final-head PR
+  workflows passed; both Linux GL configurations passed 38 CTest checks and full
+  signature-enabled Windows x64 compilation used matching-tree checkout
+  `a8c63b738b0b45081f7c71bb77b9e3182b6d9986`. Three archives/all 51 binaries/notices verified.
+  Fresh RX 7900 XTX / Mesa 26.2.5 / SDL X11 release/strict ASan/UBSan/leak packages
+  passed 30 three-cycle desktop executions on 2026-10-24, empty stderr/zero workers;
+  fifteen final capture pairs match the prior baseline. Original CSimpleTexture
+  pools/Lua/XML/templates/layers now use retained quads and file/solid/atlas images,
+  original UI/Desaturate shaders and selected image/color/alpha/coordinate methods.
+  Preserve native initialization/raw mode/sampler admission, dirty coordinate and
+  nonblocking edits, image/shader retention, 737-slot pool growth and GPU-before-
+  solid-pixel teardown. Close objects before Scripts/metatables/image-mode shaders,
+  then image Services/renderer/Fonts/Gxu/layout/XML/VM/device/context/queue. Original
+  Windows-selected tokens and both compiler failures remain recorded. Native solid
+  images retain original 8x8 ARGB/opacity without exporting the global solid cache.
+  Animation/tiling mutation, other widget factories/nonempty Lua handlers, physical
+  IME/edit-box/candidate acceptance, full signed ordered GlueXML/second digest,
+  actual login and transport/gameplay remain open. Final captures are authored
+  hierarchy text; texture pixels are intermediate readbacks. No new physical-input,
+  Windows runtime, macOS graphics or server acceptance. Keep signatures, server
+  discrepancies, interactive sign-in and read-only clean data intact; M3 is open.
