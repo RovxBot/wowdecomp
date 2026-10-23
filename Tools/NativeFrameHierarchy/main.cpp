@@ -1,4 +1,7 @@
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/Frame/CSimpleTexture.h"
+#include "Engine/Source/Services/Portable/Texture.h"
+#include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/WindowEvents.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
@@ -74,6 +77,8 @@ struct Source {
                 "!!ARBvp1.0\nDP4 result.position.x, program.env[0], vertex.position;\nDP4 result.position.y, program.env[1], vertex.position;\nDP4 result.position.z, program.env[2], vertex.position;\nDP4 result.position.w, program.env[3], vertex.position;\nMOV result.color, vertex.attrib[4];\nMOV result.texcoord[0], vertex.attrib[6];\nEND\n",2);
             shaders["Shaders\\Pixel\\arbfp1\\UI.bls"]=Program(
                 "!!ARBfp1.0\nTEMP tex;\nTEX tex, fragment.texcoord[0], texture[0], 2D;\nMUL result.color,tex,fragment.color;\nEND\n");
+            shaders["Shaders\\Pixel\\arbfp1\\Desaturate.bls"] = Program(
+                "!!ARBfp1.0\nTEMP tex;\nTEX tex, fragment.texcoord[0], texture[0], 2D;\nDP3 tex.xyz,tex,{0.299,0.587,0.114,0};\nMUL result.color,tex,fragment.color;\nEND\n");
         } else {
             Blizzard::File::Native::Paths paths;
             Check(Blizzard::File::Native::ConfigurePaths(data.c_str(),settings.c_str(),cache.c_str(),paths),"Separate data/user roots required");
@@ -83,7 +88,7 @@ struct Source {
             if (!queue.Wait(ticket,std::chrono::seconds(60))) {
                 queue.Shutdown();throw std::runtime_error("Package open timeout");
             }
-            for (const char* path : {"Shaders\\Vertex\\arbvp1\\UI.bls","Shaders\\Pixel\\arbfp1\\UI.bls"}) {
+            for (const char* path : {"Shaders\\Vertex\\arbvp1\\UI.bls","Shaders\\Pixel\\arbfp1\\UI.bls","Shaders\\Pixel\\arbfp1\\Desaturate.bls"}) {
                 Bytes bytes;Check(Read(path,bytes),"Original shader read failed");shaders[path]=std::move(bytes);
             }
             std::cout << "original-signaturefile=authenticated records=" << packages->SignatureCount() << '\n';
@@ -248,13 +253,15 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "PoolChecks.h"
 #include "ScriptChecks.h"
 #include "XMLChecks.h"
-static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents) {
+#include "TextureChecks.h"
+static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents,bool original) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
     Reject([&]{CSimpleTop second;});
     PoolChecks(device,root,font,owner);
     ScriptChecks(device,root,font);
     XMLChecks(device,root,font);
+    TextureChecks(device,root,original);
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");
@@ -369,11 +376,19 @@ int main(int argc,char** argv) {
                 FrameScript::Native::Runtime scripts([&](FrameScript::Native::SourceKind kind,const std::string& path,Bytes& bytes){return kind==FrameScript::Native::SourceKind::Interface && source.Read(path,bytes);});
                 FrameXML::Native::Runtime xml;Frame::Native::Runtime layout;
                 Gxu::Native::LegacyFonts gxu([&](const std::string& path){return source.Font(path);});
-                {Frame::Native::Fonts factories;Frame::Native::Renderer renderer;Frame::Native::Scripts scripts;
+                {Frame::Native::Fonts factories;Frame::Native::Renderer renderer;
+                    TextureService images(source.queue, [&](const std::string& name, const Cancellation&) {
+                        ReadResult result;
+                        if (source.packages) result.file = source.packages->Read(name);
+                        else if (name == "FIXTURE.BLP") result.file.bytes = TextureFixtureBlp();
+                        else { result.status = ReadStatus::Failed; result.error = "Authored missing image"; }
+                        return result;
+                    });
+                    Frame::Native::Scripts scripts;
                     CSimpleFont* selected;
                     if(data.empty()) {selected=CSimpleFont::GetFont("RegionFont",1);Check(selected->m_attributes.SetFont("Fonts\\fixture.ttf",NDCToDDCHeight((windowEvents?20.0f:32.0f)/480),0),"Authored font creation");}
                     else selected=Original(source);
-                    Hierarchy(context,device,*selected,factories,cycle?"":snapshot,windowEvents,keyboardEvents,imeEvents,mouseEvents);
+                    Hierarchy(context,device,*selected,factories,cycle?"":snapshot,windowEvents,keyboardEvents,imeEvents,mouseEvents,!data.empty());
                     Check(!CSimpleFrame::s_allocator.m_dataUsed && !CSimpleFontString::s_allocator.m_dataUsed,"Root teardown left pooled objects");
                     renderer.CheckCanClose();factories.CheckCanClose();}
                 Check(!CSimpleFrame::s_allocator.m_blockList && !CSimpleFontString::s_allocator.m_blockList,

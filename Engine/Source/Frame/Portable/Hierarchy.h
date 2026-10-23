@@ -3,11 +3,13 @@
 #include "Regions.h"
 class CSimpleTop;
 class CSimpleTitleRegion;
+class CSimpleTexture;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
 void RequireRoot();
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
+CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);
 void SimpleFrameCreated(CSimpleFrame*);
 void SimpleFrameDestroyed(CSimpleFrame*);

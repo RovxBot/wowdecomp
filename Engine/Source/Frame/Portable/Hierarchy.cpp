@@ -1,5 +1,7 @@
 #include "Hierarchy.h"
 #include "Storage.h"
+#include "Scripts.h"
+#include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CSimpleTitleRegion.h"
 #include <memory>
@@ -23,6 +25,12 @@ CSimpleFontString* CreateFontString(CSimpleFrame* frame, uint32_t layer, bool sh
     if (frame) RequireSimpleFrame(frame);
     if (layer >= 5) throw std::invalid_argument("Invalid native FontString draw layer");
     return ConstructRegion<CSimpleFontString>(CSimpleFontString::s_allocator, frame, layer, show);
+}
+CSimpleTexture* CreateTexture(CSimpleFrame* frame, uint32_t layer, bool show) {
+    RequireTreeMutation(); RequireRegionScripts();
+    if (frame) RequireSimpleFrame(frame);
+    if (layer >= 5) throw std::invalid_argument("Invalid native Texture draw layer");
+    return ConstructRegion<CSimpleTexture>(CSimpleTexture::s_allocator, frame, layer, show);
 }
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame* frame) {
     RequireTreeMutation(); RequireSimpleFrame(frame);

@@ -190,7 +190,7 @@ void CRenderBatch::QueueFontString(CSimpleFontString* string) {
 void CRenderBatch::QueueTexture(CSimpleTexture* texture) {
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
     this->NativeCheck();
-    throw std::logic_error("Native Frame texture objects are not installed");
+    Frame::Native::QueueRegionTexture(this, texture);
 #else
     CGxTex* gxTex = TextureGetGxTex(texture->m_texture, (texture->m_textureFlags & 1) ? 0 : 2, nullptr);
 

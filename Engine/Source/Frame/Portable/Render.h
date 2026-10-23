@@ -3,6 +3,7 @@
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
 class CRenderBatch;
 class CSimpleFontString;
+class CSimpleTexture;
 namespace Frame { namespace Native {
 // Owns original UI vertex shaders inside Gxu/device/context ownership. Close
 // every batch first. Mesh submissions snapshot their arrays and retain resources;
@@ -26,6 +27,9 @@ using RegionTextQueue = void (*)(CRenderBatch*, CSimpleFontString*);
 // keep this entry visibly unavailable without linking unselected class RTTI.
 void SetRegionTextQueue(RegionTextQueue);
 void QueueRegionText(CRenderBatch*, CSimpleFontString*);
+using RegionTextureQueue = void (*)(CRenderBatch*, CSimpleTexture*);
+void SetRegionTextureQueue(RegionTextureQueue);
+void QueueRegionTexture(CRenderBatch*, CSimpleTexture*);
 class RenderScope final {
 public:
     explicit RenderScope(CRenderBatch*);

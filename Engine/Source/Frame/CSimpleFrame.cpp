@@ -836,12 +836,8 @@ void CSimpleFrame::LoadXML_Layers(XMLNode* node, CStatus* status) {
 
         for (XMLNode* child = layerNode->m_child; child; child = child->m_next) {
             if (!SStrCmpI(child->m_name.m_str, "Texture", STORM_MAX_STR)) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-                Frame::Native::UnavailableFrameFeature();
-#else
                 CSimpleTexture* texture = LoadXML_Texture(child, this, status);
                 texture->SetFrame(this, drawLayer, texture->m_shown);
-#endif
             } else if (!SStrCmpI(child->m_name.m_str, "FontString", STORM_MAX_STR)) {
                 CSimpleFontString* string = LoadXML_String(child, this, status);
                 string->SetFrame(this, drawLayer, string->m_shown);

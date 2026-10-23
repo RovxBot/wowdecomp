@@ -41,3 +41,41 @@ CTexture* TextureCreate(uint32_t width, uint32_t height, EGxTexFormat format,
 CGxTex* TextureGetGxTex(CTexture* texture, int32_t wait, CStatus* status) {
     return Services::Native::GetFileTexture(texture, wait, status);
 }
+
+namespace {
+class SolidTexture final : public CTexture {
+public:
+    CImVector pixels[64];
+    ~SolidTexture() override {
+        if (m_gxTex) { GxTexDestroy(m_gxTex); m_gxTex = nullptr; }
+    }
+    static void Source(EGxTexCommand command, uint32_t width, uint32_t height,
+        uint32_t face, uint32_t level, void* user, uint32_t& stride, const void*& bytes) {
+        if (width != 8 || height != 8 || face || level)
+            throw std::logic_error("Invalid native solid-texture callback extent");
+        if (command == GxTex_Latch) {
+            stride = 8 * sizeof(CImVector);
+            bytes = static_cast<SolidTexture*>(user)->pixels;
+        }
+    }
+};
+}
+// Bounded native adaptation of TextureCreateSolid/FillInSolidTexture (12340).
+// Original 8x8 ARGB storage and alpha threshold; no file ticket or atlas/cache key.
+CTexture* TextureCreateSolid(const CImVector& color) {
+    Gxu::Native::RequireFontOwner();
+    auto texture = std::make_unique<SolidTexture>();
+    for (auto& pixel : texture->pixels) pixel = color;
+    texture->m_gxWidth = texture->m_gxHeight = 8;
+    texture->m_gxTexFormat = texture->m_dataFormat = GxTex_Argb8888;
+    texture->m_gxTexFlags = CGxTexFlags(GxTex_Nearest);
+    texture->m_flags = color.a >= 0xFE ? 1 : 0;
+    texture->m_alphaBits = color.a >= 0xFE ? 0 : 8;
+    SStrCopy(texture->m_filename, "SolidTexture", sizeof(texture->m_filename));
+    if (!GxTexCreate(GxTex_2d, 8, 8, 0, GxTex_Argb8888, GxTex_Argb8888,
+        texture->m_gxTexFlags, texture.get(), &SolidTexture::Source, texture->m_filename, texture->m_gxTex))
+        throw std::runtime_error("Native solid-texture allocation failed");
+    GxTexUpdate(texture->m_gxTex, 0, 0, 8, 8, 1);
+    HandleCreate(texture.get(), "HTEXTURE");
+    return texture.release();
+}

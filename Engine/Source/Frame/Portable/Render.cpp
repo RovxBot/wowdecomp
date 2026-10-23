@@ -20,6 +20,7 @@ Frame::Native::Renderer* renderer = nullptr;
 size_t batches = 0;
 bool drawing = false;
 Frame::Native::RegionTextQueue regionTextQueue = nullptr;
+Frame::Native::RegionTextureQueue regionTextureQueue = nullptr;
 struct Handle {
     HOBJECT value = nullptr;
     Handle() = default;
@@ -50,6 +51,12 @@ void QueueRegionText(CRenderBatch* batch, CSimpleFontString* string) {
     RequireRenderIdle();
     if (!regionTextQueue) throw std::logic_error("Native Frame font-string regions are not installed");
     regionTextQueue(batch, string);
+}
+void SetRegionTextureQueue(RegionTextureQueue queue) { RequireRenderIdle(); regionTextureQueue = queue; }
+void QueueRegionTexture(CRenderBatch* batch, CSimpleTexture* texture) {
+    RequireRenderIdle();
+    if (!regionTextureQueue) throw std::logic_error("Native Frame texture regions are not installed");
+    regionTextureQueue(batch, texture);
 }
 void RequireRenderIdle() {
     Gxu::Native::RequireFontOwner();
