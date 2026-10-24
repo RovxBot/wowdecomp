@@ -1,3 +1,20 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Os/Portable/Window.h"
+#include <cstring>
+#include <memory>
+#include <vector>
+#define MESSAGE_CHECK() Frame::Native::RequireScriptTextMutation()
+namespace {
+void MessageText(const char* text) {
+    if (text && std::strlen(text) > 4095) throw std::length_error("Native MessageFrame text exceeds 4095 bytes");
+    if (text) OsNative::DecodeUtf8(text);
+}
+}
+#else
+#define MESSAGE_CHECK() ((void)0)
+#endif
 #include "Engine/Source/Frame/MessageFrameConstants.h"
 #include <cmath>
 #include <cstddef>
@@ -30,13 +47,19 @@ const char* CSimpleMessageFrame::s_objectTypeName = "MessageFrame";
 
 // INLINED
 void CSimpleMessageFrame::operator delete(void* ptr) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FreeRegionStorage(CSimpleMessageFrame::s_allocator, ptr);
+#else
     if (ptr) {
         CSimpleMessageFrame::s_allocator.PutData(ptr, nullptr, 0);
     }
+#endif
 }
 
 // INLINED
 int32_t CSimpleMessageFrame::GetObjectType() {
+    MESSAGE_CHECK();
     if (!CSimpleMessageFrame::s_objectType) {
         CSimpleMessageFrame::s_objectType = ++FrameScript_Object::s_objectTypes;
     }
@@ -47,6 +70,10 @@ int32_t CSimpleMessageFrame::GetObjectType() {
 // VERIFY: 81e718f6 manual
 // OFFSET: 0x00967DB0
 void CSimpleMessageFrame::SetTimeVisible(float seconds) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireDimension(seconds);
+#endif
     for (uint32_t i = 0; i < this->m_rows; i++) {
         CSimpleMessageFrameLineNode* node = this->m_lines[i].m_node;
 
@@ -61,6 +88,10 @@ void CSimpleMessageFrame::SetTimeVisible(float seconds) {
 // VERIFY: 7de4c0d6 manual
 // OFFSET: 0x00967E00
 void CSimpleMessageFrame::SetFadeDuration(float duration) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireDimension(duration);
+#endif
     for (uint32_t i = 0; i < this->m_rows; i++) {
         CSimpleMessageFrameLineNode* node = this->m_lines[i].m_node;
 
@@ -74,6 +105,7 @@ void CSimpleMessageFrame::SetFadeDuration(float duration) {
 
 // INLINED
 void CSimpleMessageFrame::HideLineNode(CSimpleMessageFrameLineNode* node) {
+    MESSAGE_CHECK();
     if (node->m_isVisible) {
         CSimpleFontString* string = node->m_string;
         string->m_shown = 0;
@@ -87,6 +119,7 @@ void CSimpleMessageFrame::HideLineNode(CSimpleMessageFrameLineNode* node) {
 
 // INLINED
 void CSimpleMessageFrame::ShowLineNode(CSimpleMessageFrameLineNode* node, float timeVisible, float fadeDuration) {
+    MESSAGE_CHECK();
     CSimpleFontString* string = node->m_string;
     string->m_shown = 1;
     string->ShowThis();
@@ -99,6 +132,10 @@ void CSimpleMessageFrame::ShowLineNode(CSimpleMessageFrameLineNode* node, float 
 // VERIFY: 043a2fa3 manual
 // OFFSET: 0x00967FE0
 void CSimpleMessageFrame::ScrollMessages(uint32_t index) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!m_rows || index >= m_rows) throw std::invalid_argument("Invalid native MessageFrame scroll index");
+#endif
     CSimpleMessageFrameLineNode* last = this->m_lines[this->m_rows - 1].m_node;
     uint32_t i = this->m_rows - 1;
 
@@ -122,8 +159,13 @@ CSimpleMessageFrameLineNode::CSimpleMessageFrameLineNode() {
     this->m_fadeLeft = 0.0f;
     this->m_isVisible = false;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_color = CImVector(255,255,255,255);
+    this->m_string = Frame::Native::CreateFontString(nullptr, 2, true);
+#else
     void* data = CSimpleFontString::s_allocator.GetData(0, typeid(CSimpleFontString).raw_name(), SLOG_OBJECT);
     this->m_string = data ? new (data) CSimpleFontString(nullptr, 2, true) : nullptr;
+#endif
 
     CSimpleFontString* string = this->m_string;
     uint32_t styleFlags = string->m_styleFlags;
@@ -146,7 +188,11 @@ CSimpleMessageFrameLineNode::~CSimpleMessageFrameLineNode() {
 
 // INLINED
 CSimpleMessageFrameLine::CSimpleMessageFrameLine() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_node = new CSimpleMessageFrameLineNode;
+#else
     this->m_node = new (SMemAlloc(sizeof(CSimpleMessageFrameLineNode), __FILE__, __LINE__, 0)) CSimpleMessageFrameLineNode();
+#endif
     this->m_node->m_refcnt++;
     this->m_offsetX = 0.0f;
     this->m_offsetY = 0.0f;
@@ -170,6 +216,10 @@ CSimpleMessageFrameLine::~CSimpleMessageFrameLine() {
 // VERIFY: eedfdb44 manual
 // OFFSET: 0x00968210
 void CSimpleMessageFrame::AddPendingMessage(const char* text, const CImVector& color) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    MessageText(text);
+#endif
     if (!text) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -204,6 +254,9 @@ void CSimpleMessageFrame::AddPendingMessage(const char* text, const CImVector& c
 // VERIFY: a94a901f manual
 // OFFSET: 0x009684F0
 CSimpleMessageFrame::CSimpleMessageFrame(CSimpleFrame* parent) : CSimpleFrame(parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleMessageFrame::GetObjectType();
+#endif
     this->m_messageFrameArea.minY = 0.0f;
     this->m_messageFrameArea.minX = 0.0f;
     this->m_messageFrameArea.maxY = 0.0f;
@@ -215,7 +268,11 @@ CSimpleMessageFrame::CSimpleMessageFrame(CSimpleFrame* parent) : CSimpleFrame(pa
     this->m_rows = 0;
     this->m_numVisible = 0;
     this->m_textMaxSize = 0;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_font = new CSimpleFontedFrameFont(this);
+#else
     this->m_font = new (SMemAlloc(sizeof(CSimpleFontedFrameFont), __FILE__, __LINE__, 0)) CSimpleFontedFrameFont(this);
+#endif
     this->m_timeVisible = DEFAULT_TIME_VISIBLE;
     this->m_fading = 1;
     this->m_insertMode = INSERT_AT_BOTTOM;
@@ -225,30 +282,39 @@ CSimpleMessageFrame::CSimpleMessageFrame(CSimpleFrame* parent) : CSimpleFrame(pa
 // VERIFY: 6c8073c0 auto
 // OFFSET: 0x00968610
 const char* CSimpleMessageFrame::GetObjectTypeName() {
+    MESSAGE_CHECK();
     return CSimpleMessageFrame::s_objectTypeName;
 }
 
 // VERIFY: e51cd05e auto
 // OFFSET: 0x00968620
 int32_t CSimpleMessageFrame::GetScriptMetaTable() {
+    MESSAGE_CHECK();
     return CSimpleMessageFrame::s_metatable;
 }
 
 // VERIFY: 2b059924 auto
 // OFFSET: 0x00968640
 bool CSimpleMessageFrame::IsA(int32_t type) {
+    MESSAGE_CHECK();
     return type == CSimpleMessageFrame::s_objectType || type == CSimpleFrame::s_objectType || type == CScriptRegion::s_objectType || type == CScriptObject::s_objectType;
 }
 
 // VERIFY: e420b1cc auto
 // OFFSET: 0x00968680
 bool CSimpleMessageFrame::IsA(const char* typeName) {
+    MESSAGE_CHECK();
     return !SStrCmpI(typeName, CSimpleMessageFrame::s_objectTypeName, STORM_MAX_STR) || CSimpleFrame::IsA(typeName);
 }
 
 // VERIFY: 9bdafef4 manual
 // OFFSET: 0x009686C0
 void CSimpleMessageFrame::AddMessage(const char* text, const CImVector& color) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    MessageText(text);
+    if (m_pendingMessages.Count() >= 1024) throw std::length_error("Native MessageFrame pending message limit");
+#endif
     if (!text) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -262,6 +328,7 @@ void CSimpleMessageFrame::AddMessage(const char* text, const CImVector& color) {
 // VERIFY: aa6d7e1c manual
 // OFFSET: 0x00968710
 void CSimpleMessageFrame::ClearPending() {
+    MESSAGE_CHECK();
     for (uint32_t i = this->m_pendingMessages.Count(); i;) {
         char* text = this->m_pendingMessages[--i].m_text;
 
@@ -278,6 +345,11 @@ void CSimpleMessageFrame::ClearPending() {
 // VERIFY: ca437c53 manual
 // OFFSET: 0x00968790
 void CSimpleMessageFrame::UpdateRect() {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Resize/font callbacks only invalidate. Row ownership changes before root traversal.
+    if (!m_nativePreparingRows) { m_nativeRowsDirty = true; return; }
+#endif
     if (!(this->m_layoutFlags & 0x100)) {
         return;
     }
@@ -291,6 +363,36 @@ void CSimpleMessageFrame::UpdateRect() {
     float spacing = CSimpleTop::RoundToPixelHeight(this->m_font->m_attributes.m_spacing * this->m_layoutScale);
     float lineHeight = CSimpleTop::RoundToPixelHeight(this->m_layoutScale * fontHeight) + spacing;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(lineHeight)) throw std::invalid_argument("Nonfinite MessageFrame line height");
+    uint32_t rows = 0;
+    if (lineHeight > 0.0f) {
+        const float count = (m_messageFrameArea.maxY - m_messageFrameArea.minY) / lineHeight;
+        if (!std::isfinite(count) || count < 0 || count > 256)
+            throw std::invalid_argument("Native MessageFrame row count exceeds 256");
+        rows = static_cast<uint32_t>(count);
+        if (fabs(lineHeight * static_cast<float>(rows + 1) - (m_messageFrameArea.maxY - m_messageFrameArea.minY)) < 0.00000023841858f) {
+            if (rows == 256) throw std::length_error("Native MessageFrame row count exceeds 256");
+            ++rows;
+        }
+    }
+    // Construct every new owner before publishing the count. Storm's generic
+    // SetCount does not unwind partially constructed elements on C++ exceptions.
+    std::vector<std::unique_ptr<CSimpleMessageFrameLine>> added;
+    for (uint32_t i = m_lines.Count(); i < rows; ++i)
+        added.emplace_back(std::make_unique<CSimpleMessageFrameLine>());
+    if (rows > m_lines.Count()) {
+        m_lines.Reserve(rows - m_lines.Count(), 0);
+        for (auto& line : added) {
+            ::new (&m_lines.m_data[m_lines.m_count]) CSimpleMessageFrameLine(*line);
+            ++m_lines.m_count;
+        }
+    }
+    for (uint32_t i = rows; i < m_lines.Count(); ++i) HideLineNode(m_lines[i].m_node);
+    m_lines.SetCount(rows);
+    m_rows = rows;
+
+#else
     if (lineHeight <= 0.0f) {
         this->m_rows = 0;
     } else {
@@ -308,6 +410,7 @@ void CSimpleMessageFrame::UpdateRect() {
 
     this->m_lines.SetCount(this->m_rows);
 
+#endif
     float invScale = 1.0f / this->m_layoutScale;
     float width = (this->m_messageFrameArea.maxX - this->m_messageFrameArea.minX) * invScale;
     float offsetX = this->m_messageFrameInset.minX;
@@ -346,6 +449,7 @@ void CSimpleMessageFrame::UpdateRect() {
 // VERIFY: 859dfddb manual
 // OFFSET: 0x00968A60
 void CSimpleMessageFrame::OnLayerUpdate(float elapsedSec) {
+    MESSAGE_CHECK();
     CSimpleFrame::OnLayerUpdate(elapsedSec);
 
     uint32_t count = this->m_pendingMessages.Count();
@@ -403,7 +507,14 @@ void CSimpleMessageFrame::OnLayerUpdate(float elapsedSec) {
 // VERIFY: 8904645e auto
 // OFFSET: [0x00968630, 0x00968C10, 0x00968D70]
 CSimpleMessageFrame::~CSimpleMessageFrame() {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    this->m_font->m_frame = nullptr;
     this->m_lines.Clear();
+#else
+    this->m_lines.Clear();
+#endif
     this->ClearPending();
     delete this->m_font;
 }
@@ -411,6 +522,7 @@ CSimpleMessageFrame::~CSimpleMessageFrame() {
 // VERIFY: 3758e948 auto
 // OFFSET: 0x00968C90
 void CSimpleMessageFrame::FontUpdated(CSimpleFontedFrameFont* font, int32_t flags) {
+    MESSAGE_CHECK();
     if (flags & 0x11) {
         this->UpdateRect();
     }
@@ -419,6 +531,10 @@ void CSimpleMessageFrame::FontUpdated(CSimpleFontedFrameFont* font, int32_t flag
 // VERIFY: ad40c94c auto
 // OFFSET: 0x00968CB0
 void CSimpleMessageFrame::SetInsertMode(SimpleMessageFrameInsertMode mode) {
+    MESSAGE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (mode != INSERT_AT_TOP && mode != INSERT_AT_BOTTOM) throw std::invalid_argument("Invalid MessageFrame insert mode");
+#endif
     this->m_insertMode = mode;
     this->UpdateRect();
 }
@@ -426,6 +542,7 @@ void CSimpleMessageFrame::SetInsertMode(SimpleMessageFrameInsertMode mode) {
 // VERIFY: d4cfd810 auto
 // OFFSET: 0x00968CD0
 void CSimpleMessageFrame::Clear() {
+    MESSAGE_CHECK();
     for (uint32_t i = 0; i < this->m_rows; i++) {
         this->HideLineNode(this->m_lines[i].m_node);
     }
@@ -436,6 +553,7 @@ void CSimpleMessageFrame::Clear() {
 // VERIFY: a8bce361 auto
 // OFFSET: 0x00968D50
 void CSimpleMessageFrame::OnFrameSizeChanged(const CRect& rect) {
+    MESSAGE_CHECK();
     CSimpleFrame::OnFrameSizeChanged(rect);
     this->UpdateRect();
 }
@@ -443,6 +561,7 @@ void CSimpleMessageFrame::OnFrameSizeChanged(const CRect& rect) {
 // VERIFY: f7468239 manual
 // OFFSET: 0x00968DA0
 void CSimpleMessageFrame::LoadXML(XMLNode* node, CStatus* status) {
+    MESSAGE_CHECK();
     CSimpleFrame::LoadXML(node, status);
 
     const char* fontName = node->GetAttributeByName("font");
@@ -527,3 +646,18 @@ void CSimpleMessageFrame::LoadXML(XMLNode* node, CStatus* status) {
         }
     }
 }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleMessageFrame::PrepareRows() {
+    Frame::Native::RequireTreeMutation();
+    CRect rect{};
+    if (!GetRect(&rect) || !m_nativeRowsDirty) return;
+    struct Preparing {
+        bool& value;
+        Preparing(bool& flag) : value(flag) { value = true; }
+        ~Preparing() { value = false; }
+    } preparing(m_nativePreparingRows);
+    UpdateRect();
+    m_nativeRowsDirty = false;
+}
+#endif

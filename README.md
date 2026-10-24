@@ -263,3 +263,12 @@ Windows reference build, verified packages and actual RX 7900 XTX original-data
 checks. This advances the field visuals; EditBox text entry, complete signed
 GlueXML/login execution and transport/authentication/gameplay remain open.
 M3 is incomplete. Clean data remains read-only and sign-in stays interactive.
+
+The [original MessageFrame package](docs/m3/MESSAGE_FRAMES.md),
+[PR #81](https://github.com/RovxBot/wowdecomp/pull/81), adds native pooled message
+widgets, private-font ownership and deferred row preparation for future EditBox
+candidate consumers. [Qualification](docs/m3/message-frame-validation.json)
+records hosted release/strict sanitizer and separate Windows builds, verified
+packages and RX 7900 XTX original-font checks. EditBox text/candidate integration,
+complete signed GlueXML/login, transport/authentication and gameplay remain open;
+M3 is incomplete. Clean data remains read-only and sign-in stays interactive.

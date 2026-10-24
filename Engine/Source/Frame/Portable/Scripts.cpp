@@ -2,6 +2,7 @@
 #include "Scripts.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
+#include "Engine/Source/Frame/CSimpleMessageFrame.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/CSimpleFrame.h"
@@ -24,12 +25,14 @@ Scripts::Scripts() {
         CSimpleTexture::CreateScriptMetaTable();
         CSimpleButton::CreateScriptMetaTable();
         CSimpleCheckbox::CreateScriptMetaTable();
+        CSimpleMessageFrame::CreateScriptMetaTable();
         CSimpleTexture::Init();
         installed = true;
         FrameXML::Native::InstallFactories();
     } catch (...) {
         installed = false;
         CSimpleTexture::Destroy();
+        CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();
         CSimpleButton::DestroyScriptMetaTable();
         CSimpleTexture::DestroyScriptMetaTable();
@@ -48,6 +51,7 @@ Scripts::~Scripts() {
         CheckCanClose();
         FrameXML::Native::CloseFactories();
         CSimpleTexture::Destroy();
+        CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();
         CSimpleButton::DestroyScriptMetaTable();
         CSimpleTexture::DestroyScriptMetaTable();

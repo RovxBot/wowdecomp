@@ -127,13 +127,6 @@ CSimpleFrame* Create_SimpleEditBox(CSimpleFrame* parent) {
     return data ? new (data) CSimpleEditBox(parent) : nullptr;
 }
 
-// VERIFY: 2aa2d739 auto
-// OFFSET: 0x00812690
-CSimpleFrame* Create_SimpleMessageFrame(CSimpleFrame* parent) {
-    void* data = CSimpleMessageFrame::s_allocator.GetData(0, typeid(CSimpleMessageFrame).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleMessageFrame(parent) : nullptr;
-}
-
 // VERIFY: 9ec2bd5d auto
 // OFFSET: 0x008126C0
 CSimpleFrame* Create_SimpleModel(CSimpleFrame* parent) {

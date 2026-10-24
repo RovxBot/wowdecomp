@@ -3,6 +3,7 @@
 #include "Engine/Source/Frame/CSimpleFrame.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
+#include "Engine/Source/Frame/CSimpleMessageFrame.h"
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
@@ -45,5 +46,18 @@ CSimpleFrame* Create_SimpleCheckButton(CSimpleFrame* parent) {
 #else
     void* data = CSimpleCheckbox::s_allocator.GetData(0, typeid(CSimpleCheckbox).raw_name(), SLOG_OBJECT);
     return data ? new (data) CSimpleCheckbox(parent) : nullptr;
+#endif
+}
+
+// VERIFY: 2aa2d739 auto
+// OFFSET: 0x00812690
+CSimpleFrame* Create_SimpleMessageFrame(CSimpleFrame* parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation(); Frame::Native::RequireRoot();
+    if (parent) Frame::Native::RequireSimpleFrame(parent);
+    return Frame::Native::ConstructRegion<CSimpleMessageFrame>(CSimpleMessageFrame::s_allocator, parent);
+#else
+    void* data = CSimpleMessageFrame::s_allocator.GetData(0, typeid(CSimpleMessageFrame).raw_name(), SLOG_OBJECT);
+    return data ? new (data) CSimpleMessageFrame(parent) : nullptr;
 #endif
 }

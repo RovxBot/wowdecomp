@@ -1217,3 +1217,42 @@ transport/authentication and observed gameplay remain open. No new physical-inpu
 Windows runtime, macOS graphics or server acceptance. Clean data stays read-only,
 signatures/server revision discrepancies stay intact and sign-in stays interactive.
 M3 remains incomplete.
+
+## Original MessageFrame qualification — 2026-10-24
+
+The original [MessageFrame package](docs/m3/MESSAGE_FRAMES.md),
+[PR #81](https://github.com/RovxBot/wowdecomp/pull/81), is qualified at
+`9a8ffc528320d0ca12fa8f1b4e7120022b4ab62c`. [Durable validation](docs/m3/message-frame-validation.json)
+records both final-source Linux GL release/strict ASan/UBSan/leak configurations
+passing 38 CTest checks each. Full signatures-enabled Windows x64 compilation
+passed at `9e034144c95186a60f93e292e44900183454e8c1`; later production edits are
+native-only row transactions and later fixtures/docs. Windows-selected widget/root
+bodies and extracted private-font/factory bodies match the preceding baseline.
+Preserve these separate build identities. Three archives/all 51 packaged binary
+hashes/types and notices verified; no client/dependency compiled locally.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed twelve three-cycle authored/original-data executions with empty stderr and
+zero workers. All 27 release/sanitizer capture pairs match; all 21 preceding
+backdrop-package captures match. Message text/candidate-like content and widget XML
+are authored; original-data mode uses original Friz/UI shaders and existing signed
+GlueFonts/Button/CheckButton/backdrop subsets. Actual EditBox/candidate integration
+and complete signed ordered GlueXML/full second digest are not established.
+
+Private fonts and reference-counted row nodes use matching native allocation;
+pooled MessageFrame/FontString slots retain alignment and close through the Fonts
+owner. Resize/font callbacks only invalidate rows; prepare ownership before root
+traversal. Grow temporary row owners before publication and return all of them on
+admission/allocation failure. Close rows/text blocks before private fonts, then
+widgets before Scripts/images/renderer/Fonts/Gxu/layout/XML/VM/device/context/queue.
+Preserve original pending copies, insertion, offsets, rounding epsilon and fading.
+Initial native bounds: 4095-byte UTF-8 messages, 1024 pending messages, 256 rows.
+Keep the initial source-allowlist failure, pressure-fixture layout-order failure,
+original-font row-stride expectation failure and superseded jobs as evidence;
+no detector was disabled.
+
+EditBox text/focus/region ownership and retained candidate delivery are next,
+followed by remaining widgets, complete signed GlueXML, portable transport/auth and
+observed login/gameplay. No new physical-input, Windows runtime, macOS graphics or
+server acceptance. Clean data stays read-only, signatures/server discrepancies
+stay intact and sign-in stays interactive. M3 remains incomplete.

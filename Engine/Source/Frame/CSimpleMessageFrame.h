@@ -82,6 +82,12 @@ class CSimpleMessageFrame : public CSimpleFrame, public CSimpleFontedFrame {
     virtual void AddMessage(const char* text, const CImVector& color);
     virtual void FontUpdated(CSimpleFontedFrameFont* font, int32_t flags);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Borrowed widget state; row allocation/destruction is deferred out of resize callbacks.
+    bool m_nativeRowsDirty = true;
+    bool m_nativePreparingRows = false;
+    void PrepareRows();
+#endif
     CSimpleMessageFrame(CSimpleFrame* parent);
     void AddPendingMessage(const char* text, const CImVector& color);
     void Clear();
