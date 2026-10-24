@@ -977,3 +977,31 @@ remaining checks need another machine.
   hierarchy text; texture pixels are intermediate readbacks. No new physical-input,
   Windows runtime, macOS graphics or server acceptance. Keep signatures, server
   discrepancies, interactive sign-in and read-only clean data intact; M3 is open.
+
+
+- M3 original Frame Lua/XML handlers [PR #74](https://github.com/RovxBot/wowdecomp/pull/74)
+  are qualified at `9d3384f9436aaa9c763fca0c35a8a91b1be734b9`, merged as
+  `1cea05886d4fa4b68552f1615030e18ce7de111b`. Read [handler contracts](docs/m3/FRAME_HANDLERS.md)
+  and [validation](docs/m3/frame-handler-validation.json). Final-head Linux GL
+  release/strict sanitizer checks passed 38 CTest checks each. Twelve other
+  workflows passed at `ac2b05f84ab00920244b987096ed59d923fd8e9e`, including
+  signature-enabled full Windows compilation at `a2e991897220e6ad51bea9193cc85866a7c06929`
+  and actual ARM64 native prerequisites. Two GL fixtures and scheduling docs alone
+  changed afterward; all other 3,876 tracked entries match. Keep earlier build
+  identities separate from final-head GL qualification. Three archives/all 51
+  executable hashes/types/notices verified; RX 7900 XTX release/strict sanitizer
+  packages passed 30 three-cycle authored/original-data executions, empty stderr/
+  zero workers. Fifteen capture pairs match; distinct callback glyph pixels are
+  intermediate readbacks, and final captures retain authored hierarchy text.
+  Preserve canonical Lua tables, active closure ownership during slot replacement,
+  taint/hook order, listener deferral, native raw compatibility-global writes and
+  XML cache/new-delete ownership. Callbacks guard structural mutation/destruction;
+  selected text/script/event changes are admitted. Prior nil/error-handler/obsolete
+  mouse fixture failures and Actions-disabled rejection remain recorded, without
+  product behavior or detector suppression. [CI scheduling](docs/CI_BUILD_POLICY.md)
+  now avoids duplicate branch push runs; fixture-only follow-ups reuse proven
+  unchanged production inputs and report their actual older identities. Remaining
+  widgets/broader callback edits, physical IME/edit-box acceptance, full signed
+  GlueXML/login and transport/gameplay stay open. No new physical-input, Windows
+  runtime, macOS graphics or server acceptance; signatures, server discrepancies,
+  interactive sign-in and read-only clean data remain intact. M3 is incomplete.

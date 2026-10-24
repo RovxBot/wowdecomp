@@ -916,6 +916,31 @@ candidate acceptance remains pending. No new Windows runtime, macOS graphics or
 server acceptance; preserve server revision discrepancies, interactive sign-in and
 read-only clean data. M3 remains incomplete.
 
+The [original Frame Lua/XML handler package](docs/m3/FRAME_HANDLERS.md) in
+[PR #74](https://github.com/RovxBot/wowdecomp/pull/74) is qualified at
+`9d3384f9436aaa9c763fca0c35a8a91b1be734b9`, merged as
+`1cea05886d4fa4b68552f1615030e18ce7de111b`. Its [record](docs/m3/frame-handler-validation.json)
+keeps final-head 38/38 Linux GL release/strict sanitizer checks separate from
+12 prior passing production/non-GL workflows at `ac2b05f84ab00920244b987096ed59d923fd8e9e`.
+Full Windows x64 compiled with signatures at `a2e991897220e6ad51bea9193cc85866a7c06929`;
+actual ARM64 prerequisites passed. Only two GL fixtures/scheduling docs changed
+later; all other 3,876 tracked files match. Three archives/all 51 executable
+hashes/types/notices verified. Downloaded RX 7900 XTX release/strict sanitizer
+packages passed 30 three-cycle authored/original-data executions, empty stderr/
+zero workers; fifteen capture pairs retain the prior baseline. Callback readbacks
+require distinct A-to-V-to-AV pixels, separate from original login composition.
+
+Original base Frame script/event methods, XML wrappers/caches, nonempty original
+root/Frame callbacks and bounded text updates now use the qualified owners.
+Preserve registry/function lifetimes, taint/hook/listener semantics, raw internal
+globals and callback structural guards. Prior fixture and Actions-disable failures
+remain evidence. [CI scheduling](docs/CI_BUILD_POLICY.md) removes duplicate branch
+push runs and documents exact-input reuse for fixture-only corrections. Remaining
+widgets/broader callback edits, physical IME/edit-box acceptance, full signed
+GlueXML/second digest gate, actual login and transport/gameplay remain open.
+No new operator, Windows runtime, macOS graphics or server acceptance is claimed.
+M3 is incomplete; signatures/server discrepancies/interactive sign-in stay intact.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

@@ -929,17 +929,48 @@ server acceptance; preserve server revision discrepancies, interactive sign-in a
 read-only clean data. M3 remains incomplete.
 
 
-The next [Frame Lua/XML handler candidate](FRAME_HANDLERS.md) is pushed in
-[PR #74](https://github.com/RovxBot/wowdecomp/pull/74) at implementation
-`e6af780f68dae599cf744769092f9d9cd184756f`. Its [pending validation](frame-handler-validation.json)
-records 57 passing local source/launcher checks, one unavailable-CMake skip and
-unchanged Windows-selected tokens/original mouse-button helper extraction.
-Original script/event methods, XML caches and nonempty root/Frame callbacks are
-implemented with bounded callback lifetime and text updates. No implementation
-binary has compiled or executed: explicit hosted workflow dispatch returned HTTP
-422, `Actions has been disabled for this repository.`, despite enabled permission
-and active-workflow readbacks. Resolve that external restriction, run hosted checks,
-verify artifacts and execute original-data GPU/sanitizer regressions before merging.
-Do not treat the source candidate as qualified. M3/login/gameplay and physical
-IME/edit-box acceptance remain open; signatures, server identity discrepancies,
-interactive sign-in and read-only clean data remain intact.
+[PR #74](https://github.com/RovxBot/wowdecomp/pull/74) is qualified at
+`9d3384f9436aaa9c763fca0c35a8a91b1be734b9`, merged as
+`1cea05886d4fa4b68552f1615030e18ce7de111b`. [Handler contracts](FRAME_HANDLERS.md) and [durable validation](frame-handler-validation.json)
+records final-head hosted GL release/strict ASan/UBSan/leak configurations passing
+38 CTest checks each. Twelve other PR workflows passed at
+`ac2b05f84ab00920244b987096ed59d923fd8e9e`, including full signature-enabled
+Windows x64 compilation at checkout `a2e991897220e6ad51bea9193cc85866a7c06929`
+and actual ARM64 macOS native prerequisites. Only two GL-only fixtures and
+scheduling documentation changed afterward; the other 3,876 tracked files are
+identical. Preserve those earlier workflow identities; they are not final-head
+runs. The final GL checkout, selected implementation and merge share one tree.
+
+Three archive digests and all 51 packaged executable hashes/types/notices verified.
+Downloaded final-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict
+sanitizer packages passed 30 authored/original-data desktop executions, three owner
+cycles each, with empty stderr and zero workers. Four resource fixtures passed
+three cycles per mode. All fifteen capture pairs match. Final original-data input/
+hierarchy captures retain SHA-256
+`55b0e2c731d888293851e66a21b2b7eccaa29405097fb4b6b1e65588f60c93cf`.
+The inspected final capture remains authored hierarchy text; intermediate readbacks
+require distinct A, V and AV pixels from actual key/update Lua callbacks.
+
+Earlier fixture failures remain recorded: original issecure returns nil rather
+than false, seterrorhandler accepts functions although the default is nil, and
+an older mouse fixture expected the previously unavailable callback to reject.
+The tests now retain an execution witness, restore the prior registry reference
+exactly and invoke a real mouse callback. Product API behavior and sanitizer
+detectors stay unchanged. The historical Actions-disabled dispatch and subsequent
+user re-enablement remain separate evidence. Local source/launcher checks:
+57 passed, one unavailable-CMake skip; Windows token/extraction and whitespace
+checks passed. No client/dependency compiled locally.
+
+[Scheduling PR #75](https://github.com/RovxBot/wowdecomp/pull/75) removed duplicate
+feature-branch push builds across thirteen workflows, retaining PR/main/manual
+checks and all jobs/configurations. Its trigger-only change passed YAML semantic
+comparison, local source checks and hosted M0 audit. The fixture-only follow-ups
+reran GL with verified unchanged production inputs, avoiding repeated full
+matrices; see [build scheduling](../CI_BUILD_POLICY.md).
+
+Remaining widgets and broader structural callback edits, physical IME/edit-box/
+candidate acceptance, complete signed ordered GlueXML/full second digest gate,
+actual login rendering and transport/gameplay remain open. No new physical-input,
+Windows runtime, macOS graphics or server acceptance is claimed. Keep signatures,
+server revision discrepancies, read-only clean data and interactive user sign-in
+intact. M3 remains incomplete.

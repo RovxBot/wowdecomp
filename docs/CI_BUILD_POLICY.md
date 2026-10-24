@@ -36,3 +36,14 @@ and record unchanged production-source/build-input trees before reusing their
 results. Report the earlier and final checkout identities separately; never label
 an earlier workflow as a final-head run. Changes to production/build inputs require
 fresh checks of the affected configurations.
+
+The initial trigger reduction was merged in
+[PR #75](https://github.com/RovxBot/wowdecomp/pull/75) as
+`2c98fe751e24e4f4b20124378b970fdb04eab92b`. Its
+[hosted source audit](https://github.com/RovxBot/wowdecomp/actions/runs/40044611256)
+passed. All thirteen YAML files parsed; semantic comparison changed only the push
+branch list. No build jobs or implementation inputs changed, so the scheduling PR
+and merge skipped client builds. PR #74 subsequently retained its twelve passing
+production/non-GL workflows while rerunning GL for two fixture-only corrections;
+[the handler record](m3/frame-handler-validation.json) carries exact identities and
+the unchanged-input proof. These earlier checks are not relabeled final-head runs.

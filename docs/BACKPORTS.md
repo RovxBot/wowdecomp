@@ -672,30 +672,40 @@ and source inspection are different evidence levels.
   passed. All compilation ran in Actions; physical IME/edit-box acceptance, full
   signed GlueXML/login and transport/gameplay remain open.
 
-## NP-024 — Original Frame Lua and XML handlers (candidate)
+## NP-024 — Original Frame Lua and XML handlers
 
-- Status: unqualified candidate in [PR #74](https://github.com/RovxBot/wowdecomp/pull/74),
-  implementation `e6af780f68dae599cf744769092f9d9cd184756f`, following product main
-  `8ca66f5cc9be86f49b84ad7153b559d0ebb4065a`. No merge or hosted/runtime pass.
-- Source: original 12340 Frame GetScript/SetScript/HookScript/event methods,
-  script discovery, LoadXML_Scripts and key/character/mouse/drag/update consumers.
-  The original GetMouseButtonName body moves unchanged into a shared source.
-  No donor import, dependency update, new OFFSET/VERIFY claim or game data.
-- Adaptation: native trailing-argument ownership, matching compiled XML cache
-  allocation, bounded/direct XML cache admission, callback structural lifetime
-  guards, selected callback text edits and raw internal compatibility-global
-  writes around protected calls. Existing canonical tables, taint, hook wrappers,
-  retained strings and pending listener semantics stay selected. Windows tokens
-  match the immutable base. See [contracts](m3/FRAME_HANDLERS.md).
-- Validation: 57 local source/launcher checks passed; one unavailable-CMake skip.
-  Source token/extraction and whitespace checks passed. All compilation is still
-  reserved for Actions. Dispatch failed with HTTP 422, `Actions has been disabled
-  for this repository.`, while readbacks reported enabled permissions/active
-  workflow. The [pending record](m3/frame-handler-validation.json) preserves that
-  external block; hosted checks, artifacts and original-data GPU/sanitizer runs
-  must pass before merge. No policy, signature, protocol or credential change.
-  Remaining widgets, full signed GlueXML/login, physical IME/edit-box acceptance
-  and transport/gameplay remain open; M3 is incomplete.
+- Status: qualified in [PR #74](https://github.com/RovxBot/wowdecomp/pull/74) at
+  `9d3384f9436aaa9c763fca0c35a8a91b1be734b9`, merged as
+  `1cea05886d4fa4b68552f1615030e18ce7de111b`. See [contracts](m3/FRAME_HANDLERS.md)
+  and [validation](m3/frame-handler-validation.json). M3 remains open.
+- Source: product base `8ca66f5cc9be86f49b84ad7153b559d0ebb4065a`; original
+  12340 Frame discovery/GetScript/SetScript/HookScript/event methods,
+  LoadXML_Scripts and key/character/mouse/drag/update consumers. Original
+  GetMouseButtonName moves unchanged into a shared source. No donor import,
+  dependency update, new OFFSET/VERIFY claim or game asset; Windows tokens match.
+- Adaptation: argument-3 ownership, matching/bounded compiled XML caches, guarded
+  callback structural lifetimes, selected text edits and raw internal globals
+  around protected calls. Canonical tables, taint/hook wrappers, pending listeners
+  and retained strings remain selected. Close consumers before Scripts/templates,
+  renderer/Fonts/Gxu/layout/XML/VM/device/context/queue.
+- Validation: final-head GL release/strict sanitizer 38/38 checks; 12 prior passing
+  workflows at `ac2b05f84ab00920244b987096ed59d923fd8e9e`, including full Windows
+  signatures-enabled compilation at `a2e991897220e6ad51bea9193cc85866a7c06929`
+  and ARM64 native prerequisites. Two GL fixtures/scheduling docs alone changed
+  afterward; other 3,876 tracked files match. Three archives/all 51 executable
+  hashes/types/notices verified. Downloaded RX 7900 XTX release/strict packages
+  passed 30 three-cycle desktop runs, empty stderr/zero workers; fifteen capture
+  pairs match. Distinct callback glyph pixels are intermediate readbacks; final
+  captures retain authored hierarchy text. Local 57 pass/one CMake skip, token/
+  extraction/whitespace pass; all compilation in Actions.
+- Earlier nil/security, error-handler restore and obsolete mouse fixture failures,
+  plus Actions-disabled dispatch, remain evidence; no product behavior/detector
+  suppression. Trigger-only CI PR #75 removes duplicate branch push builds and
+  exact-input reuse avoids repeat production matrices for fixture corrections.
+  Original signatures and read-only clean data stay enabled. Remaining widgets,
+  full signed GlueXML/login, physical IME/edit boxes and transport/gameplay remain
+  open. No new physical-input, Windows runtime, macOS graphics or server acceptance;
+  preserve server discrepancies and interactive sign-in.
 
 ## UP-001 — Reviewed 12340 upstream maintenance
 
