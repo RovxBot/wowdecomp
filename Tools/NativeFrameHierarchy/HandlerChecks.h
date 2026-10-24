@@ -73,7 +73,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     Check(Frame::Native::DispatchInputEvent(context, OSEVENT{OS_INPUT_CHAR,{0x1f600,1,0,12}}) ==
           Frame::Native::InputResult::Handled, "Lua Unicode character did not reach root queue");
     CMouseEvent mouse; mouse.m_data.m_button=0x4; mouse.m_data.m_buttonState=0x4;
-    mouse.m_data.m_mousePosition={.1f,.1f}; mouse.m_data.m_wheelAmount=-2;
+    mouse.m_data.m_mousePosition={.1f,.1f}; mouse.m_data.m_wheelAmount=uint32_t(-2);
     root.m_mouseButtonName="saved-button";
     frame->OnLayerMouseDown(mouse,nullptr); frame->OnLayerMouseUp(mouse,nullptr);
     Check(root.m_mouseButtonName && !std::strcmp(root.m_mouseButtonName,"saved-button"), "Mouse button borrow not restored");
@@ -178,6 +178,13 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     auto* failed=FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()),nullptr,&status);
     Check(failed && !failed->m_onLoad.m_luaRef && !status.IsEmpty(),"XML handler syntax failure hidden or stale ref retained");
     delete failed; tree.reset(); status.Clear();
+    RegionLua("NativeInvalidXMLFunction=42");
+    const char* nonfunction="<Frame><Scripts><OnLoad function='NativeInvalidXMLFunction'/></Scripts></Frame>";
+    tree.reset(XMLTree_Load(nonfunction,std::strlen(nonfunction)));
+    failed=FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()),nullptr,&status);
+    Check(failed && !failed->m_onLoad.m_luaRef && !status.IsEmpty(),"XML global accepted a nonfunction handler");
+    delete failed; tree.reset(); status.Clear();
+    RegionLua("NativeInvalidXMLFunction=nil");
     delete xml1; delete xml2;
     Check(!FrameScript_GetEventListeners("NATIVE_HANDLER_EVENT")->Head(),"Destroyed XML listener remained subscribed");
     delete frame;

@@ -1440,12 +1440,22 @@ void CSimpleFrame::NotifyScrollParent() {
 // OFFSET: 0x0048FEF0
 void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegionScripts();
+    Frame::Native::RequireTreeMutation();
+    if (!node || !status) throw std::invalid_argument("Native XML scripts require a node and status");
+#endif
 
     lua_State* L = FrameScript_GetContext();
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
         const char* body = child->m_body;
         const char* scriptName = child->m_name.m_str;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (child->m_bodyLen > 1024 * 1024 || child->m_child ||
+            (child->m_userData && !dynamic_cast<FrameScriptFunctionRef*>(child->m_userData)))
+            throw std::invalid_argument("Invalid native XML script body or cache");
+#endif
 
         FrameScript_Object::ScriptData data;
         data.m_wrapper = "return function(self) %s end";
@@ -1481,9 +1491,6 @@ void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
 #endif
         }
 
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-        script->m_luaRef = 0;
-#endif
         const char* function = child->GetAttributeByName("function");
 
         if (function && *function) {
