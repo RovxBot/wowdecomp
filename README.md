@@ -252,3 +252,14 @@ main regression pushes and manual dispatch. Feature branches no longer also buil
 on push; all existing jobs, platform matrices and sanitizer settings remain.
 Fixture-only corrections can reuse explicitly verified unchanged production inputs,
 retaining their original build identities and rerunning the affected suite.
+
+
+The [original tiled backdrop package](docs/m3/BACKDROPS.md),
+[PR #80](https://github.com/RovxBot/wowdecomp/pull/80), renders the unchanged
+AccountLogin field backdrop with original tooltip images on an authored Frame.
+[Qualification](docs/m3/backdrop-validation.json) records hosted Linux release/
+strict sanitizer graphics and four native asset configurations, the separate full
+Windows reference build, verified packages and actual RX 7900 XTX original-data
+checks. This advances the field visuals; EditBox text entry, complete signed
+GlueXML/login execution and transport/authentication/gameplay remain open.
+M3 is incomplete. Clean data remains read-only and sign-in stays interactive.

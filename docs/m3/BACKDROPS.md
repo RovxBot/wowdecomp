@@ -41,8 +41,43 @@ malformed/truncated/nonthin/unflagged storage in both axis orientations. No tail
 pixels are decoded, fabricated or uploaded. The earlier native rejection and
 release-only GDB header diagnostic remain evidence, separate from qualification.
 
-All compilation runs in GitHub Actions. Final hosted and real-GPU qualification is
-pending. EditBoxes, remaining widgets, complete signed ordered GlueXML and its
-full second digest gate, actual login, transport/authentication and gameplay
-remain open. Clean data stays read-only, signatures and server revision
+[PR #80](https://github.com/RovxBot/wowdecomp/pull/80) is qualified at
+`5b0c26a9a8f5da7044bbf9352235bb7b411d3a76`; the [durable record](backdrop-validation.json)
+retains exact hosted/package/runtime identities and prior failures. Final-source
+Linux GL release/strict ASan/UBSan/leak configurations passed 38 CTest checks each;
+four native asset configurations passed eight checks each, including actual ARM64
+macOS execution. Full signature-enabled Windows x64 compiled at
+`05aad12dd224256928192968233863501e078645`. Later changes are native-only guards,
+Portable decoder code and fixture/audit inputs; Windows-selected generator/Frame
+tokens remain unchanged. These are separate compilation identities. Seven archive
+digests/all 67 packaged executable hashes/types/notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed twelve three-cycle authored/original-data executions, with empty stderr
+and zero workers. All 21 capture pairs and twelve preceding CheckButton capture
+comparisons match. The inspected original-field backdrop has PPM SHA-256
+`3d604e3006932fcf47634ddb594e6e72b2a57785196c046c4e1950adc4a16396`.
+Original signaturefile authentication observed 28,948 records. Capture placement
+is authored; no user input or credentials were supplied. Local source/launcher
+checks: 57 passed, one unavailable-CMake skip; Windows token and whitespace checks
+passed. No client/dependency compiled locally.
+
+EditBoxes, remaining widgets, complete signed ordered GlueXML and its full second
+digest gate, actual login, transport/authentication and gameplay remain open. Clean data stays read-only, signatures and server revision
 discrepancies remain intact, and user sign-in stays interactive. M3 is incomplete.
+
+
+Reproduce after downloading and verifying a passing Actions GL package:
+
+```sh
+python3 Tools/Porting/run_native_gl.py --artifact /tmp/verified-backdrops \
+  --frame-hierarchy --data /mnt/games/3.3.5aClean/Data \
+  --settings /tmp/backdrop-settings --cache /tmp/backdrop-cache \
+  --output /tmp/backdrop-runtime.json --snapshot /tmp/backdrop.ppm
+```
+
+The wrapper selects strict detectors automatically for the `linux-gl-asan`
+package. Use separate user roots/capture names per mode. The additional original
+backdrop capture is `<snapshot>.backdrop.ppm`; the final main snapshot remains the
+historical authored hierarchy text. Fixture input is injected; no physical-input
+or interactive sign-in acceptance is inferred.

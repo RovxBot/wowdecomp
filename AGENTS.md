@@ -1078,3 +1078,45 @@ remaining checks need another machine.
   gameplay remain open. No new physical-input, Windows runtime, macOS graphics or
   server acceptance. M3 remains open; preserve signatures/server discrepancies,
   read-only data and interactive sign-in.
+
+## Original tiled backdrop qualification — 2026-10-24
+
+The original [backdrop package](docs/m3/BACKDROPS.md),
+[PR #80](https://github.com/RovxBot/wowdecomp/pull/80), is qualified at
+`5b0c26a9a8f5da7044bbf9352235bb7b411d3a76`. [Durable validation](docs/m3/backdrop-validation.json)
+records final-source Linux GL release/strict ASan/UBSan/leak configurations passing
+38 CTest checks each, plus four native asset configurations passing eight checks
+each, including actual ARM64 macOS execution. Full signature-enabled Windows x64
+compilation passed at `05aad12dd224256928192968233863501e078645`; later edits are
+native-only guards/Portable code and fixtures/audits. Windows-selected generator/
+Frame tokens remain unchanged. Preserve these separate compilation identities.
+Seven archives/all 67 packaged executable hashes/types/notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed twelve three-cycle authored/original-data wrapper executions with empty
+stderr and zero workers. All 21 final capture pairs match; twelve historical
+capture comparisons match the preceding CheckButton qualification. The unchanged
+AccountLogin EditBox backdrop node and field size render original tooltip images
+on an authored Frame/placement, with before/after subset InterfaceKey checks and
+original signaturefile/selective-MD5 policy. This is an empty field backdrop, not
+EditBox text entry, complete AccountLogin or its full post-creation digest gate.
+
+Nine-piece generators own aligned pooled texture regions through Frame lifetime.
+Replace outside traversal/collection; transfer the generator only on success.
+Failed output construction returns temporary regions and preserves prior output.
+Close Frame regions before their generator, then Scripts/images/renderer/Fonts/
+layout/XML/VM/device/context/queue. Preserve original side/corner UVs/insets and
+Windows bodies. Native tiled background sampling repeats both axes. General
+texture tiling mutators remain unavailable. Original tooltip BLPs exposed a
+single-block unrequested 16x2 DXT tail; the bounded base-only reader admits that
+shape while full-chain reads still reject missing pixels. No tail pixels are
+decoded, invented or uploaded. DXT1/3/5 authored regressions cover both axes and
+malformed/truncated/nonthin/unflagged storage. Retain the initial source-allowlist
+failure, original-data rejection and diagnostic-only GDB header attempts.
+
+EditBoxes/fonted-frame storage and IME/candidate ownership, remaining widgets,
+complete signed ordered GlueXML/full second digest gate, actual login,
+transport/authentication and observed gameplay remain open. No new physical-input,
+Windows runtime, macOS graphics or server acceptance. Clean data stays read-only,
+signatures/server revision discrepancies stay intact and sign-in stays interactive.
+M3 remains incomplete.
