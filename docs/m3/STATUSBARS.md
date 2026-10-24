@@ -26,6 +26,28 @@ login/authentication and gameplay are not established by widget fixtures.
 
 All compilation and CTest run in GitHub Actions. Downloaded, hash-verified packages
 can run against the read-only clean installation with external settings/cache.
-Hosted and GPU qualification identities will be recorded after checks complete.
+[PR #83](https://github.com/RovxBot/wowdecomp/pull/83) is qualified at
+`9d6c71c2a1cdae7f2bb1da830c0a6a9d849158eb`. The [durable record](statusbar-validation.json)
+retains exact hosted identities and three verified archives/all 51 packaged binary
+hashes/types. Final-source Linux release and strict ASan/UBSan/leak configurations
+passed 38 CTest checks each. Full signature-enabled Windows x64 compilation and
+source audit passed at production `fd1172c4b938540464202e18a2bdb6d6017c2d70`;
+only two GL fixture files changed afterward, with 3,907 other tracked entries
+unchanged. These are distinct source identities, not final-head Windows checks.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 packages passed twelve three-cycle
+authored/original-data desktop wrappers with empty stderr and zero workers.
+Additional targeted visible-resize checks passed 36 cycles. All 48 release/sanitizer capture pairs match; 24 prior EditBox/widget captures match.
+StatusBar pixels use authored solid regions or the original loading-bar image;
+no original StatusBar XML or complete login composition is claimed.
+
+Two earlier visible resize-mode runs failed EditBox preedit/commit assertions;
+thirty targeted cycles passed and tracing did not reproduce them. The exact
+focus events were not captured. Common authored widget input now runs hidden,
+then the SDL window is shown for programmatic resize delivery. Assertions and
+production input/focus behavior are unchanged; failure-only diagnostics remain.
+Keep those failures, superseded jobs and the diagnostic-only GDB/LeakSanitizer
+ptrace limitation separate from final untraced qualification. No detector was
+disabled, and this does not establish physical IME acceptance.
 Slider/ScrollFrame/model and remaining widget consumers, full GlueXML, portable
 transport/authentication and interactive user sign-in still gate M3.

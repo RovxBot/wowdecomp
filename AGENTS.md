@@ -1207,3 +1207,37 @@ No new physical-input, Windows runtime, macOS graphics or server acceptance.
 Remaining widgets, full GlueXML and portable transport/authentication still gate
 interactive user sign-in and observed world entry. Preserve server revision
 discrepancies and historical qualification. M3 remains incomplete.
+
+
+## Original StatusBar qualification — 2026-10-25
+
+The original [StatusBar package](docs/m3/STATUSBARS.md),
+[PR #83](https://github.com/RovxBot/wowdecomp/pull/83), is qualified at
+`9d6c71c2a1cdae7f2bb1da830c0a6a9d849158eb`. [Durable validation](docs/m3/statusbar-validation.json)
+records 38 CTest checks in each final-source Linux GL release/strict ASan/UBSan/leak
+configuration. Full signatures-enabled Windows x64 compilation and source audit
+passed at production `fd1172c4b938540464202e18a2bdb6d6017c2d70`; only two GL
+fixture files changed afterward, with 3,907 tracked entries unchanged. Preserve
+these separate identities. Three archives/all 51 packaged binary hashes/types and
+notices verified; no local compilation.
+
+RX 7900 XTX / Mesa 26.2.5 / SDL X11 release/strict packages passed twelve
+three-cycle authored/original-data wrappers with empty stderr and zero workers.
+Additional targeted visible-resize checks passed 36 cycles. All 48 capture pairs
+and 24 prior EditBox/widget comparisons match. Pooled native
+StatusBar Lua/XML now selects original range/value callbacks, horizontal/vertical/
+zero fill, color/rotation and texture regions. Preserve canonical ownership,
+structural replacement admission, custom UVs until explicit rotation, finite range/
+raw index checks, resize invalidation and widgets-before-owner teardown. The
+loading-bar image is original; placement and StatusBar composition are authored.
+
+Retain two earlier visible-mode EditBox preedit/commit failures and thirty passing
+targeted repeats. Exact focus-event causes were not captured. Common authored
+widget input now runs hidden before the window is shown for SDL resize checks;
+production input behavior/assertions/detectors stay unchanged. Keep GDB/ptrace
+LeakSanitizer diagnostics separate from final untraced checks. This is no new
+physical-input, Windows runtime, macOS graphics or server acceptance. Remaining
+widgets/model consumers, complete signed ordered GlueXML/full second digest,
+portable transport/authentication and observed login/gameplay keep M3 open. Clean
+data stays read-only; preserve signatures, server revision discrepancies and
+interactive user sign-in.
