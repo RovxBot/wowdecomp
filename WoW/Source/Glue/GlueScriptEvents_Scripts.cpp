@@ -37,7 +37,6 @@
 #include "WoW/Source/WowServices/BattlenetLogin.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/AccountData.h"
 #include "GameVersion.h"
-#include "WaystoneVersion.h"
 
 int32_t Script_GetLocale(lua_State* L);
 int32_t Script_PlayCreditsMusic(lua_State* L);
@@ -57,9 +56,9 @@ int32_t Script_RestoreVideoStereoDefaults(lua_State* L);
 static int32_t Script_GetBuildInfo(lua_State* L) {
     lua_pushstring(L, FrameScript_GetText("VERSION", -1, GENDER_NOT_APPLICABLE));
     lua_pushstring(L, FrameScript_GetText("RELEASE_BUILD", -1, GENDER_NOT_APPLICABLE));
-    lua_pushstring(L, CLIENT_NAME " " WAYSTONE_BUILD_STRING);
-    lua_pushstring(L, WAYSTONE_COMMIT);
-    lua_pushstring(L, WAYSTONE_DATE);
+    lua_pushstring(L, GAME_VERSION);
+    lua_pushstring(L, GAME_BUILD_STRING);
+    lua_pushstring(L, GAME_BUILD_DATE);
     return 5;
 }
 
