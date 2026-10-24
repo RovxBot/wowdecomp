@@ -155,13 +155,6 @@ CSimpleFrame* Create_SimpleHTML(CSimpleFrame* parent) {
     return data ? new (data) CSimpleHTML(parent) : nullptr;
 }
 
-// VERIFY: 7fb244de auto
-// OFFSET: 0x008127B0
-CSimpleFrame* Create_SimpleStatusBar(CSimpleFrame* parent) {
-    void* data = CSimpleStatusBar::s_allocator.GetData(0, typeid(CSimpleStatusBar).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleStatusBar(parent) : nullptr;
-}
-
 // VERIFY: dd0cf87c auto
 // OFFSET: 0x008127E0
 CSimpleFrame* Create_SimpleColorSelect(CSimpleFrame* parent) {

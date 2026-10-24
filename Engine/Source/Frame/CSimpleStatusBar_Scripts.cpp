@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleStatusBar.h"
@@ -156,9 +159,13 @@ static int32_t Script_SetStatusBarTexture(lua_State* L) {
     }
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = dynamic_cast<CSimpleTexture*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleTexture* texture = static_cast<CSimpleTexture*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!texture) {
             const char* name = statusBar->GetName();
@@ -240,6 +247,22 @@ static int32_t Script_SetRotatesTexture(lua_State* L) {
 }
 
 // STATIC: 0x00B2CDB8
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "GetOrientation", &Frame::Native::ScriptMethod<&Script_GetOrientation, true, false> },
+    { "SetOrientation", &Frame::Native::ScriptMethod<&Script_SetOrientation, true, false> },
+    { "GetMinMaxValues", &Frame::Native::ScriptMethod<&Script_GetMinMaxValues, true, false> },
+    { "SetMinMaxValues", &Frame::Native::ScriptMethod<&Script_SetMinMaxValues, true, false> },
+    { "GetValue", &Frame::Native::ScriptMethod<&Script_GetValue, true, false> },
+    { "SetValue", &Frame::Native::ScriptMethod<&Script_SetValue, true, false> },
+    { "GetStatusBarTexture", &Frame::Native::ScriptMethod<&Script_GetStatusBarTexture, true, false> },
+    { "SetStatusBarTexture", &Frame::Native::ScriptMethod<&Script_SetStatusBarTexture, true, true> },
+    { "GetStatusBarColor", &Frame::Native::ScriptMethod<&Script_GetStatusBarColor, true, false> },
+    { "SetStatusBarColor", &Frame::Native::ScriptMethod<&Script_SetStatusBarColor, true, false> },
+    { "GetRotatesTexture", &Frame::Native::ScriptMethod<&Script_GetRotatesTexture, true, false> },
+    { "SetRotatesTexture", &Frame::Native::ScriptMethod<&Script_SetRotatesTexture, true, false> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "GetOrientation", &Script_GetOrientation },
     { "SetOrientation", &Script_SetOrientation },
@@ -254,6 +277,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetRotatesTexture", &Script_GetRotatesTexture },
     { "SetRotatesTexture", &Script_SetRotatesTexture },
 };
+#endif
 
 // VERIFY: 405c2e64 auto
 // OFFSET: 0x009711B0

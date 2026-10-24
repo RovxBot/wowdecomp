@@ -5,6 +5,7 @@
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
+#include "Engine/Source/Frame/CSimpleStatusBar.h"
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
@@ -73,5 +74,18 @@ CSimpleFrame* Create_SimpleEditBox(CSimpleFrame* parent) {
 #else
     void* data = CSimpleEditBox::s_allocator.GetData(0, typeid(CSimpleEditBox).raw_name(), SLOG_OBJECT);
     return data ? new (data) CSimpleEditBox(parent) : nullptr;
+#endif
+}
+
+// VERIFY: 7fb244de auto
+// OFFSET: 0x008127B0
+CSimpleFrame* Create_SimpleStatusBar(CSimpleFrame* parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation(); Frame::Native::RequireRoot();
+    if (parent) Frame::Native::RequireSimpleFrame(parent);
+    return Frame::Native::ConstructRegion<CSimpleStatusBar>(CSimpleStatusBar::s_allocator, parent);
+#else
+    void* data = CSimpleStatusBar::s_allocator.GetData(0, typeid(CSimpleStatusBar).raw_name(), SLOG_OBJECT);
+    return data ? new (data) CSimpleStatusBar(parent) : nullptr;
 #endif
 }

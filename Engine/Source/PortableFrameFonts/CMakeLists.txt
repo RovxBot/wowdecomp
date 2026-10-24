@@ -20,6 +20,8 @@ add_library(WowNativeFrameRender STATIC
     ../Frame/Portable/Render.cpp)
 target_link_libraries(WowNativeFrameRender PUBLIC WowNativeFrameFonts)
 add_library(WowNativeFrameRegions STATIC
+    ../Frame/CSimpleStatusBar.cpp
+    ../Frame/CSimpleStatusBar_Scripts.cpp
     ../Frame/CSimpleFontedFrame.cpp
     ../Frame/CSimpleEditBox.cpp
     ../Frame/CSimpleEditBox_Scripts.cpp

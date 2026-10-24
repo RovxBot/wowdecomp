@@ -17,6 +17,14 @@
 #include "Engine/Source/Tempest/CRect.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include <memory>
+#define STATUSBAR_CHECK() Frame::Native::RequireScriptTextMutation()
+#else
+#define STATUSBAR_CHECK() ((void)0)
+#endif
 
 // STATIC: 0x00B2CE18
 int32_t CSimpleStatusBar::s_metatable = LUA_NOREF;
@@ -32,9 +40,13 @@ CDataAllocator CSimpleStatusBar::s_allocator(sizeof(CSimpleStatusBar), 5);
 
 // INLINED
 void CSimpleStatusBar::operator delete(void* ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FreeRegionStorage(CSimpleStatusBar::s_allocator, ptr);
+#else
     if (ptr) {
         CSimpleStatusBar::s_allocator.PutData(ptr, nullptr, 0);
     }
+#endif
 }
 
 // INLINED
@@ -49,6 +61,7 @@ int32_t CSimpleStatusBar::GetObjectType() {
 // VERIFY: 8f81c45b auto
 // OFFSET: 0x00961560
 void CSimpleStatusBar::RunOnMinMaxChangedScript() {
+    STATUSBAR_CHECK();
     if (this->m_onMinMaxChanged.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, this->m_minValue);
@@ -65,6 +78,7 @@ CSimpleStatusBar::~CSimpleStatusBar() {
 // VERIFY: 9f838f6a auto
 // OFFSET: 0x009615F0
 void CSimpleStatusBar::SetStatusBarColor(const CImVector& color) {
+    STATUSBAR_CHECK();
     if (this->m_barTexture) {
         this->m_barTexture->SetVertexColor(color);
     }
@@ -125,13 +139,26 @@ void CSimpleStatusBar::UnregisterRegion(CSimpleRegion* region) {
 // VERIFY: 19c7ecf8 auto
 // OFFSET: 0x00961720
 void CSimpleStatusBar::SetBarTexture(CSimpleTexture* texture, uint32_t drawLayer) {
+    STATUSBAR_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid StatusBar draw layer");
+    if (texture) {
+        Frame::Native::RequireScript(texture);
+        // A widget slot owns its region. Do not steal another Frame's slot.
+        if (texture->m_parent && texture->m_parent != this)
+            throw std::invalid_argument("StatusBar texture belongs to another Frame");
+    }
+#endif
     if (texture == this->m_barTexture) {
         return;
     }
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     if (this->m_barTexture) {
         delete this->m_barTexture;
     }
+#endif
 
     if (texture) {
         texture->SetFrame(this, drawLayer, 1);
@@ -141,20 +168,43 @@ void CSimpleStatusBar::SetBarTexture(CSimpleTexture* texture, uint32_t drawLayer
         texture->SetPoint(FRAMEPOINT_TOPRIGHT, this, FRAMEPOINT_TOPRIGHT, 0.0f, 0.0f, 1);
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Keep the previous region alive until the incoming anchors are installed.
+    if (this->m_barTexture) delete this->m_barTexture;
+#endif
     this->m_changed = 1;
     this->m_barTexture = texture;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_rotatesTexture) this->SetRotatesTexture(1);
+#endif
 }
 
 // VERIFY: ac23d1fa auto
 // OFFSET: 0x009617E0
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleStatusBar::SetOrientation(uint32_t orientation) {
+    STATUSBAR_CHECK();
+    if (orientation > ORIENTATION_VERTICAL) throw std::invalid_argument("Invalid StatusBar orientation");
+    this->m_changed = 1;
+    this->m_orientation = static_cast<ORIENTATION>(orientation);
+}
+#else
 void CSimpleStatusBar::SetOrientation(ORIENTATION orientation) {
     this->m_changed = 1;
     this->m_orientation = orientation;
 }
+#endif
 
 // VERIFY: 4f2300fa auto
 // OFFSET: 0x00961800
 void CSimpleStatusBar::SetMinMaxValues(float minValue, float maxValue) {
+    STATUSBAR_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFinite(minValue); Frame::Native::RequireFinite(maxValue);
+    if (std::fabs(minValue) > 1.0e12 || std::fabs(maxValue) > 1.0e12 ||
+        double(maxValue) - minValue > 1.0e12)
+        throw std::invalid_argument("StatusBar range exceeds original limits");
+#endif
     if (minValue > maxValue) {
         minValue = maxValue;
     }
@@ -177,6 +227,10 @@ void CSimpleStatusBar::SetMinMaxValues(float minValue, float maxValue) {
 // VERIFY: 64665966 manual
 // OFFSET: 0x00961890
 void CSimpleStatusBar::SetValue(float value) {
+    STATUSBAR_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireFinite(value);
+#endif
     if (!this->m_rangeSet) {
         return;
     }
@@ -229,6 +283,9 @@ bool CSimpleStatusBar::IsA(const char* typeName) {
 // VERIFY: d599a721 auto
 // OFFSET: 0x00961A00
 CSimpleStatusBar::CSimpleStatusBar(CSimpleFrame* parent) : CSimpleFrame(parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleStatusBar::GetObjectType();
+#endif
     this->m_changed = 0;
     this->m_rangeSet = 0;
     this->m_valueSet = 0;
@@ -243,32 +300,52 @@ CSimpleStatusBar::CSimpleStatusBar(CSimpleFrame* parent) : CSimpleFrame(parent) 
 // VERIFY: d7ce03a7 auto
 // OFFSET: 0x00961AC0
 int32_t CSimpleStatusBar::SetBarTexture(const char* fileName, uint32_t drawLayer) {
+    STATUSBAR_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (drawLayer >= 5) throw std::invalid_argument("Invalid StatusBar draw layer");
+#endif
     CSimpleTexture* texture = this->m_barTexture;
 
     if (texture) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        return texture->SetTexture(fileName, (texture->m_textureFlags >> 2) & 1, (texture->m_textureFlags >> 3) & 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#else
         texture->SetTexture(fileName, (texture->m_textureFlags >> 2) & 1, (texture->m_textureFlags >> 3) & 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
         this->SetBarTexture(texture, drawLayer);
         return 1;
+#endif
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<CSimpleTexture> owner(Frame::Native::CreateTexture(nullptr, 2, true));
+    texture = owner.get();
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     texture = data ? new (data) CSimpleTexture(nullptr, 2, 1) : nullptr;
+#endif
 
     if (!texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         if (texture) {
             delete texture;
         }
+#endif
 
         return 0;
     }
 
     this->SetBarTexture(texture, drawLayer);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    owner.release();
+#endif
     return 1;
 }
 
 // VERIFY: b5c4efa8 manual
 // OFFSET: 0x00961B80
 void CSimpleStatusBar::OnLayerUpdate(float elapsedSec) {
+    STATUSBAR_CHECK();
     CSimpleFrame::OnLayerUpdate(elapsedSec);
 
     if (!this->m_changed || !this->m_barTexture || !this->m_rangeSet || !this->m_valueSet) {
@@ -307,9 +384,27 @@ void CSimpleStatusBar::OnLayerUpdate(float elapsedSec) {
     }
 }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+// The original fill geometry is retained across batches; invalidate it when
+// native layout resolves a new parent size, even without a value change.
+void CSimpleStatusBar::OnFrameSizeChanged(const CRect& rect) {
+    STATUSBAR_CHECK();
+    this->m_changed = 1;
+    CSimpleFrame::OnFrameSizeChanged(rect);
+}
+#endif
+
 // VERIFY: 7a8b77e2 manual
 // OFFSET: 0x00961D70
 void CSimpleStatusBar::SetRotatesTexture(int32_t rotates) {
+    STATUSBAR_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!this->m_barTexture) {
+        this->m_rotatesTexture = !!rotates;
+        this->m_changed = 1;
+        return;
+    }
+#endif
     if (rotates) {
         C2Vector texCoords[4];
         texCoords[0].x = 0.0f;
@@ -333,6 +428,7 @@ void CSimpleStatusBar::SetRotatesTexture(int32_t rotates) {
 // VERIFY: f9c4a1fd manual
 // OFFSET: 0x00961E30
 void CSimpleStatusBar::LoadXML(XMLNode* node, CStatus* status) {
+    STATUSBAR_CHECK();
     CSimpleFrame::LoadXML(node, status);
 
     uint32_t drawLayer = 2;
@@ -344,7 +440,13 @@ void CSimpleStatusBar::LoadXML(XMLNode* node, CStatus* status) {
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
         if (!SStrCmpI(child->m_name.m_str, "BarTexture", STORM_MAX_STR)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            std::unique_ptr<CSimpleTexture> texture(LoadXML_Texture(child, this, status));
+            this->SetBarTexture(texture.get(), drawLayer);
+            texture.release();
+#else
             this->SetBarTexture(LoadXML_Texture(child, this, status), drawLayer);
+#endif
         } else if (!SStrCmpI(child->m_name.m_str, "BarColor", STORM_MAX_STR)) {
             CImVector color;
 
