@@ -1,3 +1,17 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+namespace {
+template<int (*Method)(lua_State*)> int MessageMethod(lua_State* L) {
+    bool failed = false;
+    try {
+        Frame::Native::RequireScriptTextMutation();
+        return Frame::Native::ScriptMethod<Method, true, false>(L);
+    } catch (const std::exception&) { failed = true; }
+    if (failed) return luaL_error(L, "MessageFrame method rejected traversal or ownership");
+    return 0;
+}
+}
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
@@ -334,6 +348,38 @@ static int32_t Script_Clear(lua_State* L) {
 }
 
 // STATIC: 0x00B2D068
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetFontObject", &MessageMethod<&Script_SetFontObject> },
+    { "GetFontObject", &MessageMethod<&Script_GetFontObject> },
+    { "SetFont", &MessageMethod<&Script_SetFont> },
+    { "GetFont", &MessageMethod<&Script_GetFont> },
+    { "SetTextColor", &MessageMethod<&Script_SetTextColor> },
+    { "GetTextColor", &MessageMethod<&Script_GetTextColor> },
+    { "SetShadowColor", &MessageMethod<&Script_SetShadowColor> },
+    { "GetShadowColor", &MessageMethod<&Script_GetShadowColor> },
+    { "SetShadowOffset", &MessageMethod<&Script_SetShadowOffset> },
+    { "GetShadowOffset", &MessageMethod<&Script_GetShadowOffset> },
+    { "SetSpacing", &MessageMethod<&Script_SetSpacing> },
+    { "GetSpacing", &MessageMethod<&Script_GetSpacing> },
+    { "SetJustifyH", &MessageMethod<&Script_SetJustifyH> },
+    { "GetJustifyH", &MessageMethod<&Script_GetJustifyH> },
+    { "SetJustifyV", &MessageMethod<&Script_SetJustifyV> },
+    { "GetJustifyV", &MessageMethod<&Script_GetJustifyV> },
+    { "SetInsertMode", &MessageMethod<&Script_SetInsertMode> },
+    { "GetInsertMode", &MessageMethod<&Script_GetInsertMode> },
+    { "SetIndentedWordWrap", &MessageMethod<&Script_SetIndentedWordWrap> },
+    { "GetIndentedWordWrap", &MessageMethod<&Script_GetIndentedWordWrap> },
+    { "SetFading", &MessageMethod<&Script_SetFading> },
+    { "GetFading", &MessageMethod<&Script_GetFading> },
+    { "SetTimeVisible", &MessageMethod<&Script_SetTimeVisible> },
+    { "GetTimeVisible", &MessageMethod<&Script_GetTimeVisible> },
+    { "SetFadeDuration", &MessageMethod<&Script_SetFadeDuration> },
+    { "GetFadeDuration", &MessageMethod<&Script_GetFadeDuration> },
+    { "AddMessage", &MessageMethod<&Script_AddMessage> },
+    { "Clear", &MessageMethod<&Script_Clear> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetFontObject", &Script_SetFontObject },
     { "GetFontObject", &Script_GetFontObject },
@@ -364,6 +410,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "AddMessage", &Script_AddMessage },
     { "Clear", &Script_Clear },
 };
+#endif
 
 // VERIFY: 4b0e9196 auto
 // OFFSET: 0x00973D20

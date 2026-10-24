@@ -26,6 +26,7 @@
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/CSimpleTitleRegion.h"
+#include "Engine/Source/Frame/CSimpleMessageFrame.h"
 #endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -1166,6 +1167,9 @@ void CSimpleTop::OnLayerUpdate(float elapsedSec) {
     Frame::Native::RequireRoot();
     Frame::Native::RequireFinite(elapsedSec);
     Frame::Native::DrainDestroyQueue();
+    CLayoutFrame::ResizePending();
+    for (auto* item = m_frames.Head(); item; item = m_frames.Next(item))
+        if (auto* messages = dynamic_cast<CSimpleMessageFrame*>(item)) messages->PrepareRows();
     { Frame::Native::UpdateScope scope;
 #endif
     CSimpleFrame* frame;
