@@ -24,11 +24,13 @@ void CheckTexture(CSimpleButton* button, CSimpleTexture* texture) {
     if (!texture) return;
     Frame::Native::RequireScript(texture);
     // One region cannot occupy two independently owned state/highlight slots.
-    for (auto* slot : button->m_stateTextures)
-        if (slot == texture) throw std::invalid_argument("Native Button texture already occupies a state slot");
-    if (texture == button->m_highlightTexture)
-        throw std::invalid_argument("Native Button texture already occupies the highlight slot");
+    if (button->OwnsStateTexture(texture))
+        throw std::invalid_argument("Native Button texture already occupies a widget slot");
 }
+}
+bool CSimpleButton::OwnsStateTexture(CSimpleTexture* texture) const {
+    for (auto* slot : m_stateTextures) if (slot == texture) return true;
+    return texture == m_highlightTexture;
 }
 #else
 #define BUTTON_CHECK() ((void)0)

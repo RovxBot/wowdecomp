@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
@@ -56,9 +59,13 @@ static int32_t Script_SetCheckedTexture(lua_State* L) {
     CSimpleCheckbox* checkbox = static_cast<CSimpleCheckbox*>(FrameScript_GetObjectThis(L, CSimpleCheckbox::GetObjectType()));
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = dynamic_cast<CSimpleTexture*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleTexture* texture = static_cast<CSimpleTexture*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!texture) {
             const char* name = checkbox->GetName();
@@ -116,9 +123,13 @@ static int32_t Script_SetDisabledCheckedTexture(lua_State* L) {
     CSimpleCheckbox* checkbox = static_cast<CSimpleCheckbox*>(FrameScript_GetObjectThis(L, CSimpleCheckbox::GetObjectType()));
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = dynamic_cast<CSimpleTexture*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleTexture* texture = static_cast<CSimpleTexture*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!texture) {
             const char* name = checkbox->GetName();
@@ -165,6 +176,16 @@ void CSimpleCheckbox::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2D3E4
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetChecked", &Frame::Native::ScriptMethod<&Script_SetChecked, false, false> },
+    { "GetChecked", &Frame::Native::ScriptMethod<&Script_GetChecked, true, false> },
+    { "GetCheckedTexture", &Frame::Native::ScriptMethod<&Script_GetCheckedTexture, true, false> },
+    { "SetCheckedTexture", &Frame::Native::ScriptMethod<&Script_SetCheckedTexture> },
+    { "GetDisabledCheckedTexture", &Frame::Native::ScriptMethod<&Script_GetDisabledCheckedTexture, true, false> },
+    { "SetDisabledCheckedTexture", &Frame::Native::ScriptMethod<&Script_SetDisabledCheckedTexture> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetChecked", &Script_SetChecked },
     { "GetChecked", &Script_GetChecked },
@@ -173,6 +194,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetDisabledCheckedTexture", &Script_GetDisabledCheckedTexture },
     { "SetDisabledCheckedTexture", &Script_SetDisabledCheckedTexture },
 };
+#endif
 
 // VERIFY: 3cfa1676 auto
 // OFFSET: 0x00976AF0

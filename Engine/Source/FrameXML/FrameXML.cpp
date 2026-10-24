@@ -120,13 +120,6 @@ int32_t FrameXML_GuessNumFiles(const char* toc) {
     return count;
 }
 
-// VERIFY: c88573f9 auto
-// OFFSET: 0x00812630
-CSimpleFrame* Create_SimpleCheckButton(CSimpleFrame* parent) {
-    void* data = CSimpleCheckbox::s_allocator.GetData(0, typeid(CSimpleCheckbox).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleCheckbox(parent) : nullptr;
-}
-
 // VERIFY: e0d76346 auto
 // OFFSET: 0x00812660
 CSimpleFrame* Create_SimpleEditBox(CSimpleFrame* parent) {

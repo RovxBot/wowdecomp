@@ -46,9 +46,10 @@ struct CreationScope {
     }
 };
 bool Is(const char* a, const char* b) { return !SStrCmpI(a, b, STORM_MAX_STR); }
+bool IsButton(const char* tag) { return Is(tag, "Button") || Is(tag, "CheckButton"); }
 const char* Kind(const char* tag) {
     if (Is(tag, "ButtonText")) return "FontString";
-    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture"})
+    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture", "CheckedTexture", "DisabledCheckedTexture"})
         if (Is(tag, name)) return "Texture";
     return tag;
 }
@@ -120,17 +121,17 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
         const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
                                    Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
-        if ((buttonHandler && (path.size() < 3 || !Is(path[path.size()-3]->m_name.m_str, "Button"))) ||
+        if ((buttonHandler && (path.size() < 3 || !IsButton(path[path.size()-3]->m_name.m_str))) ||
             std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
             node->m_child || node->m_bodyLen > 1024 * 1024 || node->GetAttributeByName("inherit"))
             throw std::invalid_argument("Unavailable or excessive native XML script handler");
         path.pop_back();
         return;
     }
-    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !Is(path[path.size()-2]->m_name.m_str, "Button"))))
+    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !IsButton(path[path.size()-2]->m_name.m_str))))
         throw std::invalid_argument("Native XML Scripts require a Frame parent");
     // Fail before allocation for consumers with unselected ownership/services.
-    const char* supported[] = {"Button", "NormalFont", "DisabledFont", "HighlightFont",
+    const char* supported[] = {"Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
         "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
         "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
@@ -326,7 +327,8 @@ CSimpleTexture* CreateTexture(CSimpleFrame* parent, const char* name, unsigned l
 int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*), bool unique) {
     FrameXML::Native::RequireFactories(); Name(name);
     if (!((Is(name, "Frame") && factory == Create_SimpleFrame) ||
-          (Is(name, "Button") && factory == Create_SimpleButton)) || unique)
+          (Is(name, "Button") && factory == Create_SimpleButton) ||
+          (Is(name, "CheckButton") && factory == Create_SimpleCheckButton)) || unique)
         throw std::invalid_argument("Native widget factory is not qualified");
     if (factories.Ptr(name)) return 0;
     auto* item = factories.New(name, 0, 0);
@@ -335,7 +337,8 @@ int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSim
 }
 int32_t FrameXML_RegisterDefault() {
     int32_t result = FrameXML_RegisterFactory("Frame", Create_SimpleFrame, false);
-    return FrameXML_RegisterFactory("Button", Create_SimpleButton, false) && result;
+    result = FrameXML_RegisterFactory("Button", Create_SimpleButton, false) && result;
+    return FrameXML_RegisterFactory("CheckButton", Create_SimpleCheckButton, false) && result;
 }
 void FrameXML_ClearFactories() { FrameXML::Native::RequireFactories(); factories.InternalClear(0); }
 XMLNode* FrameXML_AcquireHashNode(const char* name, const char*& taint, bool& locked) {

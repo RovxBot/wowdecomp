@@ -90,6 +90,10 @@ enum CLICK_ACTION_FLAGS : uint64_t {
 
 class CSimpleButton : public CSimpleFrame {
     public:
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // All independently owned texture slots, including derived widget slots.
+    virtual bool OwnsStateTexture(CSimpleTexture* texture) const;
+#endif
     static CDataAllocator s_allocator;
     static int32_t s_metatable;
     static int32_t s_objectType;
