@@ -80,11 +80,15 @@ std::vector<Image> DecodeBlp(const Bytes& file, bool baseLevelOnly) {
             // Original Glue DXT assets have area-sized thin tails (e.g. 8x2
             // stores one block). No complete RGBA image exists for those levels.
             // Admit only this exact bounded storage form for unrequested tails;
-            // explicit mip reads continue to reject it in Dxt below.
+            // explicit mip reads continue to reject it in Dxt below. The
+            // original 128x16 Glue tooltip border also stores just one block
+            // for its 16x2 tail, smaller than even that area-sized form.
             const size_t legacy = std::max(block, pixels * block / 16);
+            const bool singleBlockTail = std::max(width, height) == 16 &&
+                std::min(width, height) == 2 && source.size == block;
             if (source.size != complete &&
                 !(powerOfTwo && (data.data[11] & 0xF) && std::min(width, height) < 4 &&
-                  source.size == legacy)) throw Error("Invalid BLP DXT mip extent");
+                  (source.size == legacy || singleBlockTail))) throw Error("Invalid BLP DXT mip extent");
             continue;
         }
         Image image{width, height, Bytes(pixels * 4)};
