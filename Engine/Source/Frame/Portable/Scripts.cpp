@@ -4,6 +4,7 @@
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
+#include "Engine/Source/Frame/CSimpleStatusBar.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/CSimpleFrame.h"
@@ -28,12 +29,14 @@ Scripts::Scripts() {
         CSimpleCheckbox::CreateScriptMetaTable();
         CSimpleMessageFrame::CreateScriptMetaTable();
         CSimpleEditBox::CreateScriptMetaTable();
+        CSimpleStatusBar::CreateScriptMetaTable();
         CSimpleTexture::Init();
         installed = true;
         FrameXML::Native::InstallFactories();
     } catch (...) {
         installed = false;
         CSimpleTexture::Destroy();
+        CSimpleStatusBar::DestroyScriptMetaTable();
         CSimpleEditBox::DestroyScriptMetaTable();
         CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();
@@ -54,6 +57,7 @@ Scripts::~Scripts() {
         CheckCanClose();
         FrameXML::Native::CloseFactories();
         CSimpleTexture::Destroy();
+        CSimpleStatusBar::DestroyScriptMetaTable();
         CSimpleEditBox::DestroyScriptMetaTable();
         CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();

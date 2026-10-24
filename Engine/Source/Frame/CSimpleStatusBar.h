@@ -60,7 +60,12 @@ class CSimpleStatusBar : public CSimpleFrame {
     int32_t SetBarTexture(const char* fileName, uint32_t drawLayer);
     void SetBarTexture(CSimpleTexture* texture, uint32_t drawLayer);
     void SetMinMaxValues(float minValue, float maxValue);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void SetOrientation(uint32_t orientation);
+    void OnFrameSizeChanged(const CRect& rect) override;
+#else
     void SetOrientation(ORIENTATION orientation);
+#endif
     void SetRotatesTexture(int32_t rotates);
 };
 

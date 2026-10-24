@@ -49,7 +49,7 @@ bool Is(const char* a, const char* b) { return !SStrCmpI(a, b, STORM_MAX_STR); }
 bool IsButton(const char* tag) { return Is(tag, "Button") || Is(tag, "CheckButton"); }
 const char* Kind(const char* tag) {
     if (Is(tag, "ButtonText")) return "FontString";
-    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture", "CheckedTexture", "DisabledCheckedTexture"})
+    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture", "CheckedTexture", "DisabledCheckedTexture", "BarTexture"})
         if (Is(tag, name)) return "Texture";
     return tag;
 }
@@ -119,7 +119,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnMouseWheel", "OnDragStart",
             "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
             "OnEnterPressed", "OnEscapePressed", "OnSpacePressed", "OnTabPressed", "OnTextChanged", "OnTextSet", "OnCursorChanged", "OnInputLanguageChanged", "OnEditFocusGained", "OnEditFocusLost", "OnCharComposition",
-            "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
+            "OnValueChanged", "OnMinMaxChanged", "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
         const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
                                    Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
         if ((buttonHandler && (path.size() < 3 || !IsButton(path[path.size()-3]->m_name.m_str))) ||
@@ -129,10 +129,10 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         path.pop_back();
         return;
     }
-    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !Is(path[path.size()-2]->m_name.m_str, "MessageFrame") && !Is(path[path.size()-2]->m_name.m_str, "EditBox") && !IsButton(path[path.size()-2]->m_name.m_str))))
+    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !Is(path[path.size()-2]->m_name.m_str, "MessageFrame") && !Is(path[path.size()-2]->m_name.m_str, "StatusBar") && !Is(path[path.size()-2]->m_name.m_str, "EditBox") && !IsButton(path[path.size()-2]->m_name.m_str))))
         throw std::invalid_argument("Native XML Scripts require a Frame parent");
     // Fail before allocation for consumers with unselected ownership/services.
-    const char* supported[] = {"EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
+    const char* supported[] = {"StatusBar", "BarColor", "EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
         "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
         "AbsInset", "RelInset", "Backdrop", "TileSize", "EdgeSize", "BackgroundInsets", "BorderColor", "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
@@ -149,7 +149,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         const char* key = attr.m_name.m_str;
         const char* value = attr.m_value.m_str;
         if (!value || !*value) continue;
-        const char* numeric[] = {"x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing", "left", "right", "top", "bottom", "ULx", "ULy", "LLx", "LLy", "URx", "URy", "LRx", "LRy", "displayDuration", "fadeDuration", "blinkSpeed"};
+        const char* numeric[] = {"x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing", "left", "right", "top", "bottom", "ULx", "ULy", "LLx", "LLy", "URx", "URy", "LRx", "LRy", "displayDuration", "fadeDuration", "blinkSpeed", "minValue", "maxValue", "defaultValue"};
         const char* integer[] = {"id", "bytes", "maxLines", "frameLevel", "letters", "historyLines"};
         bool integral = std::any_of(std::begin(integer), std::end(integer), [&](const char* s) { return Is(key, s); });
         if (integral || std::any_of(std::begin(numeric), std::end(numeric), [&](const char* s) { return Is(key, s); })) {
@@ -331,6 +331,7 @@ int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSim
           (Is(name, "Button") && factory == Create_SimpleButton) ||
           (Is(name, "CheckButton") && factory == Create_SimpleCheckButton) ||
           (Is(name, "EditBox") && factory == Create_SimpleEditBox) ||
+          (Is(name, "StatusBar") && factory == Create_SimpleStatusBar) ||
           (Is(name, "MessageFrame") && factory == Create_SimpleMessageFrame)) || unique)
         throw std::invalid_argument("Native widget factory is not qualified");
     if (factories.Ptr(name)) return 0;
@@ -340,6 +341,7 @@ int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSim
 }
 int32_t FrameXML_RegisterDefault() {
     int32_t result = FrameXML_RegisterFactory("Frame", Create_SimpleFrame, false);
+    result = FrameXML_RegisterFactory("StatusBar", Create_SimpleStatusBar, false) && result;
     result = FrameXML_RegisterFactory("Button", Create_SimpleButton, false) && result;
     result = FrameXML_RegisterFactory("CheckButton", Create_SimpleCheckButton, false) && result;
     result = FrameXML_RegisterFactory("EditBox", Create_SimpleEditBox, false) && result;
