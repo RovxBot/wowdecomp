@@ -3022,6 +3022,9 @@ void CSimpleEditBox::UpdateVisibleText() {
                     }
                 }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                if (back == text) break;
+#endif
                 back--;
             }
 
@@ -3323,9 +3326,18 @@ int32_t CSimpleEditBox::OnLayerKeyDown(const CKeyEvent& evt) {
 
         case KEY_ENTER:
             if (!(this->m_editBoxFlags & 0x2) || this->m_onEnterPressed.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                struct EnterScope {
+                    uint32_t& flag; uint32_t saved;
+                    explicit EnterScope(uint32_t& value) : flag(value), saved(value) { flag = 1; }
+                    ~EnterScope() { flag = saved; }
+                } enter(this->m_simpleTop->unused_1250);
+                this->RunOnEnterPressedScript();
+#else
                 this->m_simpleTop->unused_1250 = 1;
                 this->RunOnEnterPressedScript();
                 this->m_simpleTop->unused_1250 = 0;
+#endif
             } else {
                 this->Insert("\n", nullptr, 1, 0, 0);
             }

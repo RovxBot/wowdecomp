@@ -74,6 +74,19 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     Check(std::string(edit->m_text)=="AV","Modifier-driven paste selection replacement");
     key(KEY_TAB);key(KEY_TAB,false);key(KEY_ENTER);key(KEY_ENTER,false);Draw(device,root);
     RegionLua("assert(NativeEdit.tabbed and NativeEdit.entered and NativeEdit.changed>0)");
+    struct EnterFailure final : CSimpleEditBox::EventHandler {
+        void unk_0000() override {} void unk_0004() override {}
+        void unk_0008() override {} void unk_000C() override {}
+        void OnEvent(const CEvent&) override { throw std::runtime_error("Authored Enter callback failure"); }
+    } enterFailure;
+    const auto enterFlag = root.unused_1250;
+    edit->m_enterPressedCallback.m_handler = &enterFailure;
+    bool enterThrew = false;
+    try { key(KEY_ENTER); } catch (const std::runtime_error&) { enterThrew = true; }
+    edit->m_enterPressedCallback.m_handler = nullptr;
+    Check(enterThrew && root.unused_1250 == enterFlag,"Enter failure retained root callback state");
+    key(KEY_ENTER,false);key(KEY_ENTER);key(KEY_ENTER,false);
+    edit->SetText("|rAV",nullptr);Equal(Draw(device,root),Draw(device,root));
     // The owner copies candidates before the next dequeue; widget/row creation
     // is deferred until root update, after the input traversal has ended.
     edit->SetText("A",nullptr);edit->SetCursorPosition(1);
@@ -91,7 +104,7 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     auto candidates=Draw(device,root);Equal(candidates,Draw(device,root));
     if(!snapshot.empty()) {
         std::ofstream out(snapshot+".editbox-candidates.ppm",std::ios::binary);out<<"P6\n640 480\n255\n";
-        for(const auto& p:candidates){out.put(char(p.r));out.put(char(p.g));out.put(char(p.b));}
+        for(int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=candidates[y*640+x];out.put(char(p.r));out.put(char(p.g));out.put(char(p.b));}
         Check(bool(out),"EditBox candidate capture");
     }
     text("A");pump();Draw(device,root);
