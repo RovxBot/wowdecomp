@@ -3,7 +3,7 @@ name: M1 portable core
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m1-core.yml'
       - 'CMakeLists.txt'

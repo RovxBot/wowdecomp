@@ -3,7 +3,7 @@ name: M0 source audit
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m0-audit.yml'
       - 'CMakeLists.txt'
