@@ -34,10 +34,41 @@ without image I/O or parent mutation, and the original unchecked border must be
 present before checked/disabled/re-enabled exact-pixel comparisons. Windows keeps
 its original tiling-only invalidation path. Prior failing pixels remain evidence.
 
-Compilation and qualification are pending GitHub Actions and downloaded-package
-runtime checks. M3 remains open: EditBox, remaining widget/backdrop/model consumers,
-complete signed ordered GlueXML execution, transport/authentication and observed
-world entry are still needed. Clean data stays read-only and sign-in interactive.
+[PR #79](https://github.com/RovxBot/wowdecomp/pull/79) is qualified at
+`2f0035fef2a64bbb6fe3c6fefbeb2ad9c099b198`; the [durable record](checkbox-validation.json)
+retains exact workflow, checkout, package and runtime identities. Final-source
+Linux GL release and strict ASan/UBSan/leak configurations each passed 38 CTest
+checks. Full signatures-enabled Windows x64 compilation passed at the same source.
+Initial production passed twelve other PR workflows, including actual ARM64
+execution; the four changed GL production/fixture/contract entries are excluded
+from the 3,890-entry unchanged-source proof. Their PR checkout was
+`8f92de48d3165f9682800385e97b4dd536f1a50f`, with an identical implementation tree to
+`a2fc8f325fe12cf8a7b9fcd6d42e725c01b73ec8`. Earlier runs are not relabeled final-head
+checks. Seven archives and all 67 binary hashes/types/notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 packages passed sixteen authored/
+original-data wrapper executions, three owner cycles each, with empty stderr and
+zero workers. Eight final regression capture pairs, five original blue Button
+pairs and five original CheckButton pairs match between release and sanitizer.
+All eight preceding regression captures also match. The original checkbox PPM
+SHA-256 is `5b61cb6819d9e045d0ca435261385030c5bc3b8811a657db736d87f731dc5f3d`;
+visual inspection shows the original border/tick and legible yellow original font
+with an authored label. Each original CheckButton became ready in two frames.
+InterfaceKey before/after subset checks and original signaturefile authentication
+(28,948 records) passed; selective registered-member MD5 policy stayed enabled.
+Image/Gxu and all four resource fixtures also passed three cycles per mode.
+
+The initial hosted compile failed on fixture focus-event names. Its correction
+passed hosted checks but original-data pixels then exposed the stale texture
+geometry; both failed attempts remain recorded. Release-only GDB pixel/layout
+inspection identified a missing initial border, not a changed expected image.
+The initial restricted executor could not access X11; final execution used the
+normal desktop session without tracing, with every strict detector unchanged.
+Local source/launcher checks: 57 passed and one unavailable-CMake skip; Windows
+selected tokens, original factory extraction and whitespace checks passed. No
+client or dependency compiled locally. M3 remains incomplete: EditBox, remaining
+widgets, complete signed GlueXML/login, transport/authentication and observed
+world entry remain open. Clean data stays read-only and sign-in interactive.
 
 The next login package must select `CSimpleEditBox` with aligned pooled strings/
 textures, native-owned `CSimpleFontedFrameFont` storage and string-before-font

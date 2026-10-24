@@ -1050,3 +1050,31 @@ remaining checks need another machine.
   transport/gameplay remain open. No new physical-input, Windows runtime, macOS
   graphics or server acceptance; preserve signatures, server discrepancies,
   read-only data and interactive sign-in. M3 is incomplete.
+
+
+- M3 original CheckButton [PR #79](https://github.com/RovxBot/wowdecomp/pull/79)
+  is qualified at `2f0035fef2a64bbb6fe3c6fefbeb2ad9c099b198`. Read [contracts](docs/m3/CHECKBOXES.md)
+  and [validation](docs/m3/checkbox-validation.json). Final-source Linux GL release/
+  strict sanitizer passed 38 checks each and full signatures-enabled Windows x64
+  compiled. Initial production passed twelve other PR workflows, including
+  actual ARM64 execution; 3,890 other tracked entries match the initial production
+  source. Seven archives/all 67 packaged binary hashes/types/notices verified.
+  Downloaded RX 7900 XTX release/strict sanitizer passed sixteen three-cycle GPU
+  wrapper runs, empty stderr/zero workers. Eight regression, five Button and five
+  CheckButton capture pairs match; eight preceding regression captures also match.
+  Pooled CheckButton Lua/XML/input/state consumers now render unchanged original
+  GlueCheckButtonTemplate with an authored label and before/after InterfaceKey
+  checks. Guard disabled/recursive clicks before toggling; preserve canonical
+  secondary tables, single ownership across inherited and checked texture slots,
+  owner/collection admission and widget-before-owner teardown. Native texture
+  layout invalidates retained non-tiled vertices after image-dependent resolution
+  or region-only movement. Original unchecked-border and exact transition pixels
+  plus authored translation/restore cover this; Windows bodies remain unchanged.
+  Retain initial fixture compile/pixel failures and diagnostic GDB/restricted-X11
+  attempts separately from final untraced sanitizer qualification. EditBox font/
+  region/focus ownership, candidate MessageFrame and tiled backdrops are next
+  login dependencies; OS secure-input/language selection remain explicitly
+  unavailable. Full signed ordered GlueXML/digest gate, login, transport/auth and
+  gameplay remain open. No new physical-input, Windows runtime, macOS graphics or
+  server acceptance. M3 remains open; preserve signatures/server discrepancies,
+  read-only data and interactive sign-in.
