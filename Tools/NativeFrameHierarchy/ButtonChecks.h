@@ -2,6 +2,11 @@
 #include "Engine/Source/Frame/CSimpleButton.h"
 static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& root, CSimpleFont& font, bool original, const std::string& snapshot) {
     const int frames = CSimpleFrame::s_frameCount;
+    const int oldErrorHandler=s_errorHandlerFunc;
+    // Keep fixture errors observable even when the product default handler is nil.
+    // Retain the old registry entry until this fixture restores it.
+    s_errorHandlerFunc=0;
+    RegionLua("seterrorhandler(function(err) return err end)");
     {
         std::vector<std::unique_ptr<CSimpleFrame>> pooled;
         for (unsigned i=0;i<101;++i) {
@@ -62,8 +67,13 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     )");
     auto* button=static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeButton",CSimpleButton::GetObjectType()));
     Check(button && button->m_clickAction==(CLICK_ON_LEFTUP|CLICK_ON_RIGHTUP),"Button XML lost high click-mask bits");
-    auto deliver=[&](OSINPUT id,int button=0,int x=100,int y=380) {
-        return Frame::Native::DispatchInputEvent(context,OSEVENT{id,{button,x,y,456}});
+    CLayoutFrame::ResizePending(); CRect hit;
+    Check(button->GetRect(&hit),"Button hit rectangle is unresolved");
+    int width,height,pixelWidth,pixelHeight; context.Window().Size(width,height,pixelWidth,pixelHeight);
+    const int insideX=int(std::lround(DDCToNDCWidth((hit.minX+hit.maxX)*.5f)*width));
+    const int insideY=int(std::lround((1-DDCToNDCHeight((hit.minY+hit.maxY)*.5f))*height));
+    auto deliver=[&](OSINPUT id,int button=0,int x=-1,int y=-1) {
+        return Frame::Native::DispatchInputEvent(context,OSEVENT{id,{button,x<0?insideX:x,y<0?insideY:y,456}});
     };
     auto red=[](const CImVector& p){return p.r>240 && p.g<8 && p.b<8;};
     auto green=[](const CImVector& p){return p.g>240 && p.r<8 && p.b<8;};
@@ -162,5 +172,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         std::cout<<"original-GlueButtonTemplate-render-repeat-signature-subset=passed\n";
     }
     Check(CSimpleFrame::s_frameCount==frames && !CSimpleButton::s_allocator.m_dataUsed,"Button fixture retained objects/pool slots");
+    luaL_unref(FrameScript_GetContext(),LUA_REGISTRYINDEX,s_errorHandlerFunc);
+    s_errorHandlerFunc=oldErrorHandler;
     std::cout<<"frame-button-pool-xml-click-state-texture-font-callback-cancel=passed\n";
 }
