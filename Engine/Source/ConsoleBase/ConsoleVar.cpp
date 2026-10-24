@@ -856,8 +856,14 @@ void CVar::Initialize(const char* fileName) {
     CVar::m_initialized = true;
 
     char path[260];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // The native host selects a validated external settings working directory.
+    // Do not derive writable paths from the read-only game installation.
+    SStrCopy(path, "WTF\\", sizeof(path));
+#else
     SFile::GetBasePath(path, sizeof(path));
     SStrPrintf(path, sizeof(path), "%s%s\\", path, "WTF");
+#endif
     TryCreateDirectory(path);
 
     ConsoleCommandRegister("set", SetCommandHandler, CATEGORY_DEFAULT, "Set the value of a CVar");

@@ -349,6 +349,20 @@
       "cacheVariables": {
         "WOWDECOMP_BUILD_NATIVE_LAYOUT": "ON"
       }
+    },
+    {
+      "name": "linux-client",
+      "inherits": "linux-gl",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_CLIENT": "ON"
+      }
+    },
+    {
+      "name": "linux-client-asan",
+      "inherits": "linux-client",
+      "cacheVariables": {
+        "WOWDECOMP_CORE_SANITIZERS": "ON"
+      }
     }
   ]
 }

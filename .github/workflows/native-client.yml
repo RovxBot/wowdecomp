@@ -1,0 +1,62 @@
+name: Integrated Linux client
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/**'
+      - 'WoW/**'
+      - 'ThirdParty/**'
+      - 'Tools/NativeClient/**'
+      - 'Tools/Porting/**'
+      - '.github/workflows/native-client.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
+      - 'Engine/**'
+      - 'WoW/**'
+      - 'ThirdParty/**'
+      - 'Tools/NativeClient/**'
+      - 'Tools/Porting/**'
+      - '.github/workflows/native-client.yml'
+
+permissions:
+  contents: read
+concurrency:
+  group: native-client-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  startup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [linux-client, linux-client-asan]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install native display development packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libegl-dev libgles-dev libgbm-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libgl-dev libgl1-mesa-dri mesa-utils xvfb xauth
+      - name: Build integrated startup and run focused contracts
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: python3 Tools/Porting/build_native_client.py --preset ${{ matrix.preset }}
+      - name: Preserve exact-source startup artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: native-${{ matrix.preset }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}/
+          if-no-files-found: error
+          retention-days: 14

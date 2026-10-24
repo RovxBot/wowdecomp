@@ -29,6 +29,7 @@ option(WOWDECOMP_BUILD_NATIVE_FRAMESCRIPT "Build original FrameScript ownership/
 option(WOWDECOMP_BUILD_NATIVE_XML "Build original XML trees and interface signatures (no Frame factories/login)" OFF)
 option(WOWDECOMP_BUILD_NATIVE_LAYOUT "Build original Frame anchors/layout (no Frame factories/login)" OFF)
 option(WOWDECOMP_BUILD_NATIVE_FRAME_FONTS "Build original Frame font factories (no regions/login)" OFF)
+option(WOWDECOMP_BUILD_NATIVE_CLIENT "Build the opt-in integrated Linux client startup" OFF)
 if(WOWDECOMP_BUILD_NATIVE_GL AND (NOT WOWDECOMP_OS STREQUAL "LINUX" OR NOT WOWDECOMP_BUILD_NATIVE_WINDOW))
     message(FATAL_ERROR "Native Gx OpenGL currently requires the Linux native window target.")
 endif()
@@ -112,6 +113,14 @@ if(WOWDECOMP_BUILD_NATIVE_FRAME_FONTS)
         message(FATAL_ERROR "Native Frame fonts require layout/XML/VM and native Gxu/Gx owners.")
     endif()
     add_subdirectory(Engine/Source/PortableFrameFonts)
+endif()
+
+if(WOWDECOMP_BUILD_NATIVE_CLIENT)
+    if(NOT WOWDECOMP_OS STREQUAL "LINUX" OR NOT WOWDECOMP_CPU STREQUAL "X86_64"
+       OR NOT WOWDECOMP_BUILD_NATIVE_FRAME_FONTS OR WOWDECOMP_DISABLE_SIGNATURE_CHECKS)
+        message(FATAL_ERROR "Native client requires Linux x86-64, native Frame services and enabled signatures.")
+    endif()
+    add_subdirectory(Tools/NativeClient)
 endif()
 
 if(NOT WOWDECOMP_BUILD_CLIENT)
