@@ -95,6 +95,21 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
         for(int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=candidates[y*640+x];char rgb[]={char(p.r),char(p.g),char(p.b)};out.write(rgb,3);}
         Check(bool(out),"MessageFrame snapshot failed");
     }
+    // Exhaust the native layout limit after some temporary rows exist. Failed
+    // growth returns all temporary pooled strings and preserves existing owners.
+    const float previousHeight=messages->GetHeight();
+    const auto previousRows=messages->m_rows, previousStrings=CSimpleFontString::s_allocator.m_dataUsed;
+    {
+        std::vector<std::unique_ptr<CLayoutFrame>> pressure;
+        for(unsigned i=0;i<900;++i)pressure.emplace_back(std::make_unique<CLayoutFrame>());
+        messages->SetHeight(font.m_attributes.m_fontHeight*128.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);
+        Reject([&]{messages->PrepareRows();});
+        Check(messages->m_rows==previousRows && messages->m_lines.Count()==previousRows &&
+              CSimpleFontString::s_allocator.m_dataUsed==previousStrings && messages->m_nativeRowsDirty,
+              "Failed MessageFrame growth leaked or replaced rows");
+        messages->SetHeight(previousHeight);
+    }
+    Equal(candidates,Draw(device,root));
     delete messages;FrameXML_FreeHashNodes();
     RegionLua("assert(not pcall(StaleMessages.GetInsertMode,StaleMessages)); StaleMessages=nil");
     Check(CSimpleFrame::s_frameCount==frames && CSimpleFontString::s_allocator.m_dataUsed==strings &&

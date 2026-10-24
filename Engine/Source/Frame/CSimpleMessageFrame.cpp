@@ -3,6 +3,8 @@
 #include "Engine/Source/Frame/Portable/Storage.h"
 #include "Engine/Source/Os/Portable/Window.h"
 #include <cstring>
+#include <memory>
+#include <vector>
 #define MESSAGE_CHECK() Frame::Native::RequireScriptTextMutation()
 namespace {
 void MessageText(const char* text) {
@@ -361,21 +363,43 @@ void CSimpleMessageFrame::UpdateRect() {
     float spacing = CSimpleTop::RoundToPixelHeight(this->m_font->m_attributes.m_spacing * this->m_layoutScale);
     float lineHeight = CSimpleTop::RoundToPixelHeight(this->m_layoutScale * fontHeight) + spacing;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(lineHeight)) throw std::invalid_argument("Nonfinite MessageFrame line height");
+    uint32_t rows = 0;
+    if (lineHeight > 0.0f) {
+        const float count = (m_messageFrameArea.maxY - m_messageFrameArea.minY) / lineHeight;
+        if (!std::isfinite(count) || count < 0 || count > 256)
+            throw std::invalid_argument("Native MessageFrame row count exceeds 256");
+        rows = static_cast<uint32_t>(count);
+        if (fabs(lineHeight * static_cast<float>(rows + 1) - (m_messageFrameArea.maxY - m_messageFrameArea.minY)) < 0.00000023841858f) {
+            if (rows == 256) throw std::length_error("Native MessageFrame row count exceeds 256");
+            ++rows;
+        }
+    }
+    // Construct every new owner before publishing the count. Storm's generic
+    // SetCount does not unwind partially constructed elements on C++ exceptions.
+    std::vector<std::unique_ptr<CSimpleMessageFrameLine>> added;
+    for (uint32_t i = m_lines.Count(); i < rows; ++i)
+        added.emplace_back(std::make_unique<CSimpleMessageFrameLine>());
+    if (rows > m_lines.Count()) {
+        m_lines.Reserve(rows - m_lines.Count(), 0);
+        for (auto& line : added) {
+            ::new (&m_lines.m_data[m_lines.m_count]) CSimpleMessageFrameLine(*line);
+            ++m_lines.m_count;
+        }
+    }
+    for (uint32_t i = rows; i < m_lines.Count(); ++i) HideLineNode(m_lines[i].m_node);
+    m_lines.SetCount(rows);
+    m_rows = rows;
+
+#else
     if (lineHeight <= 0.0f) {
         this->m_rows = 0;
     } else {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-        const float count = (this->m_messageFrameArea.maxY - this->m_messageFrameArea.minY) / lineHeight;
-        if (!std::isfinite(count) || count < 0 || count > 256)
-            throw std::invalid_argument("Native MessageFrame row count exceeds 256");
-#endif
         uint32_t rows = static_cast<uint32_t>((this->m_messageFrameArea.maxY - this->m_messageFrameArea.minY) / lineHeight);
         this->m_rows = rows;
 
         if (fabs(lineHeight * static_cast<float>(rows + 1) - (this->m_messageFrameArea.maxY - this->m_messageFrameArea.minY)) < 0.00000023841858f) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-            if (rows == 256) throw std::length_error("Native MessageFrame row count exceeds 256");
-#endif
             this->m_rows = rows + 1;
         }
     }
@@ -386,6 +410,7 @@ void CSimpleMessageFrame::UpdateRect() {
 
     this->m_lines.SetCount(this->m_rows);
 
+#endif
     float invScale = 1.0f / this->m_layoutScale;
     float width = (this->m_messageFrameArea.maxX - this->m_messageFrameArea.minX) * invScale;
     float offsetX = this->m_messageFrameInset.minX;
