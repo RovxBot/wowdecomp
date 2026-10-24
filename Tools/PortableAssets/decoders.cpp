@@ -1,4 +1,5 @@
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
+#include <algorithm>
 #include <cstring>
 #include <functional>
 #include <iostream>
@@ -55,6 +56,34 @@ int main() {
         Check(DecodeBlp(Blp(2,8,1,dxt3))[0].rgba==Bytes({255,0,0,85}), "DXT3 alpha failed");
         auto dxt5 = Join(Bytes{200,100,2,0,0,0,0,0},dxt1);
         Check(DecodeBlp(Blp(2,8,7,dxt5))[0].rgba==Bytes({255,0,0,185}), "DXT5 interpolation failed");
+        // Original rectangular Glue DXT tails can store fewer blocks than a
+        // complete logical mip. Base-only UI reads validate but do not decode
+        // those tails; explicit full-chain reads must still fail visibly.
+        for (unsigned format : {0u,1u,7u}) {
+            const auto& block = format == 0 ? dxt1 : format == 1 ? dxt3 : dxt5;
+            auto rectangular = [&](bool legacy) {
+                Bytes b(148); U32(b,0,0x32504c42); U32(b,4,1);
+                b[8]=2; b[9]=format ? 8 : 0; b[10]=format; b[11]=1;
+                U32(b,12,32); U32(b,16,8);
+                for (unsigned level=0,w=32,h=8;level<6;++level,w=std::max(1u,w/2),h=std::max(1u,h/2)) {
+                    size_t blocks=legacy ? std::max(1u,w*h/16) : ((w+3)/4)*((h+3)/4);
+                    U32(b,20+level*4,uint32_t(b.size())); U32(b,84+level*4,uint32_t(blocks*block.size()));
+                    for(size_t i=0;i<blocks;++i)b.insert(b.end(),block.begin(),block.end());
+                }
+                return b;
+            };
+            auto full=rectangular(false), thin=rectangular(true);
+            Check(DecodeBlp(full).size()==6,"Complete rectangular DXT chain rejected");
+            Fail([&]{DecodeBlp(thin);});
+            const auto base=DecodeBlp(thin,true);
+            Check(base.size()==1 && base[0].width==32 && base[0].height==8 && base[0].rgba==DecodeBlp(full)[0].rgba,
+                  "Base-only DXT read changed complete base pixels or fabricated tail pixels");
+            auto badTail=thin; U32(badTail,84+2*4,uint32_t(block.size()-1)); Fail([&]{DecodeBlp(badTail,true);});
+            badTail=thin; U32(badTail,20+5*4,uint32_t(thin.size())); Fail([&]{DecodeBlp(badTail,true);});
+            badTail=thin; badTail.pop_back(); Fail([&]{DecodeBlp(badTail,true);});
+            badTail=thin; badTail[11]=0; Fail([&]{DecodeBlp(badTail,true);});
+            badTail=thin; U32(badTail,84+1*4,uint32_t(block.size())); Fail([&]{DecodeBlp(badTail,true);});
+        }
         auto texture = Blp(1,8,8,Bytes{1,128}); texture.pop_back(); Fail([&] { DecodeBlp(texture); });
         Bytes model(0x130 + 48);
         U32(model,0,0x3032444d); U32(model,4,264); U32(model,0x3c,1); U32(model,0x40,0x130);

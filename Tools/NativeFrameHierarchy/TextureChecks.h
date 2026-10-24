@@ -12,6 +12,19 @@ static Bytes TextureFixtureBlp() {
     }
     return bytes;
 }
+// Authored 32x8 DXT5 with original area-sized thin mip tails. Frame's explicit
+// linear sampler consumes only the complete base level; no tail pixels exist.
+static Bytes ThinTextureFixtureBlp() {
+    Bytes bytes(148);
+    auto word=[&](size_t offset,uint32_t value){for(unsigned i=0;i<4;++i)bytes[offset+i]=uint8_t(value>>(i*8));};
+    word(0,0x32504c42);word(4,1);bytes[8]=2;bytes[9]=8;bytes[10]=7;bytes[11]=1;word(12,32);word(16,8);
+    const uint8_t block[16]={255,0,0,0,0,0,0,0,0,0xf8,0xe0,7,0,0,0,0};
+    for(unsigned level=0,w=32,h=8;level<6;++level,w=std::max(1u,w/2),h=std::max(1u,h/2)) {
+        unsigned count=std::max(1u,w*h/16);word(20+level*4,uint32_t(bytes.size()));word(84+level*4,count*16);
+        for(unsigned b=0;b<count;++b)bytes.insert(bytes.end(),block,block+16);
+    }
+    return bytes;
+}
 static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original) {
     const int before = CSimpleTexture::s_count;
     {
@@ -72,6 +85,12 @@ static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original)
           "Texture desaturation shader did not execute");
     RegionLua("NativeTextureParentImage:SetDesaturated(false)");
     Equal(solid,Draw(device,root));
+    if (!original) {
+        Check(texture->SetTexture("thin.blp",0,0,GxTex_Linear,ImageMode_Normal),"Thin-tail UI texture request failed");
+        auto base=Draw(device,root);
+        Check(std::count_if(base.begin(),base.end(),[](const CImVector& p){return p.r>240 && p.g<8 && p.b<8;})>100,
+              "Base-only image Services lost complete DXT pixels while validating unrequested thin tails");
+    }
     const char* filename=original ? "Interface\\Glues\\LoadingBar\\Loading-BarFill.blp" : "fixture.blp";
     TextureEnableAtlas(1);
     Check(texture->SetTexture(filename,0,0,GxTex_Nearest,ImageMode_Normal),"File texture replacement failed");

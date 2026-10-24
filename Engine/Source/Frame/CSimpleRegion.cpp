@@ -1,6 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/FrameXML/Portable/Factories.h"
-#include "Engine/Source/Frame/Portable/Regions.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_REGION_CHECK() ((void)0)
@@ -167,7 +167,7 @@ void CSimpleRegion::SetVertexGradient(ORIENTATION orientation, const CImVector& 
 void CSimpleRegion::HideThis() {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
 #endif
 
     if (!this->m_visible || !this->m_parent) {
@@ -188,7 +188,7 @@ void CSimpleRegion::HideThis() {
 void CSimpleRegion::ShowThis() {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
 #endif
 
     if (!this->m_shown || !this->m_parent || !this->m_parent->m_isVisible || this->m_visible) {

@@ -51,7 +51,7 @@ void Dxt(View data, Image& image, unsigned format, unsigned alphaBits) {
     }
 }
 }
-std::vector<Image> DecodeBlp(const Bytes& file) {
+std::vector<Image> DecodeBlp(const Bytes& file, bool baseLevelOnly) {
     View data(file);
     if (data.U32(0) != 0x32504c42 || data.U32(4) != 1 || file.size() < 148)
         throw Error("Expected original BLP2 version 1");
@@ -61,6 +61,7 @@ std::vector<Image> DecodeBlp(const Bytes& file) {
         (alphaBits != 0 && alphaBits != 1 && alphaBits != 4 && alphaBits != 8)) throw Error("Invalid BLP dimensions/alpha");
     if (encoding < 1 || encoding > 3 || (encoding == 2 && format != 0 && format != 1 && format != 7))
         throw Error("Unsupported BLP encoding/format");
+    const bool powerOfTwo = !(width & (width - 1)) && !(height & (height - 1));
     std::vector<Image> images;
     bool ended = false;
     size_t totalPixels = 0;
@@ -73,6 +74,19 @@ std::vector<Image> DecodeBlp(const Bytes& file) {
         totalPixels += pixels;
         if (totalPixels > 22369632 || offset < (encoding == 1 ? 1172u : 148u)) throw Error("Invalid BLP mip allocation/offset");
         auto source = data.Slice(offset, size);
+        if (baseLevelOnly && mip && encoding == 2) {
+            const size_t block = format == 0 ? 8 : 16;
+            const size_t complete = size_t((width + 3) / 4) * ((height + 3) / 4) * block;
+            // Original Glue DXT assets have area-sized thin tails (e.g. 8x2
+            // stores one block). No complete RGBA image exists for those levels.
+            // Admit only this exact bounded storage form for unrequested tails;
+            // explicit mip reads continue to reject it in Dxt below.
+            const size_t legacy = std::max(block, pixels * block / 16);
+            if (source.size != complete &&
+                !(powerOfTwo && (data.data[11] & 0xF) && std::min(width, height) < 4 &&
+                  source.size == legacy)) throw Error("Invalid BLP DXT mip extent");
+            continue;
+        }
         Image image{width, height, Bytes(pixels * 4)};
         if (encoding == 1) {
             auto palette = data.Slice(148, 1024);
@@ -98,7 +112,7 @@ std::vector<Image> DecodeBlp(const Bytes& file) {
                 image.rgba[i * 4 + 2] = source.data[i * 4]; image.rgba[i * 4 + 3] = source.data[i * 4 + 3];
             }
         }
-        images.push_back(std::move(image));
+        if (!baseLevelOnly || !mip) images.push_back(std::move(image));
     }
     if (images.empty()) throw Error("BLP has no mip data");
     return images;

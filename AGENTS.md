@@ -1024,3 +1024,29 @@ remaining checks need another machine.
   discrepancies, read-only data and interactive sign-in stay intact. No new
   Windows gameplay, physical input, macOS graphics or server acceptance; M0 is
   partial and M3 incomplete.
+
+
+- M3 original Button [PR #78](https://github.com/RovxBot/wowdecomp/pull/78) is
+  qualified at `afb952dc28ce9772b1b5edfa1f19bb4ed2b59e4e`. Read [Button contracts](docs/m3/BUTTONS.md)
+  and [validation](docs/m3/button-validation.json). Final-source GL release/strict
+  sanitizer passed 38 checks each. Earlier production `defccaa8914e737a93df7585b3d556a124c7ec07`
+  passed four native asset configurations (eight checks each, actual ARM64 macOS)
+  and full signatures-enabled Windows x64 compilation. Only a GL fixture/document
+  changed afterward; 3,889 other entries match. Seven archives/all 67 packaged binary
+  hashes/types/notices verified. RX 7900 XTX release/strict sanitizer packages passed
+  sixteen three-cycle wrapper executions, empty stderr/zero workers; eight final
+  capture pairs, five original-button pairs and eight historical comparisons match.
+  Pooled Button Lua/XML/input/state/font/texture consumers now render the original
+  Blue login-button template with eighteen base fonts, 57 style definitions and
+  original inline colors. Label/placement are authored; full AccountLogin remains
+  open. Preserve one texture per state/highlight slot, canonical secondary Lua
+  tables, owner/callback guards and callback-state unwind. Base-only BLP reads
+  validate all declared spans and recognized short thin DXT tails without decoding
+  or inventing their pixels; explicit mip chains retain strict rejection. Close
+  Buttons before Scripts/images/renderer/Fonts and lower owners. Keep failed
+  graph/compiler/fixture/original-data attempts, and separate GDB/source inspection
+  from final untraced sanitizer qualification. CheckButton/EditBox, broader callback
+  mutation, complete signed ordered GlueXML/full second digest gate, login and
+  transport/gameplay remain open. No new physical-input, Windows runtime, macOS
+  graphics or server acceptance; preserve signatures, server discrepancies,
+  read-only data and interactive sign-in. M3 is incomplete.

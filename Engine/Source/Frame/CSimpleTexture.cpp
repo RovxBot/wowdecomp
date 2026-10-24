@@ -30,7 +30,10 @@ void QueueTextureRegion(CRenderBatch* batch, CSimpleTexture* texture) {
     Frame::Native::RequireScript(texture);
     CStatus status;
     CGxTex* gxTex = TextureGetGxTex(texture->m_texture, (texture->m_textureFlags & 1) ? 0 : 2, &status);
-    if (status.m_highestSeverity >= STATUS_ERROR) throw std::runtime_error("Native Frame image read/decode/upload failed");
+    if (status.m_highestSeverity >= STATUS_ERROR) {
+        char error[4096];
+        throw std::runtime_error(status.GetErrorStr(error, sizeof(error), STATUS_ERROR, "; "));
+    }
 
     if (!gxTex) {
         texture->NotifyDelayedLoad();

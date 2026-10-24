@@ -206,13 +206,6 @@ void FrameXML_RegisterLoadProgressCallback(void (*callback)(float progress, void
     s_progressTotal = total;
 }
 
-// VERIFY: 36e2fb88 auto
-// OFFSET: 0x00812870
-CSimpleFrame* Create_SimpleButton(CSimpleFrame* parent) {
-    void* data = CSimpleButton::s_allocator.GetData(0, typeid(CSimpleButton).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleButton(parent) : nullptr;
-}
-
 // VERIFY: f5a4d98a auto
 // OFFSET: 0x00812B90
 void FrameXML_FreeHashNodes() {

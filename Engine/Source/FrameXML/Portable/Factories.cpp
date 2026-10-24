@@ -1,6 +1,7 @@
 // Native adaptation of original 12340 FrameXML registry/template creation and
 // SimpleFrameScript_Scripts.cpp::Script_CreateFrame. No new address/VERIFY claim.
 #include "Factories.h"
+#include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/FrameXML/LoadXML.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
@@ -45,6 +46,12 @@ struct CreationScope {
     }
 };
 bool Is(const char* a, const char* b) { return !SStrCmpI(a, b, STORM_MAX_STR); }
+const char* Kind(const char* tag) {
+    if (Is(tag, "ButtonText")) return "FontString";
+    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture"})
+        if (Is(tag, name)) return "Texture";
+    return tag;
+}
 void Name(const char* value) { Frame::Native::RequireFontName(value); }
 std::vector<std::string> Names(const char* value) {
     std::vector<std::string> result;
@@ -67,7 +74,7 @@ std::vector<std::string> Names(const char* value) {
 std::vector<std::string> InheritedNames(XMLNode* node) {
     const char* inherits = node->GetAttributeByName("inherits");
     // Original Frame lists tokenize; FontString/Texture inheritance is one exact key.
-    if (Is(node->m_name.m_str, "FontString") || Is(node->m_name.m_str, "Texture")) {
+    if (Is(Kind(node->m_name.m_str), "FontString") || Is(Kind(node->m_name.m_str), "Texture")) {
         if (!inherits || !*inherits) return {};
         Name(inherits);
         return {inherits};
@@ -105,22 +112,26 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         std::find(path.begin(), path.end(), node) != path.end())
         throw std::invalid_argument("Cyclic or excessive native XML creation graph");
     path.push_back(node);
-    const char* tag = node->m_name.m_str;
+    const char* tag = Kind(node->m_name.m_str);
     if (path.size() >= 2 && Is(path[path.size()-2]->m_name.m_str, "Scripts")) {
         const char* scripts[] = {"OnEvent", "OnLoad", "OnSizeChanged", "OnUpdate", "OnShow", "OnHide",
             "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnMouseWheel", "OnDragStart",
             "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
-            "OnEnable", "OnDisable"};
-        if (std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
+            "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
+        const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
+                                   Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
+        if ((buttonHandler && (path.size() < 3 || !Is(path[path.size()-3]->m_name.m_str, "Button"))) ||
+            std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
             node->m_child || node->m_bodyLen > 1024 * 1024 || node->GetAttributeByName("inherit"))
             throw std::invalid_argument("Unavailable or excessive native XML script handler");
         path.pop_back();
         return;
     }
-    if (Is(tag, "Scripts") && (path.size() < 2 || !Is(path[path.size()-2]->m_name.m_str, "Frame")))
+    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !Is(path[path.size()-2]->m_name.m_str, "Button"))))
         throw std::invalid_argument("Native XML Scripts require a Frame parent");
     // Fail before allocation for consumers with unselected ownership/services.
-    const char* supported[] = {"Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
+    const char* supported[] = {"Button", "NormalFont", "DisabledFont", "HighlightFont",
+        "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
         "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
     if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
@@ -152,7 +163,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
     for (auto& name : InheritedNames(node)) {
         if (Is(tag, "FontString") && CSimpleFont::GetFont(name.c_str(), 0)) continue;
         auto* item = templates.Ptr(name.c_str());
-        if (!item || item->m_locked || !Is(item->m_node->m_name.m_str, tag))
+        if (!item || item->m_locked || !Is(Kind(item->m_node->m_name.m_str), tag))
             throw std::invalid_argument("Missing, locked or incompatible XML template");
         Validate(item->m_node, path, visits);
     }
@@ -314,14 +325,18 @@ CSimpleTexture* CreateTexture(CSimpleFrame* parent, const char* name, unsigned l
 }}
 int32_t FrameXML_RegisterFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*), bool unique) {
     FrameXML::Native::RequireFactories(); Name(name);
-    if (!Is(name, "Frame") || factory != Create_SimpleFrame || unique)
+    if (!((Is(name, "Frame") && factory == Create_SimpleFrame) ||
+          (Is(name, "Button") && factory == Create_SimpleButton)) || unique)
         throw std::invalid_argument("Native widget factory is not qualified");
     if (factories.Ptr(name)) return 0;
     auto* item = factories.New(name, 0, 0);
     item->m_factory = factory; item->m_unique = unique;
     return 1;
 }
-int32_t FrameXML_RegisterDefault() { return FrameXML_RegisterFactory("Frame", Create_SimpleFrame, false); }
+int32_t FrameXML_RegisterDefault() {
+    int32_t result = FrameXML_RegisterFactory("Frame", Create_SimpleFrame, false);
+    return FrameXML_RegisterFactory("Button", Create_SimpleButton, false) && result;
+}
 void FrameXML_ClearFactories() { FrameXML::Native::RequireFactories(); factories.InternalClear(0); }
 XMLNode* FrameXML_AcquireHashNode(const char* name, const char*& taint, bool& locked) {
     FrameXML::Native::RequireFactories(); Name(name);

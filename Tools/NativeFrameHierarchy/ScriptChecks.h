@@ -5,7 +5,7 @@ static void RegionLuaAt(const char* source, int line) {
     int result = FrameScript_ExecuteBuffer(source, std::strlen(source), name.c_str(), &status, nullptr);
     if (!result || !status.IsEmpty()) {
         char error[2048];
-        throw std::runtime_error(status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; "));
+        throw std::runtime_error(name+": "+status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; "));
     }
 }
 #define RegionLua(source) RegionLuaAt(source, __LINE__)

@@ -1,3 +1,38 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/CSimpleButton.h"
+#include "Engine/Source/Frame/CSimpleTexture.h"
+#include <cstring>
+#include <memory>
+#define BUTTON_CHECK() Frame::Native::RequireScriptTextMutation()
+namespace {
+struct ClickFlag final {
+    uint32_t& flag;
+    uint32_t saved;
+    explicit ClickFlag(uint32_t& value) : flag(value), saved(value) {}
+    ~ClickFlag() { flag = saved; }
+};
+void CheckState(const CSimpleButtonState& state) {
+    uint32_t raw;
+    static_assert(sizeof(state) == sizeof(raw));
+    std::memcpy(&raw, &state, sizeof(raw));
+    if (raw >= NUM_BUTTONSTATES) throw std::invalid_argument("Invalid native Button state");
+}
+void CheckTexture(CSimpleButton* button, CSimpleTexture* texture) {
+    Frame::Native::RequireTreeMutation();
+    if (!texture) return;
+    Frame::Native::RequireScript(texture);
+    // One region cannot occupy two independently owned state/highlight slots.
+    for (auto* slot : button->m_stateTextures)
+        if (slot == texture) throw std::invalid_argument("Native Button texture already occupies a state slot");
+    if (texture == button->m_highlightTexture)
+        throw std::invalid_argument("Native Button texture already occupies the highlight slot");
+}
+}
+#else
+#define BUTTON_CHECK() ((void)0)
+#endif
 #include <cstddef>
 #include <cstdint>
 #include <new>
@@ -35,9 +70,13 @@ CDataAllocator CSimpleButton::s_allocator(sizeof(CSimpleButton), 100);
 
 // INLINED
 void CSimpleButton::operator delete(void* ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FreeRegionStorage(CSimpleButton::s_allocator, ptr);
+#else
     if (ptr) {
         CSimpleButton::s_allocator.PutData(ptr, nullptr, 0);
     }
+#endif
 }
 
 // INLINED
@@ -52,18 +91,21 @@ int32_t CSimpleButton::GetObjectType() {
 // VERIFY: cf256644 auto
 // OFFSET: 0x009621E0
 bool CSimpleButton::IsA(int32_t type) {
+    BUTTON_CHECK();
     return type == CSimpleButton::s_objectType || type == CSimpleFrame::s_objectType || type == CScriptRegion::s_objectType || type == CScriptObject::s_objectType;
 }
 
 // VERIFY: 296f9512 auto
 // OFFSET: 0x00962220
 bool CSimpleButton::IsA(const char* typeName) {
+    BUTTON_CHECK();
     return !SStrCmpI(typeName, CSimpleButton::s_objectTypeName, STORM_MAX_STR) || CSimpleFrame::IsA(typeName);
 }
 
 // VERIFY: 80dad073 auto
 // OFFSET: 0x00962120
 void CSimpleButton::LockHighlight(int32_t lock) {
+    BUTTON_CHECK();
     CSimpleFrame::LockHighlight(lock);
     this->UpdateTextState(this->m_state);
 }
@@ -71,12 +113,14 @@ void CSimpleButton::LockHighlight(int32_t lock) {
 // VERIFY: ab04eabe manual
 // OFFSET: 0x00962150
 void CSimpleButton::SetMotionScriptsWhileDisabled(int32_t enabled) {
+    BUTTON_CHECK();
     this->m_motionScriptsWhileDisabled = enabled;
 }
 
 // VERIFY: 3131b961 auto
 // OFFSET: 0x00962170
 int32_t CSimpleButton::GetMotionScriptsWhileDisabled() {
+    BUTTON_CHECK();
     return this->m_motionScriptsWhileDisabled;
 }
 
@@ -349,6 +393,7 @@ uint64_t MouseButtonStringToBitmask(const char* string) {
 // VERIFY: 7ac18ca5 auto
 // OFFSET: 0x0096F090
 void CSimpleButton::RunOnClickScript(const char* btn, int32_t down) {
+    BUTTON_CHECK();
     if (this->m_onPreClick.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushstring(L, btn);
@@ -374,6 +419,7 @@ void CSimpleButton::RunOnClickScript(const char* btn, int32_t down) {
 // VERIFY: c1dafa11 auto
 // OFFSET: 0x0096F150
 void CSimpleButton::RunOnDoubleClickScript(const char* btn) {
+    BUTTON_CHECK();
     if (this->m_onDoubleClick.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushstring(L, btn);
@@ -389,18 +435,21 @@ CSimpleButton::~CSimpleButton() {
 // VERIFY: 6244a24f auto
 // OFFSET: 0x0096F1E0
 const char* CSimpleButton::GetObjectTypeName() {
+    BUTTON_CHECK();
     return CSimpleButton::s_objectTypeName;
 }
 
 // VERIFY: ea565c62 auto
 // OFFSET: 0x0096F1F0
 int32_t CSimpleButton::GetScriptMetaTable() {
+    BUTTON_CHECK();
     return CSimpleButton::s_metatable;
 }
 
 // VERIFY: d100e369 auto
 // OFFSET: 0x0096F200
 FrameScript_Object::ScriptIx* CSimpleButton::GetScriptByName(const char* name, FrameScript_Object::ScriptData& data) {
+    BUTTON_CHECK();
     FrameScript_Object::ScriptIx* script = CSimpleFrame::GetScriptByName(name, data);
 
     if (script) {
@@ -433,6 +482,7 @@ FrameScript_Object::ScriptIx* CSimpleButton::GetScriptByName(const char* name, F
 // VERIFY: 781d19ca auto
 // OFFSET: 0x0096F2D0
 void CSimpleButton::GetScriptTime(lua_State* L, double* time, uint32_t* count, int32_t recurse) {
+    BUTTON_CHECK();
     FrameScript_Object::GetScriptTime(L, this->m_onPreClick, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onClick, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onPostClick, time, count);
@@ -443,6 +493,7 @@ void CSimpleButton::GetScriptTime(lua_State* L, double* time, uint32_t* count, i
 // VERIFY: d62e2602 auto
 // OFFSET: 0x0096F350
 void CSimpleButton::UnregisterRegion(CSimpleRegion* region) {
+    BUTTON_CHECK();
     if (region == this->m_fontString) {
         this->m_fontString = nullptr;
     }
@@ -473,10 +524,14 @@ void CSimpleButton::UnregisterRegion(CSimpleRegion* region) {
 // VERIFY: 3ee789b5 auto
 // OFFSET: 0x0096F3C0
 void CSimpleButton::SetHighlight(CSimpleTexture* texture, EGxBlend blend) {
+    BUTTON_CHECK();
     if (texture == this->m_highlightTexture) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckTexture(this, texture);
+#endif
     if (this->m_highlightTexture) {
         delete this->m_highlightTexture;
     }
@@ -492,6 +547,7 @@ void CSimpleButton::SetHighlight(CSimpleTexture* texture, EGxBlend blend) {
 // VERIFY: 8c6874f5 auto
 // OFFSET: 0x0096F410
 void CSimpleButton::OnLayerHide() {
+    BUTTON_CHECK();
     if (this->m_state != BUTTONSTATE_DISABLED && !this->m_stateLocked) {
         this->SetButtonState(BUTTONSTATE_NORMAL, 0);
     }
@@ -502,6 +558,7 @@ void CSimpleButton::OnLayerHide() {
 // VERIFY: 7324b618 auto
 // OFFSET: 0x0096F440
 void CSimpleButton::OnDragStart(const CMouseEvent& evt) {
+    BUTTON_CHECK();
     if (this->m_state != BUTTONSTATE_DISABLED && !this->m_stateLocked) {
         this->SetButtonState(BUTTONSTATE_NORMAL, 0);
     }
@@ -514,12 +571,17 @@ void CSimpleButton::OnDragStart(const CMouseEvent& evt) {
 // VERIFY: 78f1af9e auto
 // OFFSET: 0x0096F480
 void CSimpleButton::SetClickAction(uint64_t action) {
+    BUTTON_CHECK();
     this->m_clickAction = action;
 }
 
 // VERIFY: e5ddb2a8 auto
 // OFFSET: 0x0096F4A0
 void CSimpleButton::UpdateTextState(CSimpleButtonState state) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckState(state); Frame::Native::RequireScriptTextMutation();
+#endif
     if (!this->m_fontString) {
         return;
     }
@@ -545,6 +607,11 @@ void CSimpleButton::UpdateTextState(CSimpleButtonState state) {
 // VERIFY: 791e4917 auto
 // OFFSET: 0x0096F7B0
 void CSimpleButton::SetFontString(CSimpleFontString* fontString) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (fontString) Frame::Native::RequireScript(fontString);
+#endif
     if (fontString == this->m_fontString) {
         return;
     }
@@ -576,13 +643,23 @@ void CSimpleButton::SetFontString(CSimpleFontString* fontString) {
 // VERIFY: 9b5e101b manual
 // OFFSET: 0x0096F860
 void CSimpleButton::SetText(const char* text) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+    // Existing text may change in callbacks; allocation changes the region tree.
+    if (!this->m_fontString && text && *text) Frame::Native::RequireTreeMutation();
+#endif
     if ((!text || !*text) && !this->m_fontString) {
         return;
     }
 
     if (!this->m_fontString) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        this->SetFontString(Frame::Native::CreateFontString(this, 2, true));
+#else
         void* data = CSimpleFontString::s_allocator.GetData(0, typeid(CSimpleFontString).raw_name(), SLOG_OBJECT);
         this->SetFontString(data ? new (data) CSimpleFontString(this, 2, true) : nullptr);
+#endif
     }
 
     this->m_fontString->SetText(text, 1);
@@ -591,13 +668,18 @@ void CSimpleButton::SetText(const char* text) {
 // VERIFY: 0a129d6e manual
 // OFFSET: 0x0096F8D0
 void CSimpleButton::SetNormalFontColor(const CImVector& color) {
+    BUTTON_CHECK();
     CSimpleFont* font = this->m_normalFont;
 
     if (!font) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (std::memcmp(&color, &font->m_attributes.m_color, sizeof(color)) || !(font->m_attributes.m_flags & 0x400)) {
+#else
     if (*reinterpret_cast<const uint32_t*>(&color) != *reinterpret_cast<uint32_t*>(&font->m_attributes.m_color) || !(font->m_attributes.m_flags & 0x400)) {
+#endif
         font->m_attributes.m_color = color;
         font->m_attributes.m_flags |= 0x404;
     }
@@ -609,10 +691,18 @@ void CSimpleButton::SetNormalFontColor(const CImVector& color) {
 // VERIFY: 5e94ba11 auto
 // OFFSET: 0x0096F920
 void CSimpleButton::SetStateTexture(CSimpleButtonState state, CSimpleTexture* texture) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckState(state);
+    Frame::Native::RequireTreeMutation();
+#endif
     if (texture == this->m_stateTextures[state]) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckTexture(this, texture);
+#endif
     if (this->m_activeTexture == this->m_stateTextures[state]) {
         this->m_activeTexture = nullptr;
     }
@@ -637,6 +727,7 @@ void CSimpleButton::SetStateTexture(CSimpleButtonState state, CSimpleTexture* te
 // VERIFY: 8dd71c35 manual
 // OFFSET: 0x0096F9B0
 int32_t CSimpleButton::SetHighlight(const char* fileName, EGxBlend blend) {
+    BUTTON_CHECK();
     CSimpleTexture* texture = this->m_highlightTexture;
 
     if (texture) {
@@ -645,19 +736,29 @@ int32_t CSimpleButton::SetHighlight(const char* fileName, EGxBlend blend) {
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<CSimpleTexture> owner(Frame::Native::CreateTexture(this, 4, true));
+    texture = owner.get();
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     texture = data ? new (data) CSimpleTexture(this, 4, 1) : nullptr;
+#endif
 
     if (!texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         if (texture) {
             delete texture;
         }
+#endif
 
         return 0;
     }
 
     texture->SetAllPoints(this, 1);
     texture->SetBlendMode(blend);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    owner.release();
+#endif
     this->m_highlightTexture = texture;
     return 1;
 }
@@ -665,6 +766,7 @@ int32_t CSimpleButton::SetHighlight(const char* fileName, EGxBlend blend) {
 // VERIFY: 093d46bd auto
 // OFFSET: 0x0096FA80
 int32_t CSimpleButton::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
+    BUTTON_CHECK();
     int32_t result = CSimpleFrame::OnLayerMouseDown(evt, btn);
 
     if (result) {
@@ -692,6 +794,9 @@ int32_t CSimpleButton::OnLayerMouseDown(const CMouseEvent& evt, const char* btn)
             btn = GetMouseButtonName(evt.m_data.m_button);
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        ClickFlag dispatchFlag(this->m_simpleTop->unused_1250);
+#endif
         this->m_simpleTop->unused_1250 = 1;
         this->OnClick(btn, 1);
         this->m_simpleTop->unused_1250 = 0;
@@ -707,6 +812,7 @@ int32_t CSimpleButton::OnLayerMouseDown(const CMouseEvent& evt, const char* btn)
 // VERIFY: 3e18137e auto
 // OFFSET: 0x0096FB60
 int32_t CSimpleButton::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
+    BUTTON_CHECK();
     int32_t result = CSimpleFrame::OnLayerMouseUp(evt, btn);
 
     if (result) {
@@ -727,7 +833,11 @@ int32_t CSimpleButton::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
         pt.y = evt.m_data.m_mousePosition.y;
 
         if (this->TestHitRect(pt)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            button = uint64_t(uint32_t(evt.m_data.m_button)) << 31;
+#else
             button = static_cast<uint64_t>(static_cast<int64_t>(static_cast<int32_t>(evt.m_data.m_button)) << 31);
+#endif
         }
     }
 
@@ -736,6 +846,9 @@ int32_t CSimpleButton::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
             btn = GetMouseButtonName(evt.m_data.m_button);
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        ClickFlag dispatchFlag(this->m_simpleTop->unused_1250);
+#endif
         this->m_simpleTop->unused_1250 = 1;
         uint32_t time = OsGetAsyncTimeMs();
 
@@ -760,6 +873,7 @@ int32_t CSimpleButton::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
 // VERIFY: a6303e9e auto
 // OFFSET: 0x0096FCA0
 void CSimpleButton::OnLayerCursorEnter(int32_t motion) {
+    BUTTON_CHECK();
     if (this->m_state != BUTTONSTATE_DISABLED) {
         CSimpleFrame::OnLayerCursorEnter(motion);
         this->UpdateTextState(this->m_state);
@@ -778,6 +892,7 @@ void CSimpleButton::OnLayerCursorEnter(int32_t motion) {
 // VERIFY: f683541a auto
 // OFFSET: 0x0096FD00
 void CSimpleButton::OnLayerCursorExit(int32_t motion, int32_t a3) {
+    BUTTON_CHECK();
     if (this->m_state != BUTTONSTATE_DISABLED) {
         CSimpleFrame::OnLayerCursorExit(motion, a3);
         this->UpdateTextState(this->m_state);
@@ -796,12 +911,21 @@ void CSimpleButton::OnLayerCursorExit(int32_t motion, int32_t a3) {
 // VERIFY: cddc7e35 auto
 // OFFSET: 0x0096FD70
 void CSimpleButton::OnClick(const char* btn, int32_t down) {
+    BUTTON_CHECK();
     if (this->m_inClick || this->m_state == BUTTONSTATE_DISABLED) {
         return;
     }
 
     const char* savedButtonName = this->m_simpleTop->m_mouseButtonName;
     this->m_simpleTop->m_mouseButtonName = btn;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    struct Restore {
+        CSimpleButton* button;
+        const char* name;
+        ~Restore() { button->m_inClick = 0; button->m_simpleTop->m_mouseButtonName = name; }
+    } restore{this, savedButtonName};
+    Frame::Native::ResizeScope callbackGuard;
+#endif
     this->m_inClick = 1;
     this->RunOnClickScript(btn, down);
     this->m_inClick = 0;
@@ -811,12 +935,21 @@ void CSimpleButton::OnClick(const char* btn, int32_t down) {
 // VERIFY: 7a969f93 auto
 // OFFSET: 0x0096FDD0
 void CSimpleButton::OnDoubleClick(const char* btn) {
+    BUTTON_CHECK();
     if (this->m_inClick || this->m_state == BUTTONSTATE_DISABLED) {
         return;
     }
 
     const char* savedButtonName = this->m_simpleTop->m_mouseButtonName;
     this->m_simpleTop->m_mouseButtonName = btn;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    struct Restore {
+        CSimpleButton* button;
+        const char* name;
+        ~Restore() { button->m_inClick = 0; button->m_simpleTop->m_mouseButtonName = name; }
+    } restore{this, savedButtonName};
+    Frame::Native::ResizeScope callbackGuard;
+#endif
     this->m_inClick = 1;
     this->RunOnDoubleClickScript(btn);
     this->m_inClick = 0;
@@ -826,6 +959,10 @@ void CSimpleButton::OnDoubleClick(const char* btn) {
 // VERIFY: d16dc184 manual
 // OFFSET: 0x0096FE30
 void CSimpleButton::SetButtonState(CSimpleButtonState state, int32_t stateLocked) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckState(state); Frame::Native::RequireScriptTextMutation();
+#endif
     this->m_stateLocked = stateLocked;
 
     if (state == this->m_state) {
@@ -851,6 +988,7 @@ void CSimpleButton::SetButtonState(CSimpleButtonState state, int32_t stateLocked
 // VERIFY: 45a8641e auto
 // OFFSET: 0x0096FED0
 void CSimpleButton::LoadXML(XMLNode* node, CStatus* status) {
+    BUTTON_CHECK();
     CSimpleFrame::LoadXML(node, status);
 
     CSimpleFontString* fontString = nullptr;
@@ -941,13 +1079,21 @@ void CSimpleButton::LoadXML(XMLNode* node, CStatus* status) {
     const char* registerForClicks = node->GetAttributeByName("registerForClicks");
 
     if (registerForClicks && *registerForClicks) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        uint64_t clickAction = 0;
+#else
         uint32_t clickAction = 0;
+#endif
         char token[1024];
 
         SStrTokenize(&registerForClicks, token, sizeof(token), " ,", nullptr);
 
         while (token[0]) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            clickAction |= MouseButtonStringToBitmask(token);
+#else
             clickAction |= static_cast<uint32_t>(MouseButtonStringToBitmask(token));
+#endif
             SStrTokenize(&registerForClicks, token, sizeof(token), " ,", nullptr);
         }
 
@@ -964,30 +1110,45 @@ void CSimpleButton::LoadXML(XMLNode* node, CStatus* status) {
 // VERIFY: b8ad7d54 manual
 // OFFSET: 0x00970370
 int32_t CSimpleButton::SetStateTexture(CSimpleButtonState state, const char* fileName) {
+    BUTTON_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckState(state); Frame::Native::RequireTreeMutation();
+#endif
     if (this->m_stateTextures[state]) {
         this->m_stateTextures[state]->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<CSimpleTexture> owner(Frame::Native::CreateTexture(nullptr, 2, true));
+    CSimpleTexture* texture = owner.get();
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     CSimpleTexture* texture = data ? new (data) CSimpleTexture(nullptr, 2, 1) : nullptr;
+#endif
 
     if (!texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         if (texture) {
             delete texture;
         }
+#endif
 
         return 0;
     }
 
     texture->SetAllPoints(this, 1);
     this->SetStateTexture(state, texture);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    owner.release();
+#endif
     return 1;
 }
 
 // VERIFY: 3f2ae434 manual
 // OFFSET: 0x00970440
 void CSimpleButton::Enable(int32_t enabled) {
+    BUTTON_CHECK();
     if (enabled) {
         if (this->m_state != BUTTONSTATE_DISABLED) {
             return;
@@ -1028,6 +1189,9 @@ void CSimpleButton::Enable(int32_t enabled) {
 // VERIFY: 7a7f3ab5 auto
 // OFFSET: 0x00970520
 CSimpleButton::CSimpleButton(CSimpleFrame* parent) : CSimpleFrame(parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleButton::GetObjectType();
+#endif
     this->m_state = BUTTONSTATE_DISABLED;
     this->m_inClick = 0;
     this->m_stateLocked = 0;

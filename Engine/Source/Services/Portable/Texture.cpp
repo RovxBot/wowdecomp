@@ -313,16 +313,16 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
             auto width = u32(12), height = u32(16);
             if (width < 8 || height < 8 || (width & (width - 1)) || (height & (height - 1)) ||
                 uint64_t(width) * height > MaxPixels) throw std::out_of_range("File image dimensions/pixel budget");
-            auto levels = Blizzard::Assets::DecodeBlp(bytes);
+            auto levels = Blizzard::Assets::DecodeBlp(bytes, image->key.filter < GxTex_NearestMipNearest);
             image->atlasSafe = bytes[11] & 0x10;
             // The original small single-level BLP rule supplies the default
             // policy. Explicit mip requests retain their complete-chain contract.
-            image->smallDefault = image->key.defaultFilter && width < 256 && levels.size() == 1;
+            image->smallDefault = image->key.defaultFilter && width < 256 && !u32(88);
             if (image->key.filter >= GxTex_NearestMipNearest && !image->smallDefault) {
                 size_t count = 1;
                 for (auto extent = std::max(width, height); extent > 1; extent >>= 1) ++count;
                 if (levels.size() != count) throw std::invalid_argument("Mipped file texture requires a complete authored chain");
-            } else levels.resize(1); // Decode still validates every supplied level.
+            } else levels.resize(1); // All declared spans/storage extents remain validated.
             image->Retain(std::move(levels));
             result.file.bytes.clear();
             result.file.bytes.shrink_to_fit();
