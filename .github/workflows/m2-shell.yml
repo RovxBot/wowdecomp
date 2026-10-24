@@ -3,7 +3,7 @@ name: M2 native SDL3 shell
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m2-shell.yml'
       - 'CMakeLists.txt'

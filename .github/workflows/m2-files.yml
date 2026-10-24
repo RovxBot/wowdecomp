@@ -3,7 +3,7 @@ name: M2 native file services
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m2-files.yml'
       - 'CMakeLists.txt'

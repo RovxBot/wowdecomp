@@ -3,7 +3,7 @@ name: M3 Linux OpenGL context
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m3-gl.yml'
       - 'CMakeLists.txt'
