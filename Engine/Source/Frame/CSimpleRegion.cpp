@@ -1,6 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/FrameXML/Portable/Factories.h"
-#include "Engine/Source/Frame/Portable/Regions.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
 #define FRAME_REGION_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_REGION_CHECK() ((void)0)

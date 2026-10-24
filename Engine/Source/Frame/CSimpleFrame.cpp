@@ -1855,7 +1855,7 @@ void CSimpleFrame::OnScreenSizeChanged() {
 void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_hoverFrame || this->m_onCursorEnter.m_luaRef) Frame::Native::UnavailableFrameFeature();
+    if (this->m_hoverFrame) Frame::Native::UnavailableFrameFeature();
 #endif
 
     if (this->m_hoverFrame) {
@@ -1876,7 +1876,7 @@ void CSimpleFrame::OnLayerCursorEnter(int32_t motion) {
 void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_hoverFrame || this->m_onCursorExit.m_luaRef) Frame::Native::UnavailableFrameFeature();
+    if (this->m_hoverFrame) Frame::Native::UnavailableFrameFeature();
 #endif
 
     if (this->m_hoverFrame) {

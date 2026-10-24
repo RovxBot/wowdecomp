@@ -1,6 +1,6 @@
 // Original Button consumers with authored XML/input; optional unchanged Glue template.
 #include "Engine/Source/Frame/CSimpleButton.h"
-static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& root, CSimpleFont& font, bool original) {
+static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& root, CSimpleFont& font, bool original, const std::string& snapshot) {
     const int frames = CSimpleFrame::s_frameCount;
     {
         std::vector<std::unique_ptr<CSimpleFrame>> pooled;
@@ -56,6 +56,8 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
             ButtonLog[#ButtonLog+1]='click:'..key
         end)
         b:SetScript('PostClick',function(self,key,down) ButtonLog[#ButtonLog+1]='post:'..key end)
+        b:SetScript('OnEnter',function(self,motion) ButtonEnters=(ButtonEnters or 0)+1 end)
+        b:SetScript('OnLeave',function(self,motion) ButtonLeaves=(ButtonLeaves or 0)+1 end)
         StaleButton=b
     )");
     auto* button=static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeButton",CSimpleButton::GetObjectType()));
@@ -70,6 +72,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     const auto normal=Draw(device,root);Check(std::count_if(normal.begin(),normal.end(),red)>100,"Button normal texture missing");
     Equal(normal,Draw(device,root));
     deliver(OS_INPUT_MOUSE_MOVE);
+    RegionLua("assert(ButtonEnters==1)");
     const auto highlighted=Draw(device,root);
     Check(std::memcmp(normal.data(),highlighted.data(),normal.size()*sizeof(CImVector)),"Button hover highlight did not render");
     Check(deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT)==InputResult::Handled && root.m_mouseCapture==button && button->m_state==BUTTONSTATE_PUSHED,
@@ -102,14 +105,28 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         Frame::Native::CollectScope collection;
         RegionLua("assert(not pcall(NativeButton.Click,NativeButton)); assert(not pcall(NativeButton.SetButtonState,NativeButton,'PUSHED'))");
     }
-    CSimpleButtonState invalid;uint32_t raw=99;std::memcpy(&invalid,&raw,sizeof(raw));
+    CSimpleButtonState invalid;uint32_t raw=3;std::memcpy(&invalid,&raw,sizeof(raw));
     Reject([&]{button->SetButtonState(invalid,0);});
     Reject([&]{button->SetStateTexture(invalid,static_cast<CSimpleTexture*>(nullptr));});
     bool foreign=false;std::thread thread([&]{try{button->OnClick("LeftButton",0);}catch(const std::logic_error&){foreign=true;}});thread.join();
     Check(foreign,"Foreign Button click accepted");
     root.CancelMouseInput();delete button;
-    RegionLua("assert(not pcall(StaleButton.Click,StaleButton)); StaleButton=nil; ButtonLog=nil; ButtonDoubles=nil");
+    RegionLua("assert(not pcall(StaleButton.Click,StaleButton)); StaleButton=nil; ButtonLog=nil; ButtonDoubles=nil; ButtonEnters=nil; ButtonLeaves=nil");
     FrameXML_FreeHashNodes();
+    struct ThrowButton final : CSimpleButton {
+        ThrowButton() : CSimpleButton(nullptr) {}
+        void OnClick(const char*, int32_t) override { throw std::runtime_error("Authored Button click failure"); }
+    };
+    {
+        auto failing=std::make_unique<ThrowButton>();
+        failing->SetClickAction(CLICK_ON_LEFTDOWN);
+        CMouseEvent click;click.m_data.m_button=MOUSE_BUTTON_LEFT;
+        root.unused_1250=7;
+        bool failed=false;
+        try { failing->OnLayerMouseDown(click,"LeftButton"); } catch(const std::runtime_error&) { failed=true; }
+        Check(failed && root.unused_1250==7,"Failed Button click leaked root dispatch state");
+        root.unused_1250=0;
+    }
     Check(!Ink(Draw(device,root)),"Deleted Button left retained pixels");
     if (original) {
         uint8_t before[16],after[16];
@@ -123,10 +140,22 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
             item=next;
         }
         tree.reset();
-        RegionLua("local b=CreateFrame('Button','NativeOriginalButton',nil,'GlueButtonTemplate'); b:SetText('AV login'); b:SetSize(200,40); b:SetPoint('CENTER')");
+        XMLNode instance(nullptr,"Button");
+        instance.SetAttribute("name","NativeOriginalButton"); instance.SetAttribute("inherits","GlueButtonTemplate");
+        auto* originalButton=static_cast<CSimpleButton*>(FrameXML_CreateFrame(&instance,nullptr,&status));
+        Check(bool(originalButton),"Original Button factory returned null");
+        originalButton->SetText("AV login"); originalButton->SetSize(NDCToDDCWidth(200.0f/640),NDCToDDCHeight(40.0f/480));
+        originalButton->SetPoint(FRAMEPOINT_CENTER,&root,FRAMEPOINT_CENTER,0,0,1);
         auto originalPixels=Draw(device,root);
         Check(Ink(originalPixels)>100,"Unchanged original GlueButtonTemplate did not render");
         Equal(originalPixels,Draw(device,root));
+        if (!snapshot.empty()) {
+            std::ofstream out(snapshot+".button.ppm",std::ios::binary); out<<"P6\n640 480\n255\n";
+            for (int y=479;y>=0;--y) for(int x=0;x<640;++x) {
+                const auto& p=originalPixels[y*640+x]; char rgb[]={char(p.r),char(p.g),char(p.b)}; out.write(rgb,3);
+            }
+            Check(bool(out),"Original Button snapshot failed");
+        }
         Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),after)==3 && !std::memcmp(before,after,16),"Original Button post-creation signature changed");
         delete static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeOriginalButton",CSimpleFrame::GetObjectType()));
         FrameXML_FreeHashNodes();

@@ -7,6 +7,12 @@
 #include <memory>
 #define BUTTON_CHECK() Frame::Native::RequireScriptTextMutation()
 namespace {
+struct ClickFlag final {
+    uint32_t& flag;
+    uint32_t saved;
+    explicit ClickFlag(uint32_t& value) : flag(value), saved(value) {}
+    ~ClickFlag() { flag = saved; }
+};
 void CheckState(const CSimpleButtonState& state) {
     uint32_t raw;
     static_assert(sizeof(state) == sizeof(raw));
@@ -669,7 +675,11 @@ void CSimpleButton::SetNormalFontColor(const CImVector& color) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (std::memcmp(&color, &font->m_attributes.m_color, sizeof(color)) || !(font->m_attributes.m_flags & 0x400)) {
+#else
     if (*reinterpret_cast<const uint32_t*>(&color) != *reinterpret_cast<uint32_t*>(&font->m_attributes.m_color) || !(font->m_attributes.m_flags & 0x400)) {
+#endif
         font->m_attributes.m_color = color;
         font->m_attributes.m_flags |= 0x404;
     }
@@ -784,6 +794,9 @@ int32_t CSimpleButton::OnLayerMouseDown(const CMouseEvent& evt, const char* btn)
             btn = GetMouseButtonName(evt.m_data.m_button);
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        ClickFlag dispatchFlag(this->m_simpleTop->unused_1250);
+#endif
         this->m_simpleTop->unused_1250 = 1;
         this->OnClick(btn, 1);
         this->m_simpleTop->unused_1250 = 0;
@@ -833,6 +846,9 @@ int32_t CSimpleButton::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
             btn = GetMouseButtonName(evt.m_data.m_button);
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        ClickFlag dispatchFlag(this->m_simpleTop->unused_1250);
+#endif
         this->m_simpleTop->unused_1250 = 1;
         uint32_t time = OsGetAsyncTimeMs();
 
