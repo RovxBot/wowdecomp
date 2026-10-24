@@ -35,7 +35,7 @@ subset. This does not execute the entire ordered GlueXML manifest or its final
 CGlueMgr gate. Input is authored injection, separate from physical acceptance.
 
 All client/dependency compilation runs in GitHub Actions. Qualification and exact
-source/build/runtime identities will be recorded before merge. EditBox and other
+source/build/runtime identities are recorded below. EditBox and other
 widget consumers, complete signed ordered GlueXML/login execution, transport,
 authentication and observed gameplay remain open. The clean client remains
 read-only, server revision discrepancies remain explicit, and user sign-in stays
@@ -65,3 +65,45 @@ substituted. Authored DXT1/3/5 fixtures compare exact base pixels, retain full-c
 rejection, and reject bad tail sizes, spans, truncation, flags and non-thin storage.
 A Frame/image fixture exercises the same selection through Services/Gx. Image
 failures now retain their actual CStatus detail at the Frame boundary.
+
+## Qualification
+
+[PR #78](https://github.com/RovxBot/wowdecomp/pull/78) is qualified at
+`afb952dc28ce9772b1b5edfa1f19bb4ed2b59e4e`; [durable validation](button-validation.json)
+retains all exact source/build identities. Final-source hosted GL release and
+strict ASan/UBSan/leak configurations passed 38 CTest checks each. Production
+`defccaa8914e737a93df7585b3d556a124c7ec07` passed eight asset CTest checks on each
+of Linux release/strict sanitizer, actual ARM64 macOS and native Windows, plus
+full signatures-enabled Windows x64 compilation. Only this GL fixture and its
+contract document changed afterward; the other 3,889 tracked entries match.
+The earlier production checks are not labeled final-head runs. Seven archive
+digests, all 67 packaged executable hashes/types and packaged notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed sixteen authored/original-data wrapper executions, three owner cycles each,
+with empty stderr and zero workers. Original hierarchy, mouse, keyboard, IME and
+window runs loaded eighteen original base fonts, 57 original style definitions,
+the original inline color script and unchanged `GlueButtonTemplateBlue`. Their
+before/after GlueXML InterfaceKey checks passed; original-key signaturefile
+verification observed 28,948 records and selective registered-MD5 checks stayed
+active. The image/layout/font readiness bound was four frames; every observed
+original Button cycle became ready in one. This does not qualify every style.
+
+All eight final capture pairs and five additional original-button pairs match
+between release and sanitizer. The eight final captures also match the preceding
+upstream qualification. The inspected 640x480 button capture shows the original
+blue border/fill and legible yellow outlined Friz text; its PPM SHA-256 is
+`72e50e7282e9c5169dad8bcb584ee1585990c11b4684507339fd11ddefc9ff73`.
+The label `AV login` and placement are authored. The target/transform/buffer/texture
+fixtures passed three cycles per mode alongside image regressions. No actual
+AccountLogin screen, physical input or server session is claimed.
+
+Earlier graph/include/class-admission and fixture expectation failures remain in
+the record. Clean-data attempts also exposed the wrong initial template file,
+short DXT tails, missing font styles and the inline Script consumer. Temporary
+pure-Python MPQ inspection and release-only GDB diagnostics were investigative;
+they are not native authentication or sanitizer qualification. All final runtime
+checks ran without tracing and with the strict detectors unchanged. Local source/
+launcher checks: 57 passed, one unavailable-CMake skip; Windows-selected tokens,
+original factory extraction and whitespace checks passed. No client/dependency
+compiled locally. M3 remains open with the next callers above.

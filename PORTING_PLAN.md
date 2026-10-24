@@ -941,6 +941,27 @@ GlueXML/second digest gate, actual login and transport/gameplay remain open.
 No new operator, Windows runtime, macOS graphics or server acceptance is claimed.
 M3 is incomplete; signatures/server discrepancies/interactive sign-in stay intact.
 
+
+The original [Button package](docs/m3/BUTTONS.md), [PR #78](https://github.com/RovxBot/wowdecomp/pull/78),
+is qualified at `afb952dc28ce9772b1b5edfa1f19bb4ed2b59e4e`. Final-source Linux GL
+release/strict ASan/UBSan/leak checks passed 38 CTest checks each. Earlier production
+`defccaa8914e737a93df7585b3d556a124c7ec07` passed all four native asset configurations
+(eight checks each, including actual ARM64 execution) and full signature-enabled
+Windows x64 compilation; only a GL fixture/document changed afterward, with 3,889
+other entries identical. Seven archives/all 67 packaged executable hashes/types
+verified. Sixteen three-cycle RX 7900 XTX / Mesa 26.2.5 / SDL X11 wrapper executions
+passed with empty stderr/zero workers. Eight final capture pairs, five original
+button pairs and eight historical regression comparisons match. Original
+GlueFontStyles declarations/inline colors and GlueButtonTemplateBlue render an
+authored label, with before/after InterfaceKey checks and original MPQ policy.
+Nonmip UI reads validate bounded original thin DXT tail storage without decoding
+or inventing its pixels; full mip reads retain strict rejection. Preserve failed
+attempts and distinguish diagnostic GDB/source inspection from qualification.
+CheckButton/EditBox, broader callbacks, complete signed ordered GlueXML/full second
+digest gate, actual login, transport/authentication and gameplay remain open. No
+new physical-input, Windows runtime, macOS graphics or server acceptance; clean
+data stays read-only and user sign-in stays interactive. M3 remains incomplete.
+
 ### M4 — Complete the Linux experience and select modern graphics
 
 Depends on: M3; the graphics selection prototype must complete before M5 migration.

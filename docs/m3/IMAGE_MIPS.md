@@ -107,3 +107,9 @@ owners; retain font/text-block/cache lifetimes and SDL size invalidation. Adapt
 ordered Lua execution. Preserve the second digest comparison in `CGlueMgr::Resume`
 before `FRAMES_LOADED`; only actual original GlueXML/login rendering qualifies
 that UI gate.
+
+The later [Button package](BUTTONS.md) adds a bounded base-only read for original
+nonmip UI assets whose thin DXT tails are shorter than a complete block grid. It
+validates declared spans and recognized storage without returning tail pixels;
+explicit mip samplers retain the strict authored-chain contract above. Historical
+PR #37 evidence and source identities remain unchanged.
