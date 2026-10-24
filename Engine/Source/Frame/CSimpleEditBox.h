@@ -1,6 +1,9 @@
 #ifndef ENGINE_SOURCE_FRAME_CSIMPLEEDITBOX_H
 #define ENGINE_SOURCE_FRAME_CSIMPLEEDITBOX_H
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Os/Portable/Window.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Base/CDataAllocator.h"
@@ -128,6 +131,11 @@ class CSimpleEditBox : public CSimpleFrame, public CSimpleFontedFrame {
     virtual void LoadXML(XMLNode* node, CStatus* status);
     virtual void FontUpdated(CSimpleFontedFrameFont* font, int32_t flags);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    OsNative::Composition m_nativeIme;
+    bool m_nativeTextInput = false, m_nativeCandidateVisible = false, m_nativeCandidateDirty = false;
+    void PrepareCandidates();
+#endif
     CSimpleEditBox(CSimpleFrame* parent);
     void AddHistoryLine(const char* text, const char* taint);
     void BackwardHistory();

@@ -35,6 +35,7 @@ class Window {
   private:
     std::unique_ptr<WindowState> state;
 };
+const Composition& CurrentCompositionSnapshot();
 // Strict UTF-8 at the input boundary; no surrogate or out-of-range scalar values.
 std::vector<uint32_t> DecodeUtf8(const std::string &text);
 std::string EncodeUtf8(uint32_t scalar);

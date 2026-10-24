@@ -737,3 +737,5 @@ int32_t OsIMEGetCandidates(uint32_t, uint32_t &start, uint32_t &page, uint32_t &
     }
     return count != 0;
 }
+
+const OsNative::Composition& OsNative::CurrentCompositionSnapshot() { return OsNative::State().current; }

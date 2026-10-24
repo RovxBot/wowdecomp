@@ -1,3 +1,21 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+namespace {
+template<int (*Method)(lua_State*)> int EditMethod(lua_State* L) {
+    bool failed = false;
+    try {
+        Frame::Native::RequireScriptTextMutation();
+        for (int i = 2; i <= lua_gettop(L); ++i)
+            if (lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
+                std::fabs(lua_tonumber(L, i)) > 2147483646.0))
+                return luaL_error(L, "EditBox number outside initial native bounds");
+        return Frame::Native::ScriptMethod<Method, true, false>(L);
+    } catch (const std::exception&) { failed = true; }
+    if (failed) return luaL_error(L, "EditBox method rejected traversal or ownership");
+    return 0;
+}
+}
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleEditBox.h"
@@ -280,6 +298,9 @@ static int32_t Script_IsPassword(lua_State* L) {
 // VERIFY: c4e7c13c auto
 // OFFSET: 0x00975D40
 static int32_t Script_SetBlinkSpeed(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L,2) < 0) return luaL_error(L, "EditBox argument outside native bounds");
+#endif
     CSimpleEditBox* editBox = static_cast<CSimpleEditBox*>(FrameScript_GetObjectThis(L, CSimpleEditBox::GetObjectType()));
     if (!lua_isnumber(L, 2)) {
         const char* name = editBox->GetName();
@@ -473,6 +494,9 @@ static int32_t Script_HasFocus(lua_State* L) {
 // VERIFY: 6736d24f auto
 // OFFSET: 0x009764E0
 static int32_t Script_SetMaxBytes(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L,2) < 0 || lua_tonumber(L,2) > 4096) return luaL_error(L, "EditBox argument outside native bounds");
+#endif
     CSimpleEditBox* editBox = static_cast<CSimpleEditBox*>(FrameScript_GetObjectThis(L, CSimpleEditBox::GetObjectType()));
     if (lua_gettop(L) != 2) {
         const char* name = editBox->GetName();
@@ -496,6 +520,9 @@ static int32_t Script_GetMaxBytes(lua_State* L) {
 // VERIFY: 775d5f8d auto
 // OFFSET: 0x009765D0
 static int32_t Script_SetMaxLetters(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L,2) < 0 || lua_tonumber(L,2) > 4095) return luaL_error(L, "EditBox argument outside native bounds");
+#endif
     CSimpleEditBox* editBox = static_cast<CSimpleEditBox*>(FrameScript_GetObjectThis(L, CSimpleEditBox::GetObjectType()));
     if (lua_gettop(L) != 2) {
         const char* name = editBox->GetName();
@@ -535,6 +562,9 @@ static int32_t Script_GetHistoryLines(lua_State* L) {
 // VERIFY: 8713f97d auto
 // OFFSET: 0x00976770
 static int32_t Script_SetHistoryLines(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L,2) < 1 || lua_tonumber(L,2) > 128) return luaL_error(L, "EditBox argument outside native bounds");
+#endif
     CSimpleEditBox* editBox = static_cast<CSimpleEditBox*>(FrameScript_GetObjectThis(L, CSimpleEditBox::GetObjectType()));
     int32_t lines;
 
@@ -642,6 +672,68 @@ void CSimpleEditBox::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2D210
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetFontObject", &EditMethod<&Script_SetFontObject> },
+    { "GetFontObject", &EditMethod<&Script_GetFontObject> },
+    { "SetFont", &EditMethod<&Script_SetFont> },
+    { "GetFont", &EditMethod<&Script_GetFont> },
+    { "SetTextColor", &EditMethod<&Script_SetTextColor> },
+    { "GetTextColor", &EditMethod<&Script_GetTextColor> },
+    { "SetShadowColor", &EditMethod<&Script_SetShadowColor> },
+    { "GetShadowColor", &EditMethod<&Script_GetShadowColor> },
+    { "SetShadowOffset", &EditMethod<&Script_SetShadowOffset> },
+    { "GetShadowOffset", &EditMethod<&Script_GetShadowOffset> },
+    { "SetSpacing", &EditMethod<&Script_SetSpacing> },
+    { "GetSpacing", &EditMethod<&Script_GetSpacing> },
+    { "SetJustifyH", &EditMethod<&Script_SetJustifyH> },
+    { "GetJustifyH", &EditMethod<&Script_GetJustifyH> },
+    { "SetJustifyV", &EditMethod<&Script_SetJustifyV> },
+    { "GetJustifyV", &EditMethod<&Script_GetJustifyV> },
+    { "SetIndentedWordWrap", &EditMethod<&Script_SetIndentedWordWrap> },
+    { "GetIndentedWordWrap", &EditMethod<&Script_GetIndentedWordWrap> },
+    { "SetAutoFocus", &EditMethod<&Script_SetAutoFocus> },
+    { "IsAutoFocus", &EditMethod<&Script_IsAutoFocus> },
+    { "SetCountInvisibleLetters", &EditMethod<&Script_SetCountInvisibleLetters> },
+    { "IsCountInvisibleLetters", &EditMethod<&Script_IsCountInvisibleLetters> },
+    { "SetMultiLine", &EditMethod<&Script_SetMultiLine> },
+    { "IsMultiLine", &EditMethod<&Script_IsMultiLine> },
+    { "SetNumeric", &EditMethod<&Script_SetNumeric> },
+    { "IsNumeric", &EditMethod<&Script_IsNumeric> },
+    { "SetPassword", &EditMethod<&Script_SetPassword> },
+    { "IsPassword", &EditMethod<&Script_IsPassword> },
+    { "SetBlinkSpeed", &EditMethod<&Script_SetBlinkSpeed> },
+    { "GetBlinkSpeed", &EditMethod<&Script_GetBlinkSpeed> },
+    { "Insert", &EditMethod<&Script_Insert> },
+    { "SetText", &EditMethod<&Script_SetText> },
+    { "GetText", &EditMethod<&Script_GetText> },
+    { "SetNumber", &EditMethod<&Script_SetNumber> },
+    { "GetNumber", &EditMethod<&Script_GetNumber> },
+    { "HighlightText", &EditMethod<&Script_HighlightText> },
+    { "AddHistoryLine", &EditMethod<&Script_AddHistoryLine> },
+    { "ClearHistory", &EditMethod<&Script_ClearHistory> },
+    { "SetTextInsets", &EditMethod<&Script_SetTextInsets> },
+    { "GetTextInsets", &EditMethod<&Script_GetTextInsets> },
+    { "SetFocus", &EditMethod<&Script_SetFocus> },
+    { "ClearFocus", &EditMethod<&Script_ClearFocus> },
+    { "HasFocus", &EditMethod<&Script_HasFocus> },
+    { "SetMaxBytes", &EditMethod<&Script_SetMaxBytes> },
+    { "GetMaxBytes", &EditMethod<&Script_GetMaxBytes> },
+    { "SetMaxLetters", &EditMethod<&Script_SetMaxLetters> },
+    { "GetMaxLetters", &EditMethod<&Script_GetMaxLetters> },
+    { "GetNumLetters", &EditMethod<&Script_GetNumLetters> },
+    { "GetHistoryLines", &EditMethod<&Script_GetHistoryLines> },
+    { "SetHistoryLines", &EditMethod<&Script_SetHistoryLines> },
+    { "GetInputLanguage", &EditMethod<&Script_GetInputLanguage> },
+    { "ToggleInputLanguage", &Frame::Native::UnavailableScriptMethod },
+    { "SetAltArrowKeyMode", &EditMethod<&Script_SetAltArrowKeyMode> },
+    { "GetAltArrowKeyMode", &EditMethod<&Script_GetAltArrowKeyMode> },
+    { "IsInIMECompositionMode", &EditMethod<&Script_IsInIMECompositionMode> },
+    { "SetCursorPosition", &EditMethod<&Script_SetCursorPosition> },
+    { "GetCursorPosition", &EditMethod<&Script_GetCursorPosition> },
+    { "GetUTF8CursorPosition", &EditMethod<&Script_GetUTF8CursorPosition> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetFontObject", &Script_SetFontObject },
     { "GetFontObject", &Script_GetFontObject },
@@ -702,6 +794,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetCursorPosition", &Script_GetCursorPosition },
     { "GetUTF8CursorPosition", &Script_GetUTF8CursorPosition },
 };
+#endif
 
 // VERIFY: 068658a4 auto
 // OFFSET: 0x009752C0

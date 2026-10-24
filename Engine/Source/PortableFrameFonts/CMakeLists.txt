@@ -21,6 +21,8 @@ add_library(WowNativeFrameRender STATIC
 target_link_libraries(WowNativeFrameRender PUBLIC WowNativeFrameFonts)
 add_library(WowNativeFrameRegions STATIC
     ../Frame/CSimpleFontedFrame.cpp
+    ../Frame/CSimpleEditBox.cpp
+    ../Frame/CSimpleEditBox_Scripts.cpp
     ../Frame/CSimpleMessageFrame.cpp
     ../Frame/CSimpleMessageFrame_Scripts.cpp
     ../Frame/CBackdropGenerator.cpp
