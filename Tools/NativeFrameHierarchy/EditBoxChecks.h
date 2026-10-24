@@ -92,9 +92,15 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     // The owner copies candidates before the next dequeue; widget/row creation
     // is deferred until root update, after the input traversal has ended.
     edit->SetText("A",nullptr);edit->SetCursorPosition(1);
-    compose("V",0,1);
+    inputTrace.clear();compose("V",0,1);
     const char* choices[]={"AV","A"};SDL_Event c{};c.type=SDL_EVENT_TEXT_EDITING_CANDIDATES;
     c.edit_candidates.candidates=choices;c.edit_candidates.num_candidates=2;c.edit_candidates.selected_candidate=1;push(c);pump();
+    if (!edit->m_imeComposition || std::string(edit->m_text)!="AV" || edit->m_candidatesFrame) {
+        std::cerr << "EditBox preedit diagnostics: text=" << edit->m_text << " composition=" << edit->m_imeComposition
+                  << " focused=" << (CSimpleEditBox::s_currentFocus==edit) << " candidates-created=" << bool(edit->m_candidatesFrame) << '\n';
+        for (const auto& event : inputTrace)
+            std::cerr << "EditBox preedit event=" << event.id << " params=" << event.param[0] << ',' << event.param[1] << ',' << event.param[2] << ',' << event.param[3] << '\n';
+    }
     Check(edit->m_imeComposition && std::string(edit->m_text)=="AV" && !edit->m_candidatesFrame,
           "EditBox failed preedit or constructed candidates in input callback");
     for(int i=0;i<4;++i) {

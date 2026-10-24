@@ -276,6 +276,10 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     MessageChecks(device,root,font,snapshot);
     EditBoxChecks(context,device,root,font,original,snapshot);
     StatusBarChecks(device,root,original,snapshot);
+    // Authored widget input runs on a hidden window, as in the other modes.
+    // Show only for actual SDL size delivery: asynchronous desktop focus events
+    // must not interrupt an injected preedit/commit sequence before that phase.
+    if (windowEvents) Check(SDL_ShowWindow(context.Window().Handle()), "Show SDL size fixture window");
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");
@@ -377,7 +381,7 @@ int main(int argc,char** argv) {
         StormRtlInitialize();OsTimeStartup(OsTimeManager::BestAvailable);started=true;
         for(int cycle=0;cycle<3;++cycle){
             {
-                GlContext context("Original Frame parent/root fixture",640,480,!windowEvents);
+                GlContext context("Original Frame parent/root fixture",640,480,true);
                 std::cout<<"gl-renderer="<<context.Info().renderer<<"\ngl-version="<<context.Info().version<<'\n';
                 Source source(data,settings,cache,font);
                 LegacyDevice device(context,[&](const std::string& path){return source.shaders.at(path);});
