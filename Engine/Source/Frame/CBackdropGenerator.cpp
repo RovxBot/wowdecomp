@@ -224,6 +224,9 @@ void CBackdropGenerator::LoadXML(XMLNode* node, CStatus* status) {
 // VERIFY: d70fe96e manual
 // OFFSET: 0x004A29D0
 void CBackdropGenerator::Generate(const CRect* rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     if (!rect) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -231,12 +234,24 @@ void CBackdropGenerator::Generate(const CRect* rect) {
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     NativeValidate();
+    if (m_bgFile.m_str && *m_bgFile.m_str && !m_backgroundTexture)
+        throw std::logic_error("Backdrop background output is not installed");
+    const uint32_t pieces[] = {LEFTSIDE, RIGHTSIDE, TOPSIDE, BOTTOMSIDE,
+        TOPLEFTCORNER, TOPRIGHTCORNER, BOTTOMLEFTCORNER, BOTTOMRIGHTCORNER};
+    CSimpleTexture* textures[] = {m_leftTexture, m_rightTexture, m_topTexture, m_bottomTexture,
+        m_topLeftTexture, m_topRightTexture, m_bottomLeftTexture, m_bottomRightTexture};
+    if (m_backgroundTexture) Frame::Native::RequireScript(m_backgroundTexture);
+    for (unsigned i = 0; i < 8; ++i) {
+        if ((m_pieces & pieces[i]) && !textures[i])
+            throw std::logic_error("Backdrop border output is not installed");
+        if (textures[i]) Frame::Native::RequireScript(textures[i]);
+    }
     // Check all quotients before changing any retained texture coordinates.
     const double widthCheck = double(rect->maxX) - rect->minX;
     const double heightCheck = double(rect->maxY) - rect->minY;
     for (double extent : {widthCheck, heightCheck})
         for (double size : {double(m_edgeSize), double(m_tileSize ? m_tileSize : m_edgeSize)})
-            if (!std::isfinite(extent / size) || extent < 0 || extent / size > 10000)
+            if (!std::isfinite(extent / size) || extent < 0 || extent > std::numeric_limits<float>::max() || extent / size > 10000)
                 throw std::invalid_argument("Native backdrop coordinates exceed original range");
 #endif
     C2Vector texCoords[4];

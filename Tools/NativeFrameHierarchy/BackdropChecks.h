@@ -13,6 +13,11 @@ static Bytes BackdropEdgeBlp() {
 static void BackdropChecks(LegacyDevice& device, CSimpleTop& root, bool original, const std::string& snapshot) {
     const int textures=CSimpleTexture::s_count;
     CStatus status;
+    {
+        CBackdropGenerator unattached; unattached.m_bgFile.Copy("backdrop.blp");
+        const CRect rect{0,0,.5f,.5f};
+        Reject([&]{unattached.Generate(&rect);});
+    }
     const char* document=R"(<Ui><Frame name="NativeBackdropTemplate" virtual="true">
       <Size x="256" y="128"/><Anchors><Anchor point="BOTTOMLEFT" x="64" y="64"/></Anchors>
       <Backdrop bgFile="backdrop.blp" edgeFile="backdrop-edge.blp" tile="true">
