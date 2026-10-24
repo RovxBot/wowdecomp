@@ -40,3 +40,28 @@ widget consumers, complete signed ordered GlueXML/login execution, transport,
 authentication and observed gameplay remain open. The clean client remains
 read-only, server revision discrepancies remain explicit, and user sign-in stays
 interactive. M3 remains incomplete.
+
+The next login consumers are `CSimpleCheckbox` for remember-account options and
+`CSimpleEditBox` for username/password entry. EditBox still needs selected pooled
+region allocation, font-string-before-font teardown, native key/focus/clipboard
+providers and bounded text/IME/candidate consumers. Its owned font currently uses
+raw Storm storage and its original destructor closes the font before the base
+Frame closes its strings; adapt both before selecting it. Keep candidate-language
+and password-input policy explicit rather than accepting an unavailable service.
+Then connect the complete ordered TOC/Include/Script executor and the full second
+`CGlueMgr::Resume` digest gate. Transport/authentication follows those UI owners;
+packet prerequisites alone do not provide a server connection.
+
+The original Blue button images exposed a separate native BLP boundary: their
+256x64 DXT base images are complete, but some thin mip tails contain fewer blocks
+than the standard DXT grid. Original Windows tail rendering is not newly qualified.
+`DecodeBlp` retains strict all-level decoding by default. Its explicit base-only
+mode checks all declared offsets, lengths, chain ordering and storage extents;
+unrequested thin DXT tails admit only the observed power-of-two, mip-flagged,
+area-sized/minimum-block form. Those tails are never decoded or returned. Native
+image Services selects this mode for nearest/linear sampling; mip samplers retain
+strict complete authored-chain decoding. No missing pixels or generated mips are
+substituted. Authored DXT1/3/5 fixtures compare exact base pixels, retain full-chain
+rejection, and reject bad tail sizes, spans, truncation, flags and non-thin storage.
+A Frame/image fixture exercises the same selection through Services/Gx. Image
+failures now retain their actual CStatus detail at the Frame boundary.

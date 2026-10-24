@@ -144,6 +144,14 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     if (original) {
         uint8_t before[16],after[16];
         Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),before)==3,"Original Button pre-creation signature failed");
+        tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\GlueFontStyles.xml",nullptr,&status));
+        Check(bool(tree),"Original GlueFontStyles read failed");
+        size_t styles=0;
+        for(auto* item=XMLTree_GetRoot(tree.get())->m_child;item;item=item->m_next) {
+            Check(!SStrCmpI(item->m_name.m_str,"Font",STORM_MAX_STR),"Unexpected original font style tag");
+            CSimpleFont::GetFont(item->GetAttributeByName("name"),1)->LoadXML(item,&status);++styles;
+        }
+        tree.reset();
         tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\GlueButtons.xml",nullptr,&status));
         Check(bool(tree),"Original GlueButtons read failed");
         for (auto* item=XMLTree_GetRoot(tree.get())->m_child;item;) {
@@ -159,8 +167,23 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         Check(bool(originalButton),"Original Button factory returned null");
         originalButton->SetText("AV login"); originalButton->SetSize(NDCToDDCWidth(200.0f/640),NDCToDDCHeight(40.0f/480));
         originalButton->SetPoint(FRAMEPOINT_CENTER,&root,FRAMEPOINT_CENTER,0,0,1);
-        auto originalPixels=Draw(device,root);
-        Check(Ink(originalPixels)>100,"Unchanged original GlueButtonTemplateBlue did not render");
+        if (!status.IsEmpty()) {
+            char error[4096];throw std::runtime_error(status.GetErrorStr(error,sizeof(error),STATUS_WARNING,"; "));
+        }
+        std::vector<CImVector> originalPixels;unsigned readyFrames=0; CRect rectangle;
+        for(;readyFrames<4;++readyFrames) {
+            originalPixels=Draw(device,root);
+            // A blocking image completion can occur after this frame's layout
+            // update. Finish the queued layout on the next owner update.
+            if(originalButton->m_activeTexture && originalButton->m_activeTexture->IsObjectLoaded() &&
+               originalButton->m_activeTexture->GetRect(&rectangle)) break;
+        }
+        Check(readyFrames<4 && originalButton->m_fontString && originalButton->m_fontString->m_fontHandle &&
+              originalButton->m_fontString->m_string,"Original Button image/layout/font did not become ready");
+        Check(std::count_if(originalPixels.begin(),originalPixels.end(),[](const CImVector& p){
+            return p.b>32 && p.b>p.r+8 && p.b>p.g+8;
+        })>100,"Unchanged original GlueButtonTemplateBlue did not render blue image pixels");
+        std::cout<<"original-GlueFontStyles-factories="<<styles<<" button-ready-frames="<<readyFrames+1<<'\n';
         Equal(originalPixels,Draw(device,root));
         if (!snapshot.empty()) {
             std::ofstream out(snapshot+".button.ppm",std::ios::binary); out<<"P6\n640 480\n255\n";
