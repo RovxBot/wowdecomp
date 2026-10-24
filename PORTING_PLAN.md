@@ -1114,6 +1114,39 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [ ] Implement portable network I/O and enter the world against the M0 server.
 - [ ] Complete sound/movie support and the Vulkan/Metal graphics decision prototype.
 
+The original [CheckButton package](docs/m3/CHECKBOXES.md),
+[PR #79](https://github.com/RovxBot/wowdecomp/pull/79), is qualified at
+`2f0035fef2a64bbb6fe3c6fefbeb2ad9c099b198`. Both final-source Linux GL configurations passed
+38 CTest checks; full signatures-enabled Windows x64 compilation passed on that
+same implementation. Initial production passed twelve other PR workflows,
+including actual ARM64 execution; the initial
+GL compile failed on fixture event names and remains recorded. The final geometry
+fix changed only GL production/fixtures and its contract, with 3,890 other tracked
+entries identical to the initial production head. Seven archives/all 67 packaged
+binary hashes/types/notices verified.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict ASan/UBSan/leak
+packages passed sixteen three-cycle authored/original-data GPU wrapper executions,
+with empty stderr and zero workers. Eight final capture pairs, five original
+Button pairs and five original CheckButton pairs match; all eight preceding
+regression captures also match. Unchanged `GlueCheckButtonTemplate` renders original
+checkbox images and original fonts with an authored label, with before/after
+InterfaceKey checks and original MPQ/selective-MD5 policy. Read-only inspection
+identified original AccountLogin EditBoxes' backdrop/font/script dependencies.
+
+Original-data testing caught a stale retained texture vertex snapshot after
+image-dependent layout resolved. Native texture layout now invalidates its layer
+for non-tiled geometry as well as tiled UVs; authored region-only move/restore and
+exact original unchecked/checked/disabled/re-enabled pixels cover the correction.
+Windows-selected bodies and extracted factory match the preceding baseline.
+Preserve the earlier compiler/pixel failure, diagnostic-only GDB investigation and
+restricted-X11 attempt separately from final untraced sanitizer qualification.
+EditBox/backdrop/remaining widgets, complete signed ordered GlueXML/full second
+digest gate, login, transport/authentication and gameplay remain open. No new
+physical-input, Windows runtime, macOS graphics or server acceptance; clean data
+stays read-only, signatures/server discrepancies stay intact and sign-in stays
+interactive. M3 remains incomplete.
+
 ## Resources, uncertainty and planning envelope
 
 Assume one experienced C++ developer working full time for initial planning; no

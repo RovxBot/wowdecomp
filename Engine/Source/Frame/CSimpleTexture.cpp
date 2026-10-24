@@ -630,8 +630,17 @@ void CSimpleTexture::OnFrameSizeChanged(const CRect& rect) {
 
     if ((this->m_textureFlags & 0x4) || (this->m_textureFlags & 0x8)) {
         this->m_textureFlags |= 0x2;
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         this->OnRegionChanged();
+#endif
     }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Native batches retain vertex snapshots. Ordinary (non-tiled) texture
+    // layout can resolve after the initial image read, or change independently
+    // of its parent. Recollect those vertices as well as tiled UVs.
+    this->OnRegionChanged();
+#endif
 
     if (this->m_parent) {
         this->m_parent->NotifyScrollParent();

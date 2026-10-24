@@ -12,6 +12,27 @@
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include <memory>
+#define CHECKBOX_CHECK() Frame::Native::RequireScriptTextMutation()
+bool CSimpleCheckbox::OwnsStateTexture(CSimpleTexture* texture) const {
+    return texture == m_checkedTexture || texture == m_disabledCheckedTexture ||
+           CSimpleButton::OwnsStateTexture(texture);
+}
+namespace {
+void CheckCheckedTexture(CSimpleCheckbox* checkbox, CSimpleTexture* texture) {
+    Frame::Native::RequireTreeMutation();
+    if (!texture) return;
+    Frame::Native::RequireScript(texture);
+    if (checkbox->OwnsStateTexture(texture))
+        throw std::invalid_argument("Native CheckButton texture already occupies a widget slot");
+}
+}
+#else
+#define CHECKBOX_CHECK() ((void)0)
+#endif
 
 // STATIC: 0x00B2D414
 int32_t CSimpleCheckbox::s_metatable = LUA_NOREF;
@@ -27,9 +48,13 @@ CDataAllocator CSimpleCheckbox::s_allocator(sizeof(CSimpleCheckbox), 50);
 
 // INLINED
 void CSimpleCheckbox::operator delete(void* ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FreeRegionStorage(CSimpleCheckbox::s_allocator, ptr);
+#else
     if (ptr) {
         CSimpleCheckbox::s_allocator.PutData(ptr, nullptr, 0);
     }
+#endif
 }
 
 // INLINED
@@ -44,6 +69,9 @@ int32_t CSimpleCheckbox::GetObjectType() {
 // VERIFY: abee3662 auto
 // OFFSET: 0x009620E0
 CSimpleCheckbox::CSimpleCheckbox(CSimpleFrame* parent) : CSimpleButton(parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleCheckbox::GetObjectType();
+#endif
     this->m_checked = 0;
     this->m_checkedTexture = nullptr;
     this->m_disabledCheckedTexture = nullptr;
@@ -95,6 +123,7 @@ bool CSimpleCheckbox::IsA(const char* typeName) {
 // VERIFY: 0e5dc769 manual
 // OFFSET: 0x00962340
 void CSimpleCheckbox::SetChecked(int32_t checked, int32_t force) {
+    CHECKBOX_CHECK();
     if (!force && checked == this->m_checked) {
         return;
     }
@@ -134,6 +163,11 @@ void CSimpleCheckbox::SetChecked(int32_t checked, int32_t force) {
 // VERIFY: 2558c229 auto
 // OFFSET: 0x009623C0
 void CSimpleCheckbox::OnClick(const char* btn, int32_t down) {
+    CHECKBOX_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Match Button admission before the derived state transition as well.
+    if (this->m_inClick || this->m_state == BUTTONSTATE_DISABLED) return;
+#endif
     this->SetChecked(this->m_checked == 0, 0);
     CSimpleButton::OnClick(btn, down);
 }
@@ -141,9 +175,14 @@ void CSimpleCheckbox::OnClick(const char* btn, int32_t down) {
 // VERIFY: a04f7c25 auto
 // OFFSET: 0x009623F0
 void CSimpleCheckbox::SetCheckedTexture(CSimpleTexture* texture) {
+    CHECKBOX_CHECK();
     if (texture == this->m_checkedTexture) {
         return;
     }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckCheckedTexture(this, texture);
+#endif
 
     if (this->m_checkedTexture) {
         delete this->m_checkedTexture;
@@ -160,9 +199,14 @@ void CSimpleCheckbox::SetCheckedTexture(CSimpleTexture* texture) {
 // VERIFY: 7036b472 auto
 // OFFSET: 0x00962440
 void CSimpleCheckbox::SetDisabledCheckedTexture(CSimpleTexture* texture) {
+    CHECKBOX_CHECK();
     if (texture == this->m_disabledCheckedTexture) {
         return;
     }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CheckCheckedTexture(this, texture);
+#endif
 
     if (this->m_disabledCheckedTexture) {
         delete this->m_disabledCheckedTexture;
@@ -179,6 +223,7 @@ void CSimpleCheckbox::SetDisabledCheckedTexture(CSimpleTexture* texture) {
 // VERIFY: 1affe968 auto
 // OFFSET: 0x00962490
 void CSimpleCheckbox::Enable(int32_t enabled) {
+    CHECKBOX_CHECK();
     CSimpleButton::Enable(enabled);
     this->SetChecked(this->m_checked, 1);
 }
@@ -186,6 +231,7 @@ void CSimpleCheckbox::Enable(int32_t enabled) {
 // VERIFY: 89a43e3d manual
 // OFFSET: 0x009624C0
 void CSimpleCheckbox::LoadXML(XMLNode* node, CStatus* status) {
+    CHECKBOX_CHECK();
     CSimpleButton::LoadXML(node, status);
 
     const char* checked = node->GetAttributeByName("checked");
@@ -206,18 +252,26 @@ void CSimpleCheckbox::LoadXML(XMLNode* node, CStatus* status) {
 // VERIFY: 8bf7cd0a manual
 // OFFSET: 0x00962660
 int32_t CSimpleCheckbox::SetCheckedTexture(const char* fileName) {
+    CHECKBOX_CHECK();
     if (this->m_checkedTexture) {
         this->m_checkedTexture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<CSimpleTexture> owner(Frame::Native::CreateTexture(nullptr, 2, true));
+    CSimpleTexture* texture = owner.get();
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     CSimpleTexture* texture = data ? new (data) CSimpleTexture(nullptr, 2, 1) : nullptr;
+#endif
 
     if (!texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         if (texture) {
             delete texture;
         }
+#endif
 
         return 0;
     }
@@ -225,24 +279,35 @@ int32_t CSimpleCheckbox::SetCheckedTexture(const char* fileName) {
     texture->SetAllPoints(this, 1);
     texture->SetBlendMode(GxBlend_Add);
     this->SetCheckedTexture(texture);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    owner.release();
+#endif
     return 1;
 }
 
 // VERIFY: 8b91e462 manual
 // OFFSET: 0x00962720
 int32_t CSimpleCheckbox::SetDisabledCheckedTexture(const char* fileName) {
+    CHECKBOX_CHECK();
     if (this->m_disabledCheckedTexture) {
         this->m_disabledCheckedTexture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<CSimpleTexture> owner(Frame::Native::CreateTexture(nullptr, 2, true));
+    CSimpleTexture* texture = owner.get();
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     CSimpleTexture* texture = data ? new (data) CSimpleTexture(nullptr, 2, 1) : nullptr;
+#endif
 
     if (!texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         if (texture) {
             delete texture;
         }
+#endif
 
         return 0;
     }
@@ -250,5 +315,8 @@ int32_t CSimpleCheckbox::SetDisabledCheckedTexture(const char* fileName) {
     texture->SetAllPoints(this, 1);
     texture->SetBlendMode(GxBlend_Add);
     this->SetDisabledCheckedTexture(texture);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    owner.release();
+#endif
     return 1;
 }

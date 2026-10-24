@@ -79,6 +79,16 @@ static void TextureChecks(LegacyDevice& device, CSimpleTop& root, bool original)
     Check(std::any_of(solid.begin(),solid.end(),[](const CImVector& p){return p.r>240 && p.g<8 && p.b<8;}),
           "Solid texture BGR convention changed");
     Equal(solid,Draw(device,root));
+    // Change only this non-tiled region's layout, leaving its parent and the
+    // resource untouched. A retained vertex snapshot must follow both moves.
+    texture->MarkFramePointsUnused();
+    texture->SetPoint(FRAMEPOINT_TOPLEFT,parent,FRAMEPOINT_TOPLEFT,.1f,0,1);
+    texture->SetPoint(FRAMEPOINT_BOTTOMRIGHT,parent,FRAMEPOINT_BOTTOMRIGHT,.1f,0,1);
+    const auto moved=Draw(device,root);
+    Check(Ink(moved)==Ink(solid) && std::memcmp(moved.data(),solid.data(),solid.size()*sizeof(CImVector)),
+          "Non-tiled texture layout retained stale batch vertices");
+    texture->SetAllPoints(parent,1);
+    Equal(solid,Draw(device,root));
     RegionLua("assert(NativeTextureParentImage:SetDesaturated(true)); assert(NativeTextureParentImage:IsDesaturated())");
     auto gray=Draw(device,root);
     Check(std::any_of(gray.begin(),gray.end(),[](const CImVector& p){return p.r>20 && std::abs(int(p.r)-p.g)<=2 && std::abs(int(p.r)-p.b)<=2;}),

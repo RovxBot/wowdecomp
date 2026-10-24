@@ -15,6 +15,9 @@ struct lua_State;
 
 class CSimpleCheckbox : public CSimpleButton {
     public:
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    bool OwnsStateTexture(CSimpleTexture* texture) const override;
+#endif
     static CDataAllocator s_allocator;
     static int32_t s_metatable;
     static int32_t s_objectType;
