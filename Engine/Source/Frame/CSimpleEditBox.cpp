@@ -2595,13 +2595,19 @@ void CSimpleEditBox::PasteFromClipboard() {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<char, decltype(&OsClipboardFreeString)> retained(string, &OsClipboardFreeString);
+    EditText(string); // Reject malformed/oversized clipboard text before mutation.
+#endif
     int32_t chars;
 
     for (const char* c = string; *c; c += chars) {
         this->Insert(sgetu8(reinterpret_cast<const uint8_t*>(c), &chars));
     }
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     OsClipboardFreeString(string);
+#endif
 }
 
 // VERIFY: 3333ed53 manual

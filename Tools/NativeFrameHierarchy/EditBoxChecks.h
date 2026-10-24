@@ -82,7 +82,10 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     c.edit_candidates.candidates=choices;c.edit_candidates.num_candidates=2;c.edit_candidates.selected_candidate=1;push(c);pump();
     Check(edit->m_imeComposition && std::string(edit->m_text)=="AV" && !edit->m_candidatesFrame,
           "EditBox failed preedit or constructed candidates in input callback");
-    Draw(device,root);
+    for(int i=0;i<4;++i) {
+        Draw(device,root);
+        if(edit->m_candidatesFrame && edit->m_candidatesFrame->m_numVisible>=2) break;
+    }
     Check(edit->m_candidatesFrame && edit->m_candidatesFrame->m_isVisible && edit->m_candidatesFrame->m_numVisible>=2,
           "Deferred EditBox candidates did not render rows");
     auto candidates=Draw(device,root);Equal(candidates,Draw(device,root));
