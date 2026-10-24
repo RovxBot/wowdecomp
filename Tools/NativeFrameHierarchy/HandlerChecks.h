@@ -9,7 +9,8 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     frame->SetPoint(FRAMEPOINT_BOTTOMLEFT, &root, FRAMEPOINT_BOTTOMLEFT, .05f, .05f, 1);
     auto* text = Frame::Native::CreateFontString(frame, 2, true);
     text->SetName("NativeHandlerText"); text->SetAllPoints(frame, 1); text->SetFontObject(&font);
-    text->SetText("AV before", 0);
+    text->SetText("A", 0);
+    const auto initialPixels=Draw(device,root);
     lua_State* L = FrameScript_GetContext();
     const int top = lua_gettop(L), nesting = lua_taintexpected;
     const char* names[] = {"NATIVE_HANDLER_EVENT", "NATIVE_HANDLER_OTHER", nullptr};
@@ -29,7 +30,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         local first = function(self,key)
             assert(self==f and self==this and key=='A' and arg1=='A')
             assert(not pcall(self.Hide,self) and not pcall(CreateFrame,'Frame','RejectedCallback'))
-            t:SetText('AV key'); assert(t:GetText()=='AV key')
+            t:SetText('V'); assert(t:GetText()=='V')
             HandlerLog[#HandlerLog+1]='key'
         end
         f:SetScript('OnKeyDown',first,'ignored trailing argument')
@@ -80,6 +81,9 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     frame->OnLayerMouseWheel(mouse); frame->RunOnEnterScript(1); frame->RunOnLeaveScript(0);
     frame->OnDragStart(mouse); frame->OnDragStop(mouse); frame->OnReceiveDrag(mouse);
     root.m_mouseButtonName=nullptr;
+    const auto keyPixels=Draw(device,root);
+    Check(std::memcmp(initialPixels.data(),keyPixels.data(),keyPixels.size()*sizeof(CImVector))!=0,
+          "Lua key callback did not change glyph pixels");
     RegionLua(R"(
         assert(table.concat(HandlerLog,',')=='key,hook,last,up:A,char,down,up,wheel,enter,leave,drag,stop,receive')
         assert(this=='saved-this' and arg1=='saved-arg' and #HandlerErrors==0)
@@ -96,7 +100,10 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         f:Hide(); f:Show()
     )");
     auto pixels=Draw(device,root);
-    Check(Ink(pixels)>4,"Lua update handler did not render changed FontString"); Equal(pixels,Draw(device,root));
+    Check(Ink(pixels)>4,"Lua update handler did not render changed FontString");
+    Check(std::memcmp(keyPixels.data(),pixels.data(),pixels.size()*sizeof(CImVector))!=0,
+          "Lua update callback did not change glyph pixels");
+    Equal(pixels,Draw(device,root));
     RegionLua("assert(NativeHandlerText:GetText()=='AV callback' and HandlerLog[#HandlerLog]=='update' and #HandlerErrors==0)");
     // Events retain original listener deferral and can replace their own handler.
     RegionLua(R"(
@@ -137,10 +144,11 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         NativeHandlerFrame:SetScript('OnEnter',nil)
     )");
     // Original callback taint is retained, separate from the callback's value.
-    FrameScript_Execute("NativeHandlerFrame:SetScript('OnLoad',function(self) HandlerTaintSecure=issecure() end)","@authored-handler-addon","HandlerAddon");
+    FrameScript_Execute("NativeHandlerFrame:SetScript('OnLoad',function(self) HandlerTaintCalled=true; HandlerTaintSecure=issecure() end)","@authored-handler-addon","HandlerAddon");
     Check(frame->m_onLoad.m_tainted && !std::strcmp(frame->m_onLoad.m_tainted,"HandlerAddon"),"Frame handler taint was discarded");
     frame->RunScript(frame->m_onLoad,0,nullptr);
-    RegionLua("assert(HandlerTaintSecure==false)");
+    // Original issecure returns nil, not Lua false, for tainted execution.
+    RegionLua("assert(HandlerTaintCalled and HandlerTaintSecure==nil)");
     // XML compiles and retains an original wrapper in a transferred virtual node.
     CStatus status;
     const char* document=R"(<Ui><Frame name="NativeHandlerTemplate" virtual="true"><Scripts>
@@ -191,7 +199,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     RegionLua(R"(
         assert(NativeHandlerFrame==nil and NativeHandlerText==nil and HandlerXML1==nil and HandlerXML2==nil)
         seterrorhandler(HandlerOldError)
-        HandlerLog,HandlerErrors,HandlerOldError,HandlerEvents,HandlerTaintSecure,NativeXMLUpdate=nil,nil,nil,nil,nil,nil
+        HandlerLog,HandlerErrors,HandlerOldError,HandlerEvents,HandlerTaintSecure,NativeXMLUpdate,HandlerTaintCalled=nil,nil,nil,nil,nil,nil,nil
         HandlerMetaCalls,HandlerOldGlobalMeta=nil,nil
         collectgarbage('collect')
     )");
