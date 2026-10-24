@@ -83,6 +83,35 @@ int main() {
             badTail=thin; badTail.pop_back(); Fail([&]{DecodeBlp(badTail,true);});
             badTail=thin; badTail[11]=0; Fail([&]{DecodeBlp(badTail,true);});
             badTail=thin; U32(badTail,84+1*4,uint32_t(block.size())); Fail([&]{DecodeBlp(badTail,true);});
+            // The original tooltip border uses a single block at 16x2.
+            // Verify both axis orientations, exact base pixels, and strict
+            // requested-mip rejection; never invent the missing tail pixels.
+            for (bool transpose : {false, true}) {
+                auto tooltip = [&](bool complete) {
+                    Bytes b(148); U32(b,0,0x32504c42); U32(b,4,1);
+                    b[8]=2; b[9]=format ? 8 : 0; b[10]=format; b[11]=1;
+                    unsigned w=transpose ? 16 : 128,h=transpose ? 128 : 16;
+                    U32(b,12,w); U32(b,16,h);
+                    for(unsigned level=0;level<8;++level,w=std::max(1u,w/2),h=std::max(1u,h/2)) {
+                        size_t count=complete || std::min(w,h)>=4 ? ((w+3)/4)*((h+3)/4) : 1;
+                        U32(b,20+level*4,uint32_t(b.size())); U32(b,84+level*4,uint32_t(count*block.size()));
+                        for(size_t i=0;i<count;++i)b.insert(b.end(),block.begin(),block.end());
+                    }
+                    return b;
+                };
+                auto tail=tooltip(false),complete=tooltip(true);
+                const auto baseOnly=DecodeBlp(tail,true);
+                Check(baseOnly.size()==1 && baseOnly[0].rgba==DecodeBlp(complete)[0].rgba,
+                      "Tooltip single-block tail changed base pixels or fabricated mip pixels");
+                Fail([&]{DecodeBlp(tail);});
+                auto bad=tail; U32(bad,84+3*4,uint32_t(block.size()-1)); Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; U32(bad,84+3*4,uint32_t(block.size()*3)); Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; U32(bad,84+2*4,uint32_t(block.size())); Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; U32(bad,84,uint32_t(block.size())); Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; bad.pop_back(); Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; bad[11]=0; Fail([&]{DecodeBlp(bad,true);});
+                bad=tail; U32(bad,transpose ? 16 : 12,127); Fail([&]{DecodeBlp(bad,true);});
+            }
         }
         auto texture = Blp(1,8,8,Bytes{1,128}); texture.pop_back(); Fail([&] { DecodeBlp(texture); });
         Bytes model(0x130 + 48);

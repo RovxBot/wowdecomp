@@ -32,7 +32,16 @@ from an AccountLogin EditBox, renders its original tooltip assets, compares exac
 repeats and checks InterfaceKey before/after the subset. The surrounding frame
 and placement are authored. This is not an EditBox or full AccountLogin execution.
 
-All compilation runs in GitHub Actions. Hosted and real-GPU qualification is
+Original-data inspection exposed a further original thin DXT tail: the 128x16
+Glue tooltip border stores one block for its unrequested 16x2 level. Explicit
+base-only reads admit only that additional bounded shape with power-of-two base
+and mip flag; all spans remain checked. Requested mip-chain reads still reject
+missing blocks. DXT1/3/5 authored fixtures compare complete base pixels and reject
+malformed/truncated/nonthin/unflagged storage in both axis orientations. No tail
+pixels are decoded, fabricated or uploaded. The earlier native rejection and
+release-only GDB header diagnostic remain evidence, separate from qualification.
+
+All compilation runs in GitHub Actions. Final hosted and real-GPU qualification is
 pending. EditBoxes, remaining widgets, complete signed ordered GlueXML and its
 full second digest gate, actual login, transport/authentication and gameplay
 remain open. Clean data stays read-only, signatures and server revision
