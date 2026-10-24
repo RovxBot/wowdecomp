@@ -1,6 +1,7 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Backdrops.h"
 #endif
 #include <cstddef>
 #include <cstdint>
@@ -2213,12 +2214,12 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "IsMouseWheelEnabled", &Frame::Native::ScriptMethod<&Script_IsMouseWheelEnabled, true, false> },
     { "EnableJoystick", &Frame::Native::UnavailableScriptMethod },
     { "IsJoystickEnabled", &Frame::Native::UnavailableScriptMethod },
-    { "GetBackdrop", &Frame::Native::UnavailableScriptMethod },
-    { "SetBackdrop", &Frame::Native::UnavailableScriptMethod },
-    { "GetBackdropColor", &Frame::Native::UnavailableScriptMethod },
-    { "SetBackdropColor", &Frame::Native::UnavailableScriptMethod },
-    { "GetBackdropBorderColor", &Frame::Native::UnavailableScriptMethod },
-    { "SetBackdropBorderColor", &Frame::Native::UnavailableScriptMethod },
+    { "GetBackdrop", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdrop> },
+    { "SetBackdrop", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdrop> },
+    { "GetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropColor> },
+    { "SetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropColor> },
+    { "GetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropBorderColor> },
+    { "SetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropBorderColor> },
     { "SetDepth", &Frame::Native::UnavailableScriptMethod },
     { "GetDepth", &Frame::Native::UnavailableScriptMethod },
     { "GetEffectiveDepth", &Frame::Native::UnavailableScriptMethod },

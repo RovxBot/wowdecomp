@@ -55,6 +55,10 @@ class CBackdropGenerator {
     /* 0064 */ CImVector m_borderColor;
     /* 0068 */ EGxBlend m_alphaMode;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Validate the native representation before allocating/replacing regions.
+    void NativeValidate() const;
+#endif
     CBackdropGenerator();
     void DestroyTextures();
     void Generate(const CRect* rect);

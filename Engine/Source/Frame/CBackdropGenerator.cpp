@@ -12,11 +12,38 @@
 #include "Engine/Source/Tempest/C2Vector.h"
 #include "Engine/Source/Tempest/CRect.h"
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/FrameXML/Portable/Factories.h"
+#include <cmath>
+#include <cstring>
+#include <stdexcept>
+#include <limits>
+void CBackdropGenerator::NativeValidate() const {
+    Frame::Native::RequireRegions();
+    uint32_t blend; std::memcpy(&blend, &m_alphaMode, sizeof(blend));
+    if (blend >= GxBlend_ConstantAlpha || m_tile > 1 || (m_pieces & ~THEWORKS) ||
+        !std::isfinite(m_edgeSize) || m_edgeSize < std::numeric_limits<float>::min() ||
+        !std::isfinite(m_tileSize) || m_tileSize < 0 ||
+        (m_tileSize && m_tileSize < std::numeric_limits<float>::min()))
+        throw std::invalid_argument("Invalid native backdrop size, pieces or blend");
+    for (auto value : {m_insetTop, m_insetBottom, m_insetLeft, m_insetRight})
+        if (!std::isfinite(value)) throw std::invalid_argument("Invalid native backdrop inset");
+    for (auto* value : {m_bgFile.m_str, m_edgeFile.m_str})
+        if (value && std::strlen(value) >= 260) throw std::invalid_argument("Native backdrop image path too long");
+    if (m_pieces && (!m_edgeFile.m_str || !*m_edgeFile.m_str))
+        throw std::invalid_argument("Native backdrop border needs an image");
+}
+#endif
+
 static const float DEFAULT_CORNER_SIZE = 0.025f;
 
 // VERIFY: 2d4ced50 auto
 // OFFSET: 0x004A25F0
 void CBackdropGenerator::SetVertexColor(const CImVector& color) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     this->m_backgroundColor.a = color.a;
     this->m_backgroundColor.r = color.r;
     this->m_backgroundColor.g = color.g;
@@ -30,6 +57,9 @@ void CBackdropGenerator::SetVertexColor(const CImVector& color) {
 // VERIFY: 606f01de auto
 // OFFSET: 0x004A2630
 void CBackdropGenerator::SetBorderVertexColor(const CImVector& color) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     this->m_borderColor.a = color.a;
     this->m_borderColor.r = color.r;
     this->m_borderColor.g = color.g;
@@ -71,6 +101,9 @@ void CBackdropGenerator::SetBorderVertexColor(const CImVector& color) {
 // VERIFY: 6abbecf6 manual
 // OFFSET: 0x004A26D0
 void CBackdropGenerator::DestroyTextures() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (this->m_backgroundTexture) {
         delete this->m_backgroundTexture;
         this->m_backgroundTexture = nullptr;
@@ -120,6 +153,10 @@ void CBackdropGenerator::DestroyTextures() {
 // VERIFY: 2a96c7b0 auto
 // OFFSET: 0x004A2780
 void CBackdropGenerator::LoadXML(XMLNode* node, CStatus* status) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    FrameXML::Native::ValidateCreation(node);
+#endif
     const char* bgFile = node->GetAttributeByName("bgFile");
     const char* edgeFile = node->GetAttributeByName("edgeFile");
     const char* tile = node->GetAttributeByName("tile");
@@ -192,6 +229,16 @@ void CBackdropGenerator::Generate(const CRect* rect) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    NativeValidate();
+    // Check all quotients before changing any retained texture coordinates.
+    const double widthCheck = double(rect->maxX) - rect->minX;
+    const double heightCheck = double(rect->maxY) - rect->minY;
+    for (double extent : {widthCheck, heightCheck})
+        for (double size : {double(m_edgeSize), double(m_tileSize ? m_tileSize : m_edgeSize)})
+            if (!std::isfinite(extent / size) || extent < 0 || extent / size > 10000)
+                throw std::invalid_argument("Native backdrop coordinates exceed original range");
+#endif
     C2Vector texCoords[4];
 
     float width = rect->maxX - rect->minX;
@@ -278,6 +325,11 @@ void CBackdropGenerator::Generate(const CRect* rect) {
 // VERIFY: 67f40144 manual
 // OFFSET: 0x004A2D40
 CBackdropGenerator::CBackdropGenerator() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    this->m_alphaMode = GxBlend_Alpha;
+    this->unused_0044 = 0;
+#endif
     this->m_backgroundTexture = nullptr;
     this->m_leftTexture = nullptr;
     this->m_rightTexture = nullptr;
@@ -302,6 +354,15 @@ CBackdropGenerator::CBackdropGenerator() {
 // VERIFY: 37f5488d manual
 // OFFSET: 0x004A2E00
 void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireSimpleFrame(frame);
+    NativeValidate();
+    if (m_backgroundTexture || m_leftTexture || m_rightTexture || m_topTexture || m_bottomTexture ||
+        m_topLeftTexture || m_topRightTexture || m_bottomLeftTexture || m_bottomRightTexture)
+        throw std::logic_error("Backdrop already has output regions");
+    try {
+#endif
     if (!frame) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -310,8 +371,12 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
     C2Vector texCoords[4];
 
     if (this->m_bgFile.m_str && *this->m_bgFile.m_str) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 0, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 0, 1) : nullptr;
+#endif
         this->m_backgroundTexture = texture;
 
         texture->SetPoint(FRAMEPOINT_TOPLEFT, frame, FRAMEPOINT_TOPLEFT, this->m_insetLeft, -this->m_insetTop, 0);
@@ -319,64 +384,106 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
         texture->SetPoint(FRAMEPOINT_BOTTOMLEFT, frame, FRAMEPOINT_BOTTOMLEFT, this->m_insetLeft, this->m_insetBottom, 0);
         texture->SetPoint(FRAMEPOINT_BOTTOMRIGHT, frame, FRAMEPOINT_BOTTOMRIGHT, -this->m_insetRight, this->m_insetTop, 0);
         texture->Resize(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        // Background coordinates repeat in both axes; retain a standalone sampler.
+        if (!texture->SetTexture(m_bgFile.m_str, m_tile, m_tile, CSimpleTexture::s_textureFilterMode, ImageMode_Normal))
+            throw std::runtime_error("Native backdrop background image failed");
+#else
         texture->SetTexture(this->m_bgFile.m_str ? this->m_bgFile.m_str : "", this->m_tile, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
     }
 
     if (this->m_pieces & LEFTSIDE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_leftTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
         texture->SetPoint(FRAMEPOINT_TOPLEFT, frame, FRAMEPOINT_TOPLEFT, 0.0f, -this->m_edgeSize, 0);
         texture->SetPoint(FRAMEPOINT_BOTTOMLEFT, frame, FRAMEPOINT_BOTTOMLEFT, 0.0f, this->m_edgeSize, 0);
         texture->Resize(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & RIGHTSIDE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_rightTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
         texture->SetPoint(FRAMEPOINT_TOPRIGHT, frame, FRAMEPOINT_TOPRIGHT, 0.0f, -this->m_edgeSize, 0);
         texture->SetPoint(FRAMEPOINT_BOTTOMRIGHT, frame, FRAMEPOINT_BOTTOMRIGHT, 0.0f, this->m_edgeSize, 0);
         texture->Resize(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & TOPSIDE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_topTexture = texture;
 
         texture->SetHeight(this->m_edgeSize);
         texture->SetPoint(FRAMEPOINT_TOPLEFT, frame, FRAMEPOINT_TOPLEFT, this->m_edgeSize, 0.0f, 0);
         texture->SetPoint(FRAMEPOINT_TOPRIGHT, frame, FRAMEPOINT_TOPRIGHT, -this->m_edgeSize, 0.0f, 0);
         texture->Resize(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & BOTTOMSIDE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_bottomTexture = texture;
 
         texture->SetHeight(this->m_edgeSize);
         texture->SetPoint(FRAMEPOINT_BOTTOMLEFT, frame, FRAMEPOINT_BOTTOMLEFT, this->m_edgeSize, 0.0f, 0);
         texture->SetPoint(FRAMEPOINT_BOTTOMRIGHT, frame, FRAMEPOINT_BOTTOMRIGHT, -this->m_edgeSize, 0.0f, 0);
         texture->Resize(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 1, 1, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & TOPLEFTCORNER) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_topLeftTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
@@ -390,14 +497,22 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
         texCoords[2].y = 0.0625f;
         texCoords[3].x = 0.6171875f;
         texCoords[3].y = 0.9375f;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetTexCoord(texCoords);
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & TOPRIGHTCORNER) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_topRightTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
@@ -411,14 +526,22 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
         texCoords[2].y = 0.0625f;
         texCoords[3].x = 0.7421875f;
         texCoords[3].y = 0.9375f;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetTexCoord(texCoords);
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & BOTTOMLEFTCORNER) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_bottomLeftTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
@@ -432,14 +555,22 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
         texCoords[2].y = 0.0625f;
         texCoords[3].x = 0.8671875f;
         texCoords[3].y = 0.9375f;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetTexCoord(texCoords);
         texture->SetBlendMode(this->m_alphaMode);
     }
 
     if (this->m_pieces & BOTTOMRIGHTCORNER) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = Frame::Native::CreateTexture(frame, 1, true);
+#else
         void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         CSimpleTexture* texture = data ? new (data) CSimpleTexture(frame, 1, 1) : nullptr;
+#endif
         this->m_bottomRightTexture = texture;
 
         texture->SetWidth(this->m_edgeSize);
@@ -453,8 +584,18 @@ void CBackdropGenerator::SetOutput(CSimpleFrame* frame) {
         texCoords[2].y = 0.0625f;
         texCoords[3].x = 0.9921875f;
         texCoords[3].y = 0.9375f;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) throw std::runtime_error("Native backdrop border image failed");
+#else
         texture->SetTexture(this->m_edgeFile.m_str ? this->m_edgeFile.m_str : "", 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
+#endif
         texture->SetTexCoord(texCoords);
         texture->SetBlendMode(this->m_alphaMode);
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    } catch (...) {
+        DestroyTextures();
+        throw;
+    }
+#endif
 }

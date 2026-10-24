@@ -20,6 +20,8 @@ add_library(WowNativeFrameRender STATIC
     ../Frame/Portable/Render.cpp)
 target_link_libraries(WowNativeFrameRender PUBLIC WowNativeFrameFonts)
 add_library(WowNativeFrameRegions STATIC
+    ../Frame/CBackdropGenerator.cpp
+    ../Frame/Portable/Backdrops.cpp
     ../Frame/CSimpleCheckbox.cpp
     ../Frame/CSimpleCheckbox_Scripts.cpp
     ../Frame/CSimpleButton.cpp

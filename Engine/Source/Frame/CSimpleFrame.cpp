@@ -2,6 +2,7 @@
 #include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include <memory>
 #include "Engine/Source/Frame/Portable/Storage.h"
 #define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
 #else
@@ -308,7 +309,7 @@ CSimpleFrame::~CSimpleFrame() {
     }
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_backdropGenerator) std::terminate();
+    delete this->m_backdropGenerator;
 #else
     if (this->m_backdropGenerator) {
         delete this->m_backdropGenerator;
@@ -1197,13 +1198,9 @@ void CSimpleFrame::OnFrameSizeChanged(const CRect& rect) {
     this->m_hitRect.maxY = this->m_rect.maxY - this->m_hitRectInsets.maxY * this->m_layoutScale;
 
     if (fabs(rect.maxX - rect.minX - (this->m_rect.maxX - this->m_rect.minX)) >= 0.00000023841858f || fabs(rect.maxY - rect.minY - (this->m_rect.maxY - this->m_rect.minY)) >= 0.00000023841858f) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_backdropGenerator) Frame::Native::UnavailableFrameFeature();
-#else
         if (this->m_backdropGenerator) {
             this->m_backdropGenerator->Generate(&this->m_rect);
         }
-#endif
 
         float scale = 1.0f / this->m_layoutScale;
         this->OnFrameSizeChanged((this->m_rect.maxX - this->m_rect.minX) * scale, (this->m_rect.maxY - this->m_rect.minY) * scale);
@@ -1695,7 +1692,22 @@ void CSimpleFrame::PostLoadXML(XMLNode* node, CStatus* status) {
 void CSimpleFrame::SetBackdrop(CBackdropGenerator* backdrop) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    Frame::Native::RequireTreeMutation();
+    if (backdrop == m_backdropGenerator) return;
+    // Caller retains the generator until success. Construct all new regions
+    // first; failed admission leaves the previous backdrop owned and usable.
+    if (backdrop) {
+        backdrop->SetOutput(this);
+        try {
+            CRect rect{};
+            if (GetRect(&rect)) backdrop->Generate(&rect);
+        } catch (...) { backdrop->DestroyTextures(); throw; }
+    }
+    if (m_backdropGenerator) {
+        m_backdropGenerator->DestroyTextures();
+        delete m_backdropGenerator;
+    }
+    m_backdropGenerator = backdrop;
 #else
 
     if (this->m_backdropGenerator) {
@@ -2895,7 +2907,10 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
             this->m_resizeRect.maxX = maxWidth;
         } else if (!SStrCmpI(child->m_name.m_str, "Backdrop", STORM_MAX_STR)) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-            Frame::Native::UnavailableFrameFeature();
+            auto backdrop = std::make_unique<CBackdropGenerator>();
+            backdrop->LoadXML(child, status);
+            this->SetBackdrop(backdrop.get());
+            backdrop.release();
 #else
             void* mem = SMemAlloc(sizeof(CBackdropGenerator), __FILE__, __LINE__, 0);
             CBackdropGenerator* backdrop = mem ? new (mem) CBackdropGenerator() : nullptr;

@@ -134,7 +134,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
     const char* supported[] = {"Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
         "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
-        "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
+        "AbsInset", "RelInset", "Backdrop", "TileSize", "EdgeSize", "BackgroundInsets", "BorderColor", "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
     if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
         throw std::invalid_argument("Native XML widget or child service is unavailable");
     if (Is(tag, "Texture")) {
