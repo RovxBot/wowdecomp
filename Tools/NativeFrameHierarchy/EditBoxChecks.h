@@ -2,7 +2,7 @@
 #include "Engine/Source/Frame/CSimpleEditBox.h"
 #include "Engine/Source/Os/OsClipboard.h"
 static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& root,
-                          CSimpleFont& font, const std::string& snapshot) {
+                          CSimpleFont& font, bool original, const std::string& snapshot) {
     const int frames = CSimpleFrame::s_frameCount;
     const auto strings = CSimpleFontString::s_allocator.m_dataUsed;
     auto pump = [&] {
@@ -63,6 +63,8 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     edit->SetCursorPosition(3);edit->Insert(edit->m_text+1,nullptr,0,0,1);
     Check(std::string(edit->m_text)=="AVAVA","Aliased insertion corrupted source");
     edit->SetText(edit->m_text+2,nullptr);Check(std::string(edit->m_text)=="AVA","Aliased SetText corrupted source");
+    edit->SetText("|cffffffff",nullptr);edit->MoveBackward(0);
+    Check(edit->m_cursorPos==0,"Quoted-code backward boundary");
     edit->m_textMaxLength=3;edit->SetText("A\xf0\x9f\x98\x80",nullptr);
     Check(std::string(edit->m_text)=="A","Byte limit split a scalar");edit->m_textMaxLength=-1;
     RegionLua("NativeEdit:SetMaxLetters(2); NativeEdit:SetText('AVA'); assert(NativeEdit:GetText()=='AV'); NativeEdit:SetMaxLetters(32)");
@@ -129,5 +131,56 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     RegionLua("assert(not pcall(StaleEdit.GetText,StaleEdit)); StaleEdit=nil");
     Check(CSimpleFrame::s_frameCount==frames && CSimpleFontString::s_allocator.m_dataUsed==strings &&
           !CSimpleEditBox::s_allocator.m_dataUsed && !Ink(Draw(device,root)),"EditBox teardown retained owners/regions/pixels");
+    if(original) {
+        uint8_t before[16],after[16];
+        Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),before)==3,
+              "Original EditBox pre-creation signature");
+        tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\AccountLogin.xml",nullptr,&status));
+        Check(bool(tree),"Original AccountLogin XML missing");
+        XMLNode* selected=nullptr;
+        std::function<void(XMLNode*)> find=[&](XMLNode* node) {
+            for(;node;node=node->m_next) {
+                if(!selected && !SStrCmpI(node->m_name.m_str,"EditBox",STORM_MAX_STR) && node->GetChildByName("Backdrop")) selected=node;
+                find(node->m_child);
+            }
+        };
+        find(XMLTree_GetRoot(tree.get()));Check(selected,"Original login field missing");
+        // Retain original field/font/backdrop settings in memory. Placement,
+        // scripts and typed sample text are authored; this is a signed subset.
+        selected->SetAttribute("name","NativeOriginalLoginField");
+        selected->SetAttribute("parent","");selected->SetAttribute("inherits","");selected->SetAttribute("autoFocus","false");
+        for(auto* child=selected->m_child;child;) {
+            auto* next=child->m_next;
+            bool keep=false;
+            for(const char* tag:{"Size","Backdrop","FontString","TextInsets","HighlightColor"})
+                keep=keep || !SStrCmpI(child->m_name.m_str,tag,STORM_MAX_STR);
+            if(!keep){child->Detach();delete child;}
+            child=next;
+        }
+        std::unique_ptr<CSimpleFrame> owner(FrameXML_CreateFrame(selected,nullptr,&status));
+        auto* field=dynamic_cast<CSimpleEditBox*>(owner.get());Check(field,"Original login field factory");
+        field->SetPoint(FRAMEPOINT_CENTER,&root,FRAMEPOINT_CENTER,0,0,1);field->m_cursorBlinkSpeed=0;
+        tree.reset();
+        CSimpleEditBox::SetKeyboardFocus(field);text("AV");pump();
+        std::vector<CImVector> pixels;
+        for(int i=0;i<200;++i) {
+            pixels=Draw(device,root);
+            if(field->m_backdropGenerator && field->m_backdropGenerator->m_backgroundTexture &&
+               field->m_backdropGenerator->m_backgroundTexture->m_texture &&
+               TextureIsReadyNow(field->m_backdropGenerator->m_backgroundTexture->m_texture)) break;
+            SDL_Delay(1);
+        }
+        Check(std::string(field->m_text)=="AV" && field->m_fontString->m_fontHandle && Ink(pixels)>100,
+              "Original login field lost typed text/font/backdrop pixels");
+        Equal(pixels,Draw(device,root));
+        if(!snapshot.empty()) {
+            std::ofstream out(snapshot+".editbox-original.ppm",std::ios::binary);out<<"P6\n640 480\n255\n";
+            for(int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=pixels[y*640+x];out.put(char(p.r));out.put(char(p.g));out.put(char(p.b));}
+            Check(bool(out),"Original EditBox capture");
+        }
+        Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),after)==3 && !std::memcmp(before,after,16),
+              "Original field subset post-creation digest changed");
+        std::cout<<"original-AccountLogin-editbox-typed-authored-text-font-backdrop-signature-subset=passed\n";
+    }
     std::cout<<"frame-editbox-sdl-utf8-selection-clipboard-password-numeric-history-focus-candidates-guards-teardown=passed\n";
 }

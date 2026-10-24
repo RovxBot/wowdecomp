@@ -4,11 +4,16 @@
 #include <cstring>
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/CSimpleRegion.h"
 #include <algorithm>
 #include <memory>
 #include <string>
 #define EDIT_CHECK() Frame::Native::RequireScriptTextMutation()
 namespace {
+void HideEditRegion(CSimpleRegion* region) {
+    Frame::Native::RequireScriptTextMutation();
+    region->m_shown = 0; region->HideThis();
+}
 void EditText(const char* text) {
     if (text && std::strlen(text) > 4095) throw std::length_error("Native EditBox text exceeds 4095 bytes");
     if (text) OsNative::DecodeUtf8(text);
@@ -292,7 +297,11 @@ CSimpleEditBox::CSimpleEditBox(CSimpleFrame* parent) : CSimpleFrame(parent) {
     data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     this->m_cursorTexture = data ? new (data) CSimpleTexture(this, 3, 1) : nullptr;
 #endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    HideEditRegion(this->m_cursorTexture);
+#else
     this->m_cursorTexture->Hide();
+#endif
 
     CImVector cursorColor;
     cursorColor.b = 0xFF;
@@ -699,7 +708,11 @@ int32_t CSimpleEditBox::GetNumToLen(int32_t offset, int32_t count, bool skipHype
 
             code = (*info >> 16) & 0xFF;
             length += *info & 0xFFFF;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        } while (info > m_textInfo && (code == CODE_COLORRESTORE || code == CODE_HYPERLINKSTOP || code == CODE_TEXTURESTOP || (skipHyperlinks && static_cast<int32_t>(*info) < 0 && code != CODE_HYPERLINKSTART)));
+#else
         } while (code == CODE_COLORRESTORE || code == CODE_HYPERLINKSTOP || code == CODE_TEXTURESTOP || (skipHyperlinks && static_cast<int32_t>(*info) < 0 && code != CODE_HYPERLINKSTART));
+#endif
 
         while (info > this->m_textInfo) {
             do {
@@ -1857,7 +1870,11 @@ void CSimpleEditBox::UpdateVisibleCursor() {
     int32_t cursor = this->m_cursorPos;
 
     if (cursor < this->m_visiblePosition || cursor > this->m_visiblePosition + this->m_visibleLength) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_cursorTexture);
+#else
         this->m_cursorTexture->Hide();
+#endif
         return;
     }
 
@@ -1929,8 +1946,13 @@ void CSimpleEditBox::UpdateVisibleCursor() {
         this->m_cursorTexture->ShowThis();
         return;
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+
+    HideEditRegion(this->m_cursorTexture);
+#else
 
     this->m_cursorTexture->Hide();
+#endif
 }
 
 // VERIFY: f8f4d424 manual
@@ -1940,7 +1962,7 @@ void CSimpleEditBox::UpdateHighlightArea(CSimpleRegion* region, int32_t left, in
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     left = std::max(left, m_visiblePosition);
     right = std::min(right, m_visiblePosition + m_visibleLength);
-    if (left >= right) { region->Hide(); return; }
+    if (left >= right) { HideEditRegion(region); return; }
 #endif
     const char* text = this->m_editBoxFlags & 0x8 ? this->m_textHidden : this->m_text;
     float y = 0.0f;
@@ -2019,7 +2041,11 @@ void CSimpleEditBox::UpdateHighlightArea(CSimpleRegion* region, int32_t left, in
     region->Resize(1);
 
     if (static_cast<uint32_t>(left) >= static_cast<uint32_t>(right) || fabs(width) < 0.00000023841858f) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(region);
+#else
         region->Hide();
+#endif
     } else {
         region->m_shown = 1;
         region->ShowThis();
@@ -2237,6 +2263,9 @@ void CSimpleEditBox::CreateCandidatesFrame() {
     void* data = CSimpleMessageFrame::s_allocator.GetData(0, typeid(CSimpleMessageFrame).raw_name(), SLOG_OBJECT);
     this->m_candidatesFrame = data ? new (data) CSimpleMessageFrame(nullptr) : nullptr;
 #endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    try {
+#endif
     this->m_candidatesFrame->SetFrameStrata(FRAME_STRATA_TOOLTIP);
     this->m_candidatesFrame->m_font->SetFontObject(this->m_font);
     this->m_candidatesFrame->m_font->m_attributes.SetJustifyH(0x1);
@@ -2279,6 +2308,12 @@ void CSimpleEditBox::CreateCandidatesFrame() {
     highlightColor.r = 0x80;
     highlightColor.a = 0xFF;
     this->m_candidateHighlight->SetTexture(highlightColor);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    } catch (...) {
+        delete m_candidatesFrame; m_candidatesFrame = nullptr; m_candidateHighlight = nullptr;
+        throw;
+    }
+#endif
 }
 
 // VERIFY: ad41eed4 manual
@@ -2489,7 +2524,11 @@ void CSimpleEditBox::UpdateVisibleHighlight() {
         if (this->m_imeComposition) {
             this->UpdateHighlightArea(this->m_clauseHighlight, this->m_clauseStart, this->m_clauseEnd);
         } else {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_clauseHighlight);
+#else
             this->m_clauseHighlight->Hide();
+#endif
         }
     }
 
@@ -2517,15 +2556,27 @@ void CSimpleEditBox::UpdateVisibleHighlight() {
 
     if (endLine == startLine) {
         this->UpdateHighlightArea(this->m_highlightTextures[0], this->m_highlightLeft, this->m_highlightRight);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[1]);
+#else
         this->m_highlightTextures[1]->Hide();
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[2]);
+#else
         this->m_highlightTextures[2]->Hide();
+#endif
         return;
     }
 
     this->UpdateHighlightArea(this->m_highlightTextures[0], this->m_highlightLeft, this->m_visibleLines.m_data[startLine + 1]);
 
     if (endLine - startLine + 1 == 2) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[1]);
+#else
         this->m_highlightTextures[1]->Hide();
+#endif
     } else {
         this->m_highlightTextures[1]->m_shown = 1;
         this->m_highlightTextures[1]->ShowThis();
@@ -3196,7 +3247,11 @@ void CSimpleEditBox::OnLayerUpdate(float elapsedSec) {
 
     if (!g_theGxDevicePtr->CapsWindowHasFocus(-1)) {
         if (this->m_cursorTexture->m_shown) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_cursorTexture);
+#else
             this->m_cursorTexture->Hide();
+#endif
         }
 
         return;
@@ -3217,7 +3272,11 @@ void CSimpleEditBox::OnLayerUpdate(float elapsedSec) {
     if (this == CSimpleEditBox::s_currentFocus && this->m_blinkElapsedTime > this->m_cursorBlinkSpeed) {
     EDIT_CHECK();
         if (this->m_cursorTexture->m_shown) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_cursorTexture);
+#else
             this->m_cursorTexture->Hide();
+#endif
         } else {
             this->m_cursorTexture->m_shown = 1;
             this->m_cursorTexture->ShowThis();
@@ -3504,10 +3563,14 @@ void CSimpleEditBox::PrepareCandidates() {
     const float height = m_fontString->GetFontHeight(true);
     if (!(height > 0)) return; // Retry after the font resolves.
     m_candidatesFrame->Clear();
-    m_candidatesFrame->SetHeight((count + 1) * height * 1.5f);
+    const float scale = m_candidatesFrame->m_layoutScale;
+    const float row = (CSimpleTop::RoundToPixelHeight(scale * m_candidatesFrame->m_font->m_attributes.m_fontHeight) +
+                       CSimpleTop::RoundToPixelHeight(scale * m_candidatesFrame->m_font->m_attributes.m_spacing)) / scale;
+    if (!(row > 0)) return;
+    m_candidatesFrame->SetHeight((count + 1) * row + row * 0.01f);
     m_candidateHighlight->MarkFramePointsUnused();
-    m_candidateHighlight->SetPoint(FRAMEPOINT_TOPLEFT, m_candidatesFrame, FRAMEPOINT_TOPLEFT, 0, -selected * height, 0);
-    m_candidateHighlight->SetSize(height * 10, height);
+    m_candidateHighlight->SetPoint(FRAMEPOINT_TOPLEFT, m_candidatesFrame, FRAMEPOINT_TOPLEFT, 0, -selected * row, 0);
+    m_candidateHighlight->SetSize(height * 10, row);
     const CImVector white(255,255,255,255);
     std::string label = "> " + std::to_string(selected + 1) + "/" + std::to_string(count);
     m_candidatesFrame->AddMessage(label.c_str(), white);

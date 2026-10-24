@@ -33,8 +33,10 @@ Authored SDL injections are separate from physical keyboard/IME/language accepta
 `NativeFrameHierarchyCheck` exercises typing, Unicode cursor/deletion, aliased
 editing, selection, limits, clipboard shortcuts, password/numeric fields, history,
 Lua/XML round trips, focus/reentry/teardown and retained candidate rows through the
-actual SDL/Os/original Frame queues. Existing hierarchy and original resource
-regressions run afterward. All client/dependency compilation is hosted in Actions;
+actual SDL/Os/original Frame queues. Original-data mode also constructs the original AccountLogin field's size/font/
+backdrop/inset subset, with authored placement/text and scripts omitted explicitly;
+its before/after InterfaceKey checks remain separate from full GlueXML creation.
+Existing hierarchy and original resource regressions run afterward. All client/dependency compilation is hosted in Actions;
 local work is source inspection and Python source/launcher tests only.
 
 Qualification is pending. Original-data runs use the read-only
