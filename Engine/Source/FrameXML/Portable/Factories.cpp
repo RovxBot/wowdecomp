@@ -118,7 +118,10 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnMouseWheel", "OnDragStart",
             "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
             "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
-        if (std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
+        const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
+                                   Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
+        if ((buttonHandler && (path.size() < 3 || !Is(path[path.size()-3]->m_name.m_str, "Button"))) ||
+            std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
             node->m_child || node->m_bodyLen > 1024 * 1024 || node->GetAttributeByName("inherit"))
             throw std::invalid_argument("Unavailable or excessive native XML script handler");
         path.pop_back();
