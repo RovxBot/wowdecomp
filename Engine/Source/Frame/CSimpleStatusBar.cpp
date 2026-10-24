@@ -175,7 +175,7 @@ void CSimpleStatusBar::SetBarTexture(CSimpleTexture* texture, uint32_t drawLayer
     this->m_changed = 1;
     this->m_barTexture = texture;
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    this->SetRotatesTexture(this->m_rotatesTexture);
+    if (this->m_rotatesTexture) this->SetRotatesTexture(1);
 #endif
 }
 

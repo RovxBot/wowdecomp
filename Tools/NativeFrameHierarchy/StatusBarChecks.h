@@ -56,6 +56,13 @@ static void StatusBarChecks(LegacyDevice& device, CSimpleTop& root, bool origina
     auto near = [](float a, float b) { return std::fabs(a-b) < 0.0001f; };
     Check(near(fill.maxX-fill.minX, (frame.maxX-frame.minX)*.5f) &&
           near(fill.maxY, frame.maxY) && near(fill.minY, frame.minY), "StatusBar horizontal fraction");
+    RegionLua(R"(
+      local custom=NativeBar:CreateTexture()
+      custom:SetTexture(1,0,0,1); custom:SetTexCoord(.2,.8,.1,.9)
+      NativeBar:SetStatusBarTexture(custom)
+      local x,y=custom:GetTexCoord()
+      assert(math.abs(x-.2)<1e-6 and math.abs(y-.1)<1e-6)
+    )");
     RegionLua("NativeBar:SetOrientation('VERTICAL'); NativeBar:SetValue(25); NativeBar:SetRotatesTexture(true)");
     auto vertical = Draw(device, root);
     Check(bar->m_barTexture->GetRect(&fill) && near(fill.maxY-fill.minY, (frame.maxY-frame.minY)*.25f) &&
