@@ -1,12 +1,14 @@
 #include "Engine/Source/lua-5.1/src/lua.h"
-static void RegionLua(const char* source) {
+static void RegionLuaAt(const char* source, int line) {
     CStatus status;
-    int result = FrameScript_ExecuteBuffer(source, std::strlen(source), "RegionScriptFixture", &status, nullptr);
+    const auto name=std::string("RegionScriptFixture:")+std::to_string(line);
+    int result = FrameScript_ExecuteBuffer(source, std::strlen(source), name.c_str(), &status, nullptr);
     if (!result || !status.IsEmpty()) {
         char error[2048];
         throw std::runtime_error(status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; "));
     }
 }
+#define RegionLua(source) RegionLuaAt(source, __LINE__)
 static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font) {
     auto* parent = Create_SimpleFrame(nullptr);
     parent->SetName("NativeLuaFrame");
@@ -53,7 +55,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
         title:SetAllPoints(f)
         assert(title == f:CreateTitleRegion())
         assert(not pcall(f.CreateTexture,f,'RejectedTexture',nil,'MissingTextureTemplate'))
-        assert(not pcall(f.SetScript,f,'OnKeyDown',function() end))
+        assert(f:HasScript('OnKeyDown'))
         assert(t:GetText() == nil)
         local function text(input, expected)
             t:SetText(input)

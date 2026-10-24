@@ -927,3 +927,19 @@ transport/authentication and observed gameplay remain open. Physical IME/edit-bo
 candidate acceptance remains pending. No new Windows runtime, macOS graphics or
 server acceptance; preserve server revision discrepancies, interactive sign-in and
 read-only clean data. M3 remains incomplete.
+
+
+The next [Frame Lua/XML handler candidate](FRAME_HANDLERS.md) is pushed in
+[PR #74](https://github.com/RovxBot/wowdecomp/pull/74) at implementation
+`e6af780f68dae599cf744769092f9d9cd184756f`. Its [pending validation](frame-handler-validation.json)
+records 57 passing local source/launcher checks, one unavailable-CMake skip and
+unchanged Windows-selected tokens/original mouse-button helper extraction.
+Original script/event methods, XML caches and nonempty root/Frame callbacks are
+implemented with bounded callback lifetime and text updates. No implementation
+binary has compiled or executed: explicit hosted workflow dispatch returned HTTP
+422, `Actions has been disabled for this repository.`, despite enabled permission
+and active-workflow readbacks. Resolve that external restriction, run hosted checks,
+verify artifacts and execute original-data GPU/sanitizer regressions before merging.
+Do not treat the source candidate as qualified. M3/login/gameplay and physical
+IME/edit-box acceptance remain open; signatures, server identity discrepancies,
+interactive sign-in and read-only clean data remain intact.

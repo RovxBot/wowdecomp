@@ -672,6 +672,31 @@ and source inspection are different evidence levels.
   passed. All compilation ran in Actions; physical IME/edit-box acceptance, full
   signed GlueXML/login and transport/gameplay remain open.
 
+## NP-024 — Original Frame Lua and XML handlers (candidate)
+
+- Status: unqualified candidate in [PR #74](https://github.com/RovxBot/wowdecomp/pull/74),
+  implementation `e6af780f68dae599cf744769092f9d9cd184756f`, following product main
+  `8ca66f5cc9be86f49b84ad7153b559d0ebb4065a`. No merge or hosted/runtime pass.
+- Source: original 12340 Frame GetScript/SetScript/HookScript/event methods,
+  script discovery, LoadXML_Scripts and key/character/mouse/drag/update consumers.
+  The original GetMouseButtonName body moves unchanged into a shared source.
+  No donor import, dependency update, new OFFSET/VERIFY claim or game data.
+- Adaptation: native trailing-argument ownership, matching compiled XML cache
+  allocation, bounded/direct XML cache admission, callback structural lifetime
+  guards, selected callback text edits and raw internal compatibility-global
+  writes around protected calls. Existing canonical tables, taint, hook wrappers,
+  retained strings and pending listener semantics stay selected. Windows tokens
+  match the immutable base. See [contracts](m3/FRAME_HANDLERS.md).
+- Validation: 57 local source/launcher checks passed; one unavailable-CMake skip.
+  Source token/extraction and whitespace checks passed. All compilation is still
+  reserved for Actions. Dispatch failed with HTTP 422, `Actions has been disabled
+  for this repository.`, while readbacks reported enabled permissions/active
+  workflow. The [pending record](m3/frame-handler-validation.json) preserves that
+  external block; hosted checks, artifacts and original-data GPU/sanitizer runs
+  must pass before merge. No policy, signature, protocol or credential change.
+  Remaining widgets, full signed GlueXML/login, physical IME/edit-box acceptance
+  and transport/gameplay remain open; M3 is incomplete.
+
 ## UP-001 — Reviewed 12340 upstream maintenance
 
 - Status: merged in [PR #15](https://github.com/RovxBot/wowdecomp/pull/15), candidate

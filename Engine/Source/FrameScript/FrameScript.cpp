@@ -1417,14 +1417,26 @@ void FrameScript_Execute(int32_t function, FrameScript_Object* object, int32_t a
         }
 
         lua_rawgeti(L, LUA_REGISTRYINDEX, object->m_luaObjectRef);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, "this");
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, "this");
+#endif
     }
 
     if (event) {
         lua_pushstring(L, "event");
         lua_rawget(L, LUA_GLOBALSINDEX);
         lua_pushvalue(L, argBase);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, "event");
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, "event");
+#endif
     }
 
     int32_t argNum = 0;
@@ -1442,7 +1454,13 @@ void FrameScript_Execute(int32_t function, FrameScript_Object* object, int32_t a
         lua_pushstring(L, s_argName);
         lua_rawget(L, LUA_GLOBALSINDEX);
         lua_pushvalue(L, i + argBase);
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, s_argName);
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, s_argName);
+#endif
     }
 
     lua_taintexpected = savedExpected;
@@ -1494,15 +1512,33 @@ void FrameScript_Execute(int32_t function, FrameScript_Object* object, int32_t a
             s_argName[4] = '\0';
         }
 
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, s_argName);
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, s_argName);
+#endif
     }
 
     if (event) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, "event");
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, "event");
+#endif
     }
 
     if (object) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        lua_pushstring(L, "this");
+        lua_insert(L, -2);
+        lua_rawset(L, LUA_GLOBALSINDEX);
+#else
         lua_setglobal(L, "this");
+#endif
     }
 
     lua_taintexpected = savedExpected;

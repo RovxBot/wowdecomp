@@ -128,12 +128,22 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     high->Show();root.OnLayerUpdate(0.01f);Check(root.m_mouseFocus==high,"Shown consumer focus refresh");
     high->DisableEvent(SIMPLE_EVENT_MOUSE);Check(!root.m_mouseFocus,"Disable retained focus");
     high->EnableEvent(SIMPLE_EVENT_MOUSE,20);root.OnLayerUpdate(0.01f);
-    // Lua handlers remain explicitly unavailable before pooled factories.
+    // Unselected event kinds still reject; original Lua mouse handlers execute.
     root.m_moveResizeEnabled=1;deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
     deliver(OS_INPUT_MOUSE_UP,MOUSE_BUTTON_LEFT);root.m_moveResizeEnabled=0;
     Reject([&]{high->EnableEvent(SIMPLE_EVENT_4,0);});
-    high->m_onMouseDown.m_luaRef=1;
-    CMouseEvent empty;Reject([&]{high->CSimpleFrame::OnLayerMouseDown(empty,nullptr);});high->m_onMouseDown.m_luaRef=0;
+    CStatus scriptStatus;
+    int32_t handler=FrameScript_CompileFunction("MouseHandlerFixture","return function(self,button) %s end",
+        "assert(self==this and button=='LeftButton'); MouseLuaObserved=true",&scriptStatus);
+    Check(handler>0 && scriptStatus.IsEmpty(),"Mouse handler fixture compilation");
+    high->m_onMouseDown.m_luaRef=handler;
+    CMouseEvent authored;authored.m_data.m_button=MOUSE_BUTTON_LEFT;
+    high->CSimpleFrame::OnLayerMouseDown(authored,nullptr);
+    high->CSimpleFrame::OnLayerMouseUp(authored,nullptr);
+    high->m_onMouseDown.m_luaRef=0;FrameScript_ReleaseFunction(handler);
+    auto* L=FrameScript_GetContext();lua_getglobal(L,"MouseLuaObserved");
+    Check(lua_toboolean(L,-1),"Original base mouse handler did not execute Lua");lua_pop(L,1);
+    lua_pushnil(L);lua_setglobal(L,"MouseLuaObserved");
     Reject([&]{deliver(OS_INPUT_MOUSE_DOWN,3);});Reject([&]{deliver(OS_INPUT_MOUSE_UP,-1);});
     Reject([&]{deliver(OS_INPUT_MOUSE_DOWN,32);});Reject([&]{deliver(OS_INPUT_MOUSE_MOVE,1);});
     EVENT_DATA_MOUSE invalid{};uint32_t raw=UINT32_MAX;

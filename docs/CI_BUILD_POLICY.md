@@ -27,3 +27,12 @@ again for the same source without a distinct configuration or unresolved concern
 Retain full Windows client compilation for legacy source changes and actual ARM64
 execution where shared native source changed. Record exactly which configurations
 ran; subset success is not a full-workflow or full-game qualification claim.
+
+For a correction confined to a native fixture, rerun its affected preset rather
+than rebuilding unchanged production targets. Suppress the overbroad automatic
+PR matrices for that correction with `[skip ci]`, dispatch the affected workflow
+on the exact new head, and retain the earlier passing workflow identities. Verify
+and record unchanged production-source/build-input trees before reusing their
+results. Report the earlier and final checkout identities separately; never label
+an earlier workflow as a final-head run. Changes to production/build inputs require
+fresh checks of the affected configurations.

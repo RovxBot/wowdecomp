@@ -361,6 +361,9 @@ static int32_t Script_GetFieldSize(lua_State* L) {
 // VERIFY: 8e283226 auto
 // OFFSET: 0x0048D780
 static int32_t Script_SetText(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
     if (!string->m_fontHandle) {
@@ -376,6 +379,9 @@ static int32_t Script_SetText(lua_State* L) {
 // VERIFY: ba475506 auto
 // OFFSET: 0x0048D800
 static int32_t Script_SetFormattedText(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
     if (!string->m_fontHandle) {
@@ -771,21 +777,21 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetVertexColor", &Frame::Native::UnavailableScriptMethod },
-    { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha> },
+    { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha, true, false> },
     { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
     { "SetAlphaGradient", &Frame::Native::UnavailableScriptMethod },
     { "Show", &Frame::Native::ScriptMethod<&Script_Show> },
     { "Hide", &Frame::Native::ScriptMethod<&Script_Hide> },
-    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible> },
-    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown> },
-    { "GetFontObject", &Frame::Native::ScriptMethod<&Script_GetFontObject> },
+    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
+    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
+    { "GetFontObject", &Frame::Native::ScriptMethod<&Script_GetFontObject, true, false> },
     { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject> },
     { "GetFont", &Frame::Native::UnavailableScriptMethod },
     { "SetFont", &Frame::Native::UnavailableScriptMethod },
-    { "GetText", &Frame::Native::ScriptMethod<&Script_GetText> },
+    { "GetText", &Frame::Native::ScriptMethod<&Script_GetText, true, false> },
     { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize> },
-    { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false> },
-    { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false> },
+    { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false, false> },
+    { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false, false> },
     { "GetTextColor", &Frame::Native::UnavailableScriptMethod },
     { "SetTextColor", &Frame::Native::UnavailableScriptMethod },
     { "GetShadowColor", &Frame::Native::UnavailableScriptMethod },

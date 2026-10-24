@@ -34,6 +34,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Frame/CSimpleFontString.cpp
     ../Frame/FontStringAttributes.cpp
     ../Frame/FramePixel.cpp
+    ../Frame/MouseButton.cpp
     ../Frame/CSimpleFrame.cpp
     ../Frame/CSimpleTop.cpp
     ../Frame/CSimpleTitleRegion.cpp
