@@ -33,6 +33,9 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     auto* node=XMLTree_GetRoot(tree.get())->m_child;
     for (auto* name : {"NormalFont","DisabledFont","HighlightFont"}) node->GetChildByName(name)->SetAttribute("style",font.GetName());
     FrameXML_StoreHashNode(node,"NativeButtonTemplate",nullptr,&status);tree.reset();
+    if (font.m_fontObject) lua_rawgeti(FrameScript_GetContext(),LUA_REGISTRYINDEX,font.m_fontObject->GetLuaObjectRef());
+    else lua_pushnil(FrameScript_GetContext());
+    lua_setglobal(FrameScript_GetContext(),"ExpectedButtonFontParent");
     RegionLua(R"(
         ButtonLog={}
         local b=CreateFrame('Button','NativeButton',nil,'NativeButtonTemplate')
@@ -40,7 +43,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         assert(b:IsEnabled()==1 and b:GetButtonState()=='NORMAL')
         assert(b:GetNormalTexture()==NativeButtonNormal and b:GetPushedTexture()==NativeButtonPushed)
         assert(b:GetDisabledTexture()==NativeButtonDisabled and b:GetHighlightTexture()==NativeButtonHighlight)
-        assert(b:GetFontString()==NativeButtonText and b:GetNormalFontObject()~=nil)
+        assert(b:GetFontString()==NativeButtonText and b:GetNormalFontObject()==ExpectedButtonFontParent)
         assert(b:HasScript('PreClick') and b:HasScript('OnClick') and b:HasScript('PostClick') and b:HasScript('OnDoubleClick'))
         assert(not pcall(b.SetNormalTexture,b,{[0]=NativeButtonNormal[0]}))
         assert(not pcall(b.SetNormalTexture,b,NativeButtonPushed))
@@ -66,7 +69,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         StaleButton=b
     )");
     auto* button=static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeButton",CSimpleButton::GetObjectType()));
-    Check(button && button->m_clickAction==(CLICK_ON_LEFTUP|CLICK_ON_RIGHTUP),"Button XML lost high click-mask bits");
+    Check(button && button->m_normalFont==&font && button->m_clickAction==(CLICK_ON_LEFTUP|CLICK_ON_RIGHTUP),"Button XML lost high click-mask bits");
     CLayoutFrame::ResizePending(); CRect hit;
     Check(button->GetRect(&hit),"Button hit rectangle is unresolved");
     int width,height,pixelWidth,pixelHeight; context.Window().Size(width,height,pixelWidth,pixelHeight);
@@ -121,7 +124,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     bool foreign=false;std::thread thread([&]{try{button->OnClick("LeftButton",0);}catch(const std::logic_error&){foreign=true;}});thread.join();
     Check(foreign,"Foreign Button click accepted");
     root.CancelMouseInput();delete button;
-    RegionLua("assert(not pcall(StaleButton.Click,StaleButton)); StaleButton=nil; ButtonLog=nil; ButtonDoubles=nil; ButtonEnters=nil; ButtonLeaves=nil");
+    RegionLua("assert(not pcall(StaleButton.Click,StaleButton)); StaleButton=nil; ButtonLog=nil; ButtonDoubles=nil; ButtonEnters=nil; ButtonLeaves=nil; ExpectedButtonFontParent=nil");
     FrameXML_FreeHashNodes();
     struct ThrowButton final : CSimpleButton {
         ThrowButton() : CSimpleButton(nullptr) {}
