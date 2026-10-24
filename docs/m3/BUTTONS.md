@@ -28,7 +28,8 @@ The hierarchy fixture checks 101 pooled Buttons, canonical/stale Lua tables,
 XML inheritance and aliases, original click handlers, right-up mask retention,
 normal/hover/pushed/disabled pixels, pressed/released/outside/locked/cancel states,
 click recursion and owner/collection admission. Original-data mode additionally
-loads unchanged `GlueTemplates.xml`, constructs `GlueButtonTemplate`, renders an
+loads unchanged `GlueButtons.xml`, constructs `GlueButtonTemplateBlue` (the template used by the
+original AccountLogin login button), renders an
 authored label and checks the GlueXML InterfaceKey digest before and after that
 subset. This does not execute the entire ordered GlueXML manifest or its final
 CGlueMgr gate. Input is authored injection, separate from physical acceptance.

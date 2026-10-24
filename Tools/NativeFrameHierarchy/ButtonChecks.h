@@ -144,8 +144,8 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     if (original) {
         uint8_t before[16],after[16];
         Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),before)==3,"Original Button pre-creation signature failed");
-        tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\GlueTemplates.xml",nullptr,&status));
-        Check(bool(tree),"Original GlueTemplates read failed");
+        tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\GlueButtons.xml",nullptr,&status));
+        Check(bool(tree),"Original GlueButtons read failed");
         for (auto* item=XMLTree_GetRoot(tree.get())->m_child;item;) {
             auto* next=item->m_next;
             if (const char* name=item->GetAttributeByName("name");name && item->GetAttributeByName("virtual"))
@@ -154,13 +154,13 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         }
         tree.reset();
         XMLNode instance(nullptr,"Button");
-        instance.SetAttribute("name","NativeOriginalButton"); instance.SetAttribute("inherits","GlueButtonTemplate");
+        instance.SetAttribute("name","NativeOriginalButton"); instance.SetAttribute("inherits","GlueButtonTemplateBlue");
         auto* originalButton=static_cast<CSimpleButton*>(FrameXML_CreateFrame(&instance,nullptr,&status));
         Check(bool(originalButton),"Original Button factory returned null");
         originalButton->SetText("AV login"); originalButton->SetSize(NDCToDDCWidth(200.0f/640),NDCToDDCHeight(40.0f/480));
         originalButton->SetPoint(FRAMEPOINT_CENTER,&root,FRAMEPOINT_CENTER,0,0,1);
         auto originalPixels=Draw(device,root);
-        Check(Ink(originalPixels)>100,"Unchanged original GlueButtonTemplate did not render");
+        Check(Ink(originalPixels)>100,"Unchanged original GlueButtonTemplateBlue did not render");
         Equal(originalPixels,Draw(device,root));
         if (!snapshot.empty()) {
             std::ofstream out(snapshot+".button.ppm",std::ios::binary); out<<"P6\n640 480\n255\n";
@@ -172,7 +172,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         Check(FrameXML_CheckSignature("Interface\\GlueXML\\GlueXML.toc",nullptr,FrameXML::Native::OriginalInterfaceKey(),after)==3 && !std::memcmp(before,after,16),"Original Button post-creation signature changed");
         delete static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeOriginalButton",CSimpleFrame::GetObjectType()));
         FrameXML_FreeHashNodes();
-        std::cout<<"original-GlueButtonTemplate-render-repeat-signature-subset=passed\n";
+        std::cout<<"original-GlueButtonTemplateBlue-render-repeat-signature-subset=passed\n";
     }
     Check(CSimpleFrame::s_frameCount==frames && !CSimpleButton::s_allocator.m_dataUsed,"Button fixture retained objects/pool slots");
     luaL_unref(FrameScript_GetContext(),LUA_REGISTRYINDEX,s_errorHandlerFunc);
