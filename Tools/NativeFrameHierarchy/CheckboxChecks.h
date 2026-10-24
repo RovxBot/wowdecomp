@@ -129,6 +129,12 @@ static void CheckboxChecks(GlContext& context, LegacyDevice& device, CSimpleTop&
             if(checkbox->m_activeTexture && checkbox->m_activeTexture->IsObjectLoaded() && checkbox->m_activeTexture->GetRect(&rect)) break;
         }
         Check(ready<4 && Ink(originalNormal)>50,"Original CheckButton normal pixels missing");
+        size_t borderInk=0;
+        for(int py=230;py<250;++py) for(int px=310;px<330;++px) {
+            const auto& p=originalNormal[py*640+px];
+            if(p.r>8 || p.g>8 || p.b>8) ++borderInk;
+        }
+        Check(borderInk>20,"Original unchecked border missing before state changes");
         checkbox->SetChecked(1,0);auto originalChecked=Draw(device,root);
         Check(Ink(originalChecked)>50 && std::memcmp(originalNormal.data(),originalChecked.data(),originalChecked.size()*sizeof(CImVector)),
               "Original CheckButton check did not render");
