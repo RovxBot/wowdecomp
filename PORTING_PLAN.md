@@ -1256,3 +1256,51 @@ followed by remaining widgets, complete signed GlueXML, portable transport/auth 
 observed login/gameplay. No new physical-input, Windows runtime, macOS graphics or
 server acceptance. Clean data stays read-only, signatures/server discrepancies
 stay intact and sign-in stays interactive. M3 remains incomplete.
+
+## Original EditBox qualification — 2026-10-25
+
+The original [EditBox package](docs/m3/EDITBOXES.md),
+[PR #82](https://github.com/RovxBot/wowdecomp/pull/82), is qualified at
+`50b7af672c4f2f5440e94476ca1e658e5c34358f`. [Durable validation](docs/m3/editbox-validation.json)
+retains final-source Linux GL release/strict ASan/UBSan/leak checks and the separate
+signature-enabled full Windows x64 compilation checkout
+`0f728d90a8c18fc3c19d2fcfc55ffbe81177c593` from initial production
+`e1dca531d9c516eeb19b88d6a817a6903b816385`. Twelve initial non-GL workflows passed,
+including actual ARM64 prerequisites; later edits change native-only EditBox code,
+a GL fixture and its contract. The other 3,902 tracked entries match. Preserve
+those older check identities; they are not final-head or macOS EditBox runs.
+
+Three archives and all 51 packaged binary hashes/types/notices were verified.
+Final-source RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer
+packages passed twelve three-cycle authored/original-data desktop wrappers, with
+empty stderr and zero workers. All 38 capture pairs match, including the original
+field and candidate rows; all 27 preceding MessageFrame captures remain unchanged.
+
+Original single-line CSimpleEditBox now has pooled Lua/XML creation, private font/
+FontString/cursor/selection ownership, UTF-8 editing/limits, clipboard, password/
+numeric/history handling, original key shortcuts and retained IME candidates.
+Keep one SDL text-input request per focus, including password/numeric fields;
+transfer/hide/window focus loss/destruction balance it. Guard recursive focus and
+hold callback lifetimes. Enter callback state unwinds on failure. Native deletion
+uses overlapping-safe moves, aliased setters retain source bytes and explicit
+cursor/selection offsets respect byte boundaries. Multiline, OS secure input and
+native language selection remain unavailable.
+
+Retain snapshots at dequeue. Construct/show/hide candidate Frames and prepare rows
+outside input/resize/update traversal; anchor resolution may require another root
+update. Close candidates and text consumers before their private font, then widgets
+before Scripts/images/renderer/Fonts/Gxu/layout/XML/VM/device/context/queue. Preserve
+structural guards and original Windows paths. Candidate pages are bounded to 32,
+text to 4095 UTF-8 bytes and history to 128. Clean data stays read-only.
+
+Original-data mode constructs the AccountLogin field size/font/backdrop/inset subset
+with authored placement and typed sample text; original scripts/anchors are omitted
+explicitly. Before/after subset InterfaceKey and original MPQ/selective-MD5 checks
+remain enabled. This is field testing, separate from complete signed ordered
+GlueXML/full second digest, actual login/authentication and gameplay. Keep failed
+hosted visibility-guard and premature candidate-row expectations, the restricted-X11
+attempt and prior successful-source reports separately. No detector was disabled.
+No new physical-input, Windows runtime, macOS graphics or server acceptance.
+Remaining widgets, full GlueXML and portable transport/authentication still gate
+interactive user sign-in and observed world entry. Preserve server revision
+discrepancies and historical qualification. M3 remains incomplete.
