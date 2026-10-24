@@ -1,4 +1,5 @@
 #include "Engine/Source/Frame/CSimpleButton.h"
+#include "Engine/Source/Event/Types.h"
 
 // VERIFY: f5952a56 auto
 // OFFSET: 0x0096F530
