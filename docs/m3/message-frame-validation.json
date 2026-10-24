@@ -28,6 +28,14 @@
       "command": "python3 /tmp/check_message_windows.py",
       "audit_script_sha256": "8ffe985eef793602b4142e4ec90eabb2c1d96b052591210ab541f4886c9fa8d8",
       "source_selection": "cmake/SelectSources.cmake excludes Portable from full Windows; the later row transaction is guarded WOWDECOMP_PORTABLE_RUNTIME"
+    },
+    "post_qualification_whitespace": {
+      "path": "Engine/Source/Frame/CSimpleFontedFrame.cpp",
+      "scope": "Remove a blank terminal line caught by full-PR whitespace comparison; all source tokens and function line numbers unchanged",
+      "built_source_sha256": "610c722ba18579e627fa4884bab91a4718035ff35ef5ef73b39c1cc59d979014",
+      "final_source_sha256": "afb904ba9dd53f08bf986737640cefa065f8c5733594d3d54ee3b43d3bc5378e",
+      "normalized_tokens_equal": true,
+      "rebuild": false
     }
   },
   "hosted_workflows": [

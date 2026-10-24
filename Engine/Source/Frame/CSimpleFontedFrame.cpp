@@ -17,4 +17,3 @@ void CSimpleFontedFrameFont::UpdateObjects() {
         this->m_frame->FontUpdated(this, flags);
     }
 }
-

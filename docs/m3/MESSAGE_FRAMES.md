@@ -35,7 +35,9 @@ retains both final-source Linux GL release/strict ASan/UBSan/leak configurations
 passing 38 CTest checks each. Full signature-enabled Windows x64 compilation
 passed at separate source `9e034144c95186a60f93e292e44900183454e8c1`; later
 production changes are native-only and Windows-selected tokens remain unchanged.
-Three archive digests/all 51 packaged binary hashes/types/notices verified. Six
+Three archive digests/all 51 packaged binary hashes/types/notices verified.
+A final terminal-blank-line cleanup in the extracted private-font file preserves
+all tokens/function line numbers; the durable record retains both file hashes. Six
 additional executables per GL manifest were built/checked on Actions but are not
 shipped in these packages; their local binary types/hashes are not claimed.
 
