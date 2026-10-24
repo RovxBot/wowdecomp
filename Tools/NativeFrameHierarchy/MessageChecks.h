@@ -44,6 +44,8 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
     Check(Ink(first)>10,"MessageFrame glyph pixels missing");Equal(first,Draw(device,root));
     Check(!std::strcmp(messages->m_lines[0].m_node->m_string->m_text,"AA") &&
           !std::strcmp(messages->m_lines[1].m_node->m_string->m_text,"A"),"Message insertion order");
+    const float rowHeight=std::fabs(messages->m_lines[1].m_offsetY-messages->m_lines[0].m_offsetY);
+    Check(rowHeight>0,"Message row spacing is zero");
     const auto rows=messages->m_rows;
     messages->SetHeight(messages->GetHeight()*1.5f);
     CLayoutFrame::ResizePending();
@@ -56,9 +58,9 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
     RegionLua("NativeMessages:SetInsertMode('TOP')");Draw(device,root);
     Check(messages->m_lines[0].m_offsetY<firstOffset,"Insert mode did not reposition rows");
     // Shrinking retires row text blocks before their private font; growing uses new nodes.
-    messages->SetHeight(font.m_attributes.m_fontHeight*1.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);Draw(device,root);
+    messages->SetHeight(rowHeight*1.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);Draw(device,root);
     Check(messages->m_rows==1 && messages->m_lines.Count()==1,"Message row shrink ownership");
-    messages->SetHeight(font.m_attributes.m_fontHeight*4.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);Draw(device,root);
+    messages->SetHeight(rowHeight*4.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);Draw(device,root);
     Check(messages->m_rows>=3,"Message row regeneration");
     RegionLua("NativeMessages:Clear(); NativeMessages:SetFading(true); NativeMessages:SetTimeVisible(.1); NativeMessages:SetFadeDuration(.2); NativeMessages:AddMessage('A')");
     const auto unfaded=Draw(device,root);
@@ -102,7 +104,7 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
     {
         std::vector<std::unique_ptr<CLayoutFrame>> pressure;
         for(unsigned i=0;i<900;++i)pressure.emplace_back(std::make_unique<CLayoutFrame>());
-        messages->SetHeight(font.m_attributes.m_fontHeight*128.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);
+        messages->SetHeight(rowHeight*128.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);
         CLayoutFrame::ResizePending();
         Check(messages->m_nativeRowsDirty,"Pressure resize did not invalidate rows");
         Reject([&]{messages->PrepareRows();});

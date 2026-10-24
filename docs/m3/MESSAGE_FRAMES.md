@@ -36,7 +36,9 @@ source/launcher suite currently passes 57 checks with one unavailable-CMake skip
 Its first source-check attempt failed because the audit fixture still held the
 preceding allowlist. The first hosted pressure fixture omitted ResizePending before
 PrepareRows and failed to exercise growth; the corrected fixture follows the root's
-layout order. Retain those failures separately from later qualification. Native
+layout order. Original-data execution then exposed an authored row-height
+expectation that omitted original font spacing; row-size fixtures now use the
+observed row stride. Retain those failures separately from later qualification. Native
 row growth constructs temporary owners before publishing counts and rolls them
 back on allocation/admission failure.
 
@@ -44,3 +46,33 @@ EditBoxes, remaining widgets, complete signed ordered GlueXML/full second digest
 actual login, transport/authentication and observed gameplay remain open. Clean
 data stays read-only; signatures/server revision discrepancies and interactive
 user sign-in remain intact. M3 is incomplete.
+
+## Next EditBox callers
+
+`CSimpleEditBox.cpp` still needs native source selection and pooled factory/Lua/XML
+admission. Its constructor creates a private font, FontString, three selection
+textures and cursor; initialize fields and unwind partial construction before the
+base Frame retires attached regions. Close candidate messages and text consumers
+before their private font. Native `raw_name()`/Storm-placement allocations must use
+aligned pools or matching C++ allocation/deletion as appropriate.
+
+`CreateCandidatesFrame` currently allocates and shows an unparented tooltip frame
+from input handling. Retain candidate/composition snapshots at dequeue and defer
+candidate construction, row changes and show/hide until outside root input/resize
+traversal; do not weaken the existing structural guards. This package's
+`PrepareRows` supplies the row phase but does not yet connect that caller.
+
+Use retained root modifier state for repeat/key shortcuts and preserve original
+text/selection/cursor/clipboard/taint callbacks. Audit overlapping DeleteSubstring
+copies, UTF-8 byte-boundary cursor operations, aliased insertion buffers and text
+bounds before admitting the original native editing surface. Focus callbacks need
+reentry/lifetime guards and balanced native text-input requests. SDL committed text
+must also reach password fields; OsInputEnableSecureMode currently reports the
+unavailable OS secure-input service and does not enable SDL text input. Native
+language selection and physical IME acceptance remain separate open qualifications.
+
+After EditBox/remaining widget factories, execute complete manifest order with
+original InterfaceKey verification and the full second digest after creation;
+then connect portable transport/authentication before interactive user sign-in
+and observed GrimGuzzler world entry. Packet/crypto fixtures alone supply no socket
+or authenticated session. Keep the live server's tag/embedded-revision distinction.
