@@ -148,10 +148,18 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         Check(bool(tree),"Original GlueFontStyles read failed");
         size_t styles=0;
         for(auto* item=XMLTree_GetRoot(tree.get())->m_child;item;item=item->m_next) {
-            Check(!SStrCmpI(item->m_name.m_str,"Font",STORM_MAX_STR),"Unexpected original font style tag");
-            CSimpleFont::GetFont(item->GetAttributeByName("name"),1)->LoadXML(item,&status);++styles;
+            if (!SStrCmpI(item->m_name.m_str,"Font",STORM_MAX_STR)) {
+                CSimpleFont::GetFont(item->GetAttributeByName("name"),1)->LoadXML(item,&status);++styles;
+            } else {
+                Check(!SStrCmpI(item->m_name.m_str,"Script",STORM_MAX_STR) && !item->m_child &&
+                      !item->GetAttributeByName("file") && item->m_bodyLen<=1024*1024,
+                      "Unsupported original font-style consumer");
+                Check(FrameScript_ExecuteBuffer(item->m_body,item->m_bodyLen,"@GlueFontStyles.xml:Script",&status,nullptr),
+                      "Original font-style inline script failed");
+            }
         }
         tree.reset();
+        RegionLua("assert(NORMAL_FONT_COLOR.r==1 and NORMAL_FONT_COLOR.g==.82 and BLUE_FONT_COLOR.b==.953)");
         tree.reset(FrameXML_LoadXML("Interface\\GlueXML\\GlueButtons.xml",nullptr,&status));
         Check(bool(tree),"Original GlueButtons read failed");
         for (auto* item=XMLTree_GetRoot(tree.get())->m_child;item;) {
