@@ -2,7 +2,7 @@ name: M3 original Frame layout
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'native-port/**']
+    branches: [main]
     paths:
       - '.github/workflows/m3-layout.yml'
       - 'CMakeLists.txt'
