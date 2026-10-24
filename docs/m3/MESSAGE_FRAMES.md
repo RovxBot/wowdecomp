@@ -33,8 +33,12 @@ All client/dependency compilation runs in Actions. Hosted release/strict sanitiz
 and signature-enabled full Windows checks, downloaded package verification and
 original-data GPU execution are required before qualification/merge. The local
 source/launcher suite currently passes 57 checks with one unavailable-CMake skip.
-Its first attempt failed because the source-audit fixture still held the preceding
-allowlist; production and fixture now enumerate the same bounded selection.
+Its first source-check attempt failed because the audit fixture still held the
+preceding allowlist. The first hosted pressure fixture omitted ResizePending before
+PrepareRows and failed to exercise growth; the corrected fixture follows the root's
+layout order. Retain those failures separately from later qualification. Native
+row growth constructs temporary owners before publishing counts and rolls them
+back on allocation/admission failure.
 
 EditBoxes, remaining widgets, complete signed ordered GlueXML/full second digest,
 actual login, transport/authentication and observed gameplay remain open. Clean

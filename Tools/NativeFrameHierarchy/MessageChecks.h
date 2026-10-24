@@ -103,6 +103,8 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
         std::vector<std::unique_ptr<CLayoutFrame>> pressure;
         for(unsigned i=0;i<900;++i)pressure.emplace_back(std::make_unique<CLayoutFrame>());
         messages->SetHeight(font.m_attributes.m_fontHeight*128.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);
+        CLayoutFrame::ResizePending();
+        Check(messages->m_nativeRowsDirty,"Pressure resize did not invalidate rows");
         Reject([&]{messages->PrepareRows();});
         Check(messages->m_rows==previousRows && messages->m_lines.Count()==previousRows &&
               CSimpleFontString::s_allocator.m_dataUsed==previousStrings && messages->m_nativeRowsDirty,
