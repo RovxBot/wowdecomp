@@ -385,6 +385,7 @@ int main(int argc,char** argv) {
                         ReadResult result;
                         if (source.packages) result.file = source.packages->Read(name);
                         else if (name == "FIXTURE.BLP") result.file.bytes = TextureFixtureBlp();
+                        else if (name == "THIN.BLP") result.file.bytes = ThinTextureFixtureBlp();
                         else { result.status = ReadStatus::Failed; result.error = "Authored missing image"; }
                         return result;
                     });

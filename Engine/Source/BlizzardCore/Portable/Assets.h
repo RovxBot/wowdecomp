@@ -23,7 +23,10 @@ private:
     std::string strings;
 };
 struct Image { uint32_t width, height; Bytes rgba; };
-std::vector<Image> DecodeBlp(const Bytes& file);
+// Base-only reads still validate every declared span/extent. They may retain
+// legacy thin DXT tail storage without decoding or fabricating those mip pixels.
+// All-level reads require complete DXT blocks for every returned level.
+std::vector<Image> DecodeBlp(const Bytes& file, bool baseLevelOnly = false);
 struct Vertex { Vec3 position; uint8_t weights[4], bones[4]; Vec3 normal; float uv[4]; };
 class Model {
 public:
