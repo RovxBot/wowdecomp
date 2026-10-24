@@ -84,10 +84,10 @@ static void CheckboxChecks(GlContext& context, LegacyDevice& device, CSimpleTop&
     deliver(OS_INPUT_MOUSE_MOVE,0,600,20);deliver(OS_INPUT_MOUSE_UP,MOUSE_BUTTON_LEFT,600,20);
     Check(!checkbox->m_checked && !root.m_mouseCapture,"Outside release toggled CheckButton");
     deliver(OS_INPUT_MOUSE_MOVE);deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
-    deliver(OS_INPUT_FOCUS_LOST);
+    deliver(OS_INPUT_FOCUS,0,0,0);
     Check(!checkbox->m_checked && !root.m_mouseCapture && checkbox->m_state==BUTTONSTATE_NORMAL,
           "Focus cancellation toggled or retained CheckButton");
-    deliver(OS_INPUT_FOCUS_GAINED);
+    deliver(OS_INPUT_FOCUS,1,0,0);
     RegionLua("NativeCheck:SetChecked(true); NativeCheck:SetDisabledCheckedTexture(nil); NativeCheck:Disable()");
     Equal(checked,Draw(device,root)); // Original fallback to the enabled check texture.
     RegionLua("NativeCheck:Enable(); NativeCheck:SetCheckedTexture(nil); assert(NativeCheck:GetCheckedTexture()==nil)");
