@@ -123,7 +123,7 @@ endif()
 include(cmake/WindowsClient.cmake)
 
 # Game identity (build 12340, version 3.3.5, client name) lives in GameVersion.h at the repository root.
-# WaystoneVersion.h is regenerated from git on every build; the login screen shows its build number.
+# WaystoneVersion.h is regenerated from git on every build for diagnostic reports.
 set(WAYSTONE_VERSION_HEADER ${CMAKE_BINARY_DIR}/generated/WaystoneVersion.h)
 add_custom_target(WaystoneVersion
     COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_SOURCE_DIR} -DOUTPUT=${WAYSTONE_VERSION_HEADER} -P ${CMAKE_SOURCE_DIR}/cmake/GenerateWaystoneVersion.cmake
