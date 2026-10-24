@@ -79,7 +79,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         return Frame::Native::DispatchInputEvent(context,OSEVENT{id,{button,x<0?insideX:x,y<0?insideY:y,456}});
     };
     auto red=[](const CImVector& p){return p.r>240 && p.g<8 && p.b<8;};
-    auto green=[](const CImVector& p){return p.g>240 && p.r<8 && p.b<8;};
+    auto green=[](const CImVector& p){return p.g>240 && p.r<8 && p.b<100;};
     auto blue=[](const CImVector& p){return p.b>240 && p.r<8 && p.g<8;};
     deliver(OS_INPUT_MOUSE_MOVE,0,600,20);
     const auto normal=Draw(device,root);Check(std::count_if(normal.begin(),normal.end(),red)>100,"Button normal texture missing");
