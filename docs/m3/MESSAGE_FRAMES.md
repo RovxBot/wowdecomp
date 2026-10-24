@@ -29,16 +29,31 @@ uses the previously authenticated original Friz font/UI shaders with existing
 GlueFonts subset signature checks. It does not deliver IME candidates to EditBoxes
 or execute complete signed GlueXML or its full post-creation digest comparison.
 
-All client/dependency compilation runs in Actions. Hosted release/strict sanitizer
-and signature-enabled full Windows checks, downloaded package verification and
-original-data GPU execution are required before qualification/merge. The local
-source/launcher suite currently passes 57 checks with one unavailable-CMake skip.
+[PR #81](https://github.com/RovxBot/wowdecomp/pull/81) is qualified at
+`9a8ffc528320d0ca12fa8f1b4e7120022b4ab62c`. The [durable record](message-frame-validation.json)
+retains both final-source Linux GL release/strict ASan/UBSan/leak configurations
+passing 38 CTest checks each. Full signature-enabled Windows x64 compilation
+passed at separate source `9e034144c95186a60f93e292e44900183454e8c1`; later
+production changes are native-only and Windows-selected tokens remain unchanged.
+Three archive digests/all 51 packaged binary hashes/types/notices verified. Six
+additional executables per GL manifest were built/checked on Actions but are not
+shipped in these packages; their local binary types/hashes are not claimed.
+
+Downloaded RX 7900 XTX / Mesa 26.2.5 / SDL X11 release and strict sanitizer packages
+passed twelve three-cycle authored/original-data executions, with empty stderr
+and zero workers. All 27 capture pairs and 21 preceding backdrop-package capture
+comparisons match. The original-font message capture was inspected: three white
+authored rows, including the candidate-like index line. Original signatures and
+existing original Button/CheckButton/backdrop regression pixels remain intact.
+
+All compilation ran in Actions. Local source/launcher checks: 57 passed with one
+unavailable-CMake skip; Windows-selected token and whitespace comparisons passed.
 Its first source-check attempt failed because the audit fixture still held the
 preceding allowlist. The first hosted pressure fixture omitted ResizePending before
 PrepareRows and failed to exercise growth; the corrected fixture follows the root's
 layout order. Original-data execution then exposed an authored row-height
-expectation that omitted original font spacing; row-size fixtures now use the
-observed row stride. Retain those failures separately from later qualification. Native
+expectation that equated font size with row height; original font spacing and
+pixel rounding contribute to the observed stride now used by row-size fixtures. Retain those failures separately from later qualification. Native
 row growth constructs temporary owners before publishing counts and rolls them
 back on allocation/admission failure.
 
