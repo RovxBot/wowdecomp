@@ -1,6 +1,7 @@
 // Original base Frame allocation, shared with the Windows factory registry.
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/Frame/CSimpleFrame.h"
+#include "Engine/Source/Frame/CSimpleEditBox.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
@@ -59,5 +60,18 @@ CSimpleFrame* Create_SimpleMessageFrame(CSimpleFrame* parent) {
 #else
     void* data = CSimpleMessageFrame::s_allocator.GetData(0, typeid(CSimpleMessageFrame).raw_name(), SLOG_OBJECT);
     return data ? new (data) CSimpleMessageFrame(parent) : nullptr;
+#endif
+}
+
+// VERIFY: e0d76346 auto
+// OFFSET: 0x00812660
+CSimpleFrame* Create_SimpleEditBox(CSimpleFrame* parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation(); Frame::Native::RequireRoot();
+    if (parent) Frame::Native::RequireSimpleFrame(parent);
+    return Frame::Native::ConstructRegion<CSimpleEditBox>(CSimpleEditBox::s_allocator, parent);
+#else
+    void* data = CSimpleEditBox::s_allocator.GetData(0, typeid(CSimpleEditBox).raw_name(), SLOG_OBJECT);
+    return data ? new (data) CSimpleEditBox(parent) : nullptr;
 #endif
 }

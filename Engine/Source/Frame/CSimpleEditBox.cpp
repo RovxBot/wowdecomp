@@ -1,3 +1,41 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/CSimpleEditBox.h"
+#include "Engine/Source/Frame/CSimpleTop.h"
+#include <cstring>
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/CSimpleRegion.h"
+#include <algorithm>
+#include <memory>
+#include <string>
+#define EDIT_CHECK() Frame::Native::RequireScriptTextMutation()
+namespace {
+void HideEditRegion(CSimpleRegion* region) {
+    Frame::Native::RequireScriptTextMutation();
+    region->m_shown = 0; region->HideThis();
+}
+void EditText(const char* text) {
+    if (text && std::strlen(text) > 4095) throw std::length_error("Native EditBox text exceeds 4095 bytes");
+    if (text) OsNative::DecodeUtf8(text);
+}
+int EditBoundary(const CSimpleEditBox& box, int position) {
+    position = std::clamp(position, 0, box.m_textLength);
+    while (position && position < box.m_textLength && !box.m_textInfo[position]) --position;
+    return position;
+}
+bool focusChanging = false;
+struct FocusScope {
+    FocusScope() { if (focusChanging) throw std::logic_error("Recursive EditBox focus change"); focusChanging = true; }
+    ~FocusScope() { focusChanging = false; }
+};
+static int32_t NativeEditKeyDown(KEY key) {
+    Frame::Native::RequireRoot();
+    return uint32_t(key) < KEY_LAST && CSimpleTop::s_instance->m_nativeKeysDown[key];
+}
+}
+#else
+#define EDIT_CHECK() ((void)0)
+#endif
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +53,9 @@
 #include "Engine/Source/Event/CKeyEvent.h"
 #include "Engine/Source/Event/CMouseEvent.h"
 #include "Engine/Source/Event/Event.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#define EventIsKeyDown NativeEditKeyDown
+#endif
 #include "Engine/Source/Frame/CScriptObject.h"
 #include "Engine/Source/Frame/CScriptRegion.h"
 #include "Engine/Source/Frame/CSimpleFrame.h"
@@ -55,29 +96,34 @@ CDataAllocator CSimpleEditBox::s_allocator(sizeof(CSimpleEditBox), 100);
 // VERIFY: a90b971d auto
 // OFFSET: 0x009634E0
 static int32_t IsShiftDown() {
+    EDIT_CHECK();
     return EventIsKeyDown(KEY_LSHIFT) || EventIsKeyDown(KEY_RSHIFT);
 }
 
 // VERIFY: 4d240939 auto
 // OFFSET: 0x00963510
 static int32_t IsControlDown() {
+    EDIT_CHECK();
     return EventIsKeyDown(KEY_LCONTROL) || EventIsKeyDown(KEY_RCONTROL);
 }
 
 // INLINED
 CSimpleEditBox::EditHistory::EditHistory() {
+    EDIT_CHECK();
     this->m_text = nullptr;
     this->m_taint = nullptr;
 }
 
 // INLINED
 CSimpleEditBox::EditHistory::EditHistory(const CSimpleEditBox::EditHistory& source) {
+    EDIT_CHECK();
     this->m_text = source.m_text ? SStrDupA(source.m_text, __FILE__, __LINE__) : nullptr;
     this->m_taint = source.m_taint;
 }
 
 // INLINED
 CSimpleEditBox::EditHistory::~EditHistory() {
+    EDIT_CHECK();
     if (this->m_text) {
         SMemFree(this->m_text, __FILE__, __LINE__, 0);
     }
@@ -85,40 +131,72 @@ CSimpleEditBox::EditHistory::~EditHistory() {
 
 // INLINED
 void CSimpleEditBox::operator delete(void* ptr) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::FreeRegionStorage(s_allocator, ptr);
+#else
     if (ptr) {
         CSimpleEditBox::s_allocator.PutData(ptr, nullptr, 0);
     }
+#endif
 }
 
 // VERIFY: 64369d87 manual
 // OFFSET: 0x00965120
 void CSimpleEditBox::SetKeyboardFocus(CSimpleEditBox* editBox) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK(); Frame::Native::RequireSimpleFrame(editBox);
+    if (!editBox->m_isVisible || editBox == s_currentFocus) return;
+    FocusScope transition; Frame::Native::ResizeScope lifetime;
+    auto* old = s_currentFocus;
+    s_currentFocus = nullptr;
+    if (old) old->OnFocusChange(false, true);
+    s_currentFocus = editBox;
+    try { editBox->OnFocusChange(true, true); }
+    catch (...) { s_currentFocus = nullptr; editBox->OnFocusChange(false, false); throw; }
+#else
+    EDIT_CHECK();
     if (!editBox->m_isVisible || editBox == CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         return;
     }
 
     if (CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         CSimpleEditBox::s_currentFocus->OnFocusChange(false, true);
     }
 
     CSimpleEditBox::s_currentFocus = editBox;
     editBox->OnFocusChange(true, true);
+#endif
 }
 
 // VERIFY: ce72435c manual
 // OFFSET: 0x009651F0
 void CSimpleEditBox::ClearKeyboardFocus(CSimpleEditBox* editBox, bool runScript) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK();
+    if (s_currentFocus != editBox) return;
+    FocusScope transition; Frame::Native::ResizeScope lifetime;
+    s_currentFocus = nullptr;
+    editBox->OnFocusChange(false, runScript);
+#else
+    EDIT_CHECK();
     if (CSimpleEditBox::s_currentFocus != editBox) {
+    EDIT_CHECK();
         return;
     }
 
     CSimpleEditBox::s_currentFocus = nullptr;
     editBox->OnFocusChange(false, runScript);
+#endif
 }
 
 // INLINED
 int32_t CSimpleEditBox::GetObjectType() {
+    EDIT_CHECK();
     if (!CSimpleEditBox::s_objectType) {
+    EDIT_CHECK();
         CSimpleEditBox::s_objectType = ++FrameScript_Object::s_objectTypes;
     }
 
@@ -128,6 +206,18 @@ int32_t CSimpleEditBox::GetObjectType() {
 // VERIFY: 2a978a4a manual
 // OFFSET: 0x00966B70
 CSimpleEditBox::CSimpleEditBox(CSimpleFrame* parent) : CSimpleFrame(parent) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    m_font = nullptr; m_fontString = nullptr; m_text = nullptr; m_textInfo = nullptr;
+    m_textHidden = nullptr; m_candidatesFrame = nullptr; m_clauseHighlight = nullptr;
+    m_cursorTexture = nullptr;
+    for (auto& texture : m_highlightTextures) texture = nullptr;
+    m_clauseStart = m_clauseEnd = 0;
+    m_enterPressedCallback = {}; m_escapePressedCallback = {}; m_spacePressedCallback = {};
+    m_tabPressedCallback = {}; m_textChangedCallback = {}; m_textSetCallback = {};
+    try {
+#endif
     this->m_cursorBlinkSpeed = 0.5f;
     this->m_blinkElapsedTime = 0.0f;
     this->m_textTaint = nullptr;
@@ -162,18 +252,33 @@ CSimpleEditBox::CSimpleEditBox(CSimpleFrame* parent) : CSimpleFrame(parent) {
     this->m_textInfo = static_cast<uint32_t*>(SMemAlloc(sizeof(uint32_t) * this->m_textSize, __FILE__, __LINE__, 0));
     memset(this->m_textInfo, 0, sizeof(uint32_t) * this->m_textSize);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_font = new CSimpleFontedFrameFont(this);
+#else
     this->m_font = new (SMemAlloc(sizeof(CSimpleFontedFrameFont), __FILE__, __LINE__, 0)) CSimpleFontedFrameFont(this);
+#endif
     this->m_font->m_attributes.SetJustifyH(0x1);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_fontString = Frame::Native::CreateFontString(this, 2, true);
+#else
     void* data = CSimpleFontString::s_allocator.GetData(0, typeid(CSimpleFontString).raw_name(), SLOG_OBJECT);
     this->m_fontString = data ? new (data) CSimpleFontString(this, 2, true) : nullptr;
+#endif
     this->m_fontString->SetFontObject(this->m_font);
 
     this->SetMultiLine(0);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    m_visibleLines[0] = m_visibleLines[1] = 0;
+#endif
 
     for (uint32_t i = 0; i < 3; i++) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        this->m_highlightTextures[i] = Frame::Native::CreateTexture(this, 2, false);
+#else
         data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
         this->m_highlightTextures[i] = data ? new (data) CSimpleTexture(this, 2, 0) : nullptr;
+#endif
     }
 
     CImVector highlightColor;
@@ -186,9 +291,17 @@ CSimpleEditBox::CSimpleEditBox(CSimpleFrame* parent) : CSimpleFrame(parent) {
         this->m_highlightTextures[i]->SetTexture(highlightColor);
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_cursorTexture = Frame::Native::CreateTexture(this, 3, true);
+#else
     data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     this->m_cursorTexture = data ? new (data) CSimpleTexture(this, 3, 1) : nullptr;
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    HideEditRegion(this->m_cursorTexture);
+#else
     this->m_cursorTexture->Hide();
+#endif
 
     CImVector cursorColor;
     cursorColor.b = 0xFF;
@@ -207,12 +320,30 @@ CSimpleEditBox::CSimpleEditBox(CSimpleFrame* parent) : CSimpleFrame(parent) {
     this->EnableEvent(SIMPLE_EVENT_CHAR, -1);
     this->EnableEvent(SIMPLE_EVENT_KEY, -1);
     this->EnableEvent(SIMPLE_EVENT_MOUSE, -1);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CreateClauseHighlight(); m_clauseHighlight->Hide();
+    } catch (...) {
+        delete m_fontString; m_fontString = nullptr;
+        delete m_font; m_font = nullptr;
+        SMemFree(m_text, __FILE__, __LINE__, 0);
+        SMemFree(m_textInfo, __FILE__, __LINE__, 0);
+        throw; // Base Frame retires every remaining attached region.
+    }
+#endif
 }
 
 // VERIFY: f72deacf auto
 // OFFSET: [0x00966F40, 0x009670E0, 0x00967D80]
 CSimpleEditBox::~CSimpleEditBox() {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     CSimpleEditBox::ClearKeyboardFocus(this, false);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    delete m_candidatesFrame; m_candidatesFrame = nullptr;
+    delete m_fontString; m_fontString = nullptr;
+#endif
 
     this->SetHistoryLines(0);
 
@@ -238,6 +369,24 @@ CSimpleEditBox::~CSimpleEditBox() {
 
 // INLINED
 void CSimpleEditBox::OnFocusChange(bool focus, bool runScript) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK();
+    // SDL text delivery is needed for password and numeric fields as well.
+    // This request is independent of the unavailable OS secure-input service.
+    if (focus && !m_nativeTextInput) { OsIMEEnable(1); m_nativeTextInput = true; }
+    if (!focus && m_nativeTextInput) { OsIMEEnable(0); m_nativeTextInput = false; }
+    if (!focus) {
+        if (m_imeComposition) DeleteHighlight(0);
+        m_imeComposition = 0; m_highlightDrag = 0;
+        m_nativeCandidateVisible = false; m_nativeCandidateDirty = true;
+    }
+    m_dirtyBits |= 6;
+    if (runScript) {
+        auto& handler = focus ? m_onEditFocusGained : m_onEditFocusLost;
+        if (handler.m_luaRef) RunScript(handler, 0, nullptr);
+    }
+#else
+    EDIT_CHECK();
     if (focus) {
         if (this->m_editBoxFlags & 0x8) {
             OsInputEnableSecureMode(1);
@@ -265,11 +414,13 @@ void CSimpleEditBox::OnFocusChange(bool focus, bool runScript) {
     }
 
     this->m_dirtyBits |= 0x4;
+#endif
 }
 
 // VERIFY: 94275693 auto
 // OFFSET: 0x009627E0
 void CSimpleEditBox::RunOnCursorChangedScript(float x, float y, float width, float height) {
+    EDIT_CHECK();
     if (!this->m_onCursorChanged.m_luaRef) {
         return;
     }
@@ -285,6 +436,7 @@ void CSimpleEditBox::RunOnCursorChangedScript(float x, float y, float width, flo
 // VERIFY: 66cf6270 auto
 // OFFSET: 0x009628B0
 void CSimpleEditBox::RunOnCharCompositionScript(const char* text) {
+    EDIT_CHECK();
     if (!this->m_onCharComposition.m_luaRef) {
         return;
     }
@@ -297,6 +449,7 @@ void CSimpleEditBox::RunOnCharCompositionScript(const char* text) {
 // VERIFY: cf79e310 auto
 // OFFSET: 0x009628F0
 FrameScript_Object::ScriptIx* CSimpleEditBox::GetScriptByName(const char* name, FrameScript_Object::ScriptData& data) {
+    EDIT_CHECK();
     FrameScript_Object::ScriptIx* script = CSimpleFrame::GetScriptByName(name, data);
 
     if (script) {
@@ -357,6 +510,7 @@ FrameScript_Object::ScriptIx* CSimpleEditBox::GetScriptByName(const char* name, 
 // VERIFY: 0691a8cf auto
 // OFFSET: 0x00962AA0
 void CSimpleEditBox::GetScriptTime(lua_State* L, double* time, uint32_t* count, int32_t recurse) {
+    EDIT_CHECK();
     FrameScript_Object::GetScriptTime(L, this->m_onEnterPressed, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onEscapePressed, time, count);
     FrameScript_Object::GetScriptTime(L, this->m_onSpacePressed, time, count);
@@ -374,6 +528,7 @@ void CSimpleEditBox::GetScriptTime(lua_State* L, double* time, uint32_t* count, 
 // VERIFY: c0664a7f auto
 // OFFSET: 0x00962BB0
 void CSimpleEditBox::SetAutoFocus(int32_t enable) {
+    EDIT_CHECK();
     if (enable) {
         this->m_editBoxFlags |= 0x1;
     } else {
@@ -384,6 +539,7 @@ void CSimpleEditBox::SetAutoFocus(int32_t enable) {
 // VERIFY: 22756da1 auto
 // OFFSET: 0x00962BD0
 void CSimpleEditBox::SetCountInvisibleLetters(int32_t enable) {
+    EDIT_CHECK();
     if (enable) {
         this->m_editBoxFlags |= 0x20;
     } else {
@@ -394,6 +550,7 @@ void CSimpleEditBox::SetCountInvisibleLetters(int32_t enable) {
 // VERIFY: b113f5ff auto
 // OFFSET: 0x00962BF0
 void CSimpleEditBox::SetNumeric(int32_t enable) {
+    EDIT_CHECK();
     if (enable) {
         this->m_editBoxFlags |= 0x4;
     } else {
@@ -404,6 +561,11 @@ void CSimpleEditBox::SetNumeric(int32_t enable) {
 // VERIFY: 253df0e6 auto
 // OFFSET: 0x00962C10
 void CSimpleEditBox::SetPassword(int32_t enable) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (enable) DisableIME();
+    m_dirtyBits |= 7;
+#endif
     if (enable) {
         this->m_editBoxFlags |= 0x8;
     } else {
@@ -414,6 +576,7 @@ void CSimpleEditBox::SetPassword(int32_t enable) {
 // VERIFY: 237bc021 auto
 // OFFSET: 0x00962C30
 void CSimpleEditBox::SetAltArrowKeyMode(int32_t enable) {
+    EDIT_CHECK();
     if (enable) {
         this->m_editBoxFlags |= 0x10;
     } else {
@@ -424,18 +587,21 @@ void CSimpleEditBox::SetAltArrowKeyMode(int32_t enable) {
 // VERIFY: c78586fe auto
 // OFFSET: 0x00962C50
 const char* CSimpleEditBox::GetInputLanguageString() {
+    EDIT_CHECK();
     return CSimpleEditBox::s_inputLanguageNames[this->m_inputLanguage];
 }
 
 // VERIFY: e187e845 auto
 // OFFSET: 0x00962C60
 void CSimpleEditBox::ToggleInputLanguage() {
+    EDIT_CHECK();
     OsIMESetLanguageMode(this->m_inputLanguage == 0);
 }
 
 // VERIFY: 266e6b18 auto
 // OFFSET: 0x00962C80
 int32_t CSimpleEditBox::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
+    EDIT_CHECK();
     int32_t result = CSimpleFrame::OnLayerMouseUp(evt, btn);
 
     if (!result && this->m_highlightDrag) {
@@ -449,6 +615,7 @@ int32_t CSimpleEditBox::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) 
 // VERIFY: 71f28044 manual
 // OFFSET: 0x00962CC0
 void CSimpleEditBox::UpdateTextInfo() {
+    EDIT_CHECK();
     const char* text = this->m_text;
     int32_t offset = 0;
     uint32_t hyperlink = 0;
@@ -477,7 +644,15 @@ void CSimpleEditBox::UpdateTextInfo() {
 // VERIFY: c6c2720f manual
 // OFFSET: 0x00962D50
 int32_t CSimpleEditBox::GetNumToLen(int32_t offset, int32_t count, bool skipHyperlinks) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (offset < 0 || offset > m_textLength || (offset < m_textLength && !m_textInfo[offset]))
+        throw std::invalid_argument("Invalid EditBox byte boundary");
+#endif
     uint32_t* info = &this->m_textInfo[offset];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    count = std::clamp(count, -4095, 4095);
+#endif
     int32_t length = 0;
 
     if (count > 0) {
@@ -533,7 +708,11 @@ int32_t CSimpleEditBox::GetNumToLen(int32_t offset, int32_t count, bool skipHype
 
             code = (*info >> 16) & 0xFF;
             length += *info & 0xFFFF;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        } while (info > m_textInfo && (code == CODE_COLORRESTORE || code == CODE_HYPERLINKSTOP || code == CODE_TEXTURESTOP || (skipHyperlinks && static_cast<int32_t>(*info) < 0 && code != CODE_HYPERLINKSTART)));
+#else
         } while (code == CODE_COLORRESTORE || code == CODE_HYPERLINKSTOP || code == CODE_TEXTURESTOP || (skipHyperlinks && static_cast<int32_t>(*info) < 0 && code != CODE_HYPERLINKSTART));
+#endif
 
         while (info > this->m_textInfo) {
             do {
@@ -558,7 +737,15 @@ int32_t CSimpleEditBox::GetNumToLen(int32_t offset, int32_t count, bool skipHype
 // VERIFY: e45533bc manual
 // OFFSET: 0x00962EA0
 int32_t CSimpleEditBox::GetLenToNum(int32_t offset, int32_t length) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (offset < 0 || offset > m_textLength || (offset < m_textLength && !m_textInfo[offset]))
+        throw std::invalid_argument("Invalid EditBox byte boundary");
+#endif
     uint32_t* info = &this->m_textInfo[offset];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    length = std::clamp(length, -offset, m_textLength - offset);
+#endif
     int32_t count = 0;
 
     if (length > 0) {
@@ -605,6 +792,10 @@ int32_t CSimpleEditBox::GetLenToNum(int32_t offset, int32_t length) {
 // VERIFY: 7d55a2ac manual
 // OFFSET: 0x00962F20
 void CSimpleEditBox::GrowText(int32_t length) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (length < 0 || length > 4095) throw std::length_error("Native EditBox capacity exceeded");
+#endif
     if (static_cast<uint32_t>(length + 1) <= this->m_textSize) {
         return;
     }
@@ -617,6 +808,11 @@ void CSimpleEditBox::GrowText(int32_t length) {
 // VERIFY: 2029d7dc manual
 // OFFSET: 0x00962F90
 void CSimpleEditBox::DeleteSubstring(int32_t left, int32_t right, int32_t script) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (left < 0 || right < left || right > m_textLength) throw std::invalid_argument("Invalid EditBox deletion range");
+    left = EditBoundary(*this, left); right = EditBoundary(*this, right);
+#endif
     uint32_t* info = this->m_textInfo;
 
     if (info[left] & 0x80000000) {
@@ -686,8 +882,14 @@ void CSimpleEditBox::DeleteSubstring(int32_t left, int32_t right, int32_t script
     }
 
     this->m_textLength = length;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    memmove(text, &text[count], length - left);
+    memmove(textInfo, &textInfo[count], sizeof(uint32_t) * (this->m_textLength - this->m_cursorPos));
+    m_visiblePosition = EditBoundary(*this, std::min(m_visiblePosition, m_textLength));
+#else
     memcpy(text, &text[count], length - left);
     memcpy(textInfo, &textInfo[count], sizeof(uint32_t) * (this->m_textLength - this->m_cursorPos));
+#endif
     this->m_text[this->m_textLength] = 0;
     this->m_textInfo[this->m_textLength] = 0;
 
@@ -711,6 +913,7 @@ void CSimpleEditBox::DeleteSubstring(int32_t left, int32_t right, int32_t script
 // VERIFY: 902d762f manual
 // OFFSET: 0x00963140
 void CSimpleEditBox::HighlightText(int32_t left, int32_t right) {
+    EDIT_CHECK();
     int32_t length = this->m_textLength;
     int32_t start = left <= 0 ? 0 : left;
 
@@ -729,6 +932,9 @@ void CSimpleEditBox::HighlightText(int32_t left, int32_t right) {
     }
 
     this->m_dirtyBits |= 0x2;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    start = EditBoundary(*this, start); end = EditBoundary(*this, end);
+#endif
     this->m_highlightLeft = start;
     this->m_highlightRight = end;
 }
@@ -736,6 +942,7 @@ void CSimpleEditBox::HighlightText(int32_t left, int32_t right) {
 // VERIFY: cb64bdd1 manual
 // OFFSET: 0x009631A0
 void CSimpleEditBox::ExtendHighlight(int32_t count) {
+    EDIT_CHECK();
     if (!count) {
         return;
     }
@@ -756,6 +963,7 @@ void CSimpleEditBox::ExtendHighlight(int32_t count) {
 // VERIFY: 8c56ba82 manual
 // OFFSET: 0x00963260
 void CSimpleEditBox::DeleteHighlight(int32_t script) {
+    EDIT_CHECK();
     int32_t length = this->m_textLength;
     int32_t left = this->m_highlightLeft <= 0 ? 0 : this->m_highlightLeft;
 
@@ -778,6 +986,7 @@ void CSimpleEditBox::DeleteHighlight(int32_t script) {
 // VERIFY: 4adcb896 auto
 // OFFSET: 0x009632D0
 void CSimpleEditBox::CopyToClipboard() {
+    EDIT_CHECK();
     int32_t left = this->m_highlightLeft;
     int32_t right = this->m_highlightRight;
 
@@ -799,6 +1008,10 @@ void CSimpleEditBox::CopyToClipboard() {
 // VERIFY: 5501d9d4 manual
 // OFFSET: 0x00963350
 void CSimpleEditBox::SetCursorPosition(int32_t position) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    position = EditBoundary(*this, position);
+#endif
     if (position < 0) {
         this->m_dirtyBits |= 0x4;
         this->m_cursorPos = 0;
@@ -812,23 +1025,36 @@ void CSimpleEditBox::SetCursorPosition(int32_t position) {
 // VERIFY: 04d3c307 auto
 // OFFSET: 0x00963390
 void CSimpleEditBox::DisableIME() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK();
+    m_nativeCandidateVisible = false; m_nativeCandidateDirty = true;
+    if (m_imeComposition) DeleteHighlight(0);
+    m_imeComposition = 0; m_dirtyBits |= 6;
+#else
+    EDIT_CHECK();
     if (this->m_candidatesFrame) {
         this->m_candidatesFrame->Hide();
     }
 
     this->m_imeComposition = 0;
     OsIMEEnable(0);
+#endif
 }
 
 // VERIFY: c0e09945 manual
 // OFFSET: 0x00963570
 void CSimpleEditBox::CreateClauseHighlight() {
+    EDIT_CHECK();
     if (this->m_clauseHighlight) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_clauseHighlight = Frame::Native::CreateTexture(this, 3, true);
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     this->m_clauseHighlight = data ? new (data) CSimpleTexture(this, 3, 1) : nullptr;
+#endif
 
     CImVector color;
     color.b = 0x10;
@@ -843,6 +1069,7 @@ void CSimpleEditBox::CreateClauseHighlight() {
 // VERIFY: 90ed488c auto
 // OFFSET: 0x00963610
 void CSimpleEditBox::UpdateLanguageIndicator() {
+    EDIT_CHECK();
     int32_t language = this->m_inputLanguage;
 
     switch (OsIMEGetLanguageMode()) {
@@ -879,6 +1106,7 @@ void CSimpleEditBox::UpdateLanguageIndicator() {
 // VERIFY: 6b630cf6 manual
 // OFFSET: 0x009636A0
 void CSimpleEditBox::UpdateClauseInfo() {
+    EDIT_CHECK();
     uint32_t clauseStart;
     uint32_t clauseEnd;
     uint32_t cursor;
@@ -902,6 +1130,7 @@ void CSimpleEditBox::UpdateClauseInfo() {
 // VERIFY: 002cdee4 auto
 // OFFSET: 0x00963740
 void CSimpleEditBox::UpdateSizes() {
+    EDIT_CHECK();
     if (!(this->m_layoutFlags & 0x100)) {
         return;
     }
@@ -940,6 +1169,7 @@ void CSimpleEditBox::UpdateSizes() {
 // VERIFY: 491a1b6d auto
 // OFFSET: 0x00963950
 void CSimpleEditBox::Delete(int32_t count, int32_t script) {
+    EDIT_CHECK();
     if (!count) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -958,6 +1188,7 @@ void CSimpleEditBox::Delete(int32_t count, int32_t script) {
 // VERIFY: 2599b4be auto
 // OFFSET: 0x009639B0
 void CSimpleEditBox::DeleteForward(int32_t script) {
+    EDIT_CHECK();
     if (this->m_highlightLeft != this->m_highlightRight) {
         this->DeleteHighlight(script);
         return;
@@ -972,6 +1203,7 @@ void CSimpleEditBox::DeleteForward(int32_t script) {
 // VERIFY: 40feaa84 auto
 // OFFSET: 0x00963A10
 void CSimpleEditBox::DeleteForwardWord(int32_t script) {
+    EDIT_CHECK();
     if (this->m_highlightLeft != this->m_highlightRight) {
         this->DeleteHighlight(script);
         return;
@@ -1001,6 +1233,7 @@ void CSimpleEditBox::DeleteForwardWord(int32_t script) {
 // VERIFY: 9aa8f16a auto
 // OFFSET: 0x00963B10
 void CSimpleEditBox::DeleteBackward(int32_t script) {
+    EDIT_CHECK();
     if (this->m_highlightLeft != this->m_highlightRight) {
         this->DeleteHighlight(script);
         return;
@@ -1015,6 +1248,7 @@ void CSimpleEditBox::DeleteBackward(int32_t script) {
 // VERIFY: 60de2945 auto
 // OFFSET: 0x00963B60
 void CSimpleEditBox::DeleteBackwardWord(int32_t script) {
+    EDIT_CHECK();
     if (this->m_highlightLeft != this->m_highlightRight) {
         this->DeleteHighlight(script);
         return;
@@ -1056,6 +1290,7 @@ void CSimpleEditBox::DeleteBackwardWord(int32_t script) {
 // VERIFY: ca58031d auto
 // OFFSET: 0x00963C60
 void CSimpleEditBox::DeleteToStart(int32_t script) {
+    EDIT_CHECK();
     int32_t count = this->GetLenToNum(0, this->m_cursorPos);
 
     if (count) {
@@ -1066,6 +1301,7 @@ void CSimpleEditBox::DeleteToStart(int32_t script) {
 // VERIFY: 5ad8daca auto
 // OFFSET: 0x00963C90
 void CSimpleEditBox::DeleteToEnd(int32_t script) {
+    EDIT_CHECK();
     int32_t count = this->GetLenToNum(this->m_cursorPos, this->m_textLength - this->m_cursorPos);
 
     if (count) {
@@ -1076,6 +1312,7 @@ void CSimpleEditBox::DeleteToEnd(int32_t script) {
 // VERIFY: f479e151 manual
 // OFFSET: 0x00963CD0
 void CSimpleEditBox::Move(int32_t count, int32_t highlight) {
+    EDIT_CHECK();
     if (!count) {
         SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
         return;
@@ -1108,6 +1345,7 @@ void CSimpleEditBox::Move(int32_t count, int32_t highlight) {
 // VERIFY: eb995a11 manual
 // OFFSET: 0x00963D80
 void CSimpleEditBox::MoveForward(int32_t highlight) {
+    EDIT_CHECK();
     int32_t cursor = this->m_cursorPos;
 
     if (cursor < this->m_textLength) {
@@ -1140,6 +1378,7 @@ void CSimpleEditBox::MoveForward(int32_t highlight) {
 // VERIFY: 75d5e794 auto
 // OFFSET: 0x00963E40
 void CSimpleEditBox::MoveForwardWord(int32_t highlight) {
+    EDIT_CHECK();
     int32_t chars;
 
     while (this->m_cursorPos < this->m_textLength) {
@@ -1202,6 +1441,7 @@ void CSimpleEditBox::MoveForwardWord(int32_t highlight) {
 // VERIFY: f6fc10fc auto
 // OFFSET: 0x00964000
 void CSimpleEditBox::MoveBackward(int32_t highlight) {
+    EDIT_CHECK();
     if (this->m_cursorPos > 0) {
         this->Move(-1, highlight);
     }
@@ -1216,6 +1456,7 @@ void CSimpleEditBox::MoveBackward(int32_t highlight) {
 // VERIFY: 31888679 manual
 // OFFSET: 0x00964050
 void CSimpleEditBox::MoveBackwardWord(int32_t highlight) {
+    EDIT_CHECK();
     int32_t chars;
 
     while (this->m_cursorPos > 0) {
@@ -1278,6 +1519,7 @@ void CSimpleEditBox::MoveBackwardWord(int32_t highlight) {
 // VERIFY: cc77d6fa manual
 // OFFSET: 0x00964200
 void CSimpleEditBox::MoveToLineStart(int32_t highlight) {
+    EDIT_CHECK();
     while (this->m_cursorPos > 0) {
         int32_t cursor = this->m_cursorPos;
 
@@ -1314,6 +1556,7 @@ void CSimpleEditBox::MoveToLineStart(int32_t highlight) {
 // VERIFY: 9be53a50 auto
 // OFFSET: 0x009642E0
 void CSimpleEditBox::MoveToLineEnd(int32_t highlight) {
+    EDIT_CHECK();
     while (this->m_cursorPos < this->m_textLength) {
         int32_t cursor = this->m_cursorPos;
 
@@ -1350,6 +1593,7 @@ void CSimpleEditBox::MoveToLineEnd(int32_t highlight) {
 // VERIFY: 9118eb7e manual
 // OFFSET: 0x009643C0
 void CSimpleEditBox::MoveToStart(int32_t highlight) {
+    EDIT_CHECK();
     while (this->m_cursorPos > 0) {
         int32_t cursor = this->m_cursorPos;
         int32_t length = -this->GetNumToLen(cursor, -1, true);
@@ -1381,6 +1625,7 @@ void CSimpleEditBox::MoveToStart(int32_t highlight) {
 // VERIFY: 37089728 manual
 // OFFSET: 0x00964480
 void CSimpleEditBox::MoveToEnd(int32_t highlight) {
+    EDIT_CHECK();
     while (this->m_cursorPos < this->m_textLength) {
         int32_t cursor = this->m_cursorPos;
         int32_t length = this->GetNumToLen(cursor, 1, true);
@@ -1412,6 +1657,7 @@ void CSimpleEditBox::MoveToEnd(int32_t highlight) {
 // VERIFY: 6a8a7228 auto
 // OFFSET: 0x00964550
 void CSimpleEditBox::MoveLine(int32_t count, int32_t highlight) {
+    EDIT_CHECK();
     uint32_t* lines = this->m_visibleLines.m_data;
     int32_t lastLine = this->m_visibleLines.m_count - 2;
     uint32_t cursor = this->m_cursorPos;
@@ -1475,6 +1721,10 @@ void CSimpleEditBox::MoveLine(int32_t count, int32_t highlight) {
 // VERIFY: e5117211 manual
 // OFFSET: 0x00964690
 void CSimpleEditBox::AddHistoryLine(const char* text, const char* taint) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EditText(text); const std::string retained = text ? text : ""; text = retained.c_str();
+#endif
     if (!this->m_historyLines) {
         return;
     }
@@ -1489,6 +1739,7 @@ void CSimpleEditBox::AddHistoryLine(const char* text, const char* taint) {
 // VERIFY: f789062e manual
 // OFFSET: 0x00964720
 void CSimpleEditBox::ClearHistory() {
+    EDIT_CHECK();
     this->m_historyIndex = 0;
 
     for (int32_t i = 0; i < this->m_historyLines; i++) {
@@ -1504,6 +1755,7 @@ void CSimpleEditBox::ClearHistory() {
 // VERIFY: e661ecd2 manual
 // OFFSET: 0x00964790
 int32_t CSimpleEditBox::ConvertCoordinateToIndex(float x, float y, int32_t& index) {
+    EDIT_CHECK();
     CRect rect;
     rect.minY = 0.0f;
     rect.minX = 0.0f;
@@ -1592,6 +1844,7 @@ int32_t CSimpleEditBox::ConvertCoordinateToIndex(float x, float y, int32_t& inde
 // VERIFY: 1fd324ce auto
 // OFFSET: 0x009649D0
 void CSimpleEditBox::MakeTextVisible(int32_t position, float offset, float width) {
+    EDIT_CHECK();
     if (this->m_editBoxFlags & 0x2) {
         return;
     }
@@ -1613,10 +1866,15 @@ void CSimpleEditBox::MakeTextVisible(int32_t position, float offset, float width
 // VERIFY: 6383fa0d manual
 // OFFSET: 0x00964A90
 void CSimpleEditBox::UpdateVisibleCursor() {
+    EDIT_CHECK();
     int32_t cursor = this->m_cursorPos;
 
     if (cursor < this->m_visiblePosition || cursor > this->m_visiblePosition + this->m_visibleLength) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_cursorTexture);
+#else
         this->m_cursorTexture->Hide();
+#endif
         return;
     }
 
@@ -1683,17 +1941,29 @@ void CSimpleEditBox::UpdateVisibleCursor() {
     this->RunOnCursorChangedScript(x, y, width, height);
 
     if (this == CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         this->m_cursorTexture->m_shown = 1;
         this->m_cursorTexture->ShowThis();
         return;
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+
+    HideEditRegion(this->m_cursorTexture);
+#else
 
     this->m_cursorTexture->Hide();
+#endif
 }
 
 // VERIFY: f8f4d424 manual
 // OFFSET: 0x00964DB0
 void CSimpleEditBox::UpdateHighlightArea(CSimpleRegion* region, int32_t left, int32_t right) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    left = std::max(left, m_visiblePosition);
+    right = std::min(right, m_visiblePosition + m_visibleLength);
+    if (left >= right) { HideEditRegion(region); return; }
+#endif
     const char* text = this->m_editBoxFlags & 0x8 ? this->m_textHidden : this->m_text;
     float y = 0.0f;
     float spacing = this->m_fontString->m_spacing;
@@ -1771,7 +2041,11 @@ void CSimpleEditBox::UpdateHighlightArea(CSimpleRegion* region, int32_t left, in
     region->Resize(1);
 
     if (static_cast<uint32_t>(left) >= static_cast<uint32_t>(right) || fabs(width) < 0.00000023841858f) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(region);
+#else
         region->Hide();
+#endif
     } else {
         region->m_shown = 1;
         region->ShowThis();
@@ -1781,6 +2055,7 @@ void CSimpleEditBox::UpdateHighlightArea(CSimpleRegion* region, int32_t left, in
 // VERIFY: c4d888b7 auto
 // OFFSET: 0x009650E0
 void CSimpleEditBox::FontUpdated(CSimpleFontedFrameFont* font, int32_t flags) {
+    EDIT_CHECK();
     if (flags & 0x11) {
         this->UpdateSizes();
     }
@@ -1793,6 +2068,7 @@ void CSimpleEditBox::FontUpdated(CSimpleFontedFrameFont* font, int32_t flags) {
 // VERIFY: 4593dc8a auto
 // OFFSET: 0x009652E0
 void CSimpleEditBox::RunOnEnterPressedScript() {
+    EDIT_CHECK();
     if (this->m_onEnterPressed.m_luaRef) {
         this->RunScript(this->m_onEnterPressed, 0, nullptr);
     }
@@ -1808,6 +2084,7 @@ void CSimpleEditBox::RunOnEnterPressedScript() {
 // VERIFY: 87b262d1 auto
 // OFFSET: 0x00965340
 void CSimpleEditBox::RunOnEscapePressedScript() {
+    EDIT_CHECK();
     if (this->m_onEscapePressed.m_luaRef) {
         this->RunScript(this->m_onEscapePressed, 0, nullptr);
     }
@@ -1823,6 +2100,7 @@ void CSimpleEditBox::RunOnEscapePressedScript() {
 // VERIFY: e94ed763 auto
 // OFFSET: 0x009653A0
 void CSimpleEditBox::RunOnSpacePressedScript() {
+    EDIT_CHECK();
     if (this->m_onSpacePressed.m_luaRef) {
         this->RunScript(this->m_onSpacePressed, 0, nullptr);
     }
@@ -1838,6 +2116,7 @@ void CSimpleEditBox::RunOnSpacePressedScript() {
 // VERIFY: 687c6a99 auto
 // OFFSET: 0x00965400
 void CSimpleEditBox::RunOnTabPressedScript() {
+    EDIT_CHECK();
     if (this->m_onTabPressed.m_luaRef) {
         this->RunScript(this->m_onTabPressed, 0, nullptr);
     }
@@ -1853,6 +2132,7 @@ void CSimpleEditBox::RunOnTabPressedScript() {
 // VERIFY: 567f97b2 auto
 // OFFSET: 0x00965460
 void CSimpleEditBox::RunOnTextChangedScript() {
+    EDIT_CHECK();
     if (this->m_onTextChanged.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, (this->m_dirtyBits >> 3) & 0x1);
@@ -1870,6 +2150,7 @@ void CSimpleEditBox::RunOnTextChangedScript() {
 // VERIFY: a523ec28 auto
 // OFFSET: 0x009654E0
 void CSimpleEditBox::RunOnTextSetScript(const char* taint) {
+    EDIT_CHECK();
     if (this->m_onTextSet.m_luaRef) {
         this->RunScript(this->m_onTextSet, 0, taint);
     }
@@ -1885,6 +2166,11 @@ void CSimpleEditBox::RunOnTextSetScript(const char* taint) {
 // VERIFY: 2550800e auto
 // OFFSET: 0x00965550
 void CSimpleEditBox::SetEditTextInsets(float left, float right, float top, float bottom) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireDimension(left); Frame::Native::RequireDimension(right);
+    Frame::Native::RequireDimension(top); Frame::Native::RequireDimension(bottom);
+#endif
     this->m_textInsets.minX = left;
     this->m_textInsets.maxX = right;
     this->m_textInsets.maxY = top;
@@ -1895,6 +2181,7 @@ void CSimpleEditBox::SetEditTextInsets(float left, float right, float top, float
 // VERIFY: e7e61940 auto
 // OFFSET: 0x00965580
 void CSimpleEditBox::GetEditTextInsets(float& left, float& right, float& top, float& bottom) {
+    EDIT_CHECK();
     left = this->m_textInsets.minX;
     right = this->m_textInsets.maxX;
     top = this->m_textInsets.maxY;
@@ -1905,9 +2192,11 @@ void CSimpleEditBox::GetEditTextInsets(float& left, float& right, float& top, fl
 // VERIFY: 1e831d32 auto
 // OFFSET: 0x009655C0
 void CSimpleEditBox::OnLayerShow() {
+    EDIT_CHECK();
     CSimpleFrame::OnLayerShow();
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
     }
 }
@@ -1915,17 +2204,24 @@ void CSimpleEditBox::OnLayerShow() {
 // VERIFY: 411486df manual
 // OFFSET: 0x009655F0
 void CSimpleEditBox::OnLayerHide() {
+    EDIT_CHECK();
     CSimpleFrame::OnLayerHide();
 
     if (this == CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        ClearKeyboardFocus(this, true);
+#else
         CSimpleEditBox::s_currentFocus = nullptr;
         this->OnFocusChange(false, true);
+#endif
     }
 }
 
 // VERIFY: c10b6d1d auto
 // OFFSET: 0x00965660
 int32_t CSimpleEditBox::OnLayerTrackUpdate(const CMouseEvent& evt) {
+    EDIT_CHECK();
     if (!CSimpleFrame::OnLayerTrackUpdate(evt)) {
         return 0;
     }
@@ -1945,6 +2241,7 @@ int32_t CSimpleEditBox::OnLayerTrackUpdate(const CMouseEvent& evt) {
 // VERIFY: a53a098a auto
 // OFFSET: 0x009656D0
 void CSimpleEditBox::OnFrameSizeChanged(float width, float height) {
+    EDIT_CHECK();
     CSimpleFrame::OnFrameSizeChanged(width, height);
     this->UpdateSizes();
 }
@@ -1952,14 +2249,23 @@ void CSimpleEditBox::OnFrameSizeChanged(float width, float height) {
 // VERIFY: d28e9628 manual
 // OFFSET: 0x00965700
 void CSimpleEditBox::CreateCandidatesFrame() {
+    EDIT_CHECK();
     if (this->m_candidatesFrame) {
         return;
     }
 
     float fontHeight = this->m_fontString->GetFontHeight(true);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    this->m_candidatesFrame = Frame::Native::ConstructRegion<CSimpleMessageFrame>(CSimpleMessageFrame::s_allocator, this);
+#else
     void* data = CSimpleMessageFrame::s_allocator.GetData(0, typeid(CSimpleMessageFrame).raw_name(), SLOG_OBJECT);
     this->m_candidatesFrame = data ? new (data) CSimpleMessageFrame(nullptr) : nullptr;
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    try {
+#endif
     this->m_candidatesFrame->SetFrameStrata(FRAME_STRATA_TOOLTIP);
     this->m_candidatesFrame->m_font->SetFontObject(this->m_font);
     this->m_candidatesFrame->m_font->m_attributes.SetJustifyH(0x1);
@@ -1970,6 +2276,9 @@ void CSimpleEditBox::CreateCandidatesFrame() {
     this->m_candidatesFrame->m_fading = 0;
     this->m_candidatesFrame->SetInsertMode(INSERT_AT_TOP);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    auto* background = Frame::Native::CreateTexture(m_candidatesFrame, 0, true);
+#else
     CSimpleTexture* background = nullptr;
     data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
 
@@ -1977,6 +2286,7 @@ void CSimpleEditBox::CreateCandidatesFrame() {
         background = new (data) CSimpleTexture(this->m_candidatesFrame, 0, 1);
     }
 
+#endif
     CImVector backgroundColor;
     backgroundColor.b = 0x60;
     backgroundColor.g = 0x60;
@@ -1985,8 +2295,12 @@ void CSimpleEditBox::CreateCandidatesFrame() {
     background->SetTexture(backgroundColor);
     background->SetAllPoints(this->m_candidatesFrame, 1);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_candidateHighlight = Frame::Native::CreateTexture(m_candidatesFrame, 2, true);
+#else
     data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     this->m_candidateHighlight = data ? new (data) CSimpleTexture(this->m_candidatesFrame, 2, 1) : nullptr;
+#endif
 
     CImVector highlightColor;
     highlightColor.b = 0x80;
@@ -1994,18 +2308,27 @@ void CSimpleEditBox::CreateCandidatesFrame() {
     highlightColor.r = 0x80;
     highlightColor.a = 0xFF;
     this->m_candidateHighlight->SetTexture(highlightColor);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    } catch (...) {
+        delete m_candidatesFrame; m_candidatesFrame = nullptr; m_candidateHighlight = nullptr;
+        throw;
+    }
+#endif
 }
 
 // VERIFY: ad41eed4 manual
 // OFFSET: 0x009658D0
 int32_t CSimpleEditBox::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
+    EDIT_CHECK();
     if (!this->m_isVisible) {
         return 0;
     }
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
     } else if (this != CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         return 0;
     }
 
@@ -2015,11 +2338,13 @@ int32_t CSimpleEditBox::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
 // VERIFY: ce97a3ef auto
 // OFFSET: 0x00965920
 int32_t CSimpleEditBox::OnLayerKeyUp(const CKeyEvent& evt) {
+    EDIT_CHECK();
     if (!this->m_isVisible) {
         return 0;
     }
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
         return 1;
     }
@@ -2030,6 +2355,16 @@ int32_t CSimpleEditBox::OnLayerKeyUp(const CKeyEvent& evt) {
 // VERIFY: b386b85b manual
 // OFFSET: 0x00965960
 void CSimpleEditBox::Insert(const char* text, const char* taint, int32_t runScripts, int32_t highlight, int32_t script) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EditText(text);
+    const std::string retained = text ? text : ""; text = retained.c_str();
+    Frame::Native::ResizeScope lifetime;
+    if (retained.size() + size_t(m_textLength) > 4095 + size_t(m_highlightRight - m_highlightLeft))
+        throw std::length_error("Native EditBox capacity exceeded");
+    if (m_textMaxLetters < 0 || m_textMaxLetters > 4095 || m_textMaxLength < -1 || m_textMaxLength > 4095)
+        throw std::invalid_argument("Invalid EditBox text limits");
+#endif
     int32_t position = this->m_cursorPos;
     uint32_t* info = this->m_textInfo;
 
@@ -2156,6 +2491,10 @@ void CSimpleEditBox::Insert(const char* text, const char* taint, int32_t runScri
 // VERIFY: f9405edc auto
 // OFFSET: 0x00965CE0
 void CSimpleEditBox::Insert(uint32_t ch) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (ch > 0x10ffff || (ch >= 0xd800 && ch <= 0xdfff)) throw std::invalid_argument("Invalid EditBox Unicode scalar");
+#endif
     if (ch < 0x20 || ch == 0x7F) {
         if (ch == '\t') {
             this->Insert("    ", nullptr, 1, 0, 0);
@@ -2180,11 +2519,16 @@ void CSimpleEditBox::Insert(uint32_t ch) {
 // VERIFY: fbe65e47 manual
 // OFFSET: 0x00965D70
 void CSimpleEditBox::UpdateVisibleHighlight() {
+    EDIT_CHECK();
     if (this->m_clauseHighlight) {
         if (this->m_imeComposition) {
             this->UpdateHighlightArea(this->m_clauseHighlight, this->m_clauseStart, this->m_clauseEnd);
         } else {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_clauseHighlight);
+#else
             this->m_clauseHighlight->Hide();
+#endif
         }
     }
 
@@ -2212,15 +2556,27 @@ void CSimpleEditBox::UpdateVisibleHighlight() {
 
     if (endLine == startLine) {
         this->UpdateHighlightArea(this->m_highlightTextures[0], this->m_highlightLeft, this->m_highlightRight);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[1]);
+#else
         this->m_highlightTextures[1]->Hide();
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[2]);
+#else
         this->m_highlightTextures[2]->Hide();
+#endif
         return;
     }
 
     this->UpdateHighlightArea(this->m_highlightTextures[0], this->m_highlightLeft, this->m_visibleLines.m_data[startLine + 1]);
 
     if (endLine - startLine + 1 == 2) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        HideEditRegion(this->m_highlightTextures[1]);
+#else
         this->m_highlightTextures[1]->Hide();
+#endif
     } else {
         this->m_highlightTextures[1]->m_shown = 1;
         this->m_highlightTextures[1]->ShowThis();
@@ -2232,24 +2588,35 @@ void CSimpleEditBox::UpdateVisibleHighlight() {
 // VERIFY: 9b220353 auto
 // OFFSET: 0x00965ED0
 void CSimpleEditBox::PasteFromClipboard() {
+    EDIT_CHECK();
     char* string = OsClipboardGetString();
 
     if (!string) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<char, decltype(&OsClipboardFreeString)> retained(string, &OsClipboardFreeString);
+    EditText(string); // Reject malformed/oversized clipboard text before mutation.
+#endif
     int32_t chars;
 
     for (const char* c = string; *c; c += chars) {
         this->Insert(sgetu8(reinterpret_cast<const uint8_t*>(c), &chars));
     }
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     OsClipboardFreeString(string);
+#endif
 }
 
 // VERIFY: 3333ed53 manual
 // OFFSET: 0x00965F20
 void CSimpleEditBox::SetMultiLine(int32_t enable) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (enable) throw std::invalid_argument("Native multiline EditBox is not qualified");
+#endif
     if (enable) {
         this->m_editBoxFlags |= 0x2;
     } else {
@@ -2299,13 +2666,16 @@ void CSimpleEditBox::SetMultiLine(int32_t enable) {
 // VERIFY: fe353c96 auto
 // OFFSET: 0x009660E0
 int32_t CSimpleEditBox::OnLayerChar(const CCharEvent& evt) {
+    EDIT_CHECK();
     if (!this->m_isVisible) {
         return 0;
     }
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
     } else if (this != CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         return 0;
     }
 
@@ -2317,6 +2687,16 @@ int32_t CSimpleEditBox::OnLayerChar(const CCharEvent& evt) {
 // VERIFY: feaa14c1 manual
 // OFFSET: 0x00966140
 int32_t CSimpleEditBox::PopulateCandidates(uint32_t listMask) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK();
+    // Copy while OsQueueGet still owns this event's snapshot. Never allocate
+    // regions or change Frame visibility inside input/resize traversal.
+    m_nativeIme = OsNative::CurrentCompositionSnapshot();
+    m_nativeCandidateVisible = !m_nativeIme.candidates.empty() && m_nativeIme.candidates.size() <= 32;
+    m_nativeCandidateDirty = true;
+    return m_nativeCandidateVisible;
+#else
+    EDIT_CHECK();
     TSGrowableArray<OsIMECandidate> candidates;
     uint32_t pageStart;
     uint32_t pageSize;
@@ -2366,18 +2746,55 @@ int32_t CSimpleEditBox::PopulateCandidates(uint32_t listMask) {
 
     this->m_candidatesFrame->Resize(1);
     return 1;
+#endif
 }
 
 // VERIFY: e7688b1b manual
 // OFFSET: 0x009663C0
 int32_t CSimpleEditBox::OnLayerIme(const CImeEvent& evt) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EDIT_CHECK();
+    if (!m_isVisible) return 0;
+    if (!s_currentFocus && (m_editBoxFlags & 1)) SetKeyboardFocus(this);
+    if (s_currentFocus != this) return 0;
+    const auto snapshot = OsNative::CurrentCompositionSnapshot();
+    const auto action = evt.m_data.m_action;
+    if (action == OS_INPUT_IME_COMPOSITION) {
+        if (evt.m_data.m_param & 4) {
+            if (m_imeComposition) DeleteHighlight(0);
+            m_imeComposition = 0;
+            for (auto scalar : OsNative::DecodeUtf8(snapshot.result)) Insert(scalar);
+        }
+        if (!(m_editBoxFlags & 8) && (evt.m_data.m_param & 2)) {
+            Insert(snapshot.text.c_str(), nullptr, 0, 1, 0);
+            m_imeComposition = 1;
+            RunOnCharCompositionScript(snapshot.text.c_str());
+        }
+        if (!(m_editBoxFlags & 8) && (evt.m_data.m_param & 1)) UpdateClauseInfo();
+    } else if (action == OS_INPUT_IME_STARTCOMPOSITION) {
+        m_highlightDrag = 0;
+        if (!(m_editBoxFlags & 8)) m_imeComposition = 1;
+    } else if (action == OS_INPUT_IME_OPENCANDIDATES || action == OS_INPUT_IME_CHANGECANDIDATES) {
+        if (!(m_editBoxFlags & 8)) PopulateCandidates(evt.m_data.m_param);
+    } else if (action == OS_INPUT_IME_CLOSECANDIDATES || action == OS_INPUT_IME_ENDCOMPOSITION) {
+        m_nativeCandidateVisible = false; m_nativeCandidateDirty = true;
+        if (action == OS_INPUT_IME_ENDCOMPOSITION) {
+            if (m_imeComposition) DeleteHighlight(0);
+            m_imeComposition = 0; m_dirtyBits |= 6;
+        }
+    }
+    return 1;
+#else
+    EDIT_CHECK();
     if (!this->m_isVisible) {
         return 0;
     }
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
     } else if (this != CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         return 0;
     }
 
@@ -2444,11 +2861,17 @@ int32_t CSimpleEditBox::OnLayerIme(const CImeEvent& evt) {
     }
 
     return 1;
+#endif
 }
 
 // VERIFY: 2adb42fa auto
 // OFFSET: 0x00966580
 void CSimpleEditBox::SetText(const char* text, const char* taint) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    EditText(text); const std::string retained = text ? text : ""; text = retained.c_str();
+    Frame::Native::ResizeScope lifetime;
+#endif
     if (this->m_highlightLeft != this->m_highlightRight) {
         this->m_dirtyBits |= 0x2;
         this->m_highlightRight = 0;
@@ -2468,6 +2891,7 @@ void CSimpleEditBox::SetText(const char* text, const char* taint) {
 // VERIFY: 0e6aee1d auto
 // OFFSET: 0x00966600
 void CSimpleEditBox::BackwardHistory() {
+    EDIT_CHECK();
     int32_t lines = this->m_historyLines;
 
     for (int32_t count = 1; count <= lines; count++) {
@@ -2484,6 +2908,7 @@ void CSimpleEditBox::BackwardHistory() {
 // VERIFY: b6e843c9 manual
 // OFFSET: 0x00966670
 void CSimpleEditBox::ForwardHistory() {
+    EDIT_CHECK();
     for (int32_t count = 1; count <= this->m_historyLines; count++) {
         int32_t index = this->m_historyIndex - count;
 
@@ -2502,6 +2927,7 @@ void CSimpleEditBox::ForwardHistory() {
 // VERIFY: 675a5d35 manual
 // OFFSET: 0x00966710
 void CSimpleEditBox::UpdateVisibleText() {
+    EDIT_CHECK();
     float width = this->m_fontString->GetWidth();
 
     if (this->m_editBoxFlags & 0x8) {
@@ -2596,6 +3022,9 @@ void CSimpleEditBox::UpdateVisibleText() {
                     }
                 }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                if (back == text) break;
+#endif
                 back--;
             }
 
@@ -2631,30 +3060,38 @@ void CSimpleEditBox::UpdateVisibleText() {
 // VERIFY: 47818eff auto
 // OFFSET: 0x00966F20
 const char* CSimpleEditBox::GetObjectTypeName() {
+    EDIT_CHECK();
     return CSimpleEditBox::s_objectTypeName;
 }
 
 // VERIFY: b50cdb9f auto
 // OFFSET: 0x00966F30
 int32_t CSimpleEditBox::GetScriptMetaTable() {
+    EDIT_CHECK();
     return CSimpleEditBox::s_metatable;
 }
 
 // VERIFY: 5d8f0f26 auto
 // OFFSET: 0x00966F50
 bool CSimpleEditBox::IsA(int32_t type) {
+    EDIT_CHECK();
     return type == CSimpleEditBox::s_objectType || type == CSimpleFrame::s_objectType || type == CScriptRegion::s_objectType || type == CScriptObject::s_objectType;
 }
 
 // VERIFY: 9f181853 auto
 // OFFSET: 0x00966F90
 bool CSimpleEditBox::IsA(const char* typeName) {
+    EDIT_CHECK();
     return !SStrCmpI(typeName, CSimpleEditBox::s_objectTypeName, STORM_MAX_STR) || CSimpleFrame::IsA(typeName);
 }
 
 // VERIFY: 59f6a6f7 manual
 // OFFSET: 0x00966FD0
 void CSimpleEditBox::SetHistoryLines(int32_t lines) {
+    EDIT_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lines < 0 || lines > 128) throw std::invalid_argument("Native EditBox history limit");
+#endif
     this->m_history.SetCount(lines);
     this->m_historyLines = lines;
 
@@ -2666,6 +3103,7 @@ void CSimpleEditBox::SetHistoryLines(int32_t lines) {
 // VERIFY: 12e6f1a3 auto
 // OFFSET: 0x00967020
 void CSimpleEditBox::UpdateDirtyBits() {
+    EDIT_CHECK();
     uint32_t textChanged = this->m_dirtyBits & 0x1;
 
     if (this->m_dirtyBits & 0x4) {
@@ -2701,6 +3139,7 @@ void CSimpleEditBox::UpdateDirtyBits() {
 // VERIFY: 03deb178 manual
 // OFFSET: 0x00967290
 void CSimpleEditBox::LoadXML(XMLNode* node, CStatus* status) {
+    EDIT_CHECK();
     CSimpleFrame::LoadXML(node, status);
 
     const char* fontName = node->GetAttributeByName("font");
@@ -2810,13 +3249,18 @@ void CSimpleEditBox::LoadXML(XMLNode* node, CStatus* status) {
 // VERIFY: f5607a28 manual
 // OFFSET: 0x00967670
 void CSimpleEditBox::OnLayerUpdate(float elapsedSec) {
+    EDIT_CHECK();
     CSimpleFrame::OnLayerUpdate(elapsedSec);
 
     this->UpdateDirtyBits();
 
     if (!g_theGxDevicePtr->CapsWindowHasFocus(-1)) {
         if (this->m_cursorTexture->m_shown) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_cursorTexture);
+#else
             this->m_cursorTexture->Hide();
+#endif
         }
 
         return;
@@ -2835,8 +3279,13 @@ void CSimpleEditBox::OnLayerUpdate(float elapsedSec) {
     this->m_blinkElapsedTime += elapsedSec;
 
     if (this == CSimpleEditBox::s_currentFocus && this->m_blinkElapsedTime > this->m_cursorBlinkSpeed) {
+    EDIT_CHECK();
         if (this->m_cursorTexture->m_shown) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            HideEditRegion(this->m_cursorTexture);
+#else
             this->m_cursorTexture->Hide();
+#endif
         } else {
             this->m_cursorTexture->m_shown = 1;
             this->m_cursorTexture->ShowThis();
@@ -2849,6 +3298,7 @@ void CSimpleEditBox::OnLayerUpdate(float elapsedSec) {
 // VERIFY: 7fac4541 manual
 // OFFSET: 0x00967760
 int32_t CSimpleEditBox::OnLayerKeyDown(const CKeyEvent& evt) {
+    EDIT_CHECK();
     if (!this->m_isVisible) {
         return 0;
     }
@@ -2860,8 +3310,10 @@ int32_t CSimpleEditBox::OnLayerKeyDown(const CKeyEvent& evt) {
     }
 
     if (!CSimpleEditBox::s_currentFocus && (this->m_editBoxFlags & 0x1)) {
+    EDIT_CHECK();
         CSimpleEditBox::SetKeyboardFocus(this);
     } else if (this != CSimpleEditBox::s_currentFocus) {
+    EDIT_CHECK();
         return 0;
     }
 
@@ -2874,9 +3326,18 @@ int32_t CSimpleEditBox::OnLayerKeyDown(const CKeyEvent& evt) {
 
         case KEY_ENTER:
             if (!(this->m_editBoxFlags & 0x2) || this->m_onEnterPressed.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                struct EnterScope {
+                    uint32_t& flag; uint32_t saved;
+                    explicit EnterScope(uint32_t& value) : flag(value), saved(value) { flag = 1; }
+                    ~EnterScope() { flag = saved; }
+                } enter(this->m_simpleTop->unused_1250);
+                this->RunOnEnterPressedScript();
+#else
                 this->m_simpleTop->unused_1250 = 1;
                 this->RunOnEnterPressedScript();
                 this->m_simpleTop->unused_1250 = 0;
+#endif
             } else {
                 this->Insert("\n", nullptr, 1, 0, 0);
             }
@@ -3076,6 +3537,7 @@ int32_t CSimpleEditBox::OnLayerKeyDown(const CKeyEvent& evt) {
 // VERIFY: b2eac8d7 auto
 // OFFSET: 0x00967CD0
 int32_t CSimpleEditBox::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
+    EDIT_CHECK();
     int32_t result = CSimpleFrame::OnLayerMouseDown(evt, btn);
 
     if (result) {
@@ -3103,3 +3565,38 @@ int32_t CSimpleEditBox::OnLayerMouseDown(const CMouseEvent& evt, const char* btn
     CSimpleEditBox::SetKeyboardFocus(this);
     return result;
 }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleEditBox::PrepareCandidates() {
+    Frame::Native::RequireTreeMutation();
+    if (!m_nativeCandidateDirty) return;
+    if (!m_nativeCandidateVisible || s_currentFocus != this || !m_isVisible) {
+        if (m_candidatesFrame) m_candidatesFrame->Hide();
+        m_nativeCandidateDirty = false; return;
+    }
+    CreateCandidatesFrame();
+    const auto count = m_nativeIme.candidates.size();
+    if (!count || count > 32) throw std::invalid_argument("Native EditBox candidate page limit");
+    const auto selected = std::clamp(m_nativeIme.selected, 0, int(count) - 1);
+    const float height = m_fontString->GetFontHeight(true);
+    if (!(height > 0)) return; // Retry after the font resolves.
+    m_candidatesFrame->Clear();
+    const float scale = m_candidatesFrame->m_layoutScale;
+    const float row = (CSimpleTop::RoundToPixelHeight(scale * m_candidatesFrame->m_font->m_attributes.m_fontHeight) +
+                       CSimpleTop::RoundToPixelHeight(scale * m_candidatesFrame->m_font->m_attributes.m_spacing)) / scale;
+    if (!(row > 0)) return;
+    m_candidatesFrame->SetHeight((count + 1) * row + row * 0.01f);
+    m_candidateHighlight->MarkFramePointsUnused();
+    m_candidateHighlight->SetPoint(FRAMEPOINT_TOPLEFT, m_candidatesFrame, FRAMEPOINT_TOPLEFT, 0, -selected * row, 0);
+    m_candidateHighlight->SetSize(height * 10, row);
+    const CImVector white(255,255,255,255);
+    std::string label = "> " + std::to_string(selected + 1) + "/" + std::to_string(count);
+    m_candidatesFrame->AddMessage(label.c_str(), white);
+    for (size_t i = count; i; --i) {
+        label = std::to_string(i) + ": " + m_nativeIme.candidates[i-1];
+        m_candidatesFrame->AddMessage(label.c_str(), white);
+    }
+    m_candidatesFrame->Show();
+    m_nativeCandidateDirty = false;
+}
+#endif

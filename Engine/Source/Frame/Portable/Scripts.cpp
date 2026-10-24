@@ -1,5 +1,6 @@
 // Lifetime for selected original 12340 region/frame/FontString Lua methods.
 #include "Scripts.h"
+#include "Engine/Source/Frame/CSimpleEditBox.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleCheckbox.h"
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
@@ -26,12 +27,14 @@ Scripts::Scripts() {
         CSimpleButton::CreateScriptMetaTable();
         CSimpleCheckbox::CreateScriptMetaTable();
         CSimpleMessageFrame::CreateScriptMetaTable();
+        CSimpleEditBox::CreateScriptMetaTable();
         CSimpleTexture::Init();
         installed = true;
         FrameXML::Native::InstallFactories();
     } catch (...) {
         installed = false;
         CSimpleTexture::Destroy();
+        CSimpleEditBox::DestroyScriptMetaTable();
         CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();
         CSimpleButton::DestroyScriptMetaTable();
@@ -51,6 +54,7 @@ Scripts::~Scripts() {
         CheckCanClose();
         FrameXML::Native::CloseFactories();
         CSimpleTexture::Destroy();
+        CSimpleEditBox::DestroyScriptMetaTable();
         CSimpleMessageFrame::DestroyScriptMetaTable();
         CSimpleCheckbox::DestroyScriptMetaTable();
         CSimpleButton::DestroyScriptMetaTable();

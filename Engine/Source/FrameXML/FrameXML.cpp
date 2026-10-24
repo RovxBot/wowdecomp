@@ -120,13 +120,6 @@ int32_t FrameXML_GuessNumFiles(const char* toc) {
     return count;
 }
 
-// VERIFY: e0d76346 auto
-// OFFSET: 0x00812660
-CSimpleFrame* Create_SimpleEditBox(CSimpleFrame* parent) {
-    void* data = CSimpleEditBox::s_allocator.GetData(0, typeid(CSimpleEditBox).raw_name(), SLOG_OBJECT);
-    return data ? new (data) CSimpleEditBox(parent) : nullptr;
-}
-
 // VERIFY: 9ec2bd5d auto
 // OFFSET: 0x008126C0
 CSimpleFrame* Create_SimpleModel(CSimpleFrame* parent) {

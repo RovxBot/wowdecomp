@@ -27,6 +27,7 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/CSimpleTitleRegion.h"
 #include "Engine/Source/Frame/CSimpleMessageFrame.h"
+#include "Engine/Source/Frame/CSimpleEditBox.h"
 #endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -810,6 +811,10 @@ int32_t CSimpleTop::OnFocusChanged(const void* data, void* param) {
     CSimpleTop* top = static_cast<CSimpleTop*>(param);
     void (*callback)(const CFocusEvent&) = top->m_focusChangedCallback;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!focusData->m_focus && CSimpleEditBox::s_currentFocus)
+        CSimpleEditBox::ClearKeyboardFocus(CSimpleEditBox::s_currentFocus, true);
+#endif
     OsIMESync();
 
     if (callback) {
@@ -1167,6 +1172,9 @@ void CSimpleTop::OnLayerUpdate(float elapsedSec) {
     Frame::Native::RequireRoot();
     Frame::Native::RequireFinite(elapsedSec);
     Frame::Native::DrainDestroyQueue();
+    CLayoutFrame::ResizePending();
+    for (auto* item = m_frames.Head(); item; item = m_frames.Next(item))
+        if (auto* edit = dynamic_cast<CSimpleEditBox*>(item)) edit->PrepareCandidates();
     CLayoutFrame::ResizePending();
     for (auto* item = m_frames.Head(); item; item = m_frames.Next(item))
         if (auto* messages = dynamic_cast<CSimpleMessageFrame*>(item)) messages->PrepareRows();
