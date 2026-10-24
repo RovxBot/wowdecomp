@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleButton.h"
@@ -38,9 +41,13 @@ static int32_t SetStateTexture(lua_State* L, CSimpleButtonState state, const cha
     CSimpleButton* button = static_cast<CSimpleButton*>(FrameScript_GetObjectThis(L, CSimpleButton::GetObjectType()));
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = dynamic_cast<CSimpleTexture*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleTexture* texture = static_cast<CSimpleTexture*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!texture) {
             const char* name = button->GetName();
@@ -181,9 +188,13 @@ static int32_t Script_SetNormalFontObject(lua_State* L) {
     if (lua_type(L, 2) == LUA_TSTRING) {
         font = CSimpleFont::GetFont(lua_tolstring(L, 2, nullptr), 0);
     } else if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        font = dynamic_cast<CSimpleFont*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         font = static_cast<CSimpleFont*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
     }
 
     if (!button || !font || !font->IsA(CSimpleFont::GetObjectType())) {
@@ -219,9 +230,13 @@ static int32_t Script_SetDisabledFontObject(lua_State* L) {
     if (lua_type(L, 2) == LUA_TSTRING) {
         font = CSimpleFont::GetFont(lua_tolstring(L, 2, nullptr), 0);
     } else if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        font = dynamic_cast<CSimpleFont*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         font = static_cast<CSimpleFont*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
     }
 
     if (!button || !font || !font->IsA(CSimpleFont::GetObjectType())) {
@@ -257,9 +272,13 @@ static int32_t Script_SetHighlightFontObject(lua_State* L) {
     if (lua_type(L, 2) == LUA_TSTRING) {
         font = CSimpleFont::GetFont(lua_tolstring(L, 2, nullptr), 0);
     } else if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        font = dynamic_cast<CSimpleFont*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         font = static_cast<CSimpleFont*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
     }
 
     if (!button || !font || !font->IsA(CSimpleFont::GetObjectType())) {
@@ -292,9 +311,13 @@ static int32_t Script_SetFontString(lua_State* L) {
     CSimpleButton* button = static_cast<CSimpleButton*>(FrameScript_GetObjectThis(L, CSimpleButton::GetObjectType()));
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleFontString* fontString = dynamic_cast<CSimpleFontString*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleFontString* fontString = static_cast<CSimpleFontString*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!fontString) {
             const char* name = button->GetName();
@@ -339,6 +362,9 @@ static int32_t Script_GetFontString(lua_State* L) {
 // VERIFY: 9d7477fa manual
 // OFFSET: 0x00977960
 static int32_t Script_SetText(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     CSimpleButton* button = static_cast<CSimpleButton*>(FrameScript_GetObjectThis(L, CSimpleButton::GetObjectType()));
 
     button->SetText(lua_tolstring(L, 2, nullptr));
@@ -348,6 +374,9 @@ static int32_t Script_SetText(lua_State* L) {
 // VERIFY: c802d6cc manual
 // OFFSET: 0x009779B0
 static int32_t Script_SetFormattedText(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     CSimpleButton* button = static_cast<CSimpleButton*>(FrameScript_GetObjectThis(L, CSimpleButton::GetObjectType()));
     char buffer[4096];
 
@@ -416,9 +445,13 @@ static int32_t Script_SetHighlightTexture(lua_State* L) {
     }
 
     if (lua_type(L, 2) == LUA_TTABLE) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        CSimpleTexture* texture = dynamic_cast<CSimpleTexture*>(FrameScript::Native::GetObject(L, 2));
+#else
         lua_rawgeti(L, 2, 0);
         CSimpleTexture* texture = static_cast<CSimpleTexture*>(lua_touserdata(L, -1));
         lua_settop(L, -2);
+#endif
 
         if (!texture) {
             const char* name = button->GetName();
@@ -601,6 +634,44 @@ void CSimpleButton::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2D418
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable> },
+    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable> },
+    { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled, true, false> },
+    { "GetButtonState", &Frame::Native::ScriptMethod<&Script_GetButtonState, true, false> },
+    { "SetButtonState", &Frame::Native::ScriptMethod<&Script_SetButtonState> },
+    { "SetNormalFontObject", &Frame::Native::ScriptMethod<&Script_SetNormalFontObject> },
+    { "GetNormalFontObject", &Frame::Native::ScriptMethod<&Script_GetNormalFontObject, true, false> },
+    { "SetDisabledFontObject", &Frame::Native::ScriptMethod<&Script_SetDisabledFontObject> },
+    { "GetDisabledFontObject", &Frame::Native::ScriptMethod<&Script_GetDisabledFontObject, true, false> },
+    { "SetHighlightFontObject", &Frame::Native::ScriptMethod<&Script_SetHighlightFontObject> },
+    { "GetHighlightFontObject", &Frame::Native::ScriptMethod<&Script_GetHighlightFontObject, true, false> },
+    { "SetFontString", &Frame::Native::ScriptMethod<&Script_SetFontString> },
+    { "GetFontString", &Frame::Native::ScriptMethod<&Script_GetFontString, true, false> },
+    { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false, false> },
+    { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false, false> },
+    { "GetText", &Frame::Native::ScriptMethod<&Script_GetText, true, false> },
+    { "SetNormalTexture", &Frame::Native::ScriptMethod<&Script_SetNormalTexture> },
+    { "GetNormalTexture", &Frame::Native::ScriptMethod<&Script_GetNormalTexture, true, false> },
+    { "SetPushedTexture", &Frame::Native::ScriptMethod<&Script_SetPushedTexture> },
+    { "GetPushedTexture", &Frame::Native::ScriptMethod<&Script_GetPushedTexture, true, false> },
+    { "SetDisabledTexture", &Frame::Native::ScriptMethod<&Script_SetDisabledTexture> },
+    { "GetDisabledTexture", &Frame::Native::ScriptMethod<&Script_GetDisabledTexture, true, false> },
+    { "SetHighlightTexture", &Frame::Native::ScriptMethod<&Script_SetHighlightTexture> },
+    { "GetHighlightTexture", &Frame::Native::ScriptMethod<&Script_GetHighlightTexture, true, false> },
+    { "SetPushedTextOffset", &Frame::Native::ScriptMethod<&Script_SetPushedTextOffset> },
+    { "GetPushedTextOffset", &Frame::Native::ScriptMethod<&Script_GetPushedTextOffset, true, false> },
+    { "GetTextWidth", &Frame::Native::ScriptMethod<&Script_GetTextWidth, true, false> },
+    { "GetTextHeight", &Frame::Native::ScriptMethod<&Script_GetTextHeight, true, false> },
+    { "RegisterForClicks", &Frame::Native::ScriptMethod<&Script_RegisterForClicks> },
+    { "Click", &Frame::Native::ScriptMethod<&Script_Click, false, false> },
+    { "LockHighlight", &Frame::Native::ScriptMethod<&Script_LockHighlight> },
+    { "UnlockHighlight", &Frame::Native::ScriptMethod<&Script_UnlockHighlight> },
+    { "GetMotionScriptsWhileDisabled", &Frame::Native::ScriptMethod<&Script_GetMotionScriptsWhileDisabled, true, false> },
+    { "SetMotionScriptsWhileDisabled", &Frame::Native::ScriptMethod<&Script_SetMotionScriptsWhileDisabled> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "Enable", &Script_Enable },
     { "Disable", &Script_Disable },
@@ -637,6 +708,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetMotionScriptsWhileDisabled", &Script_GetMotionScriptsWhileDisabled },
     { "SetMotionScriptsWhileDisabled", &Script_SetMotionScriptsWhileDisabled },
 };
+#endif
 
 // VERIFY: 99ad8db9 auto
 // OFFSET: 0x00977040

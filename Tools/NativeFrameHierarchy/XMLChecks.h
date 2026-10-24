@@ -39,7 +39,7 @@ static void XMLChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& font)
             assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,bad))
             assert(RejectedXML == nil)
         end
-        assert(not pcall(CreateFrame,'Button','RejectedXML'))
+        assert(not pcall(CreateFrame,'EditBox','RejectedXML'))
         assert(not pcall(CreateFrame,'Frame','RejectedXML',{[0]=NativeXMLParent[0]}))
         assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,nil,'2147483648'))
         assert(not pcall(CreateFrame,'Frame','RejectedXML',nil,nil,'nan'))

@@ -255,6 +255,7 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "XMLChecks.h"
 #include "TextureChecks.h"
 #include "HandlerChecks.h"
+#include "ButtonChecks.h"
 static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font,Frame::Native::Fonts& owner,const std::string& snapshot,bool windowEvents,bool keyboardEvents,bool imeEvents,bool mouseEvents,bool original) {
     CSimpleTop root;
     Check(root.m_rect.maxX>0 && root.m_rect.maxY>0,"Original root extent missing");
@@ -264,6 +265,7 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     XMLChecks(device,root,font);
     TextureChecks(device,root,original);
     HandlerChecks(context,device,root,font);
+    ButtonChecks(context,device,root,font,original);
     auto* parent=new CSimpleFrame(nullptr);
     auto* child=new CSimpleFrame(parent);
     Check(child->m_parent==parent && parent->m_children.Head()->m_frame==child && child->m_isVisible,"Original Frame child registration");

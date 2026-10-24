@@ -476,8 +476,8 @@ void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    // Top-level, movable, resizable and user-placed flags only.
-    if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000) Frame::Native::UnavailableFrameFeature();
+    // Qualified base movement flags plus Button disabled/widget markers.
+    if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000 && flag != 0x400 && flag != 0x10000) Frame::Native::UnavailableFrameFeature();
     this->m_simpleTop->m_strata[this->m_strata]->m_levelsDirty = 1;
     this->m_simpleTop->m_checkFocus = 1;
 #endif
@@ -1717,7 +1717,7 @@ void CSimpleFrame::SetBackdrop(CBackdropGenerator* backdrop) {
 void CSimpleFrame::EnableDrawLayer(uint32_t drawLayer) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
 #endif
     this->m_drawLayerEnabled[drawLayer] = 1;
@@ -1729,7 +1729,7 @@ void CSimpleFrame::EnableDrawLayer(uint32_t drawLayer) {
 void CSimpleFrame::DisableDrawLayer(uint32_t drawLayer) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
 #endif
     this->m_drawLayerEnabled[drawLayer] = 0;
@@ -1777,7 +1777,7 @@ void CSimpleFrame::UnregisterRegion(CSimpleRegion* region) {
 void CSimpleFrame::AddFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
     Frame::Native::RequireScript(region);
     if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
@@ -1792,7 +1792,7 @@ void CSimpleFrame::AddFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
 void CSimpleFrame::RemoveFrameRegion(CSimpleRegion* region, uint32_t drawLayer) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireScriptTextMutation();
     if (drawLayer >= 5) throw std::invalid_argument("Invalid Frame draw layer");
     Frame::Native::RequireScript(region);
     if (region->m_parent != this) throw std::invalid_argument("Region belongs to another Frame");
@@ -1902,8 +1902,8 @@ void CSimpleFrame::OnLayerCursorExit(int32_t motion, int32_t a3) {
 void CSimpleFrame::LockHighlight(int32_t lock) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
+    Frame::Native::RequireScriptTextMutation();
+#endif
 
     if (lock == this->m_highlightLocked) {
         return;
@@ -1919,7 +1919,6 @@ void CSimpleFrame::LockHighlight(int32_t lock) {
         this->NotifyDrawLayerChanged(DRAWLAYER_HIGHLIGHT);
     }
 
-#endif
 }
 
 // VERIFY: 95d4bac7 manual
