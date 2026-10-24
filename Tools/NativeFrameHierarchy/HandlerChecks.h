@@ -13,11 +13,15 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     const auto initialPixels=Draw(device,root);
     lua_State* L = FrameScript_GetContext();
     const int top = lua_gettop(L), nesting = lua_taintexpected;
+    int previousErrorHandler=LUA_NOREF;
+    if (s_errorHandlerFunc>0) {
+        lua_rawgeti(L,LUA_REGISTRYINDEX,s_errorHandlerFunc);
+        previousErrorHandler=luaL_ref(L,LUA_REGISTRYINDEX);
+    }
     const char* names[] = {"NATIVE_HANDLER_EVENT", "NATIVE_HANDLER_OTHER", nullptr};
     FrameScript_CreateEvents(names, 3);
     RegionLua(R"(
         HandlerLog,HandlerErrors={},{}
-        HandlerOldError = geterrorhandler()
         seterrorhandler(function(err) HandlerErrors[#HandlerErrors+1]=err; return err end)
         local f,t = NativeHandlerFrame,NativeHandlerText
         assert(f:HasScript('OnKeyDown') and f:HasScript('OnLoad') and f:HasScript('OnEvent'))
@@ -198,11 +202,14 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     delete frame;
     RegionLua(R"(
         assert(NativeHandlerFrame==nil and NativeHandlerText==nil and HandlerXML1==nil and HandlerXML2==nil)
-        seterrorhandler(HandlerOldError)
-        HandlerLog,HandlerErrors,HandlerOldError,HandlerEvents,HandlerTaintSecure,NativeXMLUpdate,HandlerTaintCalled=nil,nil,nil,nil,nil,nil,nil
+        HandlerLog,HandlerErrors,HandlerEvents,HandlerTaintSecure,NativeXMLUpdate,HandlerTaintCalled=nil,nil,nil,nil,nil,nil
         HandlerMetaCalls,HandlerOldGlobalMeta=nil,nil
         collectgarbage('collect')
     )");
+    // Original seterrorhandler accepts functions only, while the default is
+    // LUA_NOREF. Restore the fixture's separately retained reference exactly.
+    if (s_errorHandlerFunc>0) luaL_unref(L,LUA_REGISTRYINDEX,s_errorHandlerFunc);
+    s_errorHandlerFunc=previousErrorHandler;
     Check(lua_gettop(L)==top && lua_taintexpected==nesting,"Handlers left stack or taint nesting");
     Check(!Ink(Draw(device,root)),"Destroyed handler text retained pixels");
     std::cout << "frame-lua-handlers-hook-event-key-char-mouse-update-text-xml-cache-taint-error-teardown=passed\n";
