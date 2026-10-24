@@ -53,7 +53,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
         title:SetAllPoints(f)
         assert(title == f:CreateTitleRegion())
         assert(not pcall(f.CreateTexture,f,'RejectedTexture',nil,'MissingTextureTemplate'))
-        assert(not pcall(f.SetScript,f,'OnKeyDown',function() end))
+        assert(f:HasScript('OnKeyDown'))
         assert(t:GetText() == nil)
         local function text(input, expected)
             t:SetText(input)

@@ -439,7 +439,6 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
 
 // VERIFY: 24a44dfc auto
 // OFFSET: 0x0049EAB0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_HasScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -459,11 +458,9 @@ static int32_t Script_HasScript(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: 6acdff0d auto
 // OFFSET: 0x0049EB70
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -494,11 +491,9 @@ static int32_t Script_GetScript(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: 95f390db auto
 // OFFSET: 0x0049EC80
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -517,6 +512,11 @@ static int32_t Script_SetScript(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // The original API accepts trailing arguments, but owns exactly argument 3.
+    lua_settop(L, 3);
+#endif
+
     if (script->m_luaRef) {
         luaL_unref(L, LUA_REGISTRYINDEX, script->m_luaRef);
     }
@@ -527,11 +527,9 @@ static int32_t Script_SetScript(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 287347b4 auto
 // OFFSET: 0x0049EDB0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_HookScript(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -549,6 +547,11 @@ static int32_t Script_HookScript(lua_State* L) {
         luaL_error(L, "%s doesn't have a \"%s\" script", name ? name : "<unnamed>", lua_tolstring(L, 2, nullptr));
         return 0;
     }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // The original API accepts trailing arguments, but owns exactly argument 3.
+    lua_settop(L, 3);
+#endif
 
     if (!script->m_luaRef) {
         int32_t ref = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -601,11 +604,9 @@ static int32_t Script_HookScript(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 0a32559b manual
 // OFFSET: 0x0049EFE0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_RegisterEvent(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -618,11 +619,9 @@ static int32_t Script_RegisterEvent(lua_State* L) {
     frame->RegisterScriptEvent(lua_tolstring(L, 2, nullptr));
     return 0;
 }
-#endif
 
 // VERIFY: 1edce814 manual
 // OFFSET: 0x0049F060
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_UnregisterEvent(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -635,33 +634,27 @@ static int32_t Script_UnregisterEvent(lua_State* L) {
     frame->UnregisterScriptEvent(lua_tolstring(L, 2, nullptr));
     return 0;
 }
-#endif
 
 // VERIFY: ea0c6858 manual
 // OFFSET: 0x0049F0E0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_RegisterAllEvents(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->RegisterAllScriptEvents();
     return 0;
 }
-#endif
 
 // VERIFY: a0775ed2 manual
 // OFFSET: 0x0049F120
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_UnregisterAllEvents(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     frame->UnregisterAllScriptEvents();
     return 0;
 }
-#endif
 
 // VERIFY: d19d3294 manual
 // OFFSET: 0x0049F160
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsEventRegistered(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -679,7 +672,6 @@ static int32_t Script_IsEventRegistered(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: 42b41dfb manual
 // OFFSET: 0x0049F210
@@ -1613,7 +1605,6 @@ static int32_t Script_RegisterForDrag(lua_State* L) {
 
 // VERIFY: 9efb8fdc auto
 // OFFSET: 0x004A0EC0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableKeyboard(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1635,11 +1626,9 @@ static int32_t Script_EnableKeyboard(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 71851cc6 manual
 // OFFSET: 0x004A0F60
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsKeyboardEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1651,11 +1640,9 @@ static int32_t Script_IsKeyboardEnabled(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: 2c085835 auto
 // OFFSET: 0x004A0FD0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableMouse(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1675,11 +1662,9 @@ static int32_t Script_EnableMouse(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 4b5eab9b manual
 // OFFSET: 0x004A1060
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMouseEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1691,11 +1676,9 @@ static int32_t Script_IsMouseEnabled(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: cf928975 auto
 // OFFSET: 0x004A10D0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_EnableMouseWheel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1715,11 +1698,9 @@ static int32_t Script_EnableMouseWheel(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: e5a1e6f9 manual
 // OFFSET: 0x004A1160
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_IsMouseWheelEnabled(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1731,7 +1712,6 @@ static int32_t Script_IsMouseWheelEnabled(lua_State* L) {
 
     return 1;
 }
-#endif
 
 // VERIFY: 63f09962 auto
 // OFFSET: 0x004A11D0
@@ -2172,15 +2152,15 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetFrameStrata", &Frame::Native::UnavailableScriptMethod },
     { "GetFrameLevel", &Frame::Native::UnavailableScriptMethod },
     { "SetFrameLevel", &Frame::Native::UnavailableScriptMethod },
-    { "HasScript", &Frame::Native::UnavailableScriptMethod },
-    { "GetScript", &Frame::Native::UnavailableScriptMethod },
-    { "SetScript", &Frame::Native::UnavailableScriptMethod },
-    { "HookScript", &Frame::Native::UnavailableScriptMethod },
-    { "RegisterEvent", &Frame::Native::UnavailableScriptMethod },
-    { "UnregisterEvent", &Frame::Native::UnavailableScriptMethod },
-    { "RegisterAllEvents", &Frame::Native::UnavailableScriptMethod },
-    { "UnregisterAllEvents", &Frame::Native::UnavailableScriptMethod },
-    { "IsEventRegistered", &Frame::Native::UnavailableScriptMethod },
+    { "HasScript", &Frame::Native::ScriptMethod<&Script_HasScript, true, false> },
+    { "GetScript", &Frame::Native::ScriptMethod<&Script_GetScript, true, false> },
+    { "SetScript", &Frame::Native::ScriptMethod<&Script_SetScript, true, false> },
+    { "HookScript", &Frame::Native::ScriptMethod<&Script_HookScript, true, false> },
+    { "RegisterEvent", &Frame::Native::ScriptMethod<&Script_RegisterEvent, true, false> },
+    { "UnregisterEvent", &Frame::Native::ScriptMethod<&Script_UnregisterEvent, true, false> },
+    { "RegisterAllEvents", &Frame::Native::ScriptMethod<&Script_RegisterAllEvents, true, false> },
+    { "UnregisterAllEvents", &Frame::Native::ScriptMethod<&Script_UnregisterAllEvents, true, false> },
+    { "IsEventRegistered", &Frame::Native::ScriptMethod<&Script_IsEventRegistered, true, false> },
     { "AllowAttributeChanges", &Frame::Native::UnavailableScriptMethod },
     { "CanChangeAttribute", &Frame::Native::UnavailableScriptMethod },
     { "GetAttribute", &Frame::Native::UnavailableScriptMethod },
@@ -2225,12 +2205,12 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetClampedToScreen", &Frame::Native::UnavailableScriptMethod },
     { "IsClampedToScreen", &Frame::Native::UnavailableScriptMethod },
     { "RegisterForDrag", &Frame::Native::UnavailableScriptMethod },
-    { "EnableKeyboard", &Frame::Native::UnavailableScriptMethod },
-    { "IsKeyboardEnabled", &Frame::Native::UnavailableScriptMethod },
-    { "EnableMouse", &Frame::Native::UnavailableScriptMethod },
-    { "IsMouseEnabled", &Frame::Native::UnavailableScriptMethod },
-    { "EnableMouseWheel", &Frame::Native::UnavailableScriptMethod },
-    { "IsMouseWheelEnabled", &Frame::Native::UnavailableScriptMethod },
+    { "EnableKeyboard", &Frame::Native::ScriptMethod<&Script_EnableKeyboard, true, true> },
+    { "IsKeyboardEnabled", &Frame::Native::ScriptMethod<&Script_IsKeyboardEnabled, true, false> },
+    { "EnableMouse", &Frame::Native::ScriptMethod<&Script_EnableMouse, true, true> },
+    { "IsMouseEnabled", &Frame::Native::ScriptMethod<&Script_IsMouseEnabled, true, false> },
+    { "EnableMouseWheel", &Frame::Native::ScriptMethod<&Script_EnableMouseWheel, true, true> },
+    { "IsMouseWheelEnabled", &Frame::Native::ScriptMethod<&Script_IsMouseWheelEnabled, true, false> },
     { "EnableJoystick", &Frame::Native::UnavailableScriptMethod },
     { "IsJoystickEnabled", &Frame::Native::UnavailableScriptMethod },
     { "GetBackdrop", &Frame::Native::UnavailableScriptMethod },

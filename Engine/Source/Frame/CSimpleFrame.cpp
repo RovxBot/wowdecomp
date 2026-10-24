@@ -364,9 +364,6 @@ int32_t CSimpleFrame::GetScriptMetaTable() {
 // OFFSET: 0x0048E680
 FrameScript_Object::ScriptIx* CSimpleFrame::GetScriptByName(const char* name, FrameScript_Object::ScriptData& data) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
     FrameScript_Object::ScriptIx* script = FrameScript_Object::GetScriptByName(name, data);
 
@@ -464,7 +461,6 @@ FrameScript_Object::ScriptIx* CSimpleFrame::GetScriptByName(const char* name, Fr
 
     return nullptr;
 
-#endif
 }
 
 // VERIFY: d39dac25 manual
@@ -756,9 +752,6 @@ void CSimpleFrame::RunOnSizeChangedScript(float width, float height) {
 // OFFSET: 0x0048F0F0
 void CSimpleFrame::RunOnEnterScript(int32_t motion) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onCursorEnter.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (this->m_onCursorEnter.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -772,9 +765,6 @@ void CSimpleFrame::RunOnEnterScript(int32_t motion) {
 // OFFSET: 0x0048F130
 void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onCursorExit.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (this->m_onCursorExit.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -788,9 +778,6 @@ void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
 // OFFSET: 0x0048F170
 void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onMouseWheel.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (this->m_onMouseWheel.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
@@ -804,9 +791,6 @@ void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
 // OFFSET: 0x0048F1B0
 void CSimpleFrame::RunOnKeyUpScript(const char* key) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
     if (this->m_onKeyUp.m_luaRef) {
         lua_State* L = FrameScript_GetContext();
         lua_pushstring(L, key);
@@ -1174,9 +1158,6 @@ void CSimpleFrame::AddAnimAlpha(int16_t alpha) {
 // OFFSET: 0x0048F950
 int32_t CSimpleFrame::OnLayerTrackUpdate(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onDragStart.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     C2Vector pt = evt.m_data.m_mousePosition;
 
@@ -1250,9 +1231,6 @@ int32_t CSimpleFrame::OnLayerKeyDownRepeat(const CKeyEvent& evt) {
 // OFFSET: 0x0048FB10
 int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onChar.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
     if (!this->m_isVisible || !this->m_onChar.m_luaRef) {
         return 0;
     }
@@ -1274,9 +1252,6 @@ int32_t CSimpleFrame::OnLayerChar(const CCharEvent& evt) {
 // OFFSET: 0x0048FB80
 int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onKeyDown.m_luaRef || this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
     if (!this->m_isVisible || (!this->m_onKeyDown.m_luaRef && !this->m_onKeyUp.m_luaRef)) {
         return 0;
     }
@@ -1297,9 +1272,6 @@ int32_t CSimpleFrame::OnLayerKeyDown(const CKeyEvent& evt) {
 // OFFSET: 0x0048FBF0
 int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onKeyUp.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
     if (!this->m_isVisible || !this->m_onKeyUp.m_luaRef) {
         return 0;
     }
@@ -1313,15 +1285,6 @@ int32_t CSimpleFrame::OnLayerKeyUp(const CKeyEvent& evt) {
 // OFFSET: 0x0048FC30
 int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onMouseDown.m_luaRef) Frame::Native::UnavailableFrameFeature();
-    if (!btn && (this->m_dragButtons & evt.m_data.m_button)) {
-        this->m_isMouseDown = 1; this->m_isMouseDragging = 0;
-        this->m_mouseDragButton = evt.m_data.m_button;
-        this->m_mousePosition = evt.m_data.m_mousePosition;
-    }
-    return 0;
-#else
 
     if (!btn) {
         if (this->m_dragButtons & evt.m_data.m_button) {
@@ -1346,27 +1309,12 @@ int32_t CSimpleFrame::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) 
     this->m_simpleTop->m_mouseButtonName = savedButton;
     return 0;
 
-#endif
 }
 
 // VERIFY: 9fd49d5d auto
 // OFFSET: 0x0048FCE0
 int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onMouseUp.m_luaRef || this->m_onDragStop.m_luaRef)
-        Frame::Native::UnavailableFrameFeature();
-    if (!btn && (this->m_dragButtons & evt.m_data.m_button)) {
-        this->m_isMouseDown = 0;
-        if (this->m_isMouseDragging) {
-            this->OnDragStop(evt);
-            if (auto* focus = this->m_simpleTop->m_mouseFocus) focus->OnReceiveDrag(evt);
-            this->m_isMouseDragging = 0;
-            return 1;
-        }
-    }
-    return 0;
-#else
 
     if (!btn) {
         if (this->m_dragButtons & evt.m_data.m_button) {
@@ -1401,16 +1349,12 @@ int32_t CSimpleFrame::OnLayerMouseUp(const CMouseEvent& evt, const char* btn) {
     this->m_simpleTop->m_mouseButtonName = savedButton;
     return 0;
 
-#endif
 }
 
 // VERIFY: 27bac257 manual
 // OFFSET: 0x0048FDB0
 int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onMouseWheel.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (!this->m_isVisible || !this->m_onMouseWheel.m_luaRef) {
         return 0;
@@ -1425,9 +1369,6 @@ int32_t CSimpleFrame::OnLayerMouseWheel(const CMouseEvent& evt) {
 // OFFSET: 0x0048FDF0
 void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onDragStart.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#else
 
     uint32_t button = 0;
 
@@ -1444,16 +1385,12 @@ void CSimpleFrame::OnDragStart(const CMouseEvent& evt) {
         this->RunScript(this->m_onDragStart, 1, nullptr);
     }
 
-#endif
 }
 
 // VERIFY: 445a6cbe auto
 // OFFSET: 0x0048FE60
 void CSimpleFrame::OnDragStop(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onDragStop.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (this->m_onDragStop.m_luaRef) {
         this->RunScript(this->m_onDragStop, 0, nullptr);
@@ -1465,9 +1402,6 @@ void CSimpleFrame::OnDragStop(const CMouseEvent& evt) {
 // OFFSET: 0x0048FE80
 void CSimpleFrame::OnReceiveDrag(const CMouseEvent& evt) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_onReceiveDrag.m_luaRef) Frame::Native::UnavailableFrameFeature();
-#endif
 
     if (this->m_onReceiveDrag.m_luaRef) {
         this->RunScript(this->m_onReceiveDrag, 0, nullptr);
@@ -1506,9 +1440,6 @@ void CSimpleFrame::NotifyScrollParent() {
 // OFFSET: 0x0048FEF0
 void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
     FRAME_TREE_CHECK();
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
-#else
 
     lua_State* L = FrameScript_GetContext();
 
@@ -1529,21 +1460,38 @@ void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
 
         if (script->m_luaRef) {
             luaL_unref(L, LUA_REGISTRYINDEX, script->m_luaRef);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            script->m_luaRef = 0;
+#endif
         }
 
         if (!child->m_userData && body && *body) {
             char name[1024];
             SStrPrintf(name, sizeof(name), "*:%s", scriptName);
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            int32_t ref = FrameScript_CompileFunction(name, data.m_wrapper, body, status);
+            if (ref > 0) {
+                try { child->m_userData = new FrameScriptFunctionRef(ref); }
+                catch (...) { FrameScript_ReleaseFunction(ref); throw; }
+            }
+#else
             void* mem = SMemAlloc(sizeof(FrameScriptFunctionRef), __FILE__, __LINE__, 0);
             child->m_userData = mem ? new (mem) FrameScriptFunctionRef(FrameScript_CompileFunction(name, data.m_wrapper, body, status)) : nullptr;
+#endif
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        script->m_luaRef = 0;
+#endif
         const char* function = child->GetAttributeByName("function");
 
         if (function && *function) {
             lua_pushstring(L, function);
             lua_rawget(L, LUA_GLOBALSINDEX);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            if (!lua_isfunction(L, -1)) { lua_pop(L, 1); lua_pushnil(L); }
+#endif
             int32_t ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
             if (ref == -1) {
@@ -1595,7 +1543,6 @@ void CSimpleFrame::LoadXML_Scripts(XMLNode* node, CStatus* status) {
         }
     }
 
-#endif
 }
 
 // VERIFY: 784118ad auto
@@ -2969,3 +2916,12 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
     }
 
 }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+void CSimpleFrame::RunScript(const FrameScript_Object::ScriptIx& script, int32_t count, const char* taint) {
+    Frame::Native::RequireRegionScripts();
+    Frame::Native::RequireSimpleFrame(this);
+    Frame::Native::ResizeScope callback;
+    FrameScript_Object::RunScript(script, count, taint);
+}
+#endif

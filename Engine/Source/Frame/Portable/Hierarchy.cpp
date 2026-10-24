@@ -44,6 +44,10 @@ void RequireRoot() {
     RequireRegions(); RequireRenderer();
     if (!CSimpleTop::s_instance) throw std::logic_error("Native Frame root is not installed");
 }
+void RequireScriptTextMutation() {
+    RequireRegions();
+    if (collecting) throw std::logic_error("Finish Frame batch collection before changing script text");
+}
 void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");

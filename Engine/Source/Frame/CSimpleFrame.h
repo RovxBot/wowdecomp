@@ -116,6 +116,9 @@ class CSimpleFrame : public CScriptRegion {
     /* 028C */ TSLink<CSimpleFrame> m_destroyedLink;
     /* 0294 */ TSLink<CSimpleFrame> m_strataLink;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void RunScript(const FrameScript_Object::ScriptIx&, int32_t, const char*);
+#endif
     virtual ~CSimpleFrame();
     virtual int32_t GetScriptMetaTable();
     virtual FrameScript_Object::ScriptIx* GetScriptByName(const char* name, FrameScript_Object::ScriptData& data);

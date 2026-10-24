@@ -106,10 +106,23 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         throw std::invalid_argument("Cyclic or excessive native XML creation graph");
     path.push_back(node);
     const char* tag = node->m_name.m_str;
+    if (path.size() >= 2 && Is(path[path.size()-2]->m_name.m_str, "Scripts")) {
+        const char* scripts[] = {"OnEvent", "OnLoad", "OnSizeChanged", "OnUpdate", "OnShow", "OnHide",
+            "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnMouseWheel", "OnDragStart",
+            "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
+            "OnEnable", "OnDisable"};
+        if (std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
+            node->m_child || node->m_bodyLen > 1024 * 1024 || node->GetAttributeByName("inherit"))
+            throw std::invalid_argument("Unavailable or excessive native XML script handler");
+        path.pop_back();
+        return;
+    }
+    if (Is(tag, "Scripts") && (path.size() < 2 || !Is(path[path.size()-2]->m_name.m_str, "Frame")))
+        throw std::invalid_argument("Native XML Scripts require a Frame parent");
     // Fail before allocation for consumers with unselected ownership/services.
     const char* supported[] = {"Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
-        "Color", "Shadow", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
+        "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
     if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
         throw std::invalid_argument("Native XML widget or child service is unavailable");
     if (Is(tag, "Texture")) {
