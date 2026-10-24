@@ -5,9 +5,11 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
                           CSimpleFont& font, bool original, const std::string& snapshot) {
     const int frames = CSimpleFrame::s_frameCount;
     const auto strings = CSimpleFontString::s_allocator.m_dataUsed;
+    std::vector<OSEVENT> inputTrace;
     auto pump = [&] {
         context.Window().Pump(); OSEVENT event{};
         while (OsQueueGet(&event.id,&event.param[0],&event.param[1],&event.param[2],&event.param[3])) {
+            inputTrace.push_back(event);
             if (Frame::Native::DispatchWindowEvent(context,event)) continue;
             Frame::Native::DispatchInputEvent(context,event);
         }
@@ -107,7 +109,13 @@ static void EditBoxChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         for(int y=479;y>=0;--y)for(int x=0;x<640;++x){const auto& p=candidates[y*640+x];out.put(char(p.r));out.put(char(p.g));out.put(char(p.b));}
         Check(bool(out),"EditBox candidate capture");
     }
-    text("A");pump();Draw(device,root);
+    inputTrace.clear();text("A");pump();Draw(device,root);
+    if (edit->m_imeComposition || std::string(edit->m_text)!="AA" || edit->m_candidatesFrame->m_isVisible) {
+        std::cerr << "EditBox commit diagnostics: text=" << edit->m_text << " composition=" << edit->m_imeComposition
+                  << " focused=" << (CSimpleEditBox::s_currentFocus==edit) << " candidates=" << edit->m_candidatesFrame->m_isVisible << '\n';
+        for (const auto& event : inputTrace)
+            std::cerr << "EditBox commit event=" << event.id << " params=" << event.param[0] << ',' << event.param[1] << ',' << event.param[2] << ',' << event.param[3] << '\n';
+    }
     Check(!edit->m_imeComposition && std::string(edit->m_text)=="AA" && !edit->m_candidatesFrame->m_isVisible,
           "IME commit duplicated preedit or retained candidates");
     compose("V",0,1);compose("",0,0);pump();Draw(device,root);
