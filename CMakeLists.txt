@@ -122,6 +122,16 @@ if(NOT WOWDECOMP_BUILD_CLIENT)
 endif()
 include(cmake/WindowsClient.cmake)
 
+# Game identity (build 12340, version 3.3.5, client name) lives in GameVersion.h at the repository root.
+# WaystoneVersion.h is regenerated from git on every build; the login screen shows its build number.
+set(WAYSTONE_VERSION_HEADER ${CMAKE_BINARY_DIR}/generated/WaystoneVersion.h)
+add_custom_target(WaystoneVersion
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_SOURCE_DIR} -DOUTPUT=${WAYSTONE_VERSION_HEADER} -P ${CMAKE_SOURCE_DIR}/cmake/GenerateWaystoneVersion.cmake
+    BYPRODUCTS ${WAYSTONE_VERSION_HEADER}
+    VERBATIM
+)
+include_directories(${CMAKE_BINARY_DIR}/generated)
+
 # Third-party code is linked, not decompiled, for now.
 if (EXISTS ${CMAKE_SOURCE_DIR}/ThirdParty/CMakeLists.txt)
     add_subdirectory(ThirdParty)
@@ -179,6 +189,9 @@ endif ()
 if (WOWDECOMP_CPU STREQUAL "X86_64")
     add_subdirectory(Tools/XvidDecoder)
 endif ()
+
+add_dependencies(Glue WaystoneVersion)
+add_dependencies(Ui WaystoneVersion)
 
 foreach (target Wow WowClient MapViewer M2Viewer GxTest MpqTest BlpTest DbcTest AssetCheck)
     if (TARGET ${target})

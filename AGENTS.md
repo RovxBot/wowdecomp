@@ -1005,3 +1005,11 @@ remaining checks need another machine.
   GlueXML/login and transport/gameplay stay open. No new physical-input, Windows
   runtime, macOS graphics or server acceptance; signatures, server discrepancies,
   interactive sign-in and read-only clean data remain intact. M3 is incomplete.
+
+
+- 12340 upstream maintenance through `20f9120e0a8f064338ecd9f2dd6cbc01642bf695` is
+  prepared on `native-port/upstream-2026-10-24`; qualification is pending. Read
+  [the review](docs/upstream/2026-10-24.md) and
+  [record](docs/upstream/2026-10-24.json). Preserve moved shared helpers, native
+  lifetime guards, corrective follow-ups and Actions-only compilation. Historical
+  qualifications retain their exact identities; M0/M3 status is unchanged.

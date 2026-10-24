@@ -131,7 +131,7 @@ static void MouseEvents(GlContext& context,CSimpleTop& root) {
     // Unselected event kinds still reject; original Lua mouse handlers execute.
     root.m_moveResizeEnabled=1;deliver(OS_INPUT_MOUSE_DOWN,MOUSE_BUTTON_LEFT);
     deliver(OS_INPUT_MOUSE_UP,MOUSE_BUTTON_LEFT);root.m_moveResizeEnabled=0;
-    Reject([&]{high->EnableEvent(SIMPLE_EVENT_4,0);});
+    Reject([&]{high->EnableEvent(SIMPLE_EVENT_JOYSTICK,0);});
     CStatus scriptStatus;
     int32_t handler=FrameScript_CompileFunction("MouseHandlerFixture","return function(self,button) %s end",
         "assert(self==this and button=='LeftButton'); MouseLuaObserved=true",&scriptStatus);

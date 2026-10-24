@@ -1,0 +1,2030 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "status": "integration prepared; hosted validation pending",
+  "repository": "https://github.com/SatyPardus/wowdecomp",
+  "product_before": "c49956eb73c805580210484f617950ccab2ed362",
+  "upstream_before": "b1c71b8bd108823bca952f16c6f83a7ad33b9648",
+  "upstream_head": "20f9120e0a8f064338ecd9f2dd6cbc01642bf695",
+  "upstream_delta": {
+    "commits": 187,
+    "non_merge_commits": 173,
+    "stat": "404 files changed, 9449 insertions(+), 6866 deletions(-)"
+  },
+  "overlapping_paths": [
+    "CMakeLists.txt",
+    "Engine/Source/Event/Types.h",
+    "Engine/Source/Frame/CSimpleButton.cpp",
+    "Engine/Source/Frame/CSimpleFont.cpp",
+    "Engine/Source/Frame/CSimpleFontStringAttributes.cpp",
+    "Engine/Source/Frame/CSimpleFontable.cpp",
+    "Engine/Source/Frame/CSimpleFrame.cpp",
+    "Engine/Source/Frame/CSimpleFrame.h",
+    "Engine/Source/Frame/CSimpleFrame_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleModel_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleRegion.cpp",
+    "Engine/Source/Frame/CSimpleTop.cpp",
+    "Engine/Source/Frame/CSimpleTop.h",
+    "Engine/Source/Frame/Types.h",
+    "Engine/Source/FrameXML/LoadXML.cpp",
+    "Engine/Source/Gx/CGxDevice/CGxDevice.cpp",
+    "Engine/Source/Gx/CGxDevice/CGxDevice.h",
+    "Engine/Source/Gxu/GxuFontFont.cpp",
+    "Engine/Source/Gxu/GxuFontMain.cpp",
+    "Engine/Source/Gxu/GxuFontString.cpp",
+    "Engine/Source/Gxu/IGxuFontGlyph.cpp",
+    "Engine/Source/Services/Camera.cpp",
+    "Engine/Source/Storm/H/Types.h",
+    "Engine/Source/Storm/Source/SLock.h",
+    "Engine/Source/Tempest/CMath.cpp",
+    "WoW/Source/CMakeLists.txt"
+  ],
+  "fork_only_unchanged_paths": [
+    ".github/workflows/m0-audit.yml",
+    ".github/workflows/m1-core.yml",
+    ".github/workflows/m2-assets.yml",
+    ".github/workflows/m2-async.yml",
+    ".github/workflows/m2-files.yml",
+    ".github/workflows/m2-shell.yml",
+    ".github/workflows/m3-framescript.yml",
+    ".github/workflows/m3-gl.yml",
+    ".github/workflows/m3-layout.yml",
+    ".github/workflows/m3-lua.yml",
+    ".github/workflows/m3-packets.yml",
+    ".github/workflows/m3-xml.yml",
+    ".gitignore",
+    "AGENTS.md",
+    "CMakePresets.json",
+    "Engine/Source/BLPFile/CMakeLists.txt",
+    "Engine/Source/Base/CDataAllocator.h",
+    "Engine/Source/Base/CDataStore.cpp",
+    "Engine/Source/Base/CDataStore.h",
+    "Engine/Source/Base/CMakeLists.txt",
+    "Engine/Source/Base/Handle.cpp",
+    "Engine/Source/Base/Handle.h",
+    "Engine/Source/Base/Portable/PacketValue.h",
+    "Engine/Source/Base/RCString.cpp",
+    "Engine/Source/Base/Status.cpp",
+    "Engine/Source/BlizzardCore/CMakeLists.txt",
+    "Engine/Source/BlizzardCore/Portable/AssetBytes.h",
+    "Engine/Source/BlizzardCore/Portable/AssetTables.cpp",
+    "Engine/Source/BlizzardCore/Portable/AssetTexture.cpp",
+    "Engine/Source/BlizzardCore/Portable/AssetWorld.cpp",
+    "Engine/Source/BlizzardCore/Portable/Assets.h",
+    "Engine/Source/BlizzardCore/Portable/Core.cpp",
+    "Engine/Source/BlizzardCore/Portable/File.cpp",
+    "Engine/Source/BlizzardCore/Portable/File.h",
+    "Engine/Source/BlizzardCore/Portable/FilePaths.cpp",
+    "Engine/Source/BlizzardCore/Portable/FilePlatform.h",
+    "Engine/Source/BlizzardCore/Portable/FilePosix.cpp",
+    "Engine/Source/BlizzardCore/Portable/FileWindows.cpp",
+    "Engine/Source/BlizzardCore/Portable/Package.h",
+    "Engine/Source/BlizzardCore/Portable/PackageArchive.cpp",
+    "Engine/Source/BlizzardCore/Portable/PackageCodecs.cpp",
+    "Engine/Source/BlizzardCore/Portable/PackageSignatures.cpp",
+    "Engine/Source/BlizzardCore/Portable/Packages.cpp",
+    "Engine/Source/BlizzardCore/Portable/Thread.cpp",
+    "Engine/Source/BlizzardCore/Portable/Thread.h",
+    "Engine/Source/BlizzardCore/Portable/Time.cpp",
+    "Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.cpp",
+    "Engine/Source/BlizzardCore/Source/System/File/File.h",
+    "Engine/Source/BlizzardCore/Source/System/Lock/Lock.h",
+    "Engine/Source/BlizzardCore/Source/System/Thread/Thread.h",
+    "Engine/Source/BlizzardCore/Source/System/Time/Time.h",
+    "Engine/Source/ComSat/CMakeLists.txt",
+    "Engine/Source/ConsoleBase/CMakeLists.txt",
+    "Engine/Source/Event/CMakeLists.txt",
+    "Engine/Source/FFX/CMakeLists.txt",
+    "Engine/Source/Frame/CFramePoint.cpp",
+    "Engine/Source/Frame/CFramePoint.h",
+    "Engine/Source/Frame/CLayoutFrame.cpp",
+    "Engine/Source/Frame/CMakeLists.txt",
+    "Engine/Source/Frame/CRenderBatch.cpp",
+    "Engine/Source/Frame/CRenderBatch.h",
+    "Engine/Source/Frame/CScriptObject.cpp",
+    "Engine/Source/Frame/CScriptObject_Scripts.cpp",
+    "Engine/Source/Frame/CScriptRegion.cpp",
+    "Engine/Source/Frame/CScriptRegion_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleBatchRender.cpp",
+    "Engine/Source/Frame/CSimpleFontString.cpp",
+    "Engine/Source/Frame/CSimpleFontString_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleFont_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleRender.cpp",
+    "Engine/Source/Frame/CSimpleTexture.cpp",
+    "Engine/Source/Frame/CSimpleTexture_Scripts.cpp",
+    "Engine/Source/Frame/CSimpleTitleRegion.cpp",
+    "Engine/Source/Frame/CreateFont.cpp",
+    "Engine/Source/Frame/FramePixel.cpp",
+    "Engine/Source/Frame/Language.cpp",
+    "Engine/Source/Frame/Portable/Fonts.cpp",
+    "Engine/Source/Frame/Portable/Fonts.h",
+    "Engine/Source/Frame/Portable/Hierarchy.cpp",
+    "Engine/Source/Frame/Portable/Hierarchy.h",
+    "Engine/Source/Frame/Portable/Regions.h",
+    "Engine/Source/Frame/Portable/Render.cpp",
+    "Engine/Source/Frame/Portable/Render.h",
+    "Engine/Source/Frame/Portable/Runtime.cpp",
+    "Engine/Source/Frame/Portable/Runtime.h",
+    "Engine/Source/Frame/Portable/Scripts.cpp",
+    "Engine/Source/Frame/Portable/Scripts.h",
+    "Engine/Source/Frame/Portable/Storage.h",
+    "Engine/Source/Frame/Portable/WindowEvents.cpp",
+    "Engine/Source/Frame/Portable/WindowEvents.h",
+    "Engine/Source/Frame/ScriptColor.cpp",
+    "Engine/Source/Frame/SimpleFrameScript.h",
+    "Engine/Source/Frame/SimpleFrameScript_Scripts.cpp",
+    "Engine/Source/FrameScript/CMakeLists.txt",
+    "Engine/Source/FrameScript/FrameScript.cpp",
+    "Engine/Source/FrameScript/FrameScript_Object.cpp",
+    "Engine/Source/FrameScript/FrameScript_Scripts.cpp",
+    "Engine/Source/FrameScript/Portable/Runtime.cpp",
+    "Engine/Source/FrameScript/Portable/Runtime.h",
+    "Engine/Source/FrameXML/CMakeLists.txt",
+    "Engine/Source/FrameXML/CreateFrame.cpp",
+    "Engine/Source/FrameXML/FrameXML.cpp",
+    "Engine/Source/FrameXML/LayoutXML.cpp",
+    "Engine/Source/FrameXML/Portable/Factories.cpp",
+    "Engine/Source/FrameXML/Portable/Factories.h",
+    "Engine/Source/FrameXML/Portable/InterfaceKey.h",
+    "Engine/Source/FrameXML/Portable/Runtime.cpp",
+    "Engine/Source/FrameXML/Portable/Runtime.h",
+    "Engine/Source/FrameXML/Portable/Signature.cpp",
+    "Engine/Source/FrameXML/RegionXML.cpp",
+    "Engine/Source/FrameXML/XMLTree.cpp",
+    "Engine/Source/Gx/CGxDevice/CGxShader.cpp",
+    "Engine/Source/Gx/CGxDevice/CGxShader.h",
+    "Engine/Source/Gx/CMakeLists.txt",
+    "Engine/Source/Gx/Gx.cpp",
+    "Engine/Source/Gx/Portable/GlBuffers.cpp",
+    "Engine/Source/Gx/Portable/GlBuffers.h",
+    "Engine/Source/Gx/Portable/GlContext.cpp",
+    "Engine/Source/Gx/Portable/GlContext.h",
+    "Engine/Source/Gx/Portable/GlProgram.cpp",
+    "Engine/Source/Gx/Portable/GlProgram.h",
+    "Engine/Source/Gx/Portable/GlRenderTargets.cpp",
+    "Engine/Source/Gx/Portable/GlRenderTargets.h",
+    "Engine/Source/Gx/Portable/GlTransforms.cpp",
+    "Engine/Source/Gx/Portable/GlTransforms.h",
+    "Engine/Source/Gx/Portable/LegacyDevice.cpp",
+    "Engine/Source/Gx/Portable/LegacyDevice.h",
+    "Engine/Source/Gx/Portable/ShaderPackage.cpp",
+    "Engine/Source/Gx/Portable/ShaderPackage.h",
+    "Engine/Source/Gxu/CMakeLists.txt",
+    "Engine/Source/Gxu/GxuFontFace.cpp",
+    "Engine/Source/Gxu/GxuFontFace.h",
+    "Engine/Source/Gxu/GxuFontTextureCache.cpp",
+    "Engine/Source/Gxu/Portable/FontFace.cpp",
+    "Engine/Source/Gxu/Portable/FontFace.h",
+    "Engine/Source/Gxu/Portable/FontMath.cpp",
+    "Engine/Source/Gxu/Portable/FontTexture.cpp",
+    "Engine/Source/Gxu/Portable/FreeTypeConfig/freetype/config/ftmodule.h",
+    "Engine/Source/Gxu/Portable/LegacyFonts.cpp",
+    "Engine/Source/Gxu/Portable/LegacyFonts.h",
+    "Engine/Source/Images/CMakeLists.txt",
+    "Engine/Source/Model2/CMakeLists.txt",
+    "Engine/Source/Os/CMakeLists.txt",
+    "Engine/Source/Os/OsFile.h",
+    "Engine/Source/Os/Portable/File.cpp",
+    "Engine/Source/Os/Portable/FunctionPointer.cpp",
+    "Engine/Source/Os/Portable/ModelArena.cpp",
+    "Engine/Source/Os/Portable/ModelArena.h",
+    "Engine/Source/Os/Portable/RandomPosix.cpp",
+    "Engine/Source/Os/Portable/RandomWindows.cpp",
+    "Engine/Source/Os/Portable/Runtime.h",
+    "Engine/Source/Os/Portable/Sync.cpp",
+    "Engine/Source/Os/Portable/ThreadPosix.cpp",
+    "Engine/Source/Os/Portable/ThreadWindows.cpp",
+    "Engine/Source/Os/Portable/Time.cpp",
+    "Engine/Source/Os/Portable/Tls.cpp",
+    "Engine/Source/Os/Portable/Window.cpp",
+    "Engine/Source/Os/Portable/Window.h",
+    "Engine/Source/PortableAssets/CMakeLists.txt",
+    "Engine/Source/PortableAsync/CMakeLists.txt",
+    "Engine/Source/PortableCore/CMakeLists.txt",
+    "Engine/Source/PortableFiles/CMakeLists.txt",
+    "Engine/Source/PortableFrameFonts/CMakeLists.txt",
+    "Engine/Source/PortableFrameScript/CMakeLists.txt",
+    "Engine/Source/PortableGx/CMakeLists.txt",
+    "Engine/Source/PortableLayout/CMakeLists.txt",
+    "Engine/Source/PortableLua/CMakeLists.txt",
+    "Engine/Source/PortableLua/RejectCallback.cmake",
+    "Engine/Source/PortablePackets/CMakeLists.txt",
+    "Engine/Source/PortableWindow/CMakeLists.txt",
+    "Engine/Source/PortableXML/CMakeLists.txt",
+    "Engine/Source/PortableXML/expat_config.h",
+    "Engine/Source/Scrn/CMakeLists.txt",
+    "Engine/Source/Services/CMakeLists.txt",
+    "Engine/Source/Services/Portable/AsyncFile.cpp",
+    "Engine/Source/Services/Portable/AsyncFile.h",
+    "Engine/Source/Services/Portable/ShellSettings.cpp",
+    "Engine/Source/Services/Portable/ShellSettings.h",
+    "Engine/Source/Services/Portable/Texture.cpp",
+    "Engine/Source/Services/Portable/Texture.h",
+    "Engine/Source/Services/TextBlock.cpp",
+    "Engine/Source/ShaderEffect/CMakeLists.txt",
+    "Engine/Source/SoundEngine/CMakeLists.txt",
+    "Engine/Source/SteelseriesMouse/CMakeLists.txt",
+    "Engine/Source/Storm/CMakeLists.txt",
+    "Engine/Source/Storm/H/SCritSect.h",
+    "Engine/Source/Storm/H/storm.h",
+    "Engine/Source/Storm/H/stpl.h",
+    "Engine/Source/Storm/Portable/LogError.cpp",
+    "Engine/Source/Storm/Portable/SCritSect.h",
+    "Engine/Source/Storm/Portable/SLock.cpp",
+    "Engine/Source/Storm/Portable/SLock.h",
+    "Engine/Source/Storm/Portable/SMem.cpp",
+    "Engine/Source/Storm/Portable/SThread.h",
+    "Engine/Source/Storm/Source/SArc4.cpp",
+    "Engine/Source/Storm/Source/SStr.cpp",
+    "Engine/Source/Storm/Source/SThread.h",
+    "Engine/Source/Storm/Source/soprintf.cpp",
+    "Engine/Source/Tempest/CMakeLists.txt",
+    "Engine/Source/Tempest/LayoutMath.cpp",
+    "Engine/Source/jpeg/CMakeLists.txt",
+    "Engine/Source/lua-5.1/CMakeLists.txt",
+    "Engine/Source/lua-5.1/src/lbaselib.c",
+    "Engine/Source/lua-5.1/src/lbitlib.c",
+    "Engine/Source/lua-5.1/src/ldo.c",
+    "Engine/Source/lua-5.1/src/ldo.h",
+    "Engine/Source/lua-5.1/src/lgc.c",
+    "Engine/Source/lua-5.1/src/lmemPool.cpp",
+    "Engine/Source/lua-5.1/src/lobject.h",
+    "Engine/Source/lua-5.1/src/lstate.h",
+    "Engine/Source/lua-5.1/src/lstrlib.c",
+    "Engine/Source/lua-5.1/src/ltable.c",
+    "Engine/Source/lua-5.1/src/lua.h",
+    "Engine/Source/lua-5.1/src/luaconf.h",
+    "Engine/Source/lua-5.1/src/lvm.c",
+    "Engine/Source/pcre/CMakeLists.txt",
+    "PORTING_PLAN.md",
+    "README.md",
+    "ThirdParty/CMakeLists.txt",
+    "ThirdParty/freetype/docs/NATIVE_ADAPTATIONS.md",
+    "ThirdParty/freetype/include/freetype/internal/ftstream.h",
+    "ThirdParty/freetype/src/base/ftcalc.c",
+    "ThirdParty/freetype/src/base/ftobjs.c",
+    "ThirdParty/freetype/src/base/ftoutln.c",
+    "ThirdParty/freetype/src/raster/ftraster.c",
+    "ThirdParty/freetype/src/raster/ftrend1.c",
+    "ThirdParty/freetype/src/sfnt/ttload.c",
+    "ThirdParty/freetype/src/sfnt/ttsbit.c",
+    "ThirdParty/freetype/src/smooth/ftgrays.c",
+    "ThirdParty/freetype/src/smooth/ftsmooth.c",
+    "ThirdParty/freetype/src/truetype/ttdriver.c",
+    "ThirdParty/freetype/src/truetype/ttgload.c",
+    "ThirdParty/freetype/src/truetype/ttinterp.c",
+    "ThirdParty/freetype/src/truetype/ttobjs.c",
+    "Tools/NativeAssets/main.cpp",
+    "Tools/NativeCore/CMakeLists.txt",
+    "Tools/NativeCore/main.cpp",
+    "Tools/NativeFrameFonts/main.cpp",
+    "Tools/NativeFrameHierarchy/HandlerChecks.h",
+    "Tools/NativeFrameHierarchy/ImeChecks.h",
+    "Tools/NativeFrameHierarchy/MovementChecks.h",
+    "Tools/NativeFrameHierarchy/PoolChecks.h",
+    "Tools/NativeFrameHierarchy/ScriptChecks.h",
+    "Tools/NativeFrameHierarchy/StackingChecks.h",
+    "Tools/NativeFrameHierarchy/TextureChecks.h",
+    "Tools/NativeFrameHierarchy/XMLChecks.h",
+    "Tools/NativeFrameRegions/main.cpp",
+    "Tools/NativeFrameRender/main.cpp",
+    "Tools/NativeFrameScript/main.cpp",
+    "Tools/NativeGx/buffers.cpp",
+    "Tools/NativeGx/fonts.cpp",
+    "Tools/NativeGx/fonts/LICENSE.txt",
+    "Tools/NativeGx/fonts/cache.ttf",
+    "Tools/NativeGx/fonts/make_font_fixture.py",
+    "Tools/NativeGx/fonts/moves.ttf",
+    "Tools/NativeGx/fonts/tiny.ttf",
+    "Tools/NativeGx/images.cpp",
+    "Tools/NativeGx/legacy.cpp",
+    "Tools/NativeGx/main.cpp",
+    "Tools/NativeGx/shaders.cpp",
+    "Tools/NativeGx/targets.cpp",
+    "Tools/NativeGx/textures.cpp",
+    "Tools/NativeGx/transforms.cpp",
+    "Tools/NativeLayout/main.cpp",
+    "Tools/NativeLua/main.cpp",
+    "Tools/NativeNet/packets.cpp",
+    "Tools/NativeShell/main.cpp",
+    "Tools/NativeXML/generate_fixtures.py",
+    "Tools/NativeXML/main.cpp",
+    "Tools/NativeXML/signature_fixture.json",
+    "Tools/PortableAssets/CMakeLists.txt",
+    "Tools/PortableAssets/decoders.cpp",
+    "Tools/PortableAssets/generate_fixtures.py",
+    "Tools/PortableAssets/packages.cpp",
+    "Tools/PortableAssets/signature_fixture.json",
+    "Tools/PortableAsync/async.cpp",
+    "Tools/PortableCore/CMakeLists.txt",
+    "Tools/PortableCore/hashes.cpp",
+    "Tools/PortableCore/runtime.cpp",
+    "Tools/PortableFiles/CMakeLists.txt",
+    "Tools/PortableFiles/files.cpp",
+    "Tools/PortableFiles/interrupted.cpp",
+    "Tools/PortableFiles/sparse_windows.cpp",
+    "Tools/PortableWindow/desktop_control.cpp",
+    "Tools/PortableWindow/settings.cpp",
+    "Tools/PortableWindow/window.cpp",
+    "Tools/Porting/Build-WindowsBaseline.ps1",
+    "Tools/Porting/audit_build_graph.py",
+    "Tools/Porting/audit_sources.py",
+    "Tools/Porting/run_asset_inspection.py",
+    "Tools/Porting/run_core_checks.py",
+    "Tools/Porting/run_framescript_checks.py",
+    "Tools/Porting/run_layout_checks.py",
+    "Tools/Porting/run_lua_checks.py",
+    "Tools/Porting/run_native_gl.py",
+    "Tools/Porting/run_native_shell.py",
+    "Tools/Porting/run_packet_checks.py",
+    "Tools/Porting/run_xml_checks.py",
+    "Tools/Porting/test_audit_sources.py",
+    "Tools/Porting/test_build_graph.py",
+    "Tools/Porting/test_native_assets.py",
+    "Tools/Porting/test_native_framescript.py",
+    "Tools/Porting/test_native_gl.py",
+    "Tools/Porting/test_native_layout.py",
+    "Tools/Porting/test_native_lua.py",
+    "Tools/Porting/test_native_packets.py",
+    "Tools/Porting/test_native_xml.py",
+    "Tools/WowClient/CMakeLists.txt",
+    "Tools/XvidDecoder/CMakeLists.txt",
+    "WoW/Common/CMakeLists.txt",
+    "WoW/Source/Battlenet/CMakeLists.txt",
+    "WoW/Source/Console/CMakeLists.txt",
+    "WoW/Source/ConsoleDevice/CMakeLists.txt",
+    "WoW/Source/DB/CMakeLists.txt",
+    "WoW/Source/Game/CMakeLists.txt",
+    "WoW/Source/Glue/CMakeLists.txt",
+    "WoW/Source/LiquidSystem/CMakeLists.txt",
+    "WoW/Source/Magic/CMakeLists.txt",
+    "WoW/Source/Minigame/CMakeLists.txt",
+    "WoW/Source/Net/CMakeLists.txt",
+    "WoW/Source/Object/CMakeLists.txt",
+    "WoW/Source/ObjectAlloc/CMakeLists.txt",
+    "WoW/Source/ObjectMgrClient/CMakeLists.txt",
+    "WoW/Source/SoundInterface/CMakeLists.txt",
+    "WoW/Source/UIUtil/CMakeLists.txt",
+    "WoW/Source/Ui/CMakeLists.txt",
+    "WoW/Source/WorldClient/CMakeLists.txt",
+    "WoW/Source/WowServices/CMakeLists.txt",
+    "WoW/Source/WowSvcs/CMakeLists.txt",
+    "cmake/Platform.cmake",
+    "cmake/SelectSources.cmake",
+    "cmake/WindowsClient.cmake",
+    "docs/BACKPORTS.md",
+    "docs/CI_BUILD_POLICY.md",
+    "docs/m0/BASELINE.md",
+    "docs/m0/RUNTIME_SESSION.md",
+    "docs/m0/windows-baseline.json",
+    "docs/m1/FOUNDATIONS.md",
+    "docs/m1/RUNTIME_DESIGN.md",
+    "docs/m1/RUNTIME_SESSION.md",
+    "docs/m1/UPSTREAM_REVIEW.md",
+    "docs/m1/allocation-windows-regression.json",
+    "docs/m1/core-checks.json",
+    "docs/m1/runtime-validation.json",
+    "docs/m1/runtime-windows-regression.json",
+    "docs/m1/windows-regression.json",
+    "docs/m2/ASSETS.md",
+    "docs/m2/ASYNC.md",
+    "docs/m2/DESKTOP_LIFETIMES.md",
+    "docs/m2/FILESYSTEM.md",
+    "docs/m2/HANDOFF.md",
+    "docs/m2/REFERENCE_REVIEW.md",
+    "docs/m2/SHELL.md",
+    "docs/m2/clean-data-inventory.json",
+    "docs/m2/closeout.json",
+    "docs/m2/desktop-leak-triage.json",
+    "docs/m2/file-services.json",
+    "docs/m2/native-asset-runtime-final.json",
+    "docs/m2/native-asset-runtime-shell.json",
+    "docs/m2/native-asset-runtime.json",
+    "docs/m2/operator-acceptance.json",
+    "docs/m2/shell-builds.json",
+    "docs/m2/shell-runtime.json",
+    "docs/m2/shell-windows-regression.json",
+    "docs/m2/windows-regression.json",
+    "docs/m2/x11-injected-input.json",
+    "docs/m3/BUFFERS.md",
+    "docs/m3/FONTS.md",
+    "docs/m3/FRAMESCRIPT.md",
+    "docs/m3/FRAME_FONTS.md",
+    "docs/m3/FRAME_HANDLERS.md",
+    "docs/m3/FRAME_HIERARCHY.md",
+    "docs/m3/FRAME_IME.md",
+    "docs/m3/FRAME_KEYBOARD.md",
+    "docs/m3/FRAME_MOUSE.md",
+    "docs/m3/FRAME_MOVEMENT.md",
+    "docs/m3/FRAME_POOLS.md",
+    "docs/m3/FRAME_REGIONS.md",
+    "docs/m3/FRAME_RENDER.md",
+    "docs/m3/FRAME_SCRIPTS.md",
+    "docs/m3/FRAME_STACKING.md",
+    "docs/m3/FRAME_TEXTURES.md",
+    "docs/m3/FRAME_WINDOW.md",
+    "docs/m3/FRAME_XML.md",
+    "docs/m3/HANDOFF.md",
+    "docs/m3/IMAGES.md",
+    "docs/m3/IMAGE_MIPS.md",
+    "docs/m3/IMAGE_SOURCES.md",
+    "docs/m3/LANGUAGE.md",
+    "docs/m3/LAYOUT.md",
+    "docs/m3/LEGACY_DEVICE.md",
+    "docs/m3/LEGACY_GX.md",
+    "docs/m3/LEGACY_GXU.md",
+    "docs/m3/LEGACY_STRINGS.md",
+    "docs/m3/LUA.md",
+    "docs/m3/PACKETS.md",
+    "docs/m3/RENDER_TARGETS.md",
+    "docs/m3/SERVER_IDENTITY.md",
+    "docs/m3/SHADERS.md",
+    "docs/m3/TEXTURES.md",
+    "docs/m3/TRANSFORMS.md",
+    "docs/m3/XML.md",
+    "docs/m3/buffer-validation.json",
+    "docs/m3/context-validation.json",
+    "docs/m3/font-validation.json",
+    "docs/m3/frame-font-validation.json",
+    "docs/m3/frame-handler-validation.json",
+    "docs/m3/frame-hierarchy-validation.json",
+    "docs/m3/frame-ime-validation.json",
+    "docs/m3/frame-keyboard-validation.json",
+    "docs/m3/frame-mouse-validation.json",
+    "docs/m3/frame-movement-validation.json",
+    "docs/m3/frame-pool-validation.json",
+    "docs/m3/frame-regions-validation.json",
+    "docs/m3/frame-render-validation.json",
+    "docs/m3/frame-script-method-validation.json",
+    "docs/m3/frame-stacking-validation.json",
+    "docs/m3/frame-texture-validation.json",
+    "docs/m3/frame-window-validation.json",
+    "docs/m3/frame-xml-validation.json",
+    "docs/m3/framescript-validation.json",
+    "docs/m3/gxu-validation.json",
+    "docs/m3/image-mip-validation.json",
+    "docs/m3/image-source-validation.json",
+    "docs/m3/image-validation.json",
+    "docs/m3/language-validation.json",
+    "docs/m3/layout-validation.json",
+    "docs/m3/legacy-device-validation.json",
+    "docs/m3/lua-validation.json",
+    "docs/m3/packet-validation.json",
+    "docs/m3/render-target-validation.json",
+    "docs/m3/shader-validation.json",
+    "docs/m3/string-validation.json",
+    "docs/m3/texture-validation.json",
+    "docs/m3/transform-validation.json",
+    "docs/m3/xml-validation.json",
+    "docs/upstream/2026-10-18.json",
+    "docs/upstream/2026-10-18.md"
+  ],
+  "fork_only_adapted_paths": [
+    ".github/workflows/windows-baseline.yml",
+    "Engine/Source/Frame/FontStringAttributes.cpp",
+    "Engine/Source/Frame/MouseButton.cpp",
+    "Engine/Source/FrameXML/FontXML.cpp",
+    "Engine/Source/Services/ScreenProjection.cpp",
+    "Tools/NativeFrameHierarchy/KeyboardChecks.h",
+    "Tools/NativeFrameHierarchy/MouseChecks.h",
+    "Tools/NativeFrameHierarchy/main.cpp",
+    "Tools/NativeGx/gxu.cpp"
+  ],
+  "upstream_only_adapted_paths": [
+    "BuildWaystone.bat"
+  ],
+  "source_checks": {
+    "unittest": "58 tests: 57 passed; CMake source selection skipped locally because CMake is unavailable",
+    "local_compilation": false,
+    "whitespace": "passed"
+  },
+  "original_pe": {
+    "sha256": "aa63a5750d60ef16746c686b3d5e26876d98953eab08b1c026cd0faf78e88cb8",
+    "build": 12340,
+    "inspection": "read-only objdump; no execution or game bytes committed",
+    "observations": [
+      "0x006C537F resumes the row scan at ECX after GenerateTextureCoords",
+      "0x007F2C95 initializes the override-sky last time to 0xFFFFFFFE",
+      "0x005C85FF and 0x005C8602 initialize talent and preview ranks to -1"
+    ]
+  },
+  "hosted_validation": [],
+  "runtime_validation": {
+    "status": "not run for this integration",
+    "windows_gameplay": "not observed",
+    "original_data_gpu": "not yet run",
+    "native_login_and_world": "not established"
+  },
+  "commits": [
+    {
+      "commit": "aeacf0f9b481e0b6cf102e8525116e3aebfd2386",
+      "parents": [
+        "1807f8d854b3576d00e88ff2372b618a95a1a6e4"
+      ],
+      "subject": "F35: restore current talk-animation selectors",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d19f10d056e6efb4c9b6c7221abc35f87ce5c270",
+      "parents": [
+        "aeacf0f9b481e0b6cf102e8525116e3aebfd2386"
+      ],
+      "subject": "F36: type the combat-hand selector",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6d25302fd9c40d9525bffd4364e953f897bb6df4",
+      "parents": [
+        "d19f10d056e6efb4c9b6c7221abc35f87ce5c270"
+      ],
+      "subject": "F37: restore current weapon-swing sound sizes",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "251f9454ec7572d2b2eb6575d719fb6389e0e940",
+      "parents": [
+        "6d25302fd9c40d9525bffd4364e953f897bb6df4"
+      ],
+      "subject": "F38: restore native IME conversion-mode types",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "94b50343f0e7847809901243d253982bb0a440c0",
+      "parents": [
+        "251f9454ec7572d2b2eb6575d719fb6389e0e940"
+      ],
+      "subject": "F39: type current name-validation character sets",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "480c3f6c50726f3b4039552742f895c33e00c184",
+      "parents": [
+        "94b50343f0e7847809901243d253982bb0a440c0"
+      ],
+      "subject": "F40: restore quest-dialog state types",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "146b1731bce159d7a1296df1c86ee5f41957c40b",
+      "parents": [
+        "480c3f6c50726f3b4039552742f895c33e00c184"
+      ],
+      "subject": "F41: type current trainer kinds",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4fd07b4cb8a89a6bc3c15d16e6da7c6049274dbd",
+      "parents": [
+        "146b1731bce159d7a1296df1c86ee5f41957c40b"
+      ],
+      "subject": "F42: restore trainer-service state definitions",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8fa40f10b8befe3346587d1ee46e5327f85875bf",
+      "parents": [
+        "4fd07b4cb8a89a6bc3c15d16e6da7c6049274dbd"
+      ],
+      "subject": "F43: record cross-version loot-acquisition review",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "3416a7efcd0a2d33a92bf810e906e60f5b83d55a",
+      "parents": [
+        "8fa40f10b8befe3346587d1ee46e5327f85875bf"
+      ],
+      "subject": "F43: type and clarify loot-acquisition modes",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2125fe176f9106aa652e41d390c282b0f34fc8f4",
+      "parents": [
+        "3416a7efcd0a2d33a92bf810e906e60f5b83d55a"
+      ],
+      "subject": "F44: restore current friend-result selectors",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4033962f19bc0b89b7a6df405c6ae4d9c1734414",
+      "parents": [
+        "2125fe176f9106aa652e41d390c282b0f34fc8f4"
+      ],
+      "subject": "F45: restore updated trade-status definitions",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e9bda74b6023ff312d8adcf474a7b9df6a598cae",
+      "parents": [
+        "4033962f19bc0b89b7a6df405c6ae4d9c1734414"
+      ],
+      "subject": "F46: recover the current combat-text token/style record",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4f936993b7d47d865caa16dfa37e866a8d72b3e0",
+      "parents": [
+        "e9bda74b6023ff312d8adcf474a7b9df6a598cae"
+      ],
+      "subject": "F47: restore current miss reasons and retain temporary immunity",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c0823ed75a1f40fee0076f59649673d6ec453c28",
+      "parents": [
+        "4f936993b7d47d865caa16dfa37e866a8d72b3e0"
+      ],
+      "subject": "F48: restore typed inventory-icon string lookups",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e3fdad4ef7a45e6b90db212bbecc08cb74f38cbc",
+      "parents": [
+        "c0823ed75a1f40fee0076f59649673d6ec453c28"
+      ],
+      "subject": "F49: name screen-placement grids and retain distinct bounds",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a96ce5c6d2018aea5557af88e1499a63ccb6c3a2",
+      "parents": [
+        "e3fdad4ef7a45e6b90db212bbecc08cb74f38cbc"
+      ],
+      "subject": "F50: type current texture-cache handles without changing ownership",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "0a8a5c7d823e78ae6bcf3e91edc2956288d96e84",
+      "parents": [
+        "a96ce5c6d2018aea5557af88e1499a63ccb6c3a2"
+      ],
+      "subject": "F51: name current DB locale indices and preserve locale selection",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5bf875d3c9091f39644f05b17be55a555543c5f4",
+      "parents": [
+        "0a8a5c7d823e78ae6bcf3e91edc2956288d96e84",
+        "8bf90bc6c47fbc87f18ae266955a1a77d7a3d65a"
+      ],
+      "subject": "Merge branch 't1ti_main' of https://github.com/T1ti/wowdecomp into t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "691a8c839fb4332ec1f540c765a9c1d6068dbf43",
+      "parents": [
+        "5bf875d3c9091f39644f05b17be55a555543c5f4",
+        "b1c71b8bd108823bca952f16c6f83a7ad33b9648"
+      ],
+      "subject": "Merge branch 't1ti_main' of https://github.com/T1ti/wowdecomp into t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "42858b453fe795a676176adbf516186d2cee4a27",
+      "parents": [
+        "691a8c839fb4332ec1f540c765a9c1d6068dbf43"
+      ],
+      "subject": "F52: type combat victim states without changing packet or feedback behavior",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d2b839e50c06fc1fa4341a3a295b5d03dbfe94c9",
+      "parents": [
+        "42858b453fe795a676176adbf516186d2cee4a27"
+      ],
+      "subject": "F53: recover current stand states and preserve animation and packet boundaries",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "44505fbc5ccd918385e01e2e2f0047f3550fde53",
+      "parents": [
+        "d2b839e50c06fc1fa4341a3a295b5d03dbfe94c9"
+      ],
+      "subject": "F54: type mirror timers and preserve inactive and unknown sentinels",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "208820a2b649b8be475224da28785ab84701fb7c",
+      "parents": [
+        "44505fbc5ccd918385e01e2e2f0047f3550fde53"
+      ],
+      "subject": "F55: name verified AI reactions while keeping ignored selectors unchanged",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "32b26c4e2023660aee0c9430a531a07d2e36ede6",
+      "parents": [
+        "208820a2b649b8be475224da28785ab84701fb7c"
+      ],
+      "subject": "F56: type trade-skill difficulty without changing thresholds or sorting",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "bd991a1db7779145eaa16da1a469386b61bf52ed",
+      "parents": [
+        "32b26c4e2023660aee0c9430a531a07d2e36ede6"
+      ],
+      "subject": "F57: type WHO sort keys while retaining group ordering and reverse state",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "83508f415f76160ef6cecdb1847f751a73487cfc",
+      "parents": [
+        "bd991a1db7779145eaa16da1a469386b61bf52ed"
+      ],
+      "subject": "F58: name spell cursor-shadow styles without changing drawing or hidden state",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "bd60c900a79395a5b0ac5d2eb2f906dd6fb684f2",
+      "parents": [
+        "83508f415f76160ef6cecdb1847f751a73487cfc"
+      ],
+      "subject": "F59: name normalized blood-spurt sizes and torso attachment links",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e2bf0ab738bdfa23e4bf80a2860094ac27c46494",
+      "parents": [
+        "bd60c900a79395a5b0ac5d2eb2f906dd6fb684f2"
+      ],
+      "subject": "F60: name current guild events and preserve byte decoding and default handling",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "ddfce2c3a71bb56bbd8fac5b2e652d30bde1e20b",
+      "parents": [
+        "e2bf0ab738bdfa23e4bf80a2860094ac27c46494"
+      ],
+      "subject": "F61: separate petition signing and turn-in result definitions",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1d3726943e03f032efb4bbcda5a7e5c04e49cd28",
+      "parents": [
+        "ddfce2c3a71bb56bbd8fac5b2e652d30bde1e20b"
+      ],
+      "subject": "F63: type the three virtual equipment slots and coordinate player overrides",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "38e7e3ff3e5dfa1e3e671339492a264c51b673bd",
+      "parents": [
+        "1d3726943e03f032efb4bbcda5a7e5c04e49cd28"
+      ],
+      "subject": "F64: name NPC sound slots while preserving click and greeting behavior",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c4b9ee43ba52ee39d98534228b3f4bd3625f26d4",
+      "parents": [
+        "38e7e3ff3e5dfa1e3e671339492a264c51b673bd"
+      ],
+      "subject": "F66: recover violence levels and retain signed locale clamping",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8cb71434f7fc1ccba5223a82f88a60f92b5457b1",
+      "parents": [
+        "c4b9ee43ba52ee39d98534228b3f4bd3625f26d4"
+      ],
+      "subject": "F67: type error text destinations and preserve all 730 dispatch records",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f3d166eb12e3137739cbde5205d7335d5a01f618",
+      "parents": [
+        "8cb71434f7fc1ccba5223a82f88a60f92b5457b1"
+      ],
+      "subject": "F68: name dynamic object kinds while retaining byte storage and scaling paths",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5d1665f8250fe564f9e1a3386329f945eae79c87",
+      "parents": [
+        "f3d166eb12e3137739cbde5205d7335d5a01f618"
+      ],
+      "subject": "F69: recover current cursor modes and preserve custom image and error selections",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2d9e895247e67d48034af898ff1a5cf54b704a3a",
+      "parents": [
+        "5d1665f8250fe564f9e1a3386329f945eae79c87"
+      ],
+      "subject": "(manually written) SPLINE_MODE enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e0bab8e07bdfd2507593fc60e0454198303f1cd0",
+      "parents": [
+        "2d9e895247e67d48034af898ff1a5cf54b704a3a"
+      ],
+      "subject": "update names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4e40bd49769d6fe6548d875ab89bc9ff8f2fa8fa",
+      "parents": [
+        "e0bab8e07bdfd2507593fc60e0454198303f1cd0"
+      ],
+      "subject": "F70: recover held cursor image kinds without changing image ownership",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "37f1a4901fff09576fa4d6121332a87a6f2b57bd",
+      "parents": [
+        "4e40bd49769d6fe6548d875ab89bc9ff8f2fa8fa"
+      ],
+      "subject": "F71: type emote special procedures while preserving DBC and stand-state handling",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d6633add7cc9a3c605c7a19ff6cf98378949acab",
+      "parents": [
+        "37f1a4901fff09576fa4d6121332a87a6f2b57bd"
+      ],
+      "subject": "F72: name day and night sound indices while retaining separate transition buffers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "aef6bbd8eff659207e986daf30107118f7457a03",
+      "parents": [
+        "d6633add7cc9a3c605c7a19ff6cf98378949acab"
+      ],
+      "subject": "F73: recover wood and metal impact columns and preserve critical sound selection",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "ad7f10762743557f51a1c317d0c66bedd31adb7d",
+      "parents": [
+        "aef6bbd8eff659207e986daf30107118f7457a03"
+      ],
+      "subject": "F74: adapt weapon modes to current sheathe values and retain packet width",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4ad79970130236306c229940ea604bd9b95bcb30",
+      "parents": [
+        "ad7f10762743557f51a1c317d0c66bedd31adb7d"
+      ],
+      "subject": "F75: recover unit sex values and preserve the separate FrameScript gender mapping",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "11abd16a5e1a9f0b6f674803188d68eed808dcbe",
+      "parents": [
+        "4ad79970130236306c229940ea604bd9b95bcb30"
+      ],
+      "subject": "F76: name current M2 texture replacement slots at verified callers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6808e28957f1d4291a3ee9279ac25ec37d06484c",
+      "parents": [
+        "11abd16a5e1a9f0b6f674803188d68eed808dcbe"
+      ],
+      "subject": "F77: recover current M2 interpolation modes in 16-bit file fields",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "291c39d0b3fbd88536e577eabd1f2118057bc78b",
+      "parents": [
+        "6808e28957f1d4291a3ee9279ac25ec37d06484c"
+      ],
+      "subject": "F78: name current M2 blend modes and preserve graphics translation",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1f1b012079d0492b8df7ea938082ec1e448a9d15",
+      "parents": [
+        "291c39d0b3fbd88536e577eabd1f2118057bc78b"
+      ],
+      "subject": "F79: name current M2 particle blend codes in one-byte fields",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "9b3baaf9b7d8ec37b95bc19e4548af1c3c9229c2",
+      "parents": [
+        "1f1b012079d0492b8df7ea938082ec1e448a9d15"
+      ],
+      "subject": "F80: recover M2 combiner operations and environment bits in packed shader selectors",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a40e666ae32d90a4f57b3aa0161c2abb4c11cc93",
+      "parents": [
+        "9b3baaf9b7d8ec37b95bc19e4548af1c3c9229c2"
+      ],
+      "subject": "F81: recover camera shake kinds and preserve raw inputs and damping fallback",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "7a6043ca73cf7447ce62d3b66de59c6712c2c387",
+      "parents": [
+        "a40e666ae32d90a4f57b3aa0161c2abb4c11cc93"
+      ],
+      "subject": "F82: name six camera motion slots and preserve paired masks and timing behavior",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "07e698d18290219459821bd4949c2e3e534be1a6",
+      "parents": [
+        "7a6043ca73cf7447ce62d3b66de59c6712c2c387"
+      ],
+      "subject": "F83: name verified item mirror flags while retaining raw storage and higher bits",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a9eb9dc65003a881f1c2cf4eccaf286f60394fc7",
+      "parents": [
+        "07e698d18290219459821bd4949c2e3e534be1a6"
+      ],
+      "subject": "F84: recover current item static flags and adapt heroic and refundable meanings",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "dee101ad182beb80bdc209b24bf225b662a1a6d6",
+      "parents": [
+        "a9eb9dc65003a881f1c2cf4eccaf286f60394fc7"
+      ],
+      "subject": "F85: correct the petition predicate name without changing item binding behavior",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a1dcc24c1e6e8d69fce0608f8cd3548408cb7176",
+      "parents": [
+        "dee101ad182beb80bdc209b24bf225b662a1a6d6"
+      ],
+      "subject": "F86: complete the 32-bit static item flag enum with Wrath mask names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "56cc04c31775d272866134e3c3b724341d9a22b9",
+      "parents": [
+        "a1dcc24c1e6e8d69fce0608f8cd3548408cb7176"
+      ],
+      "subject": "F87: define Wrath item extra flags separately and name the greed-only mask",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e57066068396143aa7daf96086a8ffd06b34746c",
+      "parents": [
+        "56cc04c31775d272866134e3c3b724341d9a22b9"
+      ],
+      "subject": "full M2TEXTURETYPE enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "189bdd345aec489dd834e1eae56b758ee98d0f5b",
+      "parents": [
+        "e57066068396143aa7daf96086a8ffd06b34746c"
+      ],
+      "subject": "F88: adapt tracking modes to current follow and inactive values",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8b317b68c209747e122761b05756556a662ea3af",
+      "parents": [
+        "189bdd345aec489dd834e1eae56b758ee98d0f5b"
+      ],
+      "subject": "F89: recover vocal UI selectors and adapt the current 68-slot sentinel",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "7dec51abf4f01e2653d7b9e88fc9f64426e5f8b0",
+      "parents": [
+        "8b317b68c209747e122761b05756556a662ea3af"
+      ],
+      "subject": "humanly readable code please",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d1282d17bc3a44ad35550745845dbe2306bf31f5",
+      "parents": [
+        "7dec51abf4f01e2653d7b9e88fc9f64426e5f8b0"
+      ],
+      "subject": "F90: recover all 92 current inventory results and preserve raw packet fields",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5ebb162075cd0e46203895676d496a5f67754844",
+      "parents": [
+        "d1282d17bc3a44ad35550745845dbe2306bf31f5"
+      ],
+      "subject": "F91: name verified bag-search locations and selection masks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f89db54f7f2b4b8607486d82fe73fdaaa6360af6",
+      "parents": [
+        "5ebb162075cd0e46203895676d496a5f67754844"
+      ],
+      "subject": "F92: adapt world-text styles to the current 11-entry domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a223f0bdf265213089a5ee6ba36ff03be83c3ad5",
+      "parents": [
+        "f89db54f7f2b4b8607486d82fe73fdaaa6360af6"
+      ],
+      "subject": "F93: name the retained console exec recording states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "06643086759183d157b4db39d176337681e9cea9",
+      "parents": [
+        "a223f0bdf265213089a5ee6ba36ff03be83c3ad5"
+      ],
+      "subject": "F94: recover current depth comparison selectors including less-than",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "33b167de9431f82a69615f4954f0b5bdce6eaf46",
+      "parents": [
+        "06643086759183d157b4db39d176337681e9cea9"
+      ],
+      "subject": "F95: recover BLP color encodings with the current raw-pixel path",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "56ecf80c87f416dd6bec860a135b1683b411182e",
+      "parents": [
+        "33b167de9431f82a69615f4954f0b5bdce6eaf46"
+      ],
+      "subject": "F96: recover verified cube-face order and shared face count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "0fb9615ea15164c8663e9d9ea2c7a9ea8caf4b1e",
+      "parents": [
+        "56ecf80c87f416dd6bec860a135b1683b411182e"
+      ],
+      "subject": "F97: recover world and view texture-generation coordinate spaces",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "3e5b3f97e9821530a4831a2f669bc9bf4d0631f9",
+      "parents": [
+        "0fb9615ea15164c8663e9d9ea2c7a9ea8caf4b1e"
+      ],
+      "subject": "F98: recover signed screen-search directions and invalid sentinel",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c68230c1c0e379f7a220c49012d8bef37dbffd4d",
+      "parents": [
+        "3e5b3f97e9821530a4831a2f669bc9bf4d0631f9"
+      ],
+      "subject": "F99: name verified screen-boundary flags and axis masks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "73df3d5d6e9741ebfcb352ab90f8b3eeac5e1138",
+      "parents": [
+        "c68230c1c0e379f7a220c49012d8bef37dbffd4d"
+      ],
+      "subject": "F100: recover signed room environments for sound provider records",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f2b72a4ec7a5189e9a4cbb4510e0d123476fd87d",
+      "parents": [
+        "73df3d5d6e9741ebfcb352ab90f8b3eeac5e1138"
+      ],
+      "subject": "F101: name the exact FMOD reverb property flags",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1773efe5a9bcaae9f164c4e4f1996a70b8c55907",
+      "parents": [
+        "f2b72a4ec7a5189e9a4cbb4510e0d123476fd87d"
+      ],
+      "subject": "F102: recover console highlight states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "07ab2a37e2bd953a441493cbc35268874824bcc5",
+      "parents": [
+        "1773efe5a9bcaae9f164c4e4f1996a70b8c55907"
+      ],
+      "subject": "F103: recover console resize states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a01db746c7ceb4fd58b5a8cc95f73626e40a5006",
+      "parents": [
+        "07ab2a37e2bd953a441493cbc35268874824bcc5"
+      ],
+      "subject": "F104: recover BLP alpha depth names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "9be8d218ed6fb2d03a118177c464d7aba7b5ebce",
+      "parents": [
+        "a01db746c7ceb4fd58b5a8cc95f73626e40a5006"
+      ],
+      "subject": "F105: recover TGA image type names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "0f361b40617a6ee14d236e8e95dd3337542ab0d8",
+      "parents": [
+        "9be8d218ed6fb2d03a118177c464d7aba7b5ebce"
+      ],
+      "subject": "F106: recover font attribute update flags",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "7073abf2255426fe930465c8b6c08a1ba9f20cfc",
+      "parents": [
+        "0f361b40617a6ee14d236e8e95dd3337542ab0d8"
+      ],
+      "subject": "F107: adapt click action flags to the current 64-bit masks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b1def55738915c0fbffbe68fe7d5348e65629da8",
+      "parents": [
+        "7073abf2255426fe930465c8b6c08a1ba9f20cfc"
+      ],
+      "subject": "F108: recover frustum corner indices and count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1884fa168caf6d39247e4a0b92eb8410e37b709a",
+      "parents": [
+        "b1def55738915c0fbffbe68fe7d5348e65629da8"
+      ],
+      "subject": "F109: recover frustum plane indices and count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "dfa9424eae90cb51c6bddee22e78636ff7419a0e",
+      "parents": [
+        "1884fa168caf6d39247e4a0b92eb8410e37b709a"
+      ],
+      "subject": "F110: recover profile parser states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b19842ae7942e522e8ae675673080ca1aeeac2a0",
+      "parents": [
+        "dfa9424eae90cb51c6bddee22e78636ff7419a0e"
+      ],
+      "subject": "F111: recover the sky latitude band count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "9411a1f061dc582fe52d034cdb505db5f66da6e6",
+      "parents": [
+        "b19842ae7942e522e8ae675673080ca1aeeac2a0"
+      ],
+      "subject": "F112: adapt historical buff filters to current aura queries",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e8d4b2975b33f55d84c2355585aacece7c397516",
+      "parents": [
+        "9411a1f061dc582fe52d034cdb505db5f66da6e6"
+      ],
+      "subject": "F113: recover CVar archive and latch flags",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6a5e234135cf8fdd3807c1c4da13b5f30b0e497d",
+      "parents": [
+        "e8d4b2975b33f55d84c2355585aacece7c397516"
+      ],
+      "subject": "mask enum displayed as hexadecimal",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "45d4afa5dafda8b70a0cd66eb4e61fa02defb0ce",
+      "parents": [
+        "6a5e234135cf8fdd3807c1c4da13b5f30b0e497d"
+      ],
+      "subject": "F114: recover the saved facing delta count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b40544f6e1f7f7d116726c8828599f38acb4f40f",
+      "parents": [
+        "45d4afa5dafda8b70a0cd66eb4e61fa02defb0ce"
+      ],
+      "subject": "F115: recover animated object transition input states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e52721ffe34e475fe3047ed6ccd0cdef01cecb85",
+      "parents": [
+        "b40544f6e1f7f7d116726c8828599f38acb4f40f"
+      ],
+      "subject": "F116: recover the BLP2 file signature",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b7eeeb3d1799901b3b8bea825942923ac3059395",
+      "parents": [
+        "e52721ffe34e475fe3047ed6ccd0cdef01cecb85"
+      ],
+      "subject": "F117: recover BLP header mip and palette counts",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c073de34d1c49ba5a801a8ea0ad9bedd768eba36",
+      "parents": [
+        "b7eeeb3d1799901b3b8bea825942923ac3059395"
+      ],
+      "subject": "F118: adapt hyperlink parser modes to current display and texture states",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "272f4bf16b8259e0f29b909280f8c1be9ecbc6fe",
+      "parents": [
+        "c073de34d1c49ba5a801a8ea0ad9bedd768eba36"
+      ],
+      "subject": "F119: adapt verified minimap object lists and the current list count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c9190869351b5b915b0f4508f9277c019335646a",
+      "parents": [
+        "272f4bf16b8259e0f29b909280f8c1be9ecbc6fe"
+      ],
+      "subject": "OBJECT_TYPE update, add heirs types",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2113352327c78a46707ef4f01f607dcaff8cdb73",
+      "parents": [
+        "c9190869351b5b915b0f4508f9277c019335646a"
+      ],
+      "subject": "F120: adapt ripple pool capacity and name the player partition",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "9a4fb995a7dd60ce1f6fd289f5e72a75a5924e12",
+      "parents": [
+        "2113352327c78a46707ef4f01f607dcaff8cdb73"
+      ],
+      "subject": "F121: name the verified liquid texture animation frame count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b2bba909d2d0cc46878a225468ee51de9779437f",
+      "parents": [
+        "9a4fb995a7dd60ce1f6fd289f5e72a75a5924e12"
+      ],
+      "subject": "add some constants",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8985ef7e30fe7ee20f00784bca62cb26094d240d",
+      "parents": [
+        "b2bba909d2d0cc46878a225468ee51de9779437f"
+      ],
+      "subject": "F122: restore reference hair and facial geoset section enum members",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4dbe996b75b6dcb12b6a752264bb9843184c19fa",
+      "parents": [
+        "8985ef7e30fe7ee20f00784bca62cb26094d240d"
+      ],
+      "subject": "port fully matching constants from 0.5.3",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "95342b3604419eb66deab271f01c38c34e8e25e5",
+      "parents": [
+        "4dbe996b75b6dcb12b6a752264bb9843184c19fa"
+      ],
+      "subject": "F123: complete character geoset section enum and consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f1871cd6b1171a320fa4daa09e0ee8a3dd9dbe20",
+      "parents": [
+        "95342b3604419eb66deab271f01c38c34e8e25e5"
+      ],
+      "subject": "F124: complete minimap object categories and named consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e719ee4e5402f025099c88294587c1bb38e450d7",
+      "parents": [
+        "f1871cd6b1171a320fa4daa09e0ee8a3dd9dbe20"
+      ],
+      "subject": "F125: match native gameobject hierarchy mask in minimap classification",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "819e7206035a53eb1afba268c74d0d971c76d4c8",
+      "parents": [
+        "e719ee4e5402f025099c88294587c1bb38e450d7"
+      ],
+      "subject": "F126: restore spell failure reference name and name reason consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c9b8c28671d2c386b1886a0dc158b877e690eb7a",
+      "parents": [
+        "819e7206035a53eb1afba268c74d0d971c76d4c8"
+      ],
+      "subject": "some bitmasks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5ac0117575a402af288960acd6f852c416607e2e",
+      "parents": [
+        "c9b8c28671d2c386b1886a0dc158b877e690eb7a"
+      ],
+      "subject": "F127: restore current unit special effects and named consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e91f0e6b47d45b04599d6338aa6b6c67d558f9c4",
+      "parents": [
+        "5ac0117575a402af288960acd6f852c416607e2e"
+      ],
+      "subject": "F128: restore reference input release actions and preserve pending aliases",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a4454f5593c9d93e5e084fa6382238b223505ea2",
+      "parents": [
+        "e91f0e6b47d45b04599d6338aa6b6c67d558f9c4"
+      ],
+      "subject": "port some aliases typedef from 0.5.3",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "595aa13b1b6fb9f127ede9fd06f8360518af50ac",
+      "parents": [
+        "a4454f5593c9d93e5e084fa6382238b223505ea2"
+      ],
+      "subject": "F129: restore complete system message severity reference names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2f8d2f7c83c2de759eca62d7b8e9a481070b786b",
+      "parents": [
+        "595aa13b1b6fb9f127ede9fd06f8360518af50ac"
+      ],
+      "subject": "F130: restore character texture variation reference names and current domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d9475a6168e6516a3f45c66719000e24e7459467",
+      "parents": [
+        "2f8d2f7c83c2de759eca62d7b8e9a481070b786b"
+      ],
+      "subject": "F131: restore complete game-object animation state domain and consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "420547828345caf82af208ff3fa9dd558a2f0006",
+      "parents": [
+        "d9475a6168e6516a3f45c66719000e24e7459467"
+      ],
+      "subject": "F132: restore complete reference keyboard event ID enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5ee6958d937b96e1584b1a85642ed4cc30645862",
+      "parents": [
+        "420547828345caf82af208ff3fa9dd558a2f0006"
+      ],
+      "subject": "F133: restore complete reference vector axis enum names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1c995cdcf5802906199a14571e06a052773a01f4",
+      "parents": [
+        "5ee6958d937b96e1584b1a85642ed4cc30645862"
+      ],
+      "subject": "F134: complete reference texture file type enum and consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d18e0237fb5d1f9433a792577e9681ace76ab38f",
+      "parents": [
+        "1c995cdcf5802906199a14571e06a052773a01f4"
+      ],
+      "subject": "F135: complete both font justification enums and native bounds",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "80967ea327bf62a125162598c7c49c12d0af4916",
+      "parents": [
+        "d18e0237fb5d1f9433a792577e9681ace76ab38f"
+      ],
+      "subject": "F136: restore full reference player movement event enum and consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2d211d7f5a2c1beb7a6cab2f1f23ef5ca74ee84c",
+      "parents": [
+        "80967ea327bf62a125162598c7c49c12d0af4916"
+      ],
+      "subject": "F137: recover missing IME action enum and consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f3569054960ff3a4d855bffe308a6d689895902e",
+      "parents": [
+        "2d211d7f5a2c1beb7a6cab2f1f23ef5ca74ee84c"
+      ],
+      "subject": "F138: recover missing message-box style and result enums",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "fd0c5c51390faa9401d979c4cf0b1d1a4f4ae790",
+      "parents": [
+        "f3569054960ff3a4d855bffe308a6d689895902e"
+      ],
+      "subject": "F139: recover missing GUI modifier selector enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "972b06489b03714366904c830e2028500bd8c7e8",
+      "parents": [
+        "fd0c5c51390faa9401d979c4cf0b1d1a4f4ae790"
+      ],
+      "subject": "F140: recover missing GUI window selector enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6c62b66b82b3009136c5c12222b834684e25076a",
+      "parents": [
+        "972b06489b03714366904c830e2028500bd8c7e8"
+      ],
+      "subject": "F141: recover anonymous processor vendor constants and CPUID failure",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "7edce65a399a8b1522f1f2ac73ef15e84522e4d4",
+      "parents": [
+        "6c62b66b82b3009136c5c12222b834684e25076a"
+      ],
+      "subject": "F142: recover anonymous portrait and paper-doll camera identifiers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e15db576ee767cea96ee9e783ff2cad2c6c37ae2",
+      "parents": [
+        "7edce65a399a8b1522f1f2ac73ef15e84522e4d4"
+      ],
+      "subject": "F143: recover anonymous packed window event identifiers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "90eb644a1c53c0e43de0da159737d1c0bb375a1c",
+      "parents": [
+        "e15db576ee767cea96ee9e783ff2cad2c6c37ae2"
+      ],
+      "subject": "F144: recover complete anonymous frame draw layer domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "49267f9cc30d64d243476bb36769943c639ebc62",
+      "parents": [
+        "90eb644a1c53c0e43de0da159737d1c0bb375a1c"
+      ],
+      "subject": "F145: recover verified current frame strata count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5b8d8d02d120f116a6b617dc4a8a137a07ecbb99",
+      "parents": [
+        "49267f9cc30d64d243476bb36769943c639ebc62"
+      ],
+      "subject": "F146: recover verified exceptional graphics resize reasons",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b9caba056efcc58c51a0070fdda36bd8434dbf19",
+      "parents": [
+        "5b8d8d02d120f116a6b617dc4a8a137a07ecbb99"
+      ],
+      "subject": "F147: recover current anonymous immediate mode attribute masks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "c7da8cd29919a87725e153398d814852824eb8e3",
+      "parents": [
+        "b9caba056efcc58c51a0070fdda36bd8434dbf19"
+      ],
+      "subject": "F148: recover shared anonymous ARGB1555 channel shifts",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b31b6a919a64022b554fac4c3e5baea6fa167a3b",
+      "parents": [
+        "c7da8cd29919a87725e153398d814852824eb8e3"
+      ],
+      "subject": "F149: recover complete shared ARGB1555 masks and complements",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4a884aef2884a2a79d6f0696c60c63e0473fe46d",
+      "parents": [
+        "b31b6a919a64022b554fac4c3e5baea6fa167a3b"
+      ],
+      "subject": "F150: recover shared anonymous DXT color index constants",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5363e536fbfd23732ffb1a871fb18db497c54df3",
+      "parents": [
+        "4a884aef2884a2a79d6f0696c60c63e0473fe46d"
+      ],
+      "subject": "F151: reuse verified service response codes in connection status flow",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "075ee1a981a6f7f7282eca87d8ab9086af306796",
+      "parents": [
+        "5363e536fbfd23732ffb1a871fb18db497c54df3"
+      ],
+      "subject": "F152: reuse verified login states and results in glue flow",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "eae3197475d6c60d69cc4badeb957072ae113298",
+      "parents": [
+        "075ee1a981a6f7f7282eca87d8ab9086af306796"
+      ],
+      "subject": "F153: recover anonymous current shader-file magic constant",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "91668dc9b0bc359cf787cfc8b6b1f69a7f465b5d",
+      "parents": [
+        "eae3197475d6c60d69cc4badeb957072ae113298"
+      ],
+      "subject": "F154: recover current shader-file version constant",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "ff7c7524bb8d3969099da0b11cb94bbba60085b5",
+      "parents": [
+        "91668dc9b0bc359cf787cfc8b6b1f69a7f465b5d"
+      ],
+      "subject": "revert readable values",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8c1487170d11988f30c13e602366cb843cd06dbf",
+      "parents": [
+        "ff7c7524bb8d3969099da0b11cb94bbba60085b5"
+      ],
+      "subject": "F155: recover shared debug-lock entry capacity",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f23bd0f27e7e00bbb819e25b8a0e1afc97407749",
+      "parents": [
+        "8c1487170d11988f30c13e602366cb843cd06dbf"
+      ],
+      "subject": "F156: reuse verified complete UI error registry for object interactions",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2d0c68c768ab03d69cf72d287afcba5157c972d0",
+      "parents": [
+        "f23bd0f27e7e00bbb819e25b8a0e1afc97407749"
+      ],
+      "subject": "F157: verify chat category domain and name remaining producers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "0d122f1635fff474de9d2a7acb1379887cceb5af",
+      "parents": [
+        "2d0c68c768ab03d69cf72d287afcba5157c972d0"
+      ],
+      "subject": "F158: identify blend-factor render state across graphics backends",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2212b48d846f1b445bf38f5db7f168e14ae6208e",
+      "parents": [
+        "0d122f1635fff474de9d2a7acb1379887cceb5af"
+      ],
+      "subject": "F159: bind Direct3D state caches to verified enum domains",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "8bf4134e37b857a59eb4f3a1cbc637f8813bfc94",
+      "parents": [
+        "2212b48d846f1b445bf38f5db7f168e14ae6208e"
+      ],
+      "subject": "F160: identify OpenGL cache-only slots and bind state count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "da44958eb27070ce2ac247c2180df3236e78dcf8",
+      "parents": [
+        "8bf4134e37b857a59eb4f3a1cbc637f8813bfc94"
+      ],
+      "subject": "F161: verify keyboard domain and preserve 32-bit none sentinel",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2331b789aa24cd7b83e992fa6b63ec88ac1bf933",
+      "parents": [
+        "da44958eb27070ce2ac247c2180df3236e78dcf8"
+      ],
+      "subject": "F162: recover complete player inventory slot ranges and counts",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "463e2ca82e340ba8a5684a8783444f8b6457ed5c",
+      "parents": [
+        "2331b789aa24cd7b83e992fa6b63ec88ac1bf933"
+      ],
+      "subject": "F163: reuse verified FreeType error provider in font success checks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6ddfdbeca3f9313afcfa911e5ced6b7402f61f6b",
+      "parents": [
+        "463e2ca82e340ba8a5684a8783444f8b6457ed5c"
+      ],
+      "subject": "F164: verify movement flag domain and name status masks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "b465247773ef32631f9eab0203ce813e6dbcea78",
+      "parents": [
+        "6ddfdbeca3f9313afcfa911e5ced6b7402f61f6b"
+      ],
+      "subject": "F165: recover complete anonymous game object type domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "68971cb265491965ccac7582dedd7b3e31569e0d",
+      "parents": [
+        "b465247773ef32631f9eab0203ce813e6dbcea78"
+      ],
+      "subject": "F166: verify object type masks and correct base-object mirror traversal",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6ea467e9ddf2e54b8e5715924f5c3762ff9395dd",
+      "parents": [
+        "68971cb265491965ccac7582dedd7b3e31569e0d"
+      ],
+      "subject": "F167: recover verified M2 deferred model commands",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "235717e265eed10f0d1f130495fdb83db254e389",
+      "parents": [
+        "6ea467e9ddf2e54b8e5715924f5c3762ff9395dd"
+      ],
+      "subject": "F168: recover camera managed-data update flags",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "29b770b13af64f11dcba6796bb8943f48d063be5",
+      "parents": [
+        "235717e265eed10f0d1f130495fdb83db254e389"
+      ],
+      "subject": "F169: recover world-object type masks and factory tags",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4a9825d9fbeb130a016c42fe5e326784521d1ece",
+      "parents": [
+        "29b770b13af64f11dcba6796bb8943f48d063be5"
+      ],
+      "subject": "F170: recover BSP node axis, leaf and child controls",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "3f7e214b0057bcea45718d493f5ddd9c97a9c191",
+      "parents": [
+        "4a9825d9fbeb130a016c42fe5e326784521d1ece"
+      ],
+      "subject": "F171: name the verified BLP default pixel format",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "16d5a746561a96a930d5953634752dd0ceb1660f",
+      "parents": [
+        "3f7e214b0057bcea45718d493f5ddd9c97a9c191"
+      ],
+      "subject": "F172: complete the current mouse-button flag domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "9150a1369a8cef23d566a94a1bac1236d11487f7",
+      "parents": [
+        "16d5a746561a96a930d5953634752dd0ceb1660f"
+      ],
+      "subject": "F173: recover joystick input event names",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "729179742a92692545dec0b88c45f23143245eab",
+      "parents": [
+        "9150a1369a8cef23d566a94a1bac1236d11487f7"
+      ],
+      "subject": "F174: restore the normal-projection master bit",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5d4275aff9b10c945dbc48adce3d95b60efa8b21",
+      "parents": [
+        "729179742a92692545dec0b88c45f23143245eab"
+      ],
+      "subject": "F175: bind transform storage to the verified selector count",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "fd29f4bc23bc00d0b7f0722c085e8645be4bb3fb",
+      "parents": [
+        "5d4275aff9b10c945dbc48adce3d95b60efa8b21"
+      ],
+      "subject": "F176: reuse verified texture operations across render consumers",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "fad25060ff5bf00912c2640972ffd0676a271ec0",
+      "parents": [
+        "fd29f4bc23bc00d0b7f0722c085e8645be4bb3fb"
+      ],
+      "subject": "F177: name the verified simple-frame joystick event category",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "7a0e02affb21c7bdc701e08ca4e2ad368e1e5b02",
+      "parents": [
+        "972b06489b03714366904c830e2028500bd8c7e8"
+      ],
+      "subject": "Fix codegen regressions: spline mode test, IncTypeId case, geoset enum sign, combat text tables",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "327d603f7425ab7d4a2bf63036011086180682e8",
+      "parents": [
+        "b1c71b8bd108823bca952f16c6f83a7ad33b9648"
+      ],
+      "subject": "Aura enums",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5d3932b888809210d5e88a89fa16fb3028955414",
+      "parents": [
+        "327d603f7425ab7d4a2bf63036011086180682e8"
+      ],
+      "subject": "Spell effect enums & CGUnit_C::HasDispellableAura fix",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "5cf770e558db0a978ba48cad4bc640eac2c51d1a",
+      "parents": [
+        "5d3932b888809210d5e88a89fa16fb3028955414"
+      ],
+      "subject": "Little nits and one behavior fix",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "e126a5d38c6e6321f70d21e0d818276ed83f94a6",
+      "parents": [
+        "da15563b0b9b004f7dea73a0896301b5679efe4a",
+        "5cf770e558db0a978ba48cad4bc640eac2c51d1a"
+      ],
+      "subject": "Merge pull request #35 from Alyst3r/enums",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "bfd1ffc0829aaa38523ac0c88f61fec8a6846ca2",
+      "parents": [
+        "7a0e02affb21c7bdc701e08ca4e2ad368e1e5b02",
+        "e126a5d38c6e6321f70d21e0d818276ed83f94a6"
+      ],
+      "subject": "Merge original-335 into t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "3a47a42d83331476f2d08d2dd41e480c01676d3d",
+      "parents": [
+        "e126a5d38c6e6321f70d21e0d818276ed83f94a6",
+        "bfd1ffc0829aaa38523ac0c88f61fec8a6846ca2"
+      ],
+      "subject": "Merge pull request #36 from T1ti/t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "41e5b9b83470545f8082acb45c81c09c4c219908",
+      "parents": [
+        "fad25060ff5bf00912c2640972ffd0676a271ec0",
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d"
+      ],
+      "subject": "Merge branch 'original-335' of https://github.com/SatyPardus/wowdecomp into t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2134ee908e39343b7743bf4508e8b62c4eb4a2b9",
+      "parents": [
+        "41e5b9b83470545f8082acb45c81c09c4c219908"
+      ],
+      "subject": "F178: name the verified texture recreation callback command",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "744f52a82d02eda14703793110453737474331bb",
+      "parents": [
+        "2134ee908e39343b7743bf4508e8b62c4eb4a2b9"
+      ],
+      "subject": "F179: recover the complete current world hit-result domain",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "cb87b98e3fadcbabeb561eb44bd68babdeb802c2",
+      "parents": [
+        "744f52a82d02eda14703793110453737474331bb"
+      ],
+      "subject": "F180: recover the current model-widget fog flag",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "f27d96a277fc56ec79ac5b9ac60923f0f55d8a9b",
+      "parents": [
+        "cb87b98e3fadcbabeb561eb44bd68babdeb802c2"
+      ],
+      "subject": "F181: restore weapon swing outcome enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "ff669696bdd812a710b327c68c4cd71b981bee45",
+      "parents": [
+        "f27d96a277fc56ec79ac5b9ac60923f0f55d8a9b"
+      ],
+      "subject": "F182: restore runtime particle representation enum",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "6a700ebe40c7168ae9e82f774313c99da41275c0",
+      "parents": [
+        "ff669696bdd812a710b327c68c4cd71b981bee45"
+      ],
+      "subject": "F183: name the current Storm allocator report",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a98ee593870be5e86c3a93949b990bb0a9698b71",
+      "parents": [
+        "6a700ebe40c7168ae9e82f774313c99da41275c0"
+      ],
+      "subject": "More magic numbers uwu",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "67c2fb6bec10244c059f683c1c36ea4ee1498176",
+      "parents": [
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d",
+        "a98ee593870be5e86c3a93949b990bb0a9698b71"
+      ],
+      "subject": "Merge pull request #58 from T1ti/t1ti_main",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "ffdac6fbc2e6d9c767e4ed9ae79809ef7514dca0",
+      "parents": [
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d"
+      ],
+      "subject": "Fix override skies skipping their first sync with the time of day",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "1039a7049ae7f505947663cf86b7fdd5b2a14fab",
+      "parents": [
+        "67c2fb6bec10244c059f683c1c36ea4ee1498176",
+        "ffdac6fbc2e6d9c767e4ed9ae79809ef7514dca0"
+      ],
+      "subject": "Merge pull request #53 from Shard-MW/fix-override-sky-sync",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "2bff97ee7b40f36aff6a33ca4dd7da95d2acdb8a",
+      "parents": [
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d"
+      ],
+      "subject": "Fix portrait cache entries starting clean before their first render",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d6aaf34dcc2ff580a9f3603cd0b83a7632078e82",
+      "parents": [
+        "1039a7049ae7f505947663cf86b7fdd5b2a14fab",
+        "2bff97ee7b40f36aff6a33ca4dd7da95d2acdb8a"
+      ],
+      "subject": "Merge pull request #54 from Shard-MW/fix-portrait-cache-dirty",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "701665e599121d56162caa08f77fe2678b1697dd",
+      "parents": [
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d"
+      ],
+      "subject": "Fix talent preview counting a talent's first point twice",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "0477057203e3c31bc9cafce4a31a29fd84653069",
+      "parents": [
+        "d6aaf34dcc2ff580a9f3603cd0b83a7632078e82",
+        "701665e599121d56162caa08f77fe2678b1697dd"
+      ],
+      "subject": "Merge pull request #56 from Shard-MW/fix-talent-preview-ranks",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d2d927892be06f11bf0428733bd0c62e5d1686d7",
+      "parents": [
+        "b1c71b8bd108823bca952f16c6f83a7ad33b9648",
+        "0477057203e3c31bc9cafce4a31a29fd84653069"
+      ],
+      "subject": "Merge pull request #59 from SatyPardus/original-335",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "28d52b2757e00532b68db66f898f60f2087c01b1",
+      "parents": [
+        "3a47a42d83331476f2d08d2dd41e480c01676d3d"
+      ],
+      "subject": "Fix font cache rows filling up after two glyphs",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "21d09f73d4e653eb86c674c61a7fa8435b5d4352",
+      "parents": [
+        "0477057203e3c31bc9cafce4a31a29fd84653069",
+        "28d52b2757e00532b68db66f898f60f2087c01b1"
+      ],
+      "subject": "Merge pull request #49 from Shard-MW/fix-font-cache-rows",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "d33e900bd569f638b306a4b82b8ec4d8240207f6",
+      "parents": [
+        "b1c71b8bd108823bca952f16c6f83a7ad33b9648"
+      ],
+      "subject": "Look up the guild tabard's display record by ID",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "a18c57c02889483ccace487e19dcae25d16a06a5",
+      "parents": [
+        "d33e900bd569f638b306a4b82b8ec4d8240207f6"
+      ],
+      "subject": "Look up thrown and missile item models by display ID",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "72f234676f4013288e82de4c480f276f5359d513",
+      "parents": [
+        "21d09f73d4e653eb86c674c61a7fa8435b5d4352",
+        "a18c57c02889483ccace487e19dcae25d16a06a5"
+      ],
+      "subject": "Merge pull request #43 from Uncle-Jackalope/fix/own-guild-tabard-emblem",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "4d9b1757fb49cf0cfab2dd6ad04a890c663496c6",
+      "parents": [
+        "72f234676f4013288e82de4c480f276f5359d513"
+      ],
+      "subject": "Fix garbage initialization",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "303b049b9717a4adbc8379a876ed99edd2496fcb",
+      "parents": [
+        "d2d927892be06f11bf0428733bd0c62e5d1686d7",
+        "4d9b1757fb49cf0cfab2dd6ad04a890c663496c6"
+      ],
+      "subject": "Merge pull request #60 from SatyPardus/original-335",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "944286a8eb358e149589b63b67c34d7f87f7bfa2",
+      "parents": [
+        "303b049b9717a4adbc8379a876ed99edd2496fcb"
+      ],
+      "subject": "Implement deadlock fix",
+      "disposition": "include history and final corrective follow-ups"
+    },
+    {
+      "commit": "20f9120e0a8f064338ecd9f2dd6cbc01642bf695",
+      "parents": [
+        "944286a8eb358e149589b63b67c34d7f87f7bfa2"
+      ],
+      "subject": "Update Version information and automated build script",
+      "disposition": "include history and final corrective follow-ups"
+    }
+  ]
+}

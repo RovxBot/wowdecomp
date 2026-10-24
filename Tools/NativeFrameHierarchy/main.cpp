@@ -325,7 +325,7 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     Reject([&]{child->SetFrameLevel(INT32_MAX,1);});
     Reject([&]{child->SetFrameScale(std::numeric_limits<float>::infinity(),false);});
     Reject([&]{child->SetFrameScale(0,false);});
-    Reject([&]{child->EnableEvent(SIMPLE_EVENT_4,0);});
+    Reject([&]{child->EnableEvent(SIMPLE_EVENT_JOYSTICK,0);});
     Reject([&]{child->LoadXML(nullptr,nullptr);});
     child->SetName("NamedFrame");
     Check(CScriptObject::GetScriptObjectByName("NamedFrame",CSimpleFrame::GetObjectType())==child,"Frame canonical name lookup");

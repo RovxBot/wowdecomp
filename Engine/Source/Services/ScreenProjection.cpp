@@ -7,6 +7,9 @@
 #include "Engine/Source/Tempest/C3Vector.h"
 #include "Engine/Source/Tempest/C44Matrix.h"
 #include "Engine/Source/Tempest/CRect.h"
+
+static const float DEFAULT_SCREEN_FRUSTUM_LENGTH = 500.0f;
+
 // VERIFY: 5a7761be auto
 // OFFSET: 0x004BEE60
 void CameraSetupScreenProjection(const CRect& rect, const C2Vector& offset, float depth, int32_t forceOrtho) {
@@ -20,10 +23,10 @@ void CameraSetupScreenProjection(const CRect& rect, const C2Vector& offset, floa
     C44Matrix projection;
 
     if (forceOrtho || !g_theGxDevicePtr->StereoEnabled()) {
-        GxuXformCreateOrtho(left, right, bottom, top, -500.0f, 500.0f, projection);
+        GxuXformCreateOrtho(left, right, bottom, top, -DEFAULT_SCREEN_FRUSTUM_LENGTH, DEFAULT_SCREEN_FRUSTUM_LENGTH, projection);
         projection.Scale(C3Vector(1.0f, 1.0f, -1.0f));
     } else {
-        GxuXformCreateOrthoDepth(left, right, bottom, top, -500.0f, 500.0f, projection);
+        GxuXformCreateOrthoDepth(left, right, bottom, top, -DEFAULT_SCREEN_FRUSTUM_LENGTH, DEFAULT_SCREEN_FRUSTUM_LENGTH, projection);
     }
 
     CGxCaps& caps = g_theGxDevicePtr->Caps();
