@@ -44,4 +44,19 @@ checks. Complete signed ordered GlueXML, widgets/edit boxes, actual login,
 transport/authentication and observed gameplay remain open. Preserve the server
 revision discrepancy and interactive user sign-in. M3 remains incomplete.
 
-Hosted/runtime qualification is pending for this implementation branch.
+[PR #74](https://github.com/RovxBot/wowdecomp/pull/74) is an unqualified candidate
+at implementation `e6af780f68dae599cf744769092f9d9cd184756f`, following merged
+PR #72/closeout #73. [The validation record](frame-handler-validation.json) retains
+local checks and the external hosted-build block. Local source/launcher checks:
+57 passed, one unavailable-CMake skip; Windows-selected tokens, original helper
+extraction and whitespace passed. No client/dependency compiled locally.
+
+No automatic push/PR workflows appeared. An explicit M3 GL workflow dispatch
+returned HTTP 422, `Actions has been disabled for this repository.` Read-only
+repository queries simultaneously reported Actions permissions enabled, the
+workflow active and the repository neither disabled nor archived. The specific
+account/repository restriction is not established. No repository policy was
+changed, no hosted or downloaded implementation binary was produced, and no
+implementation/runtime pass or new physical-input/server acceptance is claimed.
+The PR remains unmerged pending hosted release/strict sanitizer and full Windows
+compilation, verified artifacts and original-data RX 7900 XTX execution.

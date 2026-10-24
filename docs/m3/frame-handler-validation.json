@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "milestone": "M3",
+  "package": "Original Frame Lua and XML handlers",
+  "date": "2026-10-24",
+  "reporting_timezone": "Australia/Adelaide",
+  "status": "unqualified candidate; hosted compilation blocked by GitHub Actions dispatch rejection",
+  "pull_request": "https://github.com/RovxBot/wowdecomp/pull/74",
+  "identity": {
+    "base": "8ca66f5cc9be86f49b84ad7153b559d0ebb4065a",
+    "candidate_implementation": "e6af780f68dae599cf744769092f9d9cd184756f",
+    "candidate_tree": "af4e4ba05c231967bdf5f40f7550e471d4bc0891",
+    "initial_submission": "c6d0840d7e7bb6103284c7df2bb46b2c7c1f47f2",
+    "hosted_checkout": null,
+    "merge_commit": null
+  },
+  "local_validation": {
+    "source_launcher_tests": {
+      "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py'",
+      "passed": 57,
+      "skipped": 1,
+      "skip_reason": "CMake unavailable",
+      "log_sha256": "fa522e5f6fc6673bf7a5ce0b44647c55c53f85a585c01824cbae87c89f7a92c7"
+    },
+    "windows_selected_tokens_unchanged": [
+      "Engine/Source/Frame/CSimpleFrame.cpp",
+      "Engine/Source/Frame/CSimpleFrame.h",
+      "Engine/Source/Frame/CSimpleFrame_Scripts.cpp",
+      "Engine/Source/Frame/CSimpleFontString_Scripts.cpp",
+      "Engine/Source/FrameScript/FrameScript.cpp"
+    ],
+    "original_mouse_button_helper_extraction": "same tokens as base; remaining CSimpleButton.cpp unchanged",
+    "source_comparison_script_sha256": "f6b01f336cbc6bbf20faa33a48a81e17cad66254e7a1539ce717cb761a9843c4",
+    "whitespace_command": "git diff --check",
+    "whitespace_result": "passed",
+    "client_or_dependency_compiled_locally": false
+  },
+  "hosted_block": {
+    "automatic_runs_observed": 0,
+    "dispatch_command": "gh workflow run m3-gl.yml -R RovxBot/wowdecomp --ref native-port/m3-frame-handlers",
+    "http_status": 422,
+    "message": "Actions has been disabled for this repository.",
+    "api_observations": {
+      "actions_permissions_enabled": true,
+      "workflow_id": 388075931,
+      "workflow_state": "active",
+      "repository_disabled": false,
+      "repository_archived": false
+    },
+    "cause": "specific account/repository restriction not established",
+    "repository_policy_changed": false
+  },
+  "hosted_workflows": [],
+  "artifact_verification": [],
+  "runtime_execution": [],
+  "qualification_required": [
+    "Hosted Linux release and strict ASan/UBSan/leak CTest checks",
+    "Full signature-enabled Windows x64 compilation",
+    "Other affected native platform workflow checks",
+    "Verify exact-source archive and packaged binary hashes/types/notices",
+    "Downloaded exact-source authored and original-data GPU checks, including input and resource regressions"
+  ],
+  "remaining_m3_gates": [
+    "Remaining widgets and broader structural Lua callback edits",
+    "Physical IME/edit-box/candidate UI acceptance",
+    "Complete signed ordered GlueXML execution and full post-creation digest gate",
+    "Actual native login rendering and interactive user sign-in",
+    "Portable transport/authentication and observed GrimGuzzler gameplay"
+  ],
+  "policy": {
+    "clean_installation": "read-only; not modified",
+    "game_data_in_git_or_hosted_ci": false,
+    "signature_checks": "retained",
+    "server_policy_changed": false,
+    "interactive_sign_in": "user when ready"
+  }
+}
