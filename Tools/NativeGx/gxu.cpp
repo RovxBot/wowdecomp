@@ -159,6 +159,33 @@ void Snapshot(const std::string& path, const std::vector<CImVector>& pixels) {
     }
     Require(bool(out), "Gxu snapshot write failed");
 }
+void GlyphRowPacking() {
+    struct Row : TEXTURECACHEROW {
+        ~Row() { m_glyphlist.Clear(); }
+    } row;
+    row.m_widestFreeSlot = 256;
+    for (uint32_t i = 0; i < 32; ++i) {
+        GLYPHBITMAPDATA bitmap;
+        bitmap.m_glyphWidth = bitmap.m_glyphHeight = bitmap.m_glyphCellWidth = 8;
+        bitmap.m_glyphAdvance = 8.0f;
+        bitmap.m_glyphBearing = 0.0f;
+        bitmap.m_glyphPitch = 8;
+        bitmap.m_yOffset = 0;
+        bitmap.m_yStart = 0;
+        auto* glyph = row.CreateNewDesc(&bitmap, 0, 8);
+        Require(glyph && glyph->m_glyphStartPixel == i * 8 &&
+                glyph->m_glyphEndPixel == i * 8 + 7,
+                "Font cache row rejected or misplaced a fitting glyph");
+        Require(row.m_widestFreeSlot == 256 - (i + 1) * 8,
+                "Font cache row lost the free span after insertion");
+        if (i) Require(row.m_glyphlist.Prev(glyph)->m_glyphEndPixel < glyph->m_glyphStartPixel,
+                       "Font cache row glyphs overlap");
+    }
+    GLYPHBITMAPDATA overflow;
+    overflow.m_glyphCellWidth = 1;
+    Require(!row.CreateNewDesc(&overflow, 0, 8), "Full font cache row accepted another glyph");
+    std::cout << "gxu-row-packing=32-glyphs\n";
+}
 void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
     LegacyDevice device(context, [&](const std::string& path) { return assets.shaders.at(path); });
     Require(device.Caps().m_pixelCenterOnEdge == 1 && device.Caps().m_texelCenterOnEdge == 1,
@@ -170,6 +197,7 @@ void Cycle(GlContext& context, Assets& assets, const std::string& snapshot) {
         ++reads;
         return path == "bad.ttf" ? Bytes{0,1,0,0,0,0,0,0} : assets.font;
     });
+    GlyphRowPacking();
     Require(g_FTLibrary && g_widthPixels == 640 && g_heightPixels == 480,
             "Original Gxu globals/window initialization failed");
     Reject([&] { Gxu::Native::LegacyFonts duplicate([](const std::string&) { return Bytes{}; }); });

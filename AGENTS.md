@@ -1005,3 +1005,22 @@ remaining checks need another machine.
   GlueXML/login and transport/gameplay stay open. No new physical-input, Windows
   runtime, macOS graphics or server acceptance; signatures, server discrepancies,
   interactive sign-in and read-only clean data remain intact. M3 is incomplete.
+
+
+- 12340 upstream maintenance through `20f9120e0a8f064338ecd9f2dd6cbc01642bf695` is
+  qualified at `4655b604b1dc78d50385428622003eecf4035aaa` in
+  [PR #77](https://github.com/RovxBot/wowdecomp/pull/77). Read
+  [the review](docs/upstream/2026-10-24.md) and
+  [record](docs/upstream/2026-10-24.json). Five selected hosted suites passed,
+  including full Windows signatures-enabled compilation and strict native GL.
+  Layout `2530026f` and shell `2c19dcb5` retain their older exact identities;
+  selected build inputs are proven unchanged. Five archives/70 binaries/notices
+  verified; RX 7900 XTX release/strict sanitizer packages passed 32 three-cycle
+  desktop executions, empty stderr/zero workers; 16 capture pairs and 15 historical
+  comparisons match. Preserve moved shared helpers, owner/lifetime guards, typed
+  native IME fallback, original Glue/world Lua GetBuildInfo results and corrective
+  follow-ups. Keep both compile failures and superseded Windows cancellations.
+  All compilation remains in Actions. Historical qualification, signatures, server
+  discrepancies, read-only data and interactive sign-in stay intact. No new
+  Windows gameplay, physical input, macOS graphics or server acceptance; M0 is
+  partial and M3 incomplete.

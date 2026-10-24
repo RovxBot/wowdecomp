@@ -1,4 +1,5 @@
 #include "Engine/Source/Frame/CSimpleButton.h"
+#include "Engine/Source/Event/Types.h"
 
 // VERIFY: f5952a56 auto
 // OFFSET: 0x0096F530
@@ -34,37 +35,37 @@ const char* GetMouseButtonName(uint32_t button) {
             return "Button14";
         case 0x4000:
             return "Button15";
-        case 0x8000:
+        case MOUSE_BUTTON_XBUTTON13:
             return "Button16";
-        case 0x10000:
+        case MOUSE_BUTTON_XBUTTON14:
             return "Button17";
-        case 0x20000:
+        case MOUSE_BUTTON_XBUTTON15:
             return "Button18";
-        case 0x40000:
+        case MOUSE_BUTTON_XBUTTON16:
             return "Button19";
-        case 0x80000:
+        case MOUSE_BUTTON_XBUTTON17:
             return "Button20";
-        case 0x100000:
+        case MOUSE_BUTTON_XBUTTON18:
             return "Button21";
-        case 0x200000:
+        case MOUSE_BUTTON_XBUTTON19:
             return "Button22";
-        case 0x400000:
+        case MOUSE_BUTTON_XBUTTON20:
             return "Button23";
-        case 0x800000:
+        case MOUSE_BUTTON_XBUTTON21:
             return "Button24";
-        case 0x1000000:
+        case MOUSE_BUTTON_XBUTTON22:
             return "Button25";
-        case 0x2000000:
+        case MOUSE_BUTTON_XBUTTON23:
             return "Button26";
-        case 0x4000000:
+        case MOUSE_BUTTON_XBUTTON24:
             return "Button27";
-        case 0x8000000:
+        case MOUSE_BUTTON_XBUTTON25:
             return "Button28";
-        case 0x10000000:
+        case MOUSE_BUTTON_XBUTTON26:
             return "Button29";
-        case 0x20000000:
+        case MOUSE_BUTTON_XBUTTON27:
             return "Button30";
-        case 0x40000000:
+        case MOUSE_BUTTON_XBUTTON28:
             return "Button31";
         default:
             return "UNKNOWN";

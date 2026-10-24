@@ -667,10 +667,10 @@ int CopyComposition(const std::string &text, char *output, uint32_t size) {
     return 1;
 }
 } // namespace
-int32_t OsIMEGetLanguageMode() {
+OS_IME_LANGUAGEMODE OsIMEGetLanguageMode() {
     OsNative::State();
     SErrSetLastError(50); // SDL exposes composition, not an OS input-language selector.
-    return 0;
+    return OS_IME_MODE_ROMAN;
 }
 int32_t OsIMEGetCompositionString(char *text, uint32_t size) {
     return CopyComposition(OsNative::State().current.text, text, size);

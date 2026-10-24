@@ -734,6 +734,31 @@ and source inspection are different evidence levels.
   match the manifest. Focused read-only original PE inspection supports the four
   behavior fixes. New Windows gameplay and native full-game acceptance remain open.
 
+## UP-002 — 12340 upstream corrections and definitions, October 24
+
+- Status: qualified at `4655b604` in [PR #77](https://github.com/RovxBot/wowdecomp/pull/77). See the
+  [review](upstream/2026-10-24.md) and [record](upstream/2026-10-24.json).
+- Source: `SatyPardus/wowdecomp`, previous upstream `b1c71b8b` through
+  `20f9120e0a8f064338ecd9f2dd6cbc01642bf695`; 187 commits, 404 changed paths. This is product
+  12340 maintenance; the 15595 donor pin is unchanged.
+- Benefit: font-row packing, sky/talent/portrait/item-swap initialization, ID-based
+  display lookups, FMOD shutdown lock ordering and completed named domains.
+  Preserve corrective follow-ups and final raw-field/width/sentinel behavior.
+- Adaptation: resolve eight conflicting files, keeping native ownership guards
+  and moved shared functions. Carry enum names into extracted helpers and
+  fixtures; retain signatures, protocol, dependency pins and original assets.
+  Generated legacy version headers use full Git history; packaging remains
+  Actions-only. Source addresses and prior VERIFY annotations retain provenance.
+- Validation: 57 local source/launcher tests pass, one CMake-unavailable skip;
+  no local compilation. Original clean PE inspection supports font-row/sky/talent/portrait
+  details. Five selected hosted suites passed, including strict GL sanitizers,
+  actual ARM64 prerequisites and signature-enabled full Windows compilation.
+  Five archives/70 binary hashes/types/notices verified. RX 7900 XTX release/strict
+  sanitizer packages passed 32 three-cycle desktop executions, empty stderr/zero
+  workers; 16 capture pairs and 15 historical comparisons match. Preserve the
+  record's older layout/shell checkouts and both retained compile failures.
+  Actual Windows gameplay/audio, original native login, macOS graphics and server compatibility remain unobserved for this batch.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

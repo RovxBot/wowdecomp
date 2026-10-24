@@ -1,6 +1,7 @@
 // Original 12340 font/XML scalar helpers, shared by Windows and native builds.
 // Historical OFFSET/VERIFY comments do not claim new binary verification.
 #include "Engine/Source/FrameXML/LoadXML.h"
+#include "Engine/Source/Frame/Types.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Status.h"
@@ -276,11 +277,11 @@ int32_t LoadXML_Color(XMLNode* node, CImVector& color, CStatus* status) {
 
 // STATIC: 0x00A43FC0
 static const XMLENUMVALUE s_drawLayers[] = {
-    { 0, "BACKGROUND" },
-    { 1, "BORDER" },
-    { 2, "ARTWORK" },
-    { 3, "OVERLAY" },
-    { 4, "HIGHLIGHT" },
+    { DRAWLAYER_BACKGROUND, "BACKGROUND" },
+    { DRAWLAYER_BACKGROUND_BORDER, "BORDER" },
+    { DRAWLAYER_ARTWORK, "ARTWORK" },
+    { DRAWLAYER_ARTWORK_OVERLAY, "OVERLAY" },
+    { DRAWLAYER_HIGHLIGHT, "HIGHLIGHT" },
 };
 
 // VERIFY: 8a25e9ea auto
