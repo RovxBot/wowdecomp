@@ -82,8 +82,10 @@ struct Events {
     ~Events() { EventDestroy(); }
 };
 struct Source {
-    FileQueue queue;
+    // Queue shutdown joins the worker before its captured package slot dies,
+    // including constructor failure/timeout unwinding.
     std::shared_ptr<Blizzard::Mopaq::Native::Packages> packages;
+    FileQueue queue;
     explicit Source(const Blizzard::File::Native::Paths& paths) {
         auto ticket = queue.Submit([&](const Cancellation&) {
             packages = Blizzard::Mopaq::Native::Packages::Open12340(paths, "enUS"); return ReadResult{};
@@ -117,10 +119,25 @@ int Update(const void* raw, void* root) {
     static_cast<CSimpleTop*>(root)->OnLayerUpdate(static_cast<const EVENT_DATA_UPDATE*>(raw)->m_elapsedSec);
     return 1;
 }
+int PollImages(const void*, void* images) {
+    static_cast<TextureService*>(images)->Poll(); return 1;
+}
 int Paint(const void*, void* root) {
     GxSceneClear(GxBufferBit_Color, CImVector(0, 0, 0, 255));
     static_cast<CSimpleTop*>(root)->OnLayerRender(); GxScenePresent(); return 1;
 }
+struct LoopHandlers {
+    LoopHandlers(CSimpleTop& root, TextureService& images) {
+        EventRegisterEx(EVENT_ID_POLL, PollImages, &images, EVENT_PRIORITY_NORMAL);
+        EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);
+        EventRegisterEx(EVENT_ID_PAINT, Paint, &root, EVENT_PRIORITY_NORMAL);
+    }
+    ~LoopHandlers() {
+        EventUnregister(EVENT_ID_POLL, PollImages);
+        EventUnregister(EVENT_ID_UPDATE, Update);
+        EventUnregister(EVENT_ID_PAINT, Paint);
+    }
+};
 void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden) {
     Source source(paths);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
@@ -156,8 +173,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
-        EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);
-        EventRegisterEx(EVENT_ID_PAINT, Paint, &root, EVENT_PRIORITY_NORMAL);
+        LoopHandlers handlers(root, images);
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
             context.Window().Pump(); OSEVENT event;
@@ -169,7 +185,6 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
             EventNative::Tick(float(now - previous) * 0.001f, now); previous = now; ++frames;
             SDL_Delay(1);
         }
-        EventUnregister(EVENT_ID_UPDATE, Update); EventUnregister(EVENT_ID_PAINT, Paint);
         std::cout << "startup-frames=" << frames << std::endl;
     }
     scripts.CheckCanClose(); renderer.CheckCanClose(); fonts.CheckCanClose();

@@ -17,7 +17,9 @@
 namespace Services { namespace Native {
 namespace {
 std::atomic<TextureService*> active{nullptr};
-constexpr size_t MaxTextures = 32, MaxPixels = 2 * 1024 * 1024, MaxSource = 32 * 1024 * 1024;
+// Signed GlueXML eagerly creates images for hidden screens as well as login.
+// Bound metadata independently of the shared 256 MiB retained-pixel budget.
+constexpr size_t MaxTextures = 1024, MaxPixels = 2 * 1024 * 1024, MaxSource = 32 * 1024 * 1024;
 struct PixelBudget { std::atomic<size_t> bytes{0}; };
 struct Key {
     std::string name;

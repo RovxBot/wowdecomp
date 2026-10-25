@@ -4,7 +4,7 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
-## NP-Integrated — Pinned Apple startup/platform review
+## NP-025 — Integrated startup and pinned Apple platform review
 
 - [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) adds an opt-in Linux
   startup target using this fork's original sources and qualified native services.

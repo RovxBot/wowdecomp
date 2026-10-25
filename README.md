@@ -126,8 +126,10 @@ See [PORTING_PLAN.md](PORTING_PLAN.md) for milestone exit criteria and
 
 **All client and dependency compilation for this fork runs in GitHub Actions.**
 Download artifacts from a passing run and verify their manifests/hashes before
-execution. Native artifacts currently contain diagnostic/component executables;
-the full client CMake target still requires Windows and MSVC.
+execution. Native artifacts include diagnostic/component executables and the
+opt-in [integrated Linux startup](docs/m3/INTEGRATED_CLIENT.md), which is still
+being connected to the complete original login UI. The full Windows client target
+requires Windows and MSVC; native startup success does not establish gameplay.
 
 | Build or check | Workflow |
 | --- | --- |
@@ -136,6 +138,7 @@ the full client CMake target still requires Windows and MSVC.
 | Files, assets and asynchronous reads | [M2 files](.github/workflows/m2-files.yml), [M2 assets](.github/workflows/m2-assets.yml), [M2 async](.github/workflows/m2-async.yml) |
 | Native SDL3 shell | [M2 shell](.github/workflows/m2-shell.yml) |
 | Linux graphics, images, fonts and Frame probes | [M3 OpenGL](.github/workflows/m3-gl.yml) |
+| Opt-in integrated Linux startup | [Integrated Linux client](.github/workflows/native-client.yml) |
 | Portable packet/script/XML/layout components | [Packets](.github/workflows/m3-packets.yml), [Lua](.github/workflows/m3-lua.yml), [FrameScript](.github/workflows/m3-framescript.yml), [XML](.github/workflows/m3-xml.yml), [layout](.github/workflows/m3-layout.yml) |
 
 The [shell guide](docs/m2/SHELL.md#build-and-execution) covers artifact verification
