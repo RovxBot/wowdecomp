@@ -4,7 +4,10 @@
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Tempest/C3Vector.h"
+#include "WoW/Source/WowServices/CharacterInfo.h"
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
 #include "WoW/Source/WowServices/RealmConnection.h"
+#endif
 
 class CCharacterComponent;
 class CM2Model;

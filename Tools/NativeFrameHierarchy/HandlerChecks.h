@@ -84,7 +84,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
     FrameXML_StoreHashNode(loadNode,"NativeLoadFactoryTemplate",nullptr,&loadStatus);
     FrameXML_StoreHashNode(XMLTree_GetRoot(loadTree.get())->m_child,"NativeLoadFailureTemplate",nullptr,&loadStatus);
     loadTree.reset();
-    const auto beforeLoadFrames=root.m_frameCount;
+    const auto beforeLoadFrames=CSimpleFrame::s_frameCount;
     RegionLua(R"(
         NativeHandlerFrame:SetScript('OnLoad',function(self)
             self:SetWidth(self:GetWidth())
@@ -106,7 +106,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         Reject([&]{Frame::Native::RequireDestroyable();});
     }
     RegionLua("assert(HandlerLog[#HandlerLog]=='load-state' and #HandlerErrors==0); NativeHandlerFrame:SetScript('OnLoad',nil); HandlerLog={}");
-    Check(root.m_frameCount==beforeLoadFrames+1,"Failed callback factory stranded or retired a Frame");
+    Check(CSimpleFrame::s_frameCount==beforeLoadFrames+1,"Failed callback factory stranded or retired a Frame");
     delete static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("CreatedLoadCallback",CSimpleFrame::GetObjectType()));
     // Use actual root key/character queues, with the same adapter used after SDL
     // pumping. A handled key captures the Frame until release.

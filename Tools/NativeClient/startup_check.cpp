@@ -16,6 +16,7 @@
 #include <clocale>
 #include "Engine/Source/Gx/Portable/GlContext.h"
 #include "StartupLocale.h"
+#include "WoW/Source/Glue/CharacterSelection.h"
 #include <stdexcept>
 #include <vector>
 namespace {
@@ -71,6 +72,17 @@ void Ordered() {
         bytes.assign(it->second.begin(), it->second.end()); return true;
     });
     FrameXML::Native::Runtime xml;
+    CharSelectRegisterScriptFunctions();
+    auto characterCount = [] {
+        lua_getglobal(s_context, "GetNumCharacters"); lua_call(s_context, 0, 1);
+        const auto count = lua_tonumber(s_context, -1); lua_pop(s_context, 1); return count;
+    };
+    Check(characterCount() == 0, "Original pre-authentication character list was not empty");
+    CCharacterSelection::s_characterList.SetCount(1);
+    Check(characterCount() == 1, "Character query did not read the original list state");
+    CCharacterSelection::s_characterList.Clear();
+    Check(characterCount() == 0, "Character list reset failed");
+    CharSelectUnregisterScriptFunctions();
     MD5_CTX actual, expected; MD5Init(&actual); MD5Init(&expected); CStatus status;
     Check(FrameXML_CreateFrames("Interface\\Test\\Test.toc", nullptr, &actual, &status), "Ordered creation failed");
     for (const char* file : {"Test.toc", "A.lua", "Root.xml", "Child.xml", "B.lua"}) {

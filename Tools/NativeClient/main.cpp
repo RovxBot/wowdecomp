@@ -21,6 +21,7 @@
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "WoW/Source/Glue/Portable/Startup.h"
 #include "WoW/Source/Glue/GlueMgr.h"
+#include "WoW/Source/Glue/CharacterSelection.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cfenv>
@@ -170,6 +171,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         FrameScript_RegisterFunction("GetScreenWidth", ScreenWidth);
         FrameScript_RegisterFunction("GetScreenHeight", ScreenHeight);
         GlueScriptEventsInitialize();
+        CharSelectRegisterScriptFunctions();
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
