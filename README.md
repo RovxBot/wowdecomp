@@ -17,7 +17,7 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-24. Linux has a tested native rendering and UI foundation.
+**Updated: 2026-10-25. Linux has a tested native rendering and UI foundation.
 A playable native Linux or macOS client is still in development.**
 
 | Platform | What is demonstrated | What still blocks a playable prototype |
@@ -25,6 +25,13 @@ A playable native Linux or macOS client is still in development.**
 | **Linux x86-64** | Native SDL3 shell; original asset loading; OpenGL UI shaders, images and fonts; original Frame layout, hierarchy and text rendering; resize, keyboard/text/focus and IME event delivery | Complete original login UI and its Frame factories/consumers, portable networking/authentication, full world rendering and an observed server session |
 | **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
+
+The Actions-built `WowNativeClient` now executes ordered original GlueXML through
+RealmList and AddonList, then stops at AccountLogin's **ModelFFX factory**. Its
+retained model file/async and relative-storage prerequisites are qualified, but
+the model/animation/material/FFX rendering path remains unfinished. The full
+post-creation digest check stays enabled and has not been reached. See
+[integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
 
 Linux diagnostic applications can already display original resources and exercise
 parts of the original UI engine. The next visible milestone is the **actual
@@ -80,7 +87,10 @@ unchanged 12340 data, signs in, selects a character, enters the world, supports
 basic play, saves settings and exits cleanly. A rendered test or successful build
 does not close that milestone.
 
-1. **Finish original UI creation and interaction.** Extend the qualified base Frame
+1. **Continue integrated original-client startup.** Connect ModelFFX's original
+   model/scene/animation, Camera, ShaderEffect and FFX callers through the native
+   graphics services. Resolve reachable widget/service gaps in coherent batches
+   along that startup path. Extend the qualified base Frame
    XML/templates to remaining widgets and animation/model consumers,
    broader template/structural callback semantics, image tiling and
    DB-backed declensions.
@@ -104,7 +114,10 @@ does not close that milestone.
 5. **Bring the application to Apple silicon.** Validate and select the maintained
    graphics/shader path, complete Metal rendering and ARM64 application integration,
    then test Retina scaling, input, audio/movies and gameplay on a real Mac.
-   The proposed Gx/bgfx Vulkan/Metal direction remains a prototype/decision task.
+   Review the [pinned Apple ports](docs/m3/APPLE_STARTUP_REVIEW.md) before adapting
+   equivalent platform, transport or Metal code. Early macOS integration can
+   proceed as dependencies and hardware permit; maintained graphics selection
+   still requires representative Linux and Apple rendering evidence.
 
 Audio, movies, wider GPU/display coverage, long-session stability and packaging
 are further requirements for a complete release. Optional 4.3.4 visual upgrades

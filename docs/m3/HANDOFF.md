@@ -1,4 +1,12 @@
-# M3 Linux game integration — 2026-10-24
+# M3 Linux game integration — 2026-10-25
+
+For new work, follow the [current integration direction](../../PORTING_PLAN.md#current-integration-direction--2026-10-25)
+and [agent priority](../../AGENTS.md#current-integration-priority--2026-10-25).
+Prioritise integrated original-client startup and the complete signed original
+login UI, with reachable widget/service work batched around that path. Earlier
+next-caller ordering below is historical. Existing evidence, lifetime corrections,
+Actions-only compilation, signatures, read-only data and unchanged server policy
+remain applicable; this planning update establishes no new runtime result.
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client

@@ -11,6 +11,44 @@ the Windows client and hosted native targets; the full native game is still gate
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
 
+## Current integration priority — 2026-10-25
+
+Use the [current integration direction](PORTING_PLAN.md#current-integration-direction--2026-10-25)
+to choose new work. It supersedes historical next-caller/widget ordering in the
+handoffs; those reports retain their original evidence and implementation identities.
+
+- The product uses unchanged clean 3.3.5a/12340 game data with our compiled native
+  Linux x86-64 executable or macOS ARM64 application. Reuse the reconstructed
+  client, original Lua/XML interfaces and gameplay logic. Keep both reference
+  installations read-only, with settings/cache/logs outside them.
+- Prioritise integrated original-client startup and the complete original login UI,
+  then native transport/authentication, character selection and observed world
+  entry. Bring up the original engine/Event/Frame/Glue callers together; implement
+  reachable missing widgets/services in coherent batches driven by that path.
+  Exhaustive standalone qualification of every widget is not a prerequisite to
+  attempting integrated startup.
+- Prefer adapting existing engine-facing interfaces and reusing qualified native
+  services. Bounded source compatibility helpers are allowed when they preserve
+  required widths, semantics and ownership. Do not require a new independent
+  service/owner/probe for every original module. Retain established lifetime,
+  alignment, callback and shutdown corrections when connecting the client.
+- Audit the pinned Apple-port references in the plan for reusable startup,
+  platform, network and Metal code before independently implementing equivalents.
+  Review dependencies, provenance/notices and target compatibility; record actual
+  imports. Metal code requires a separate Linux graphics path. macOS integration
+  may begin as dependencies and hardware permit without waiting for all Linux
+  widgets or later renderer/release milestones.
+- Keep required hosted checks, Windows regression compilation and sanitizers.
+  Add focused regression coverage for changed contracts and observed failures;
+  batch validation around coherent integration changes. Report the integrated
+  executable's observed behaviour and next concrete blocker separately from
+  component-fixture success. Existing probes remain useful regression tools.
+- All compilation still runs in GitHub Actions. Preserve original archive/interface
+  signatures, full ordered GlueXML/post-creation verification and protocol
+  behaviour. No fake-success services, unchecked login mode or server/Warden
+  policy changes follow from this direction. The user signs in interactively
+  when ready; login rendering alone does not establish authentication/gameplay.
+
 ## Current handoff and build policy
 
 - All client and dependency compilation must run in GitHub Actions, including
