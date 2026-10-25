@@ -108,9 +108,10 @@ Model2 scene/cache/model/shared loading, Camera, ShaderEffect and FFX/glow. Orig
 `AccountLogin_OnLoad` selects camera/sequence and loads
 `UI_MainMenu_Northrend.m2`. This requires the real model's retained read/animation
 callbacks and signed relative allocations, plus device streams/materials/shaders
-and FFX targets. The selected native legacy device currently advertises one
-texture unit, requires explicit UI shaders for batches and rejects fixed-function
-lighting/fog. Scalar model inspection does not supply this path. The pinned-port
+and FFX targets. The selected native legacy device is qualified for UI batches,
+advertises one texture unit and rejects fixed-function lighting/fog. Model shader
+and material coverage remains unqualified. Scalar model inspection does not supply
+this path. The pinned-port
 model review is recorded in [the Apple review](APPLE_STARTUP_REVIEW.md); its Metal
 backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches

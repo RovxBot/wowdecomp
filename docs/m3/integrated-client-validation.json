@@ -1790,7 +1790,7 @@
       "model streams/materials/shaders and camera",
       "FFX/glow targets and actual original background rendering"
     ],
-    "source_review_limits": "The original Model2/FFX group is not compiled or linked into this target yet. Native UI Gx advertises one texture unit and rejects unavailable lighting/fog and non-UI batches. These are source-inspected dependencies, separate from the observed factory failure."
+    "source_review_limits": "The original Model2/FFX group is not compiled or linked into this target yet. The native Gx adapter is qualified for UI batches, advertises one texture unit and rejects unavailable fixed-function lighting/fog. Model shader/material coverage is unqualified. These are source-inspected dependencies, separate from the observed factory failure."
   },
   "failed_actions_details": [
     {
