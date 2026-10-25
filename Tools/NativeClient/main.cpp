@@ -174,6 +174,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
         LoopHandlers handlers(root, images);
+        const auto scriptErrors = FrameScript::Native::ScriptErrorCount();
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
             context.Window().Pump(); OSEVENT event;
@@ -183,6 +184,8 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
             }
             const auto now = OsGetAsyncTimeMs();
             EventNative::Tick(float(now - previous) * 0.001f, now); previous = now; ++frames;
+            if (FrameScript::Native::ScriptErrorCount() != scriptErrors)
+                throw std::runtime_error("Original Glue loop callback failed: " + FrameScript::Native::LastScriptError());
             SDL_Delay(1);
         }
         std::cout << "startup-frames=" << frames << std::endl;

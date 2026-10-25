@@ -201,8 +201,8 @@ void CSimpleScrollFrame::CreateScriptMetaTable() {
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetScrollChild", &Frame::Native::ScriptMethod<&Script_SetScrollChild> },
     { "GetScrollChild", &Frame::Native::ScriptMethod<&Script_GetScrollChild, true, false> },
-    { "SetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_SetHorizontalScroll> },
-    { "SetVerticalScroll", &Frame::Native::ScriptMethod<&Script_SetVerticalScroll> },
+    { "SetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_SetHorizontalScroll, true, false, true> },
+    { "SetVerticalScroll", &Frame::Native::ScriptMethod<&Script_SetVerticalScroll, true, false, true> },
     { "GetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_GetHorizontalScroll, true, false> },
     { "GetVerticalScroll", &Frame::Native::ScriptMethod<&Script_GetVerticalScroll, true, false> },
     { "GetHorizontalScrollRange", &Frame::Native::ScriptMethod<&Script_GetHorizontalScrollRange, true, false> },

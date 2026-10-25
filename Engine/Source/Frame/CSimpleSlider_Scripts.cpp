@@ -242,13 +242,13 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetOrientation", &Frame::Native::ScriptMethod<&Script_GetOrientation, true, false> },
     { "SetOrientation", &Frame::Native::ScriptMethod<&Script_SetOrientation> },
     { "GetMinMaxValues", &Frame::Native::ScriptMethod<&Script_GetMinMaxValues, true, false> },
-    { "SetMinMaxValues", &Frame::Native::ScriptMethod<&Script_SetMinMaxValues> },
+    { "SetMinMaxValues", &Frame::Native::ScriptMethod<&Script_SetMinMaxValues, true, false, true> },
     { "GetValue", &Frame::Native::ScriptMethod<&Script_GetValue, true, false> },
-    { "SetValue", &Frame::Native::ScriptMethod<&Script_SetValue> },
+    { "SetValue", &Frame::Native::ScriptMethod<&Script_SetValue, true, false, true> },
     { "GetValueStep", &Frame::Native::ScriptMethod<&Script_GetValueStep, true, false> },
-    { "SetValueStep", &Frame::Native::ScriptMethod<&Script_SetValueStep> },
-    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable> },
-    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable> },
+    { "SetValueStep", &Frame::Native::ScriptMethod<&Script_SetValueStep, true, false, true> },
+    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable, true, false, true> },
+    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable, true, false, true> },
     { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled, true, false> },
 };
 #else

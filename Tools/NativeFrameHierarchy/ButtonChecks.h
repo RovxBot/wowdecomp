@@ -70,6 +70,21 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
     )");
     auto* button=static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeButton",CSimpleButton::GetObjectType()));
     Check(button && button->m_normalFont==&font && button->m_clickAction==(CLICK_ON_LEFTUP|CLICK_ON_RIGHTUP),"Button XML lost high click-mask bits");
+    // Original GlueScrollFrame OnLoad disables existing arrow buttons. Keep
+    // replacement/construction forbidden while permitting this bounded state.
+    RegionLua(R"(
+        NativeButton:SetScript('OnLoad',function(self)
+            self:Disable(); assert(self:IsEnabled()==0)
+            self:Enable(); assert(self:IsEnabled()==1)
+            assert(not pcall(self.SetNormalTexture,self,'Interface/not-a-replacement'))
+            self.loadStatePassed=true
+        end)
+    )");
+    {
+        Frame::Native::LoadScriptEdits edits;
+        button->RunScript(button->m_onLoad,0,nullptr);
+    }
+    RegionLua("assert(NativeButton.loadStatePassed); NativeButton:SetScript('OnLoad',nil)");
     CLayoutFrame::ResizePending(); CRect hit;
     Check(button->GetRect(&hit),"Button hit rectangle is unresolved");
     int width,height,pixelWidth,pixelHeight; context.Window().Size(width,height,pixelWidth,pixelHeight);

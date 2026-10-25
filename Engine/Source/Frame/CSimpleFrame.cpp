@@ -476,7 +476,8 @@ uint8_t CSimpleFrame::GetEffectiveAlpha() {
 void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    if (flag == 0x400) Frame::Native::RequireStateMutation(); // Button disabled state
+    else Frame::Native::RequireTreeMutation();
     // Qualified base movement flags plus Button disabled/widget markers.
     if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000 && flag != 0x400 && flag != 0x10000) Frame::Native::UnavailableFrameFeature();
     this->m_simpleTop->m_strata[this->m_strata]->m_levelsDirty = 1;
