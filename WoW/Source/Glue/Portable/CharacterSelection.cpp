@@ -4,6 +4,7 @@
 // Transport, character displays and model/component producers are not selected.
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <exception>
 static_assert(sizeof(CHARACTER_INFO) == 0x188, "Original fixed-width character record changed");
 

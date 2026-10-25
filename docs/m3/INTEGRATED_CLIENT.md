@@ -48,6 +48,14 @@ entries independently of their unchanged 256 MiB pixel budget; Event polling
 delivers completions before update/paint. Queue shutdown precedes package-slot
 destruction even when archive startup throws or times out.
 
+AddonList's pre-authentication `GetNumCharacters` reads the original
+`CCharacterSelection::s_characterList`; a focused fixture changes the list and
+checks the count and reset. The fixed-width `CHARACTER_INFO` declaration is
+separated from socket/client headers without changing its fields or signatures.
+This selects list state and its count query only. Native model/component producers,
+display release, character enumeration and other character-selection callbacks
+remain unavailable; a resource-bearing row cannot silently pass native teardown.
+
 ## Downloaded execution
 
 Verify an Actions archive digest and extract outside both reference installations:
