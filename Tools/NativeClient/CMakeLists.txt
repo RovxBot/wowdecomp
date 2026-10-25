@@ -20,8 +20,39 @@ target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Os/Portable/ModelMemory.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions)
+add_library(WowNativeModels STATIC
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Cache.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Data.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Light.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Model.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Scene.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Shared.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/CM2SceneRender.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Camera.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/ParticleSystem2.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/RibbonEmitter.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/ShaderEffect/ShaderEffect.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/ShaderEffect/ShaderEffectManager.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/ShaderEffect/ShaderEffectParser.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/ShaderEffect/ShadowCache.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/FFX.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/FFX_CVar.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/EffectGlow.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/PassBox4.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/PassGauss4.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/PassGlow.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleModel.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CSimpleModelFFX.cpp)
+target_link_libraries(WowNativeModels PUBLIC WowNativeStartup)
+# Diagnostic spellings only, scoped to this Linux source group.
+target_compile_definitions(WowNativeModels PRIVATE raw_name=name _alloca=alloca)
+target_compile_options(WowNativeModels PRIVATE -include alloca.h -fms-extensions)
+if(WOWDECOMP_CORE_SANITIZERS)
+    target_compile_options(WowNativeModels PRIVATE -g1)
+endif()
 add_executable(WowNativeClient main.cpp)
 target_link_libraries(WowNativeClient PRIVATE WowNativeStartup)
+add_dependencies(WowNativeClient WowNativeModels)
 add_executable(NativeStartupCheck startup_check.cpp model_io_check.cpp)
 target_link_libraries(NativeStartupCheck PRIVATE WowNativeStartup)
 if(BUILD_TESTING)
