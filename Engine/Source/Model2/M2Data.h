@@ -3,6 +3,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#include <stdexcept>
+#endif
 #include "Engine/Source/Model2/Types.h"
 #include "Engine/Source/Tempest/C2Vector.h"
 #include "Engine/Source/Tempest/C3Vector.h"
@@ -368,6 +371,9 @@ class M2SkinProfile {
 // OFFSET: [0x0081CD50]
 template <class T>
 inline T& M2Array<T>::operator[](uint32_t index) const {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (index >= this->m_count) throw std::out_of_range("Native M2 array index");
+#endif
     return this->Data()[index];
 }
 
@@ -378,11 +384,24 @@ inline T* M2Array<T>::Data() const {
 
 template <class T>
 inline void M2Array<T>::Relocate(const void* base) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (this->m_count && (!base || this->m_offset > UINTPTR_MAX - reinterpret_cast<uintptr_t>(base)))
+        throw std::invalid_argument("Invalid native M2 relocation base/offset");
+#endif
     this->Set(this->m_count ? reinterpret_cast<const T*>(static_cast<const uint8_t*>(base) + this->m_offset) : nullptr);
 }
 
 template <class T>
 inline void M2Array<T>::Set(const T* data) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (data) {
+        auto anchor = reinterpret_cast<uintptr_t>(this), target = reinterpret_cast<uintptr_t>(data);
+        // Check before narrowing. Pointer subtraction between different mapped
+        // allocations is undefined; integer displacement retains the disk width.
+        if (target % alignof(T) || (target >= anchor ? target - anchor > INT32_MAX : anchor - target > uint64_t(INT32_MAX) + 1))
+            throw std::out_of_range("Native M2 target exceeds signed relative range/alignment");
+    }
+#endif
     this->m_offset = data ? static_cast<uint32_t>(reinterpret_cast<uintptr_t>(data) - reinterpret_cast<uintptr_t>(this)) : 0;
 }
 

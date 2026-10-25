@@ -116,3 +116,43 @@ model review is recorded in [the Apple review](APPLE_STARTUP_REVIEW.md); its Met
 backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them; registering only a frame tag would leave those dependencies unresolved.
+
+## Model2 loading continuation — 2026-10-25
+
+The integrated target now installs a bounded original `SFileImpl`/`CAsyncObject`
+adapter over the existing retained `FileQueue`. Production opens read only from
+authenticated packages. Model completions run outside the queue's callback pump,
+allowing an original completion to open and enqueue its skin/animation member.
+Native tickets remain private. Workers own staged bytes and never access legacy
+objects, caller destinations or model callbacks. Short reads select the unload
+callback without copying a partial model into the destination.
+
+Cancellation retires the object/file on the owner thread and always returns the
+original immediate-success value 1: the caller may free its destination, and the
+deferred cleanup callback is not invoked. A retired native completion cannot copy
+bytes or call a dead owner, including after adapter destruction. Close model
+owners, async objects and file handles before the adapter, then the retained queue.
+Local package opens/read/seek/size and async submit/poll/wait/cancel are selected;
+streaming, host-file fallback, general queue/thread/progress services and other
+legacy SFile operations are not provided by this adapter.
+
+`OsNative::AllocModelRoot` reserves model roots and later `OsAllocNear` payloads
+in the existing bounded `ModelArena`. Both allocation kinds retain the same
+reservation, with 16-byte alignment and checked complete target extents. The
+default reservation is 256 MiB, with no replacement mapping or unrelated-heap
+fallback. Suballocation is monotonic until the reservation closes; exhaustion
+fails. Retiring the root prevents new allocations while outstanding payloads
+retain the reservation. Wrong-kind and foreign-thread releases fail visibly.
+Native original `M2Array` keeps its 8-byte wire representation and now rejects
+index overflow, misalignment and signed-displacement truncation before changing
+an offset. Existing Windows implementation bodies remain selected unchanged.
+
+The existing `NativeStartupCheck` exercises model-to-skin callback chaining,
+short/empty reads, seek/count semantics, cancellation after staged completion,
+unload, bridge destruction with a pending read, original relative-array access,
+negative offsets, reservation exhaustion and owner/kind checks. This is a
+loading prerequisite; `CM2Shared`/scene/animation, the actual ModelFFX factory,
+Camera/ShaderEffect/FFX and model device rendering are still not selected. The
+integrated executable still stops at AccountLogin's ModelFFX factory. Full ordered
+post-creation verification remains enabled and unreached. Compilation and runtime
+qualification for this continuation will be recorded separately below.

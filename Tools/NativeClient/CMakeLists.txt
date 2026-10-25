@@ -16,11 +16,13 @@ add_library(WowNativeStartup STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/FrameXML/Portable/Load.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Startup.cpp)
 target_sources(WowNativeStartup PRIVATE
-    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp)
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Os/Portable/ModelMemory.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions)
 add_executable(WowNativeClient main.cpp)
 target_link_libraries(WowNativeClient PRIVATE WowNativeStartup)
-add_executable(NativeStartupCheck startup_check.cpp)
+add_executable(NativeStartupCheck startup_check.cpp model_io_check.cpp)
 target_link_libraries(NativeStartupCheck PRIVATE WowNativeStartup)
 if(BUILD_TESTING)
     add_test(NAME native-integrated-startup-contracts COMMAND NativeStartupCheck)

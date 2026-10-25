@@ -776,6 +776,30 @@ and source inspection are different evidence levels.
   record's older layout/shell checkouts and both retained compile failures.
   Actual Windows gameplay/audio, original native login, macOS graphics and server compatibility remain unobserved for this batch.
 
+## NP-025 — Model2 loading prerequisites in integrated startup
+
+- Reference: jerrywossion/wowdecomp `apple` at
+  `7489b5f2df6628a434b2ad9aceed66c0f2e6a431`, complete
+  `Engine/Source/Model2/M2Memory.h` and `Engine/Source/Os/Apple/OsMemory.cpp`.
+  See [the pinned review](m3/APPLE_STARTUP_REVIEW.md). No implementation bodies,
+  dependencies or donor address/verification annotations were imported.
+- Benefit/adaptation: model roots and external relative arrays share this fork's
+  existing native `ModelArena`; allocation kinds retain reservation ownership and
+  reject exhaustion, unknown anchors, foreign owners and signed-offset narrowing.
+  Original SFile/CAsyncObject entry points adapt the qualified native FileQueue;
+  owner-side staging/delivery makes immediate cancellation safe even after reads.
+- Destination: `Os/Portable/ModelMemory*`, native-guarded `Model2/M2Data.h`,
+  `Services/Portable/LegacyFiles*` and the existing integrated startup/check target.
+  Windows keeps its original runtime implementation and M2 array bodies.
+- Scope/defaults: opt-in Linux startup, local authenticated unchanged 12340 data,
+  external writable roots, no streaming/host-file fallback or signature changes.
+  Actual ModelFFX/Model2/FFX rendering remains unavailable; no login, protocol,
+  Warden, server policy, optional asset or gameplay behavior is changed.
+- Validation: local Python source/policy checks pass (61 tests, one skipped);
+  no local compilation. Hosted compilation/sanitizer and downloaded runtime
+  evidence remain pending for this continuation. See
+  [the integrated contract](m3/INTEGRATED_CLIENT.md#model2-loading-continuation--2026-10-25).
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

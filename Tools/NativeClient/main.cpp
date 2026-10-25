@@ -4,6 +4,7 @@
 #include "Engine/Source/Os/Input.h"
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
+#include "Engine/Source/Services/Portable/LegacyFiles.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -128,12 +129,15 @@ int Paint(const void*, void* root) {
     static_cast<CSimpleTop*>(root)->OnLayerRender(); GxScenePresent(); return 1;
 }
 struct LoopHandlers {
-    LoopHandlers(CSimpleTop& root, TextureService& images) {
+    static int PollFiles(const void*, void* files) { static_cast<LegacyFiles*>(files)->Poll(); return 1; }
+    LoopHandlers(CSimpleTop& root, TextureService& images, LegacyFiles& files) {
+        EventRegisterEx(EVENT_ID_POLL, PollFiles, &files, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_POLL, PollImages, &images, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_PAINT, Paint, &root, EVENT_PRIORITY_NORMAL);
     }
     ~LoopHandlers() {
+        EventUnregister(EVENT_ID_POLL, PollFiles);
         EventUnregister(EVENT_ID_POLL, PollImages);
         EventUnregister(EVENT_ID_UPDATE, Update);
         EventUnregister(EVENT_ID_PAINT, Paint);
@@ -141,6 +145,7 @@ struct LoopHandlers {
 };
 void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden) {
     Source source(paths);
+    LegacyFiles modelFiles(source.queue, source.packages);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
         if (kind != FrameScript::Native::SourceKind::Interface) return false;
         try { bytes = source.Read(path); return true; } catch (...) { return false; }
@@ -175,7 +180,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
-        LoopHandlers handlers(root, images);
+        LoopHandlers handlers(root, images, modelFiles);
         const auto scriptErrors = FrameScript::Native::ScriptErrorCount();
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
@@ -193,6 +198,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         std::cout << "startup-frames=" << frames << std::endl;
     }
     scripts.CheckCanClose(); renderer.CheckCanClose(); fonts.CheckCanClose();
+    modelFiles.CheckCanClose();
 }
 }
 int main(int argc, char** argv) {

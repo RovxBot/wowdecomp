@@ -29,6 +29,17 @@ on Apple/sanitizer heaps; its non-Apple branch retains aligned heap allocation.
 This is useful ownership/addressing guidance, not a Linux allocator import or a
 qualified shortcut around rendering. No model source was imported in this batch.
 
+The loading continuation additionally inspected the complete pinned jerrywossion
+`Engine/Source/Model2/M2Memory.h` and `Engine/Source/Os/Apple/OsMemory.cpp`.
+The Apple allocator searches VM holes without replacing occupied mappings and
+keeps model roots outside distant sanitizer heaps. This continuation imports no
+implementation bodies: it uses our existing `ModelArena` reservation for roots
+and external arrays together, retains each reservation through outstanding
+payloads, and adds native checks to original `M2Array`. Its Linux implementation
+does not depend on Mach, Cocoa or Metal. The original async cancellation/ownership
+callers in this checkout informed the retained `CAsyncObject` adapter; none of
+the pinned ports' archive/async or authentication code is selected.
+
 Bundled Lua/Expat/FreeType/MPQ codecs and pinned SDL 3.2.28/notices remain selected.
 Inspected reference trees contain third-party notices; no root license was found
 establishing an independent blanket relicensing assumption. Before later imports,
