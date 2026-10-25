@@ -796,8 +796,13 @@ and source inspection are different evidence levels.
   Actual ModelFFX/Model2/FFX rendering remains unavailable; no login, protocol,
   Warden, server policy, optional asset or gameplay behavior is changed.
 - Validation: local Python source/policy checks pass (61 tests, one skipped);
-  no local compilation. Hosted compilation/sanitizer and downloaded runtime
-  evidence remain pending for this continuation. See
+  no local compilation. All 14 final-source workflows / 47 jobs passed, including
+  strict sanitizers, actual ARM64 prerequisites, 38 CTest checks per Linux GL
+  configuration and full signature-enabled Windows x64 compilation. Downloaded
+  release/three strict startup fixtures passed; corresponding original-data
+  executions still exited 1 at ModelFFX with zero workers and no sanitizer finding.
+  Two archive digests/four ELF executable hashes/types/notices verified. See
+  [the exact-source record](m3/integrated-model-io-validation.json) and
   [the integrated contract](m3/INTEGRATED_CLIENT.md#model2-loading-continuation--2026-10-25).
 
 ## BP-001 — Correct CPUID structure initialization

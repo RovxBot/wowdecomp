@@ -5,7 +5,13 @@ The opt-in `WOWDECOMP_BUILD_NATIVE_CLIENT` target `WowNativeClient` and
 retained reads, SDL/Gx/Gxu, original FrameScript/XML/layout/Frame and images.
 All compilation runs in Actions; Windows remains a separate regression target.
 
-**Login rendering is incomplete.** Downloaded release and three strict
+**Login rendering is incomplete.** The [Model2 loading continuation](#model2-loading-continuation--2026-10-25)
+at `8a00e6203b8fc54bf74a886f9ee95a8bd1067931` qualifies retained original
+file/async entry points and signed-relative model storage. Its downloaded
+executable still stops at the actual ModelFFX factory. See the
+[separate continuation record](integrated-model-io-validation.json).
+
+The earlier downloaded release and three strict
 ASan/UBSan/leak executions at implementation
 `5a4c2d2f03a58403e5085c620e6b8cd8389a861a` (Actions checkout
 `86abd713d7469162f4cd8f93c926fdadf28d65db`, matching tree
@@ -154,5 +160,20 @@ negative offsets, reservation exhaustion and owner/kind checks. This is a
 loading prerequisite; `CM2Shared`/scene/animation, the actual ModelFFX factory,
 Camera/ShaderEffect/FFX and model device rendering are still not selected. The
 integrated executable still stops at AccountLogin's ModelFFX factory. Full ordered
-post-creation verification remains enabled and unreached. Compilation and runtime
-qualification for this continuation will be recorded separately below.
+post-creation verification remains enabled and unreached.
+
+[Qualification](integrated-model-io-validation.json) records all 14 final-source
+workflows / 47 jobs passing, including full signature-enabled Windows x64
+compilation, actual ARM64 prerequisite execution and 38 CTest checks per Linux GL
+configuration. Actions checkout `9003068169cba3efa7d8fa1d5ce4012549f969a5`
+and implementation `8a00e6203b8fc54bf74a886f9ee95a8bd1067931` share tree
+`47b2496f85d3b0d80b0f940248bcba964d71a921`. Two archive digests, four packaged
+ELF executable hashes/types and all nine notices per package were verified.
+One release and three strict downloaded startup-check executions passed with
+empty stderr. The corresponding four clean-data executions authenticated 28,948
+archive records and 60 GlueXML visits, then exited 1 at the same ModelFFX factory
+with zero workers and no sanitizer finding. Those are observed failure paths,
+separate from the authored loading checks. RX 7900 XTX / Mesa 26.2.5 / SDL X11
+was used. No detector was disabled, no client/dependency compiled locally, and
+both installations remained read-only. Earlier successful startup checks and the
+superseded Windows/GL cancellations remain recorded separately.

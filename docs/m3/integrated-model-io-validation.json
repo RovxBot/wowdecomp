@@ -1,0 +1,847 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-25",
+  "pr": "https://github.com/RovxBot/wowdecomp/pull/84",
+  "scope": "Native original-model I/O and signed-relative storage prerequisites. Actual ModelFFX factory, Model2 scene/loading/animation, Camera, ShaderEffect and FFX rendering are not yet selected.",
+  "status": "loading prerequisites qualified; integrated original login remains blocked at ModelFFX",
+  "implementation_commit": "8a00e6203b8fc54bf74a886f9ee95a8bd1067931",
+  "implementation_tree": "47b2496f85d3b0d80b0f940248bcba964d71a921",
+  "actions_checkout": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+  "actions_tree": "47b2496f85d3b0d80b0f940248bcba964d71a921",
+  "local_compilation": false,
+  "local_source_tests": {
+    "tests": 61,
+    "skipped": 1,
+    "result": "passed",
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -q"
+  },
+  "reference": {
+    "repository": "jerrywossion/wowdecomp",
+    "commit": "7489b5f2df6628a434b2ad9aceed66c0f2e6a431",
+    "reviewed_files": [
+      "Engine/Source/Model2/M2Memory.h",
+      "Engine/Source/Os/Apple/OsMemory.cpp"
+    ],
+    "source_imports": [],
+    "dependency_imports": [],
+    "review": "APPLE_STARTUP_REVIEW.md"
+  },
+  "prior_implementation": {
+    "commit": "281d6fa64b8295234e1f4e6d585f45370de93318",
+    "tree": "338aa92c2eab464e152e673b8011270d0b41421f",
+    "workflows": [
+      {
+        "id": 40165365957,
+        "name": "M0 source audit",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365908,
+        "name": "M3 original FrameScript runtime",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365966,
+        "name": "M1 portable core",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365967,
+        "name": "M2 native file services",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165366005,
+        "name": "M2 native asset services",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365965,
+        "name": "M3 native packet prerequisites",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365907,
+        "name": "M2 native asynchronous files",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365911,
+        "name": "M3 original XML runtime",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365903,
+        "name": "M3 product Lua runtime",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365963,
+        "name": "M3 original Frame layout",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365916,
+        "name": "M2 native SDL3 shell",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365912,
+        "name": "Integrated Linux client",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 40165365960,
+        "name": "M3 Linux OpenGL context",
+        "status": "completed",
+        "conclusion": "cancelled"
+      },
+      {
+        "id": 40165365954,
+        "name": "M0 Windows baseline",
+        "status": "completed",
+        "conclusion": "cancelled"
+      }
+    ],
+    "note": "Initial startup release/strict jobs passed. Windows/GL were cancelled by the later hardening commit's workflow concurrency policy; they are not successful qualifications. The hardening changes guard conflicting file ownership before retirement, retain async failure diagnostics and make the pending-read fixture deterministic."
+  },
+  "required_workflows": [
+    {
+      "id": 40165633996,
+      "name": "M0 source audit",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986918,
+          "name": "source-audit",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633974,
+      "name": "M2 native asset services",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986685,
+          "name": "assets (ubuntu-24.04, linux-assets, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085986843,
+          "name": "assets (windows-2022, windows-assets, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085986916,
+          "name": "assets (macos-14, macos-arm64-assets, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085986962,
+          "name": "assets (ubuntu-24.04, linux-assets-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633972,
+      "name": "M1 portable core",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986861,
+          "name": "core (macos-14, macos-arm64-core, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987006,
+          "name": "core (ubuntu-24.04, linux-core-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987035,
+          "name": "core (ubuntu-24.04, linux-core, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987069,
+          "name": "core (windows-2022, windows-core, python)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634008,
+      "name": "M2 native asynchronous files",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986813,
+          "name": "async (ubuntu-24.04, linux-async, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085986981,
+          "name": "async (ubuntu-24.04, linux-async-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987024,
+          "name": "async (windows-2022, windows-async, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987093,
+          "name": "async (macos-14, macos-arm64-async, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633990,
+      "name": "M2 native file services",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986862,
+          "name": "files (macos-14, macos-arm64-files, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987102,
+          "name": "files (ubuntu-24.04, linux-files, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987109,
+          "name": "files (windows-2022, windows-files, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987155,
+          "name": "files (ubuntu-24.04, linux-files-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634046,
+      "name": "M3 native packet prerequisites",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085987270,
+          "name": "packets (ubuntu-24.04, linux-packets-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987360,
+          "name": "packets (windows-2022, windows-packets, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987371,
+          "name": "packets (macos-14, macos-arm64-packets, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987404,
+          "name": "packets (ubuntu-24.04, linux-packets, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634006,
+      "name": "M3 product Lua runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986999,
+          "name": "lua (macos-14, macos-arm64-lua, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987162,
+          "name": "lua (windows-2022, windows-lua, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987176,
+          "name": "lua (ubuntu-24.04, linux-lua, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987227,
+          "name": "lua (ubuntu-24.04, linux-lua-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634014,
+      "name": "M3 original XML runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986846,
+          "name": "xml (ubuntu-24.04, linux-xml-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987072,
+          "name": "xml (macos-14, macos-arm64-xml, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987096,
+          "name": "xml (ubuntu-24.04, linux-xml, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987169,
+          "name": "xml (windows-2022, windows-xml, python)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634043,
+      "name": "M3 original Frame layout",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085987111,
+          "name": "layout (ubuntu-24.04, linux-layout-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987123,
+          "name": "layout (ubuntu-24.04, linux-layout, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987153,
+          "name": "layout (windows-2022, windows-layout, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987157,
+          "name": "layout (macos-14, macos-arm64-layout, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634016,
+      "name": "M3 original FrameScript runtime",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085987154,
+          "name": "framescript (macos-14, macos-arm64-framescript, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987258,
+          "name": "framescript (windows-2022, windows-framescript, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987285,
+          "name": "framescript (ubuntu-24.04, linux-framescript, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987334,
+          "name": "framescript (ubuntu-24.04, linux-framescript-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633944,
+      "name": "M2 native SDL3 shell",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986885,
+          "name": "shell (ubuntu-24.04, linux-window-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987087,
+          "name": "shell (ubuntu-24.04, linux-window, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987103,
+          "name": "shell (windows-2022, windows-window, python)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987125,
+          "name": "shell (ubuntu-24.04, linux-window-dynamic-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987144,
+          "name": "shell (macos-14, macos-arm64-window, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165634020,
+      "name": "Integrated Linux client",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121085986944,
+          "name": "startup (linux-client)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121085987124,
+          "name": "startup (linux-client-asan)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633942,
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121086049644,
+          "name": "windows-x64",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40165633948,
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121086032868,
+          "name": "shell (ubuntu-24.04, linux-gl, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121086033049,
+          "name": "shell (ubuntu-24.04, linux-gl-asan, python3)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 12587847680,
+      "name": "native-linux-client-9003068169cba3efa7d8fa1d5ce4012549f969a5",
+      "size_in_bytes": 3997451,
+      "url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12587847680",
+      "archive_download_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12587847680/zip",
+      "expired": false,
+      "created_at": "2026-10-25T05:30:12Z",
+      "expires_at": "2026-11-08T05:30:10Z",
+      "updated_at": "2026-10-25T05:30:12Z",
+      "digest": "sha256:cd6ae7cd741b7f702c9c437333a8df9172f4a698838cc855cba4e98834cd79c7",
+      "workflow_run": {
+        "id": 40165634020,
+        "repository_id": 1421450310,
+        "head_repository_id": 1421450310,
+        "head_branch": "native-port/integrated-linux-startup",
+        "head_sha": "8a00e6203b8fc54bf74a886f9ee95a8bd1067931"
+      }
+    },
+    {
+      "id": 12587852811,
+      "name": "native-linux-client-asan-9003068169cba3efa7d8fa1d5ce4012549f969a5",
+      "size_in_bytes": 25522131,
+      "url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12587852811",
+      "archive_download_url": "https://api.github.com/repos/RovxBot/wowdecomp/actions/artifacts/12587852811/zip",
+      "expired": false,
+      "created_at": "2026-10-25T05:31:45Z",
+      "expires_at": "2026-11-08T05:31:42Z",
+      "updated_at": "2026-10-25T05:31:45Z",
+      "digest": "sha256:c106e4ca84b4834240e61d894bb61400e7c1f2e5600d35a95f2ce56a4e88a6d3",
+      "workflow_run": {
+        "id": 40165634020,
+        "repository_id": 1421450310,
+        "head_repository_id": 1421450310,
+        "head_branch": "native-port/integrated-linux-startup",
+        "head_sha": "8a00e6203b8fc54bf74a886f9ee95a8bd1067931"
+      }
+    }
+  ],
+  "verification": {
+    "archive_count": 2,
+    "binary_count": 4,
+    "notice_files_per_archive": 9,
+    "archive_digests": true,
+    "all_four_binary_hashes_and_elf64_x86_64_types": true,
+    "all_notice_hashes": true,
+    "matching_actions_and_implementation_trees": true
+  },
+  "data": {
+    "path": "/mnt/games/3.3.5aClean/Data",
+    "access": "read-only",
+    "settings_cache_reports": "/tmp/wow-pr84-model-io, outside both reference installations",
+    "credentials_supplied": false,
+    "server_or_warden_policy_changes": false
+  },
+  "limitations": [
+    "The authored prerequisite checks do not execute CM2Shared or the actual ModelFFX factory.",
+    "Original login rendering is incomplete; no login capture, physical input acceptance, authentication, character selection or gameplay result.",
+    "Full ordered post-creation GlueXML verification remains enabled and unreached.",
+    "Monotonic model suballocation has a default 256 MiB reservation budget per root and fails on exhaustion; no unrelated-heap fallback.",
+    "No macOS graphics or Windows runtime result is established."
+  ],
+  "runtime": {
+    "fixtures": {
+      "startup-asan-1.json": {
+        "exit_code": 0,
+        "stdout": [
+          "native-startup-contracts=passed"
+        ],
+        "stderr": [],
+        "environment": {
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "startup-asan-2.json": {
+        "exit_code": 0,
+        "stdout": [
+          "native-startup-contracts=passed"
+        ],
+        "stderr": [],
+        "environment": {
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "startup-asan-3.json": {
+        "exit_code": 0,
+        "stdout": [
+          "native-startup-contracts=passed"
+        ],
+        "stderr": [],
+        "environment": {
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "startup-release-1.json": {
+        "exit_code": 0,
+        "stdout": [
+          "native-startup-contracts=passed"
+        ],
+        "stderr": []
+      }
+    },
+    "integrated": {
+      "client-asan-1.json": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client-asan",
+        "binary_sha256": "6568255dc398b25ff61f8ee29efb85efbb8f39631d550304751d241547a1aa3b",
+        "started_at": "2026-10-25T05:32:45.092514+00:00",
+        "completed_at": "2026-10-25T05:32:45.702474+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Interface\\GlueXML\\AccountLogin.xml: ModelFFX AccountLogin: Native XML widget or child service is unavailable: ModelFFX"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "client-asan-2.json": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client-asan",
+        "binary_sha256": "6568255dc398b25ff61f8ee29efb85efbb8f39631d550304751d241547a1aa3b",
+        "started_at": "2026-10-25T05:32:45.820037+00:00",
+        "completed_at": "2026-10-25T05:32:46.411939+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Interface\\GlueXML\\AccountLogin.xml: ModelFFX AccountLogin: Native XML widget or child service is unavailable: ModelFFX"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "client-asan-3.json": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client-asan",
+        "binary_sha256": "6568255dc398b25ff61f8ee29efb85efbb8f39631d550304751d241547a1aa3b",
+        "started_at": "2026-10-25T05:32:46.534594+00:00",
+        "completed_at": "2026-10-25T05:32:47.131578+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Interface\\GlueXML\\AccountLogin.xml: ModelFFX AccountLogin: Native XML widget or child service is unavailable: ModelFFX"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      },
+      "client-release-1.json": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client",
+        "binary_sha256": "55e25e3216439e613d68f2c79f2a1c9363bda0aa5c6facf7b071dae200035d65",
+        "started_at": "2026-10-25T05:31:34.821173+00:00",
+        "completed_at": "2026-10-25T05:31:35.079876+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Interface\\GlueXML\\AccountLogin.xml: ModelFFX AccountLogin: Native XML widget or child service is unavailable: ModelFFX"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": null,
+          "UBSAN_OPTIONS": null,
+          "ASAN_SYMBOLIZER_PATH": null,
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    "manifests": {
+      "linux-client": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client",
+        "signatures": "required",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "status": "build-and-contracts-passed",
+        "scope": "integrated startup; original-data runtime evidence is separate",
+        "binaries": {
+          "WowNativeClient": "55e25e3216439e613d68f2c79f2a1c9363bda0aa5c6facf7b071dae200035d65",
+          "NativeStartupCheck": "135ea5fae36404b50af29bb0ecbac1c048a8611c5f3016cb2f6cc0adb0002882"
+        },
+        "notices": {
+          "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+          "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+          "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      },
+      "linux-client-asan": {
+        "schema_version": 1,
+        "source_commit": "9003068169cba3efa7d8fa1d5ce4012549f969a5",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40165634020",
+        "preset": "linux-client-asan",
+        "signatures": "required",
+        "target_os": "LINUX",
+        "target_cpu": "X86_64",
+        "status": "build-and-contracts-passed",
+        "scope": "integrated startup; original-data runtime evidence is separate",
+        "binaries": {
+          "WowNativeClient": "6568255dc398b25ff61f8ee29efb85efbb8f39631d550304751d241547a1aa3b",
+          "NativeStartupCheck": "477484aa41e46e304ce0310d207c859e8d09f53ee76aec6ce5bd38fa74869ad2"
+        },
+        "notices": {
+          "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+          "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+          "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+          "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+          "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+          "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+          "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+          "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+          "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+        }
+      }
+    }
+  },
+  "required_workflow_count": 14,
+  "required_job_count": 47,
+  "regression": {
+    "linux_gl_checks_per_configuration": 38,
+    "windows_x64": "full signature-enabled reference compilation passed; no Windows runtime claim",
+    "actual_arm64_prerequisites": "required native prerequisite jobs passed; no macOS model or graphics claim"
+  },
+  "runtime_result": {
+    "fixture_executions": 4,
+    "fixture_passes": 4,
+    "fixture_stderr": "empty",
+    "original_data_executions": 4,
+    "original_data_exit_codes": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "original_data_result": "expected explicit AccountLogin ModelFFX failure, not login success",
+    "workers_after_each_integrated_cleanup": 0,
+    "strict_sanitizer_findings": 0,
+    "post_creation_verification": "enabled, unreached"
+  }
+}
