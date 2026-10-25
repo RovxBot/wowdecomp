@@ -11,6 +11,8 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <fstream>
+#include <chrono>
 #include <stdexcept>
 #include <vector>
 namespace {
@@ -34,6 +36,23 @@ void Events() {
     EventUnregister(EVENT_ID_IDLE, Throws);
     EventNative::Dispatch(EVENT_ID_IDLE, nullptr); // marker must have unwound
     EventDestroy();
+}
+void Settings() {
+    const auto directory = std::filesystem::temp_directory_path() /
+        ("wow-native-cvar-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto config = (directory / "Config.wtf").string();
+    ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
+    auto* value = CVar::Register("nativeStartupValue", "fixture", CVAR_ARCHIVE, "41", nullptr, 0, true, nullptr, false);
+    Check(value && value->m_intValue == 41, "CVar default changed");
+    value->Set("43", true, false, false, true);
+    Check(CVar::SaveAll() == 1 && std::filesystem::is_regular_file(config), "CVar did not save to explicit settings file");
+    CVar::Destroy(); ConsoleCommandDestroy();
+    ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
+    value = CVar::Register("nativeStartupValue", "fixture", CVAR_ARCHIVE, "41", nullptr, 0, true, nullptr, false);
+    Check(value && value->m_intValue == 43, "Original SET settings did not round-trip");
+    CVar::Destroy(); ConsoleCommandDestroy();
+    std::filesystem::remove_all(directory);
 }
 void Ordered() {
     const std::map<std::string, std::string> files{
@@ -67,7 +86,7 @@ void Ordered() {
 int main() {
     try {
         StormRtlInitialize();
-        Events(); Ordered();
+        Events(); Settings(); Ordered();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

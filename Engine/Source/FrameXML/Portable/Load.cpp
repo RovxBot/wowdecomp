@@ -45,6 +45,7 @@ int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX*
     if (!tree) return 0;
     CStatus fileStatus;
     for (auto* child = XMLTree_GetRoot(tree.get())->m_child; child;) {
+        const auto previousErrors = FrameScript::Native::ScriptErrorCount();
         auto* next = child->m_next; // virtual nodes detach from this tree
         const char* tag = child->m_name.m_str;
         if (Is(tag, "Include") || Is(tag, "Script")) {
@@ -82,6 +83,8 @@ int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX*
                 }
             }
         }
+        if (FrameScript::Native::ScriptErrorCount() != previousErrors)
+            throw std::runtime_error(std::string(filename) + ": protected Lua callback failed: " + FrameScript::Native::LastScriptError());
         if (fileStatus.m_highestSeverity >= STATUS_ERROR) Failure(filename, fileStatus);
         child = next;
     }

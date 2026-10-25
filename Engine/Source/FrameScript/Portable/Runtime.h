@@ -30,6 +30,11 @@ private:
 };
 void RequireOwner();
 void RequireIdle();
+// Diagnostics observe protected Lua failures without changing the original
+// handler, taint or error propagation. Integration must not hide failed OnLoad.
+void RecordScriptError(const char*);
+uint64_t ScriptErrorCount();
+const std::string& LastScriptError();
 void ObjectCreated(FrameScript_Object*);
 void ObjectDestroyed(FrameScript_Object*);
 FrameScript_Object* GetObject(lua_State*, int index);

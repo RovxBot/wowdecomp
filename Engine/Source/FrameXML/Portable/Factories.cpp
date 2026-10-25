@@ -2,6 +2,7 @@
 // SimpleFrameScript_Scripts.cpp::Script_CreateFrame. No new address/VERIFY claim.
 #include "Factories.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
+#include "Engine/Source/Os/System.h"
 #include "Engine/Source/FrameXML/LoadXML.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
@@ -48,8 +49,8 @@ struct CreationScope {
 bool Is(const char* a, const char* b) { return !SStrCmpI(a, b, STORM_MAX_STR); }
 bool IsButton(const char* tag) { return Is(tag, "Button") || Is(tag, "CheckButton"); }
 const char* Kind(const char* tag) {
-    if (Is(tag, "ButtonText")) return "FontString";
-    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture", "CheckedTexture", "DisabledCheckedTexture", "BarTexture"})
+    if (Is(tag, "ButtonText") || Is(tag, "FontStringHeader1") || Is(tag, "FontStringHeader2") || Is(tag, "FontStringHeader3")) return "FontString";
+    for (const char* name : {"NormalTexture", "PushedTexture", "DisabledTexture", "HighlightTexture", "CheckedTexture", "DisabledCheckedTexture", "BarTexture", "ThumbTexture"})
         if (Is(tag, name)) return "Texture";
     return tag;
 }
@@ -119,7 +120,8 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnMouseWheel", "OnDragStart",
             "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
             "OnEnterPressed", "OnEscapePressed", "OnSpacePressed", "OnTabPressed", "OnTextChanged", "OnTextSet", "OnCursorChanged", "OnInputLanguageChanged", "OnEditFocusGained", "OnEditFocusLost", "OnCharComposition",
-            "OnValueChanged", "OnMinMaxChanged", "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick"};
+            "OnValueChanged", "OnMinMaxChanged", "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick",
+            "OnHorizontalScroll", "OnVerticalScroll", "OnScrollRangeChanged", "OnHyperlinkEnter", "OnHyperlinkLeave", "OnHyperlinkClick"};
         const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
                                    Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
         if ((buttonHandler && (path.size() < 3 || !IsButton(path[path.size()-3]->m_name.m_str))) ||
@@ -129,15 +131,15 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         path.pop_back();
         return;
     }
-    if (Is(tag, "Scripts") && (path.size() < 2 || (!Is(path[path.size()-2]->m_name.m_str, "Frame") && !Is(path[path.size()-2]->m_name.m_str, "MessageFrame") && !Is(path[path.size()-2]->m_name.m_str, "StatusBar") && !Is(path[path.size()-2]->m_name.m_str, "EditBox") && !IsButton(path[path.size()-2]->m_name.m_str))))
+    if (Is(tag, "Scripts") && (path.size() < 2 || !factories.Ptr(path[path.size()-2]->m_name.m_str)))
         throw std::invalid_argument("Native XML Scripts require a Frame parent");
     // Fail before allocation for consumers with unselected ownership/services.
-    const char* supported[] = {"StatusBar", "BarColor", "EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
+    const char* supported[] = {"ScrollChild", "HitRectInsets", "StatusBar", "BarColor", "EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
         "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
         "AbsInset", "RelInset", "Backdrop", "TileSize", "EdgeSize", "BackgroundInsets", "BorderColor", "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
-    if (std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
-        throw std::invalid_argument("Native XML widget or child service is unavailable");
+    if (!factories.Ptr(tag) && std::none_of(std::begin(supported), std::end(supported), [&](const char* s) { return Is(tag, s); }))
+        throw std::invalid_argument(std::string("Native XML widget or child service is unavailable: ") + tag);
     if (Is(tag, "Texture")) {
         for (auto* key : {"horizTile", "vertTile"})
             if (auto* value = node->GetAttributeByName(key); value && StringToBOOL(value))
@@ -243,6 +245,14 @@ void CloseFactories() {
     templates.Destroy(); factories.Destroy();
     FrameScript_UnregisterFunction("CreateFrame");
     installed = false;
+}
+void RegisterLoginFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*)) {
+    RequireFactories(); Frame::Native::RequireTreeMutation();
+    if (!name || !factory || (!Is(name, "SimpleHTML") && !Is(name, "ScrollFrame") && !Is(name, "Slider")) || factories.Ptr(name))
+        throw std::invalid_argument("Invalid integrated login factory");
+    OsValidateFunctionPointer(reinterpret_cast<const void*>(factory));
+    auto* node = factories.New(name, 0, 0);
+    node->m_factory = factory; node->m_unique = false;
 }
 void ValidateCreation(XMLNode* node) {
     RequireFactories(); Frame::Native::RequireTreeMutation();

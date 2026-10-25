@@ -1237,6 +1237,9 @@ void FrameScript_PackVariable(lua_State* L, const char* name, int32_t depth, cha
 // VERIFY: 472836ad auto
 // OFFSET: 0x00819730
 static int32_t FrameScript_HandleError(lua_State* L) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    FrameScript::Native::RecordScriptError(lua_tostring(L, 1));
+#endif
     FS_NATIVE_CHECK();
     if (!lua_isstring(L, -1)) {
         lua_pushstring(L, "UNKNOWN ERROR");

@@ -11,6 +11,8 @@ namespace {
 std::atomic<Runtime*> active{nullptr};
 std::unordered_set<FrameScript_Object*> objects;
 size_t executions = 0;
+uint64_t scriptErrors = 0;
+std::string lastScriptError;
 bool Normalize(const char* name, std::string& normalized) {
     normalized.clear();
     if (!name || !*name || name[0] == '/' || name[0] == '\\') return false;
@@ -40,6 +42,7 @@ Runtime::Runtime(SourceReader source, bool profile)
     if (!active.compare_exchange_strong(expected, this))
         throw std::logic_error("Only one native FrameScript runtime may be installed");
     try {
+        scriptErrors = 0; lastScriptError.clear();
         if (!FrameScript_Initialize(profile)) throw std::runtime_error("FrameScript initialization failed");
     } catch (...) {
         if (s_context) FrameScript_Destroy();
@@ -75,6 +78,12 @@ void RequireOwner() {
     if (!runtime) throw std::logic_error("Native FrameScript runtime is not installed");
     runtime->Check();
 }
+void RecordScriptError(const char* error) {
+    RequireOwner(); ++scriptErrors;
+    lastScriptError = error ? error : "(non-string Lua error)";
+}
+uint64_t ScriptErrorCount() { RequireOwner(); return scriptErrors; }
+const std::string& LastScriptError() { RequireOwner(); return lastScriptError; }
 void RequireIdle() {
     RequireOwner();
     if (!objects.empty() || executions) throw std::logic_error("Close FrameScript objects and finish execution before VM reset");

@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#endif
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -36,7 +40,11 @@ CDataAllocator CSimpleSlider::s_allocator(sizeof(CSimpleSlider), 5);
 // INLINED
 void CSimpleSlider::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleSlider::s_allocator, ptr);
+#else
         CSimpleSlider::s_allocator.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 
@@ -228,8 +236,12 @@ int32_t CSimpleSlider::SetThumbTexture(const char* fileName) {
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleTexture* texture = Frame::Native::ConstructRegion<CSimpleTexture>(CSimpleTexture::s_allocator, nullptr, 2, 1);
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     CSimpleTexture* texture = data ? new (data) CSimpleTexture(nullptr, 2, 1) : nullptr;
+#endif
 
     if (texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal)) {
         this->SetThumbTexture(texture, 3);

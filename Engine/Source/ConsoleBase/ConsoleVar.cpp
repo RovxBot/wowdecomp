@@ -207,7 +207,13 @@ void CVar::ArchiveCodeRegisteredOnly() {
 // OFFSET: 0x00766400
 int32_t CVar::Load(HOSFILE file) {
     int32_t result = 1;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const uint64_t nativeSize = OsGetFileSize(file);
+    if (nativeSize > 16 * 1024 * 1024) return 0;
+    uint32_t size = static_cast<uint32_t>(nativeSize);
+#else
     uint32_t size = static_cast<uint32_t>(OsGetFileSize(file));
+#endif
 
     if (!size) {
         return 1;
@@ -226,7 +232,11 @@ int32_t CVar::Load(HOSFILE file) {
 
     uint32_t bytesRead;
 
-    if (OsReadFile(file, buffer, size, &bytesRead)) {
+    if (OsReadFile(file, buffer, size, &bytesRead)
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        && bytesRead == size
+#endif
+    ) {
         buffer[size] = '\0';
         const char* cur = buffer;
 
@@ -585,6 +595,13 @@ bool CVarArrayWrapper::RawSetValue(uint32_t index, bool value) {
 // VERIFY: a08db58b manual
 // OFFSET: 0x00766E80
 CVar::CVar() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    m_category = m_flags = 0;
+    m_floatValue = 0.0f;
+    m_intValue = m_modified = 0;
+    m_callback = nullptr;
+    m_arg = nullptr;
+#endif
 }
 
 // VERIFY: 5c888a55 manual
@@ -690,8 +707,13 @@ int32_t CVar::SaveAll() {
     int32_t result = 0;
 
     char path[260];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Installed by the host after native root/symlink validation.
+    SStrCopy(path, CVar::s_configFile, sizeof(path));
+#else
     SStrCopy(path, "WTF\\", sizeof(path));
     SStrPack(path, CVar::s_configFile, sizeof(path));
+#endif
 
     HOSFILE file = OsCreateFile(path, OS_GENERIC_WRITE, 0, OS_CREATE_ALWAYS, OS_FILE_ATTRIBUTE_NORMAL, OS_FILE_TYPE_ANY);
 
@@ -855,16 +877,12 @@ void CVar::Initialize(const char* fileName) {
     CVar::s_configFile = fileName;
     CVar::m_initialized = true;
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     char path[260];
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    // The native host selects a validated external settings working directory.
-    // Do not derive writable paths from the read-only game installation.
-    SStrCopy(path, "WTF\\", sizeof(path));
-#else
     SFile::GetBasePath(path, sizeof(path));
     SStrPrintf(path, sizeof(path), "%s%s\\", path, "WTF");
-#endif
     TryCreateDirectory(path);
+#endif
 
     ConsoleCommandRegister("set", SetCommandHandler, CATEGORY_DEFAULT, "Set the value of a CVar");
     ConsoleCommandRegister("cvar_reset", CvarResetCommandHandler, CATEGORY_DEFAULT, "Set the value of a CVar to it's startup value");

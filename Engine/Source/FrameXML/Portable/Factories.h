@@ -12,6 +12,8 @@ namespace FrameXML { namespace Native {
 void InstallFactories();
 void CloseFactories();
 void RequireFactories();
+// Integrated modules install real original constructors after their metatables.
+void RegisterLoginFactory(const char*, CSimpleFrame* (*)(CSimpleFrame*));
 void ValidateCreation(XMLNode*);
 void RequireAvailableName(CScriptObject*, const char*);
 void RequireTableWrite(lua_State*, int index, const char* key);

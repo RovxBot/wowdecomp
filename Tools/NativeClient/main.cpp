@@ -11,6 +11,7 @@
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
 #include "Engine/Source/Frame/Portable/Fonts.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/Portable/LoginWidgets.h"
 #include "Engine/Source/Frame/Portable/WindowEvents.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Event/Portable/Loop.h"
@@ -19,6 +20,7 @@
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "WoW/Source/Glue/Portable/Startup.h"
+#include "WoW/Source/Glue/GlueMgr.h"
 #include <SDL3/SDL.h>
 #include <cfenv>
 #include <chrono>
@@ -45,7 +47,16 @@ struct Runtime {
     ~Runtime() { OsTimeShutdown(); StormRtlDestroy(); }
 };
 struct Settings {
-    Settings() { ConsoleInitializeClientCommand(); CVar::Initialize("Config.wtf"); }
+    std::string config;
+    explicit Settings(const Blizzard::File::Native::Paths& paths) {
+        std::string directory;
+        if (!Blizzard::File::Native::ResolveUserPath(paths, Blizzard::File::Native::UserRoot::Settings, "WTF", directory) ||
+            !Blizzard::File::CreateDirectory(directory.c_str(), true) ||
+            !Blizzard::File::Native::ResolveUserPath(paths, Blizzard::File::Native::UserRoot::Settings, "WTF/Config.wtf", config) ||
+            config.size() >= 260)
+            throw std::runtime_error("Cannot resolve original config outside data");
+        ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
+    }
     ~Settings() { CVar::Destroy(); ConsoleCommandDestroy(); }
 };
 struct Events {
@@ -75,6 +86,15 @@ struct Source {
 };
 int Locale(lua_State* L) { lua_pushstring(L, "enUS"); return 1; }
 int OtherPlatform(lua_State* L) { lua_pushnil(L); return 1; }
+// Original GlueScriptEvents_Scripts.cpp 0x004DCC20 / 0x004DCC70.
+int ScreenWidth(lua_State* L) {
+    float width = NDCToDDCWidth(1.0f);
+    lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * width)); return 1;
+}
+int ScreenHeight(lua_State* L) {
+    float height = NDCToDDCHeight(1.0f);
+    lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * height)); return 1;
+}
 int Update(const void* raw, void* root) {
     static_cast<CSimpleTop*>(root)->OnLayerUpdate(static_cast<const EVENT_DATA_UPDATE*>(raw)->m_elapsedSec);
     return 1;
@@ -91,7 +111,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     });
     FrameXML::Native::Runtime xml;
     // CVar strings close before XML's shared CStringManager and VM.
-    Settings settings;
+    Settings settings(paths);
     Events events;
     Gx::Native::GlContext context("Waystone — original 12340 startup", 1024, 768, hidden);
     std::cout << "gl-renderer=" << context.Info().renderer << "\ngl-version=" << context.Info().version << std::endl;
@@ -106,11 +126,16 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         ReadResult result; result.file = source.packages->Read(path); return result;
     });
     Frame::Native::Scripts scripts;
+    Frame::Native::LoginWidgets widgets;
     {
         CSimpleTop root;
         FrameScript_RegisterFunction("GetLocale", Locale);
         FrameScript_RegisterFunction("IsMacClient", OtherPlatform);
         FrameScript_RegisterFunction("IsWindowsClient", OtherPlatform);
+        FrameScript_RegisterFunction("GetScreenWidth", ScreenWidth);
+        FrameScript_RegisterFunction("GetScreenHeight", ScreenHeight);
+        GlueScriptEventsInitialize();
+        FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
         EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);

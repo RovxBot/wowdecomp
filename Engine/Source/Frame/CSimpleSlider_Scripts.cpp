@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleSlider.h"
@@ -232,6 +235,23 @@ void CSimpleSlider::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2CE20
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "GetThumbTexture", &Frame::Native::ScriptMethod<&Script_GetThumbTexture> },
+    { "SetThumbTexture", &Frame::Native::ScriptMethod<&Script_SetThumbTexture> },
+    { "GetOrientation", &Frame::Native::ScriptMethod<&Script_GetOrientation> },
+    { "SetOrientation", &Frame::Native::ScriptMethod<&Script_SetOrientation> },
+    { "GetMinMaxValues", &Frame::Native::ScriptMethod<&Script_GetMinMaxValues> },
+    { "SetMinMaxValues", &Frame::Native::ScriptMethod<&Script_SetMinMaxValues> },
+    { "GetValue", &Frame::Native::ScriptMethod<&Script_GetValue> },
+    { "SetValue", &Frame::Native::ScriptMethod<&Script_SetValue> },
+    { "GetValueStep", &Frame::Native::ScriptMethod<&Script_GetValueStep> },
+    { "SetValueStep", &Frame::Native::ScriptMethod<&Script_SetValueStep> },
+    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable> },
+    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable> },
+    { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "GetThumbTexture", &Script_GetThumbTexture },
     { "SetThumbTexture", &Script_SetThumbTexture },
@@ -247,6 +267,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "Disable", &Script_Disable },
     { "IsEnabled", &Script_IsEnabled },
 };
+#endif
 
 // VERIFY: fb907021 auto
 // OFFSET: 0x00971A40
