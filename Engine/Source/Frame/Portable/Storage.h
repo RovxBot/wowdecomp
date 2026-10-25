@@ -1,6 +1,7 @@
 #ifndef WOWDECOMP_NATIVE_FRAME_STORAGE_H
 #define WOWDECOMP_NATIVE_FRAME_STORAGE_H
 #include "Engine/Source/Base/CDataAllocator.h"
+#include "Runtime.h"
 #include <utility>
 
 namespace Frame { namespace Native {
@@ -11,6 +12,10 @@ void* AllocateRegionStorage(CDataAllocator&, size_t bytes, size_t alignment);
 void FreeRegionStorage(CDataAllocator&, void*);
 template<class T, class... Args>
 T* ConstructRegion(CDataAllocator& pool, Args&&... args) {
+    // An allocation failure must never unwind a partially constructed Frame
+    // through another Frame's active callback. Keep dynamic callback factories
+    // visibly unavailable until that constructor/cleanup contract is adapted.
+    RequireDestroyable();
     void* storage = AllocateRegionStorage(pool, sizeof(T), alignof(T));
     try {
         return ::new (storage) T(std::forward<Args>(args)...);

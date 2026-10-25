@@ -70,6 +70,24 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         f:SetScript('OnReceiveDrag',function(self) HandlerLog[#HandlerLog+1]='receive' end)
         this,arg1='saved-this','saved-arg'
     )");
+    // Original Glue templates change existing state from OnLoad. This phase is
+    // outside root traversal; retain destruction/new-object and reparent guards.
+    RegionLua(R"(
+        NativeHandlerFrame:SetScript('OnLoad',function(self)
+            self:SetWidth(self:GetWidth())
+            self:Hide(); assert(not self:IsShown()); self:Show()
+            assert(not pcall(self.SetParent,self,nil))
+            assert(not pcall(CreateFrame,'Frame','RejectedLoadCallback'))
+            HandlerLog[#HandlerLog+1]='load-state'
+        end)
+    )");
+    {
+        Frame::Native::LoadScriptEdits edits;
+        frame->RunScript(frame->m_onLoad,0,nullptr);
+        Frame::Native::CallbackScope pinned;
+        Reject([&]{Frame::Native::RequireDestroyable();});
+    }
+    RegionLua("assert(HandlerLog[#HandlerLog]=='load-state' and #HandlerErrors==0); NativeHandlerFrame:SetScript('OnLoad',nil); HandlerLog={}");
     // Use actual root key/character queues, with the same adapter used after SDL
     // pumping. A handled key captures the Frame until release.
     Check(Frame::Native::DispatchInputEvent(context, OSEVENT{OS_INPUT_KEY_DOWN,{KEY_A,1,0,10}}) ==

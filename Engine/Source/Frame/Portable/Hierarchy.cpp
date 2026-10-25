@@ -60,6 +60,10 @@ void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
 }
+void RequireStateMutation() {
+    RequireRegions(); RequireTreeMutable();
+    if (updating || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
+}
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();
     if (!frames.count(frame)) throw std::invalid_argument("Frame parent is not live");
@@ -101,7 +105,7 @@ void RequireLevel(CSimpleFrame* target, int32_t proposed) {
                 throw std::invalid_argument("Native descendant Frame level limit");
 }
 void RequireRaise(CSimpleFrame* target) {
-    RequireTreeMutation(); RequireSimpleFrame(target);
+    RequireStateMutation(); RequireSimpleFrame(target);
     // Predict the original compression, including hidden registered Frames.
     // No list/level changes occur until the final subtree fits the native bound.
     const auto top = CSimpleTop::s_instance->m_strata[target->m_strata]->m_topLevel;

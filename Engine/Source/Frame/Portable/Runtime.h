@@ -36,6 +36,22 @@ void RequireAnchor(CLayoutFrame*, CLayoutFrame*);
 void RequireFinite(float);
 void RequireDimension(float);
 void RequireDestroyable();
+void RequireTreeMutable();
+struct CallbackScope final {
+    CallbackScope();
+    ~CallbackScope();
+    CallbackScope(const CallbackScope&) = delete;
+    CallbackScope& operator=(const CallbackScope&) = delete;
+};
+// Original ordered Glue creation runs outside root traversal. Existing objects
+// may change visibility/layout there, while destruction and new Frame allocation
+// remain blocked inside callbacks. Actual resize/input/render guards still apply.
+struct LoadScriptEdits final {
+    LoadScriptEdits();
+    ~LoadScriptEdits();
+    LoadScriptEdits(const LoadScriptEdits&) = delete;
+    LoadScriptEdits& operator=(const LoadScriptEdits&) = delete;
+};
 struct ResizeScope final {
     ResizeScope();
     ~ResizeScope();

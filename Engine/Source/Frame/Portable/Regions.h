@@ -9,6 +9,7 @@ namespace Frame { namespace Native {
 void RequireSimpleFrame(CSimpleFrame*);
 void RequireParent(CScriptRegion*, CSimpleFrame*);
 void RequireTreeMutation();
+void RequireStateMutation();
 // Direct C++ region consumers; Frame roots and parents are optional until created.
 // Public fields stay borrowed owner-thread state; batches retain lower handles.
 inline void RequireRegions() {

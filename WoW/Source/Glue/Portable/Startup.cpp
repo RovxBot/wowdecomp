@@ -5,6 +5,7 @@
 #include "Engine/Source/FrameXML/Portable/Runtime.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
+#include "Engine/Source/Frame/Portable/Runtime.h"
 #include "Engine/Source/Base/Status.h"
 #include "Engine/Source/Storm/Source/MD5.h"
 #include <cstring>
@@ -12,6 +13,7 @@
 #include <stdexcept>
 namespace GlueNative {
 void LoadInterface() {
+    Frame::Native::LoadScriptEdits loadEdits;
     const char* toc = "Interface\\GlueXML\\GlueXML.toc";
     uint8_t expected[16], actual[16];
     if (FrameXML_CheckSignature(toc, nullptr, FrameXML::Native::OriginalInterfaceKey(), expected) != 3)
