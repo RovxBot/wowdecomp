@@ -1496,7 +1496,11 @@ int32_t M2Init<M2Particle>(uint8_t* base, uint32_t size, const M2Data& data, M2A
 // VERIFY: 95d98bd6 manual
 // OFFSET: 0x0083C5F0
 CM2Shared::CM2Shared(CM2Cache* cache) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_flags = 0;
+#else
     this->m_flags &= ~0x7Fu;
+#endif
     this->m_cache = cache;
     this->m_callbackList = nullptr;
     this->m_refCount = 1;

@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <cstring>
+static uint32_t NativeRotateLeft(uint32_t x, unsigned n) { return (x << n) | (x >> (32 - n)); }
+#endif
 #include <cmath>
 #include "Engine/Source/Tempest/CMath.h"
 #include <cstdint>
@@ -44,12 +48,22 @@ uint32_t CRandom::uint32_(CRndSeed& seed) {
     }
 
     const uint8_t* table = reinterpret_cast<const uint8_t*>(s_rndTable);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    uint32_t t3, t2, t1, t0;
+    std::memcpy(&t3, table + i3, sizeof(t3));
+    std::memcpy(&t2, table + i2, sizeof(t2));
+    std::memcpy(&t1, table + i1, sizeof(t1));
+    std::memcpy(&t0, table + i0, sizeof(t0));
+    acc += NativeRotateLeft(t3, 1) ^ NativeRotateLeft(t2, 2) ^ NativeRotateLeft(t1, 3) ^ t0;
+#else
     uint32_t t3 = *reinterpret_cast<const uint32_t*>(table + i3);
     uint32_t t2 = *reinterpret_cast<const uint32_t*>(table + i2);
     uint32_t t1 = *reinterpret_cast<const uint32_t*>(table + i1);
     uint32_t t0 = *reinterpret_cast<const uint32_t*>(table + i0);
 
     acc += _rotl(t3, 1) ^ _rotl(t2, 2) ^ _rotl(t1, 3) ^ t0;
+
+#endif
 
     seed.rndvls = (i3 << 24) | (i2 << 16) | (i1 << 8) | i0;
     seed.rndacc = acc;

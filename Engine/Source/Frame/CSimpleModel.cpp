@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#endif
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -63,7 +66,11 @@ int32_t CSimpleModel::GetObjectType() {
 // INLINED
 void CSimpleModel::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleModel::s_allocator, ptr);
+#else
         CSimpleModel::s_allocator.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 

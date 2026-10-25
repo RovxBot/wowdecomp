@@ -1,5 +1,6 @@
 #include "LoginWidgets.h"
 #include "Storage.h"
+#include "WoW/Source/Glue/Portable/Models.h"
 #include "Scripts.h"
 #include "Engine/Source/Frame/CSimpleHTML.h"
 #include "Engine/Source/Frame/CSimpleScrollFrame.h"
@@ -30,12 +31,14 @@ LoginWidgets::LoginWidgets() {
     FrameXML::Native::RegisterLoginFactory("SimpleHTML", Create<CSimpleHTML>);
     FrameXML::Native::RegisterLoginFactory("ScrollFrame", Create<CSimpleScrollFrame>);
     FrameXML::Native::RegisterLoginFactory("Slider", Create<CSimpleSlider>);
+    GlueNative::RegisterModels();
     SetScrollNotify(ScrollChanged);
 }
 LoginWidgets::~LoginWidgets() {
     try {
         RequireNoScripts();
         SetScrollNotify(nullptr);
+        GlueNative::UnregisterModels();
         CSimpleSlider::DestroyScriptMetaTable();
         CSimpleScrollFrame::DestroyScriptMetaTable();
         CSimpleHTML::DestroyScriptMetaTable();

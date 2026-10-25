@@ -35,7 +35,12 @@
 #include "Engine/Source/Tempest/CFacet.h"
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/Tempest/CMath.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "WoW/Source/Glue/Portable/Models.h"
+#include "WoW/Source/DB/Rec/AnimationDataRec.h"
+#else
 #include "WoW/Source/DB/DBClient/DBClient.h"
+#endif
 #include "WoW/Source/Object/ObjectClient/Types.h"
 
 // STATIC: 0x00A45570
@@ -1110,7 +1115,11 @@ uint32_t CM2Model::ResolveSequenceFallback(uint32_t id) {
     }
 
     while (id < ANIM_COUNT) {
+        #ifdef WOWDECOMP_PORTABLE_RUNTIME
+        AnimationDataRec* rec = GlueNative::AnimationRecord(id);
+#else
         AnimationDataRec* rec = g_animationDataDB.GetRecord(id);
+#endif
 
         if (visited[id] || !rec) {
             break;
@@ -1276,7 +1285,11 @@ M2SequenceFallback* CM2Model::SequenceFallbackById(M2SequenceFallback* result, u
         uint32_t fallback;
 
         do {
-            AnimationDataRec* rec = g_animationDataDB.GetRecord(id);
+            #ifdef WOWDECOMP_PORTABLE_RUNTIME
+        AnimationDataRec* rec = GlueNative::AnimationRecord(id);
+#else
+        AnimationDataRec* rec = g_animationDataDB.GetRecord(id);
+#endif
 
             if (id >= ANIM_COUNT || visited[id] || !rec || id == (fallback = rec->m_fallback)) {
                 result->m_id = defaultId;

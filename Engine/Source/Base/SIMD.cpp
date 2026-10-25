@@ -5,6 +5,9 @@
 // VERIFY: aaf6c69b auto
 // OFFSET: 0x0083DE50
 void* SIMD::AllocA16(uint32_t size, const char* fileName, int32_t lineNumber) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (size > UINT32_MAX - 16) return nullptr;
+#endif
     uint8_t* ptr = static_cast<uint8_t*>(SMemAlloc(size + 16, fileName, lineNumber, 0));
 
     if (!ptr) {
@@ -23,6 +26,10 @@ void* SIMD::AllocA16(uint32_t size, const char* fileName, int32_t lineNumber) {
 void SIMD::FreeA16(void* ptr) {
     if (ptr) {
         uint8_t* base = static_cast<uint8_t*>(ptr) - static_cast<uint8_t*>(ptr)[-1];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        SMemFree(base, __FILE__, __LINE__, 0);
+#else
         delete[] base;
+#endif
     }
 }

@@ -195,8 +195,12 @@ CCamera::CCamera() : CDataMgr(9), m_position(C3Vector(DEFAULT_DIST, 0.0f, 0.0f))
 // VERIFY: d759f72d auto
 // OFFSET: 0x004BFCA0
 CCamera* CameraCreate() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CCamera* camera = new CCamera;
+#else
     void* mem = SMemAlloc(sizeof(CCamera), "HCAMERA", SLOG_OBJECT, 0);
     CCamera* camera = mem ? new (mem) CCamera : nullptr;
+#endif
 
     if (!camera) {
         return nullptr;
@@ -213,8 +217,12 @@ CCamera* CameraDuplicate(CCamera* source) {
         return nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CCamera* camera = new CCamera;
+#else
     void* mem = SMemAlloc(sizeof(CCamera), "HCAMERA", SLOG_OBJECT, 0);
     CCamera* camera = mem ? new (mem) CCamera : nullptr;
+#endif
 
     if (!camera) {
         return nullptr;

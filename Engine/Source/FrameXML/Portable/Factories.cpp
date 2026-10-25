@@ -249,7 +249,7 @@ void CloseFactories() {
 }
 void RegisterLoginFactory(const char* name, CSimpleFrame* (*factory)(CSimpleFrame*)) {
     RequireFactories(); Frame::Native::RequireTreeMutation();
-    if (!name || !factory || (!Is(name, "SimpleHTML") && !Is(name, "ScrollFrame") && !Is(name, "Slider")) || factories.Ptr(name))
+    if (!name || !factory || (!Is(name, "SimpleHTML") && !Is(name, "ScrollFrame") && !Is(name, "Slider") && !Is(name, "Model") && !Is(name, "ModelFFX")) || factories.Ptr(name))
         throw std::invalid_argument("Invalid integrated login factory");
     OsValidateFunctionPointer(reinterpret_cast<const void*>(factory));
     auto* node = factories.New(name, 0, 0);

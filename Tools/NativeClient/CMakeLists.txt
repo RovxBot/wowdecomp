@@ -43,16 +43,33 @@ add_library(WowNativeModels STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/FFX/PassGlow.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleModel.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CSimpleModelFFX.cpp)
-target_link_libraries(WowNativeModels PUBLIC WowNativeStartup)
+target_sources(WowNativeModels PRIVATE
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleModel_Scripts.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CSimpleModelFFX_Scripts.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Models.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/ObjectAlloc/ObjectAlloc.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Base/Prop.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Base/SIMD.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/ModelBlob.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/GfxSingletonManager.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/ParticleSystem.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CRandom.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/NTempest.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/C4Quaternion.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CFacet.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CFrustum.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/SysMessage.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/DB/Rec/AnimationDataRec.cpp)
+target_link_libraries(WowNativeModels PUBLIC WowNativeFrameRegions)
+target_link_libraries(WowNativeStartup PUBLIC WowNativeModels)
 # Diagnostic spellings only, scoped to this Linux source group.
-target_compile_definitions(WowNativeModels PRIVATE raw_name=name _alloca=alloca)
+target_compile_definitions(WowNativeModels PRIVATE raw_name=name _alloca=alloca _vsnprintf=vsnprintf)
 target_compile_options(WowNativeModels PRIVATE -include alloca.h -fms-extensions)
 if(WOWDECOMP_CORE_SANITIZERS)
     target_compile_options(WowNativeModels PRIVATE -g1)
 endif()
 add_executable(WowNativeClient main.cpp)
 target_link_libraries(WowNativeClient PRIVATE WowNativeStartup)
-add_dependencies(WowNativeClient WowNativeModels)
 add_executable(NativeStartupCheck startup_check.cpp model_io_check.cpp)
 target_link_libraries(NativeStartupCheck PRIVATE WowNativeStartup)
 if(BUILD_TESTING)
