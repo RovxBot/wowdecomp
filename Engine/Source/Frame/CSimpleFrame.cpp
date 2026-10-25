@@ -1411,7 +1411,7 @@ void CSimpleFrame::OnReceiveDrag(const CMouseEvent& evt) {
 void CSimpleFrame::NotifyScrollParent() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_frameFlags & 0x2000) Frame::Native::UnavailableFrameFeature();
+    if (this->m_frameFlags & 0x2000) Frame::Native::NotifyScroll(this);
 #else
 
     if (!(this->m_frameFlags & 0x2000) || !this->m_isVisible) {
@@ -1990,7 +1990,10 @@ void CSimpleFrame::GetScriptTime(lua_State* L, double* time, uint32_t* count, in
 void CSimpleFrame::SetBeingScrolled(int32_t scrolled, int32_t a3) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (scrolled || a3 >= 0) Frame::Native::UnavailableFrameFeature();
+    if (scrolled || a3 >= 0) {
+        Frame::Native::RequireTreeMutation();
+        if (!Frame::Native::HasScrollSupport()) Frame::Native::UnavailableFrameFeature();
+    }
 #endif
     uint32_t visible = this->m_isVisible;
 

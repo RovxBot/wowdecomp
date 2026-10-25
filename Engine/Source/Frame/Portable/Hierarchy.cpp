@@ -18,7 +18,15 @@ namespace {
 std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
+ScrollNotify scrollNotify = nullptr;
 constexpr size_t MaxDepth = 64;
+}
+void SetScrollNotify(ScrollNotify function) { RequireTreeMutation(); scrollNotify = function; }
+bool HasScrollSupport() { RequireRegions(); return scrollNotify != nullptr; }
+void NotifyScroll(CSimpleFrame* frame) {
+    RequireRegions();
+    if (scrollNotify) scrollNotify(frame);
+    else UnavailableFrameFeature();
 }
 CSimpleFontString* CreateFontString(CSimpleFrame* frame, uint32_t layer, bool show) {
     RequireTreeMutation();

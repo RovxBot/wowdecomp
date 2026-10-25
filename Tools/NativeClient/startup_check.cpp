@@ -13,6 +13,8 @@
 #include <map>
 #include <fstream>
 #include <chrono>
+#include <clocale>
+#include "Engine/Source/Gx/Portable/GlContext.h"
 #include <stdexcept>
 #include <vector>
 namespace {
@@ -86,6 +88,8 @@ void Ordered() {
 int main() {
     try {
         StormRtlInitialize();
+        Check(std::setlocale(LC_CTYPE, "") != nullptr, "Native character locale unavailable");
+        { Gx::Native::GlContext context("Waystone — original 12340 startup", 320, 240, true); }
         Events(); Settings(); Ordered();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;

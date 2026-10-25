@@ -1,4 +1,8 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <algorithm>
+#include <iterator>
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <stdexcept>
 #endif
@@ -94,25 +98,32 @@ void CSimpleHTML::OnFrameSizeChanged(const CRect& rect) {
 
 // VERIFY: 012bb8ae manual
 // OFFSET: 0x0096C820
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+CSimpleHTML::CSimpleHTML(CSimpleFrame* parent) : CSimpleHyperlinkedFrame(parent) {
+    std::fill(std::begin(m_fonts), std::end(m_fonts), nullptr);
+    m_layoutAnchor = nullptr; m_layoutOffset = 0.0f;
+    m_hyperlinkFormat = nullptr; m_hyperlinksDirty = 0; m_hyperlinksEnabled = true;
+    try {
+        for (auto& font : m_fonts) font = new CSimpleFontedFrameFont(this);
+        SetHyperlinkFormat("|H%s|h%s|h");
+    } catch (...) {
+        for (auto* font : m_fonts) delete font;
+        throw;
+    }
+}
+#else
 CSimpleHTML::CSimpleHTML(CSimpleFrame* parent) : CSimpleHyperlinkedFrame(parent) {
     for (int32_t i = 0; i < NUM_HTML_TEXT_TYPES; i++) {
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-        this->m_fonts[i] = new CSimpleFontedFrameFont(this);
-#else
         void* data = SMemAlloc(sizeof(CSimpleFontedFrameFont), __FILE__, __LINE__, 0);
         this->m_fonts[i] = data ? new (data) CSimpleFontedFrameFont(this) : nullptr;
-#endif
     }
 
-#ifdef WOWDECOMP_PORTABLE_RUNTIME
-    this->m_layoutAnchor = nullptr;
-    this->m_layoutOffset = 0.0f;
-#endif
     this->m_hyperlinkFormat = nullptr;
     this->SetHyperlinkFormat("|H%s|h%s|h");
     this->m_hyperlinksDirty = 0;
     this->m_hyperlinksEnabled = true;
 }
+#endif
 
 // VERIFY: 0a33d401 auto
 // OFFSET: 0x0096C930

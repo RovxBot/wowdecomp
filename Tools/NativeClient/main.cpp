@@ -23,6 +23,7 @@
 #include "WoW/Source/Glue/GlueMgr.h"
 #include <SDL3/SDL.h>
 #include <cfenv>
+#include <clocale>
 #include <chrono>
 #include <filesystem>
 #include <iostream>
@@ -34,6 +35,9 @@ using namespace Services::Native;
 namespace {
 struct Runtime {
     Runtime() {
+        // Initialize character conversion for SDL/Xlib without changing the
+        // original numeric locale. The C locale cannot encode our UTF-8 title.
+        if (!std::setlocale(LC_CTYPE, "")) throw std::runtime_error("Cannot initialize native character locale");
         // The original entry uses an 8 MiB fiber; SDL must remain on main.
         rlimit stack{};
         if (getrlimit(RLIMIT_STACK, &stack)) throw std::runtime_error("Cannot inspect main stack");

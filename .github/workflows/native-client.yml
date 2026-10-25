@@ -51,7 +51,7 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-        run: python3 Tools/Porting/build_native_client.py --preset ${{ matrix.preset }}
+        run: xvfb-run -a -s "-screen 0 1280x1024x24 +extension GLX" python3 Tools/Porting/build_native_client.py --preset ${{ matrix.preset }}
       - name: Preserve exact-source startup artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

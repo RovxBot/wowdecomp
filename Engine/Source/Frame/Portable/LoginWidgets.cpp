@@ -10,6 +10,17 @@ namespace {
 template<class T> CSimpleFrame* Create(CSimpleFrame* parent) {
     return ConstructRegion<T>(T::s_allocator, parent);
 }
+void ScrollChanged(CSimpleFrame* frame) {
+    if (!(frame->m_frameFlags & 0x2000) || !frame->m_isVisible) return;
+    size_t depth = 0;
+    while (frame && !(frame->m_frameFlags & 0x4000)) {
+        if (++depth > 64) throw std::logic_error("Invalid scroll ancestor graph");
+        frame = frame->m_parent;
+    }
+    if (!frame) throw std::logic_error("Scrolled Frame has no scroll child root");
+    auto* parent = dynamic_cast<CSimpleScrollFrame*>(frame->m_parent);
+    if (parent && parent->m_lifecycleState != 3) parent->m_scrollChildUpdate = 1;
+}
 }
 LoginWidgets::LoginWidgets() {
     RequireRegionScripts(); RequireNoScripts();
@@ -19,10 +30,12 @@ LoginWidgets::LoginWidgets() {
     FrameXML::Native::RegisterLoginFactory("SimpleHTML", Create<CSimpleHTML>);
     FrameXML::Native::RegisterLoginFactory("ScrollFrame", Create<CSimpleScrollFrame>);
     FrameXML::Native::RegisterLoginFactory("Slider", Create<CSimpleSlider>);
+    SetScrollNotify(ScrollChanged);
 }
 LoginWidgets::~LoginWidgets() {
     try {
         RequireNoScripts();
+        SetScrollNotify(nullptr);
         CSimpleSlider::DestroyScriptMetaTable();
         CSimpleScrollFrame::DestroyScriptMetaTable();
         CSimpleHTML::DestroyScriptMetaTable();
