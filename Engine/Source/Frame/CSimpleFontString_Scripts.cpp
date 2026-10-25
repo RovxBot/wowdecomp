@@ -772,8 +772,8 @@ static int32_t Script_SetIndentedWordWrap(lua_State* L) {
 // STATIC: 0x00AC1118
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
-    { "IsObjectType", &Frame::Native::ScriptMethod<&Script_IsObjectType> },
-    { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType> },
+    { "IsObjectType", &Frame::Native::ScriptMethod<&Script_IsObjectType, true, false> },
+    { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType, true, false> },
     { "GetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetVertexColor", &Frame::Native::UnavailableScriptMethod },
@@ -789,7 +789,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetFont", &Frame::Native::UnavailableScriptMethod },
     { "SetFont", &Frame::Native::UnavailableScriptMethod },
     { "GetText", &Frame::Native::ScriptMethod<&Script_GetText, true, false> },
-    { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize> },
+    { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize, true, false> },
     { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false, false> },
     { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false, false> },
     { "GetTextColor", &Frame::Native::UnavailableScriptMethod },
@@ -801,8 +801,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetSpacing", &Frame::Native::UnavailableScriptMethod },
     { "SetSpacing", &Frame::Native::UnavailableScriptMethod },
     { "SetTextHeight", &Frame::Native::UnavailableScriptMethod },
-    { "GetStringWidth", &Frame::Native::ScriptMethod<&Script_GetStringWidth> },
-    { "GetStringHeight", &Frame::Native::ScriptMethod<&Script_GetStringHeight> },
+    { "GetStringWidth", &Frame::Native::ScriptMethod<&Script_GetStringWidth, true, false> },
+    { "GetStringHeight", &Frame::Native::ScriptMethod<&Script_GetStringHeight, true, false> },
     { "GetJustifyH", &Frame::Native::UnavailableScriptMethod },
     { "SetJustifyH", &Frame::Native::UnavailableScriptMethod },
     { "GetJustifyV", &Frame::Native::UnavailableScriptMethod },

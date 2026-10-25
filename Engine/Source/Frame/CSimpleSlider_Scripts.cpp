@@ -237,19 +237,19 @@ void CSimpleSlider::CreateScriptMetaTable() {
 // STATIC: 0x00B2CE20
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
-    { "GetThumbTexture", &Frame::Native::ScriptMethod<&Script_GetThumbTexture> },
+    { "GetThumbTexture", &Frame::Native::ScriptMethod<&Script_GetThumbTexture, true, false> },
     { "SetThumbTexture", &Frame::Native::ScriptMethod<&Script_SetThumbTexture> },
-    { "GetOrientation", &Frame::Native::ScriptMethod<&Script_GetOrientation> },
+    { "GetOrientation", &Frame::Native::ScriptMethod<&Script_GetOrientation, true, false> },
     { "SetOrientation", &Frame::Native::ScriptMethod<&Script_SetOrientation> },
-    { "GetMinMaxValues", &Frame::Native::ScriptMethod<&Script_GetMinMaxValues> },
+    { "GetMinMaxValues", &Frame::Native::ScriptMethod<&Script_GetMinMaxValues, true, false> },
     { "SetMinMaxValues", &Frame::Native::ScriptMethod<&Script_SetMinMaxValues> },
-    { "GetValue", &Frame::Native::ScriptMethod<&Script_GetValue> },
+    { "GetValue", &Frame::Native::ScriptMethod<&Script_GetValue, true, false> },
     { "SetValue", &Frame::Native::ScriptMethod<&Script_SetValue> },
-    { "GetValueStep", &Frame::Native::ScriptMethod<&Script_GetValueStep> },
+    { "GetValueStep", &Frame::Native::ScriptMethod<&Script_GetValueStep, true, false> },
     { "SetValueStep", &Frame::Native::ScriptMethod<&Script_SetValueStep> },
     { "Enable", &Frame::Native::ScriptMethod<&Script_Enable> },
     { "Disable", &Frame::Native::ScriptMethod<&Script_Disable> },
-    { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled> },
+    { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled, true, false> },
 };
 #else
 static FrameScript_Method s_ScriptMethods[] = {

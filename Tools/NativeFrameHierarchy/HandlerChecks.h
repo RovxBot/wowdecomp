@@ -33,6 +33,7 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         assert(not pcall(f.SetScript,{[0]=f[0]},'OnLoad',function() end))
         local first = function(self,key)
             assert(self==f and self==this and key=='A' and arg1=='A')
+            assert(self:GetWidth()>=0 and self:GetHeight()>=0 and self:GetNumPoints()>=0)
             assert(not pcall(self.Hide,self) and not pcall(CreateFrame,'Frame','RejectedCallback'))
             t:SetText('V'); assert(t:GetText()=='V')
             HandlerLog[#HandlerLog+1]='key'

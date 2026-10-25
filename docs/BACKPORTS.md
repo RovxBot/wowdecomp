@@ -4,6 +4,23 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-Integrated — Pinned Apple startup/platform review
+
+- [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) adds an opt-in Linux
+  startup target using this fork's original sources and qualified native services.
+- Reviewed `jerrywossion/wowdecomp` at
+  `7489b5f2df6628a434b2ad9aceed66c0f2e6a431` and `fmustafayaman/WoWReMac` at
+  `3c7f82c02fa9d4c8399b8f95d30ef0df575ef069` before implementation. The
+  [path-by-path review](m3/APPLE_STARTUP_REVIEW.md) records platform, dependencies,
+  notices, ABI and server-policy limitations. **No files/code are imported from
+  either reference in this batch.** Their integrated source-group approach informs
+  the implementation; this is not a wholesale merge or qualification of their code.
+- Product adaptations retain original TOC/InterfaceKey/post-creation signatures,
+  original data/protocol and existing lifetime corrections. Windows-selected
+  implementation branches remain; required Windows/sanitizer checks are retained.
+- [Integrated contracts](m3/INTEGRATED_CLIENT.md) distinguish actual startup stages,
+  failed attempts and missing login/gameplay from component-fixture success.
+
 ## NP-001 — Native filesystem contract references (12340 forks)
 
 - Status: independent native file/path implementation and synthetic fixtures pass

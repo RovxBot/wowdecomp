@@ -1,6 +1,7 @@
 // Original 12340 CGlueMgr::Resume interface gate (0x004DA5F0), adapted to the
 // qualified owner-thread native FrameScript/XML/services ABI. No new VERIFY claim.
 #include "Startup.h"
+#include "WoW/Source/Glue/Types.h"
 #include "Engine/Source/FrameXML/Portable/Runtime.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
@@ -27,5 +28,12 @@ void LoadInterface() {
         char error[4096]; throw std::runtime_error(status.GetErrorStr(error, sizeof(error), STATUS_ERROR, "; "));
     }
     std::cout << "startup-stage=glue-created post-creation-digest=matched" << std::endl;
+    const auto errors = FrameScript::Native::ScriptErrorCount();
+    FrameScript_SignalEvent(GLUE_EVENT_FRAMES_LOADED, nullptr);
+    // Original CGlueMgr::SetScreen (0x004D82A0): let unchanged GlueParent choose
+    // and show the login frame. Missing activation services remain real errors.
+    FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "login");
+    if (FrameScript::Native::ScriptErrorCount() != errors)
+        throw std::runtime_error("Original Glue screen activation failed: " + FrameScript::Native::LastScriptError());
 }
 }

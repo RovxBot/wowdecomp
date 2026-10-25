@@ -200,13 +200,13 @@ void CSimpleScrollFrame::CreateScriptMetaTable() {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetScrollChild", &Frame::Native::ScriptMethod<&Script_SetScrollChild> },
-    { "GetScrollChild", &Frame::Native::ScriptMethod<&Script_GetScrollChild> },
+    { "GetScrollChild", &Frame::Native::ScriptMethod<&Script_GetScrollChild, true, false> },
     { "SetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_SetHorizontalScroll> },
     { "SetVerticalScroll", &Frame::Native::ScriptMethod<&Script_SetVerticalScroll> },
-    { "GetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_GetHorizontalScroll> },
-    { "GetVerticalScroll", &Frame::Native::ScriptMethod<&Script_GetVerticalScroll> },
-    { "GetHorizontalScrollRange", &Frame::Native::ScriptMethod<&Script_GetHorizontalScrollRange> },
-    { "GetVerticalScrollRange", &Frame::Native::ScriptMethod<&Script_GetVerticalScrollRange> },
+    { "GetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_GetHorizontalScroll, true, false> },
+    { "GetVerticalScroll", &Frame::Native::ScriptMethod<&Script_GetVerticalScroll, true, false> },
+    { "GetHorizontalScrollRange", &Frame::Native::ScriptMethod<&Script_GetHorizontalScrollRange, true, false> },
+    { "GetVerticalScrollRange", &Frame::Native::ScriptMethod<&Script_GetVerticalScrollRange, true, false> },
     { "UpdateScrollChildRect", &Frame::Native::ScriptMethod<&Script_UpdateScrollChildRect> },
 };
 #else

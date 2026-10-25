@@ -22,6 +22,7 @@
 #include "WoW/Source/Glue/Portable/Startup.h"
 #include "WoW/Source/Glue/GlueMgr.h"
 #include <SDL3/SDL.h>
+#include <algorithm>
 #include <cfenv>
 #include <clocale>
 #include <chrono>
@@ -34,6 +35,18 @@
 using Bytes = std::vector<uint8_t>;
 using namespace Services::Native;
 namespace {
+bool Within(const std::filesystem::path& child, const std::filesystem::path& parent) {
+    return std::mismatch(parent.begin(), parent.end(), child.begin(), child.end()).first == parent.end();
+}
+void ProtectInstallations(const std::string& data, const std::string& settings, const std::string& cache) {
+    const auto installation = std::filesystem::weakly_canonical(data).parent_path();
+    for (const auto& user : {settings, cache}) {
+        const auto path = std::filesystem::weakly_canonical(user);
+        for (const auto& root : {installation, std::filesystem::path("/mnt/games/3.3.5aClean"), std::filesystem::path("/mnt/games/ChromieCraft")})
+            if (Within(path, std::filesystem::weakly_canonical(root)))
+                throw std::invalid_argument("Settings/cache must be outside both read-only reference installations");
+    }
+}
 struct Runtime {
     Runtime() {
         // Initialize character conversion for SDL/Xlib without changing the
@@ -177,6 +190,7 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown native client option: " + option);
         }
         if (data.empty() || settings.empty() || cache.empty()) throw std::invalid_argument("Supply separate --data, --settings and --cache roots");
+        ProtectInstallations(data, settings, cache);
         Blizzard::File::Native::Paths paths;
         if (!Blizzard::File::Native::ConfigurePaths(data.c_str(), settings.c_str(), cache.c_str(), paths))
             throw std::invalid_argument("Data/settings/cache roots must be separate");
@@ -187,6 +201,7 @@ int main(int argc, char** argv) {
         std::cout << "startup-shutdown=complete workers=0" << std::endl;
         return 0;
     } catch (const std::exception& error) {
+        std::cout << "startup-failure-cleanup workers=" << OsLiveThreadCount() << std::endl;
         std::cerr << "WowNativeClient stopped: " << error.what() << '\n';
         return 1;
     }
