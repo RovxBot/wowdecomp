@@ -132,6 +132,13 @@ void ModelFiles() {
         model.next = [&] { Start(skin, "model00.skin", skinBytes, sizeof(skinBytes), true); };
         Start(model, "model.m2", modelBytes, sizeof(modelBytes));
         Check(!SFileCloseFile(model.object->m_file), "Caller closed a pending async object's file");
+        auto* conflicting = AsyncFileReadAllocObject();
+        conflicting->m_file = model.object->m_file;
+        bool ownershipRejected = false;
+        try { AsyncFileReadDestroyObject(conflicting); } catch (const std::logic_error&) { ownershipRejected = true; }
+        Check(ownershipRejected, "A second async object closed the first object's pending file");
+        conflicting->m_file = nullptr;
+        AsyncFileReadDestroyObject(conflicting);
         AsyncFileReadWaitAll();
         Check(model.loaded == 1 && skin.loaded == 1 && !model.failed && !skin.failed && modelBytes[3] == 4 && skinBytes[1] == 6,
             "Model-to-skin callback transaction did not complete exactly once");
@@ -166,6 +173,12 @@ void ModelFiles() {
     // A blocked worker makes cancellation timing deterministic.
     std::promise<void> entered, release;
     auto released = release.get_future().share();
+    struct Release {
+        std::promise<void>& signal;
+        bool sent = false;
+        void Send() { if (!sent) { signal.set_value(); sent = true; } }
+        ~Release() { Send(); }
+    } guard{release};
     {
         LegacyFiles files(queue, ReadFixture);
         SFileImpl* file = nullptr;
@@ -174,13 +187,13 @@ void ModelFiles() {
         uint8_t* destination = new uint8_t[4];
         object->m_file = file; object->m_buffer = destination; object->m_size = 4;
         auto blocker = queue.Submit([&](const Cancellation&) { entered.set_value(); released.wait(); return ReadResult{}; }, [](const ReadResult&) {});
-        struct Release { std::promise<void>& signal; ~Release() { signal.set_value(); } } guard{release};
         Check(entered.get_future().wait_for(std::chrono::seconds(5)) == std::future_status::ready, "Pending model worker gate failed");
         AsyncFileReadObject(object, 0);
         // The bridge destructor retires this outstanding object. Delete the
         // destination now: workers only own their staged bytes.
         delete[] destination;
     }
+    guard.Send();
     Check(queue.WaitAll(std::chrono::seconds(5)), "Retired model read did not drain after adapter destruction");
     queue.Shutdown();
 }

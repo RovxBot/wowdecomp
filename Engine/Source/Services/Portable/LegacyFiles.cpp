@@ -59,11 +59,18 @@ struct LegacyFiles::State {
         return i->second;
     }
     void Retire(std::shared_ptr<Request> request) {
+        auto* object = request->object.get();
+        std::shared_ptr<OpenFile> file;
+        if (object->m_file) {
+            file = File(object->m_file);
+            if (file->asyncOwner && file->asyncOwner != object)
+                throw std::logic_error("Another native async object owns this file");
+        }
+        if (request->submitted && file != request->file)
+            throw std::logic_error("Native async file changed while pending");
         request->retired = true;
         if (request->ticket) queue.Cancel(request->ticket);
-        auto* object = request->object.get();
-        if (object->m_file) {
-            auto file = File(object->m_file);
+        if (file) {
             file->asyncOwner = nullptr;
             files.erase(object->m_file);
         }
@@ -89,6 +96,7 @@ struct LegacyFiles::State {
                     throw std::logic_error("Native async read fields changed while pending");
                 const bool success = !unload && request->result.status == ReadStatus::Success &&
                     request->result.file.bytes.size() == request->size;
+                if (!unload && !success) Error(request->result.error.c_str(), request->result.systemError ? request->result.systemError : 38);
                 if (success && request->size)
                     std::memcpy(request->destination, request->result.file.bytes.data(), request->size);
                 object->m_isRead = 1; object->m_isProcessed = 1;
