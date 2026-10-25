@@ -19,6 +19,16 @@ shader and signed-relative-addressing integration; scalar inspection is not
 animated rendering. Cocoa/Metal are unavailable on Linux, and neither reference
 is a qualified drop-in replacement for our service ABI.
 
+Follow-up model-boundary inspection read the first 100 lines of both pins'
+`Engine/Source/Frame/CSimpleModel.cpp` and `WoW/Source/Glue/CSimpleModelFFX.cpp`,
+plus jerrywossion's `M2Shared.cpp`, `M2Scene.cpp` (first 100 lines) and full
+`Engine/Source/Model2/M2Memory.h`. The Frame entry still calls the actual Model2
+scene; ModelFFX retains FFX/glow and sound-event dependencies. Jerrywossion's
+model-root VM allocation keeps external arrays within signed 32-bit offset range
+on Apple/sanitizer heaps; its non-Apple branch retains aligned heap allocation.
+This is useful ownership/addressing guidance, not a Linux allocator import or a
+qualified shortcut around rendering. No model source was imported in this batch.
+
 Bundled Lua/Expat/FreeType/MPQ codecs and pinned SDL 3.2.28/notices remain selected.
 Inspected reference trees contain third-party notices; no root license was found
 establishing an independent blanket relicensing assumption. Before later imports,

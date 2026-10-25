@@ -993,18 +993,15 @@ static int32_t Script_SetAlpha(lua_State* L) {
 
 // VERIFY: 0dd1fea4 manual
 // OFFSET: 0x0049FAB0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_id);
     return 1;
 }
-#endif
 
 // VERIFY: f0877b88 manual
 // OFFSET: 0x0049FB00
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1022,10 +1019,14 @@ static int32_t Script_SetID(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const auto id = lua_tonumber(L, 2);
+    if (!std::isfinite(id) || std::trunc(id) < INT32_MIN || std::trunc(id) > INT32_MAX)
+        return luaL_error(L, "Native Frame ID must fit int32");
+#endif
     frame->m_id = static_cast<int32_t>(lua_tonumber(L, 2));
     return 0;
 }
-#endif
 
 // VERIFY: 8a7deb8f auto
 // OFFSET: 0x0049FBB0
@@ -2172,8 +2173,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetEffectiveAlpha", &Frame::Native::UnavailableScriptMethod },
     { "GetAlpha", &Frame::Native::UnavailableScriptMethod },
     { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
-    { "GetID", &Frame::Native::UnavailableScriptMethod },
-    { "SetID", &Frame::Native::UnavailableScriptMethod },
+    { "GetID", &Frame::Native::ScriptMethod<&Script_GetID, true, false> },
+    { "SetID", &Frame::Native::ScriptMethod<&Script_SetID, true, false, true> },
     { "SetToplevel", &Frame::Native::UnavailableScriptMethod },
     { "IsToplevel", &Frame::Native::UnavailableScriptMethod },
     { "EnableDrawLayer", &Frame::Native::UnavailableScriptMethod },

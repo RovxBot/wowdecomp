@@ -2,6 +2,7 @@
 #define WOWDECOMP_NATIVE_LAYOUT_RUNTIME_H
 #include "Engine/Source/FrameXML/Portable/Runtime.h"
 #include <cstdint>
+#include <cstddef>
 class CLayoutFrame;
 class CFramePoint;
 namespace Frame { namespace Native {
@@ -44,13 +45,24 @@ struct CallbackScope final {
     CallbackScope& operator=(const CallbackScope&) = delete;
 };
 // Original ordered Glue creation runs outside root traversal. Existing objects
-// may change visibility/layout there, while destruction and new Frame allocation
-// remain blocked inside callbacks. Actual resize/input/render guards still apply.
+// may change visibility/layout there. Actual resize/input/render guards apply.
 struct LoadScriptEdits final {
     LoadScriptEdits();
     ~LoadScriptEdits();
     LoadScriptEdits(const LoadScriptEdits&) = delete;
     LoadScriptEdits& operator=(const LoadScriptEdits&) = delete;
+};
+// Private factory transaction capability: the checked Lua factory may construct
+// and unwind new objects while its caller is pinned. Any callback invoked by the
+// factory adds a pin and loses this capability until it returns. Never wrap
+// arbitrary Lua execution or edits/deletion of existing objects in this scope.
+struct FactoryScope final {
+    FactoryScope();
+    ~FactoryScope();
+    FactoryScope(const FactoryScope&) = delete;
+    FactoryScope& operator=(const FactoryScope&) = delete;
+private:
+    size_t previous;
 };
 struct ResizeScope final {
     ResizeScope();

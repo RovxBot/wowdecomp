@@ -37,6 +37,17 @@ string manager, then XML/VM, retained queue/packages and Storm/time. Existing
 ownership guards remain authoritative. Authentication, server/Warden policy and
 interactive sign-in remain unchanged.
 
+Original OnLoad may set existing visibility/layout, Button state/font selection,
+IDs and scrollbar values in the scoped Glue load phase. The checked `CreateFrame`
+transaction may construct and unwind newly allocated objects there, including a
+failure after the constructor. A nested callback adds a pin and loses the factory
+capability until it returns; reparenting/deleting existing callback objects stays
+blocked. Root traversal, actual resize and input guards remain enabled. This is
+not general allocation from interactive callbacks. Images now admit 1,024 retained
+entries independently of their unchanged 256 MiB pixel budget; Event polling
+delivers completions before update/paint. Queue shutdown precedes package-slot
+destruction even when archive startup throws or times out.
+
 ## Downloaded execution
 
 Verify an Actions archive digest and extract outside both reference installations:

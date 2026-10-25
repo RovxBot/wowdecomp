@@ -194,7 +194,8 @@ int CreateFrameLua(lua_State* L) {
     bool failed = false;
     try {
         FrameXML::Native::RequireFactories();
-        Frame::Native::RequireRoot(); Frame::Native::RequireTreeMutation();
+        Frame::Native::RequireRoot(); Frame::Native::RequireStateMutation();
+        Frame::Native::FactoryScope construction;
         if (!lua_isstring(L, 1) || (!lua_isnoneornil(L, 3) && !lua_istable(L, 3)))
             throw std::invalid_argument("Invalid CreateFrame arguments");
         CSimpleFrame* parent = nullptr;

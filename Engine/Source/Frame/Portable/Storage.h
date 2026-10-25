@@ -12,9 +12,8 @@ void* AllocateRegionStorage(CDataAllocator&, size_t bytes, size_t alignment);
 void FreeRegionStorage(CDataAllocator&, void*);
 template<class T, class... Args>
 T* ConstructRegion(CDataAllocator& pool, Args&&... args) {
-    // An allocation failure must never unwind a partially constructed Frame
-    // through another Frame's active callback. Keep dynamic callback factories
-    // visibly unavailable until that constructor/cleanup contract is adapted.
+    // Callback callers require the checked factory's construction capability.
+    // It covers failure cleanup, but is suspended during every nested callback.
     RequireDestroyable();
     void* storage = AllocateRegionStorage(pool, sizeof(T), alignof(T));
     try {

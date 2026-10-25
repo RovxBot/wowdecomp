@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <unordered_set>
 #include <unordered_map>
+#include <limits>
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
@@ -14,6 +15,8 @@ bool renderActive = false;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
 size_t callbacks = 0, loadScriptEdits = 0;
+constexpr size_t NoFactory = std::numeric_limits<size_t>::max();
+size_t factoryCallbackDepth = NoFactory;
 std::unordered_set<CFramePoint*> points;
 // Initial bounded layout surface; larger graphs require separate qualification.
 constexpr size_t MaxFrames = 1024, MaxDepth = 64;
@@ -59,7 +62,7 @@ void RequireOwner() {
 void SetLayoutRenderActive(bool value) { renderActive = value; }
 void RequireNoObjects() {
     RequireOwner();
-    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || callbacks || loadScriptEdits || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
@@ -106,7 +109,8 @@ void RequireDimension(float value) {
 }
 void RequireDestroyable() {
     RequireOwner();
-    if (resizing || callbacks) throw std::logic_error("Finish callbacks before destroying layout objects");
+    if (resizing || (callbacks && callbacks != factoryCallbackDepth))
+        throw std::logic_error("Finish callbacks before destroying layout objects");
 }
 void RequireTreeMutable() {
     RequireOwner();
@@ -117,6 +121,11 @@ CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }
 CallbackScope::~CallbackScope() { --callbacks; }
 LoadScriptEdits::LoadScriptEdits() { RequireTreeMutable(); ++loadScriptEdits; }
 LoadScriptEdits::~LoadScriptEdits() { --loadScriptEdits; }
+FactoryScope::FactoryScope() : previous(factoryCallbackDepth) {
+    RequireTreeMutable();
+    factoryCallbackDepth = callbacks;
+}
+FactoryScope::~FactoryScope() { factoryCallbackDepth = previous; }
 ResizeScope::ResizeScope() { RequireOwner(); ++resizing; }
 ResizeScope::~ResizeScope() { --resizing; }
 }}

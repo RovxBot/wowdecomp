@@ -76,6 +76,8 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         NativeButton:SetScript('OnLoad',function(self)
             self:Disable(); assert(self:IsEnabled()==0)
             self:Enable(); assert(self:IsEnabled()==1)
+            local disabled=self:GetDisabledFontObject()
+            self:SetDisabledFontObject(self:GetNormalFontObject()); self:SetDisabledFontObject(disabled)
             assert(not pcall(self.SetNormalTexture,self,'Interface/not-a-replacement'))
             self.loadStatePassed=true
         end)

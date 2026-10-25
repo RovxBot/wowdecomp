@@ -70,14 +70,32 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         f:SetScript('OnReceiveDrag',function(self) HandlerLog[#HandlerLog+1]='receive' end)
         this,arg1='saved-this','saved-arg'
     )");
-    // Original Glue templates change existing state from OnLoad. This phase is
-    // outside root traversal; retain destruction/new-object and reparent guards.
+    // Original Glue dropdowns construct buttons from OnLoad. A checked factory
+    // may build/unwind new objects there; callbacks still pin their own tree.
+    CStatus loadStatus;
+    const char* loadTemplates=R"(<Ui>
+      <Frame name='NativeLoadFactoryTemplate' virtual='true'><Scripts><OnLoad>
+        assert(not pcall(self.SetParent,self,nil)); self.constructorPinned=true
+      </OnLoad></Scripts></Frame>
+      <Frame name='NativeLoadFailureTemplate' virtual='true' frameLevel='129'/>
+    </Ui>)";
+    std::unique_ptr<XMLTree,decltype(&XMLTree_Free)> loadTree(XMLTree_Load(loadTemplates,std::strlen(loadTemplates)),&XMLTree_Free);
+    auto* loadNode=XMLTree_GetRoot(loadTree.get())->m_child;
+    FrameXML_StoreHashNode(loadNode,"NativeLoadFactoryTemplate",nullptr,&loadStatus);
+    FrameXML_StoreHashNode(XMLTree_GetRoot(loadTree.get())->m_child,"NativeLoadFailureTemplate",nullptr,&loadStatus);
+    loadTree.reset();
+    const auto beforeLoadFrames=root.m_frameCount;
     RegionLua(R"(
         NativeHandlerFrame:SetScript('OnLoad',function(self)
             self:SetWidth(self:GetWidth())
             self:Hide(); assert(not self:IsShown()); self:Show()
             assert(not pcall(self.SetParent,self,nil))
-            assert(not pcall(CreateFrame,'Frame','RejectedLoadCallback'))
+            assert(not pcall(CreateFrame,'Frame','FailedLoadFactory',self,'NativeLoadFailureTemplate'))
+            assert(FailedLoadFactory==nil)
+            local child=CreateFrame('Frame','CreatedLoadCallback',self,'NativeLoadFactoryTemplate')
+            assert(child.constructorPinned)
+            child:SetID(7); assert(child:GetID()==7)
+            assert(not pcall(child.SetID,child,2^40))
             HandlerLog[#HandlerLog+1]='load-state'
         end)
     )");
@@ -88,6 +106,8 @@ static void HandlerChecks(GlContext& context, LegacyDevice& device, CSimpleTop& 
         Reject([&]{Frame::Native::RequireDestroyable();});
     }
     RegionLua("assert(HandlerLog[#HandlerLog]=='load-state' and #HandlerErrors==0); NativeHandlerFrame:SetScript('OnLoad',nil); HandlerLog={}");
+    Check(root.m_frameCount==beforeLoadFrames+1,"Failed callback factory stranded or retired a Frame");
+    delete static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("CreatedLoadCallback",CSimpleFrame::GetObjectType()));
     // Use actual root key/character queues, with the same adapter used after SDL
     // pumping. A handled key captures the Frame until release.
     Check(Frame::Native::DispatchInputEvent(context, OSEVENT{OS_INPUT_KEY_DOWN,{KEY_A,1,0,10}}) ==

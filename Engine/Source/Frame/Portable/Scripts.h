@@ -5,6 +5,7 @@
 #include <exception>
 #include <cmath>
 #include <cfloat>
+#include <cstdio>
 namespace Frame { namespace Native {
 // Install after Fonts; close every region/script object before this owner.
 class Scripts final {
@@ -22,7 +23,7 @@ inline int UnavailableScriptMethod(lua_State* L) {
 template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false> int ScriptMethod(lua_State* L) {
     // Lua errors longjmp. Convert C++ failures only after their stack unwinds;
     // no owning automatic object may surround the subsequent luaL_error call.
-    bool failed = false;
+    char failure[512]{};
     try {
         RequireRegionScripts();
         RequireRoot();
@@ -33,9 +34,11 @@ template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation =
                 std::fabs(lua_tonumber(L, i)) > FLT_MAX))
                 return luaL_error(L, "Native Frame coordinates must fit finite floats");
         return Method(L);
-    } catch (const std::exception&) { failed = true; }
-    if (failed) return luaL_error(L, "Native Frame method rejected invalid state or arguments");
-    return 0;
+    } catch (const std::exception& error) {
+        std::snprintf(failure, sizeof(failure), "%s", error.what());
+    }
+    if (*failure) return luaL_error(L, "Native Frame method rejected invalid state or arguments: %s", failure);
+    return luaL_error(L, "Native Frame method rejected invalid state or arguments");
 }
 }}
 #endif
