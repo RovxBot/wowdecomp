@@ -312,5 +312,17 @@ PassGlowWave::PassGlowWave(FFX::Tex** inputs, uint32_t count, FFX::Tex* output, 
         this->m_shaderIndex += 2;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    try {
     g_theGxDevicePtr->ShaderCreate(this->m_shaders, GxSh_Pixel, "Shaders\\Pixel", "FFXGlowWave", sizeof(this->m_shaders) / sizeof(this->m_shaders[0]));
+    } catch (...) {
+        if (--s_waveTexRefCount == 0 && PassGlowWave::s_waveTex.m_texture) {
+            HandleClose(reinterpret_cast<HOBJECT>(PassGlowWave::s_waveTex.m_texture));
+            PassGlowWave::s_waveTex.m_texture = nullptr;
+        }
+        throw;
+    }
+#else
+    g_theGxDevicePtr->ShaderCreate(this->m_shaders, GxSh_Pixel, "Shaders\\Pixel", "FFXGlowWave", sizeof(this->m_shaders) / sizeof(this->m_shaders[0]));
+#endif
 }

@@ -17,8 +17,7 @@ add_library(WowNativeStartup STATIC
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Startup.cpp)
 target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
-    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp
-    ${PROJECT_SOURCE_DIR}/Engine/Source/Os/Portable/ModelMemory.cpp)
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions)
 add_library(WowNativeModels STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Cache.cpp
@@ -44,6 +43,7 @@ add_library(WowNativeModels STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleModel.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CSimpleModelFFX.cpp)
 target_sources(WowNativeModels PRIVATE
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Os/Portable/ModelMemory.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleModel_Scripts.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CSimpleModelFFX_Scripts.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Models.cpp

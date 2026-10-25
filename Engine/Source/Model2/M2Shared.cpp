@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Os/Portable/ModelMemory.h"
+#include <stdexcept>
+#endif
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -42,6 +46,17 @@ static uint8_t* s_sequenceData;
 
 // STATIC: 0x00D4125C
 static uint32_t s_sequenceSize;
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+template<class T> static bool NativeRelocate(uint8_t* base, uint32_t size, M2Array<T>& array) {
+    if (array.m_offset > size || array.m_count > (size - array.m_offset) / sizeof(T)) return false;
+    const auto address = reinterpret_cast<uintptr_t>(base);
+    if (array.m_count && (!base || array.m_offset > UINTPTR_MAX - address ||
+        (address + array.m_offset) % alignof(T))) return false;
+    array.Relocate(base);
+    return true;
+}
+#endif
 
 // VERIFY: eb5cb8e9 auto
 // OFFSET: 0x00835950
@@ -137,11 +152,15 @@ static void MakeSkinFileName(const char* fileName, uint32_t profile, char* resul
 template <class T>
 int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Array<T>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(T) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     return 1;
@@ -152,11 +171,15 @@ int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Array<T>& arr
 template <class T>
 int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Array<T> >& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Array<T>) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -168,6 +191,43 @@ int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Array
     return 1;
 }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static int32_t NativeTimes(uint8_t* base, uint32_t size, const M2Data& data, M2TrackBase& track) {
+    if (s_sequenceIndex != UINT32_MAX) {
+        return s_sequenceIndex >= track.m_sequenceTimes.m_count ||
+            NativeRelocate(s_sequenceData, s_sequenceSize, track.m_sequenceTimes[s_sequenceIndex]);
+    }
+    if (!NativeRelocate(base, size, track.m_sequenceTimes)) return 0;
+    if (track.m_loopIndex == UINT16_MAX) {
+        if (track.m_sequenceTimes.m_count > data.m_sequences.m_count) return 0;
+        for (uint32_t i = 0; i < track.m_sequenceTimes.m_count; ++i)
+            if ((data.m_sequences[i].m_flags & 0x20) && !NativeRelocate(base, size, track.m_sequenceTimes[i])) return 0;
+    } else {
+        if (track.m_sequenceTimes.m_count && track.m_loopIndex >= data.m_loops.m_count) return 0;
+        for (uint32_t i = 0; i < track.m_sequenceTimes.m_count; ++i)
+            if (!NativeRelocate(base, size, track.m_sequenceTimes[i])) return 0;
+    }
+    return 1;
+}
+int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2TrackBase& track) {
+    return NativeTimes(base, size, data, track);
+}
+template<class T>
+int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Track<T>& track) {
+    if (!NativeTimes(base, size, data, track)) return 0;
+    if (s_sequenceIndex != UINT32_MAX) {
+        return s_sequenceIndex >= track.m_sequenceKeys.m_count ||
+            NativeRelocate(s_sequenceData, s_sequenceSize, track.m_sequenceKeys[s_sequenceIndex]);
+    }
+    if (!NativeRelocate(base, size, track.m_sequenceKeys) ||
+        track.m_sequenceKeys.m_count != track.m_sequenceTimes.m_count) return 0;
+    for (uint32_t i = 0; i < track.m_sequenceKeys.m_count; ++i) {
+        if (track.m_loopIndex != UINT16_MAX || (data.m_sequences[i].m_flags & 0x20))
+            if (!NativeRelocate(base, size, track.m_sequenceKeys[i])) return 0;
+    }
+    return 1;
+}
+#else
 // INLINED
 int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2TrackBase& track) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
@@ -229,16 +289,22 @@ int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Track<T>& tra
     return 1;
 }
 
+#endif
+
 // VERIFY: 89b5df34 auto
 // OFFSET: 0x00835C70
 template <>
 int32_t M2Init<M2Sequence>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Sequence>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Sequence) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -690,11 +756,15 @@ void CM2Shared::SubstituteSimpleShaders() {
 template <>
 int32_t M2Init<M2Texture>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Texture>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Texture) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -787,11 +857,15 @@ uint32_t CM2Shared::AllocInstances(uint32_t count) {
 template <>
 int32_t M2Init<M2Event>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Event>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Event) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -870,7 +944,22 @@ void CM2Shared::ConvertTextureValuesToCombos() {
         }
     }
 
-#if defined(WOWDECOMP_ARCH_64)
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    if (combos.m_count > this->m_data->m_textureCombos.m_count) {
+        auto* memory = static_cast<uint16_t*>(OsAllocNear(this->m_data, sizeof(uint16_t) * combos.m_count));
+        if (!memory) throw std::bad_alloc();
+        this->m_data->m_textureCombos.Set(memory);
+        this->m_nativeTextureCombos = memory;
+        this->m_data->m_flags |= 0x20;
+    }
+    if (transforms.m_count > this->m_data->m_textureTransformCombos.m_count) {
+        auto* memory = static_cast<uint16_t*>(OsAllocNear(this->m_data, sizeof(uint16_t) * transforms.m_count));
+        if (!memory) throw std::bad_alloc();
+        this->m_data->m_textureTransformCombos.Set(memory);
+        this->m_nativeTextureTransforms = memory;
+        this->m_data->m_flags |= 0x40;
+    }
+#elif defined(WOWDECOMP_ARCH_64)
     uint32_t comboBytes = combos.m_count > this->m_data->m_textureCombos.m_count ? sizeof(uint16_t) * combos.m_count : 0;
     uint32_t transformBytes = transforms.m_count > this->m_data->m_textureTransformCombos.m_count ? sizeof(uint16_t) * transforms.m_count : 0;
 
@@ -878,7 +967,11 @@ void CM2Shared::ConvertTextureValuesToCombos() {
         uint32_t size = (this->m_fileSize + 15) & ~15u;
         M2Data* data = static_cast<M2Data*>(SIMD::AllocA16(size + comboBytes + transformBytes, __FILE__, __LINE__));
         memcpy(data, this->m_data, this->m_fileSize);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        OsNative::FreeModelRoot(this->m_data);
+#else
         SIMD::FreeA16(this->m_data);
+#endif
         this->m_data = data;
         this->m_fileSize = size + comboBytes + transformBytes;
         uint8_t* tail = reinterpret_cast<uint8_t*>(data) + size;
@@ -1260,11 +1353,15 @@ int32_t CM2Shared::InitializeSkinProfile() {
 template <>
 int32_t M2Init<M2Color>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Color>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Color) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1283,11 +1380,15 @@ int32_t M2Init<M2Color>(uint8_t* base, uint32_t size, const M2Data& data, M2Arra
 template <>
 int32_t M2Init<M2TextureWeight>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2TextureWeight>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2TextureWeight) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1336,11 +1437,15 @@ int32_t CM2Shared::FinishLoadingSkinProfile(uint32_t size) {
 template <>
 int32_t M2Init<M2CompBone>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2CompBone>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2CompBone) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1359,11 +1464,15 @@ int32_t M2Init<M2CompBone>(uint8_t* base, uint32_t size, const M2Data& data, M2A
 template <>
 int32_t M2Init<M2TextureTransform>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2TextureTransform>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2TextureTransform) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1382,11 +1491,15 @@ int32_t M2Init<M2TextureTransform>(uint8_t* base, uint32_t size, const M2Data& d
 template <>
 int32_t M2Init<M2Attachment>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Attachment>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Attachment) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1403,11 +1516,15 @@ int32_t M2Init<M2Attachment>(uint8_t* base, uint32_t size, const M2Data& data, M
 template <>
 int32_t M2Init<M2Light>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Light>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Light) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1426,11 +1543,15 @@ int32_t M2Init<M2Light>(uint8_t* base, uint32_t size, const M2Data& data, M2Arra
 template <>
 int32_t M2Init<M2Camera>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Camera>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Camera) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1449,11 +1570,15 @@ int32_t M2Init<M2Camera>(uint8_t* base, uint32_t size, const M2Data& data, M2Arr
 template <>
 int32_t M2Init<M2Ribbon>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Ribbon>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Ribbon) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1477,11 +1602,15 @@ int32_t M2Init(uint8_t* base, uint32_t size, const M2Data& data, M2Particle& par
 template <>
 int32_t M2Init<M2Particle>(uint8_t* base, uint32_t size, const M2Data& data, M2Array<M2Particle>& array) {
     if (s_sequenceIndex == 0xFFFFFFFF) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (!NativeRelocate(base, size, array)) return 0;
+#else
         if (array.m_offset > size || array.m_offset + sizeof(M2Particle) * array.m_count > size) {
             return 0;
         }
 
         array.Relocate(base);
+#endif
     }
 
     for (uint32_t i = 0; i < array.m_count; i++) {
@@ -1498,6 +1627,8 @@ int32_t M2Init<M2Particle>(uint8_t* base, uint32_t size, const M2Data& data, M2A
 CM2Shared::CM2Shared(CM2Cache* cache) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     this->m_flags = 0;
+    this->m_nativeTextureCombos = nullptr;
+    this->m_nativeTextureTransforms = nullptr;
 #else
     this->m_flags &= ~0x7Fu;
 #endif
@@ -1535,9 +1666,14 @@ CM2Shared::CM2Shared(CM2Cache* cache) {
 
 // INLINED
 int32_t M2Init(uint8_t* base, uint32_t size, M2Data& data) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const auto origin = reinterpret_cast<uintptr_t>(base), address = reinterpret_cast<uintptr_t>(&data);
+    if (!base || address < origin || address - origin > size || sizeof(M2Data) > size - (address - origin)) return 0;
+#else
     if (reinterpret_cast<uint8_t*>(&data) < base || reinterpret_cast<uint8_t*>(&data + 1) > base + size) {
         return 0;
     }
+#endif
 
     if (data.m_magic != 0x3032444D) {
         return 0;
@@ -1553,6 +1689,13 @@ int32_t M2Init(uint8_t* base, uint32_t size, M2Data& data) {
 // VERIFY: 8000b812 manual
 // OFFSET: 0x0083C6E0
 int32_t CM2Shared::FinishLoadingLowPrioritySequence(uint32_t sequenceIndex, uint8_t* buffer, uint32_t size) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (sequenceIndex >= this->m_data->m_sequences.m_count || !buffer) return 0;
+    struct ResetSequence {
+        ~ResetSequence() { s_sequenceIndex = UINT32_MAX; s_sequenceData = nullptr; s_sequenceSize = 0; }
+    } resetSequence;
+    s_sequenceSize = size;
+#endif
     s_sequenceIndex = sequenceIndex;
     s_sequenceData = buffer;
 
@@ -1595,9 +1738,15 @@ int32_t CM2Shared::FinishLoadingLowPrioritySequence(uint32_t sequenceIndex, CAsy
 // OFFSET: 0x0083CB10
 void CM2Shared::SkinProfileLoadedCallback(void* param) {
     CM2Shared* shared = static_cast<CM2Shared*>(param);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const auto size = shared->m_asyncObject->m_size;
+    AsyncFileReadDestroyObject(shared->m_asyncObject); shared->m_asyncObject = nullptr;
+    if (!shared->FinishLoadingSkinProfile(size)) throw std::runtime_error(std::string("Native Model2 skin initialization failed: ") + shared->m_fileName);
+#else
     shared->FinishLoadingSkinProfile(shared->m_asyncObject->m_size);
     AsyncFileReadDestroyObject(shared->m_asyncObject);
     shared->m_asyncObject = nullptr;
+#endif
 }
 
 // VERIFY: 2fc725dd manual
@@ -1614,7 +1763,12 @@ int32_t CM2Shared::LoadSkinProfile(uint32_t profile) {
     }
 
     uint32_t size = SFileGetFileSize(file, nullptr);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (size < sizeof(M2SkinProfile)) { SFileCloseFile(file); return 0; }
+    this->m_skinData = static_cast<M2SkinProfile*>(OsAllocNear(this->m_data, size));
+#else
     this->m_skinData = static_cast<M2SkinProfile*>(SIMD::AllocA16(size, __FILE__, __LINE__));
+#endif
 
     if (!this->m_skinData) {
         SFileCloseFile(file);
@@ -1625,7 +1779,11 @@ int32_t CM2Shared::LoadSkinProfile(uint32_t profile) {
 
     if (!this->m_asyncObject) {
         SFileCloseFile(file);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        OsFreeNear(this->m_skinData);
+#else
         SIMD::FreeA16(this->m_skinData);
+#endif
         this->m_skinData = nullptr;
         return 0;
     }
@@ -1646,6 +1804,9 @@ int32_t CM2Shared::LoadSkinProfile(uint32_t profile) {
 
 // INLINED
 uint32_t CM2Shared::GetSkinProfileIndex(uint32_t maxBones) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!this->m_data->m_numSkinProfiles || this->m_data->m_numSkinProfiles > 4) return UINT32_MAX;
+#endif
     for (uint32_t i = 0; i < this->m_data->m_numSkinProfiles; i++) {
         if (s_skinProfileBoneCounts[4 - this->m_data->m_numSkinProfiles + i] <= maxBones) {
             return i;
@@ -1662,6 +1823,9 @@ int32_t CM2Shared::Initialize() {
 
     if (this->m_cache->m_flags & 8) {
         uint32_t constants = g_theGxDevicePtr->Caps().m_shaderConstants[0];
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (constants < 32) return 0;
+#endif
         uint32_t bones = (constants > 0xC0 ? constants - 64 : constants - 32) / 3;
 
         if (bones < maxBones) {
@@ -1735,6 +1899,9 @@ int32_t CM2Shared::FinishLoading() {
         return 1;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_data->m_flags &= ~0x60u;
+#endif
     if (!M2Init(reinterpret_cast<uint8_t*>(this->m_data), this->m_fileSize, *this->m_data)) {
         DebugLog("Corrupt model data: %s", this->m_fileName);
         return 0;
@@ -1769,7 +1936,11 @@ void CM2Shared::LoadSucceededCallback(void* param) {
     CM2Shared* shared = static_cast<CM2Shared*>(param);
     AsyncFileReadDestroyObject(shared->m_asyncObject);
     shared->m_asyncObject = nullptr;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!shared->FinishLoading()) throw std::runtime_error(std::string("Native Model2 load/initialization failed: ") + shared->m_fileName);
+#else
     shared->FinishLoading();
+#endif
 }
 
 // INLINED
@@ -1795,7 +1966,12 @@ CM2SequenceLoad::~CM2SequenceLoad() {
 int32_t CM2Shared::Load(SFileImpl* file, int32_t flags, CAaBox* boundingBox) {
     this->m_flags = (this->m_flags & ~4u) | (flags ? 4 : 0);
     this->m_fileSize = SFileGetFileSize(file, nullptr);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_fileSize < offsetof(M2Data, m_textureCombinerCombos)) return 0;
+    this->m_data = static_cast<M2Data*>(OsNative::AllocModelRoot(this->m_fileSize));
+#else
     this->m_data = static_cast<M2Data*>(SIMD::AllocA16(this->m_fileSize, __FILE__, __LINE__));
+#endif
 
     if (!this->m_data) {
         return 0;
@@ -1893,7 +2069,11 @@ CM2Shared::~CM2Shared() {
         if (pending) {
             pending = 0;
         } else {
-            SIMD::FreeA16(this->m_skinData);
+    #ifdef WOWDECOMP_PORTABLE_RUNTIME
+        OsFreeNear(this->m_skinData);
+#else
+        SIMD::FreeA16(this->m_skinData);
+#endif
         }
     }
 
@@ -1919,7 +2099,10 @@ CM2Shared::~CM2Shared() {
 #endif
     }
 
-#if !defined(WOWDECOMP_ARCH_64)
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+    OsFreeNear(this->m_nativeTextureCombos);
+    OsFreeNear(this->m_nativeTextureTransforms);
+#elif !defined(WOWDECOMP_ARCH_64)
     if (this->m_flags & 1) {
         if (this->m_data->m_flags & 0x20) {
             SMemFree(this->m_data->m_textureCombos.Data(), __FILE__, __LINE__, 0);
@@ -1932,7 +2115,11 @@ CM2Shared::~CM2Shared() {
 #endif
 
     if (!pending) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        OsNative::FreeModelRoot(this->m_data);
+#else
         SIMD::FreeA16(this->m_data);
+#endif
     }
 }
 

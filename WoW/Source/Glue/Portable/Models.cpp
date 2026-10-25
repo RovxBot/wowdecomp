@@ -2,6 +2,7 @@
 #include "Models.h"
 #include "Engine/Source/Frame/Portable/Storage.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/FrameXML/Portable/Factories.h"
 #include "Engine/Source/Frame/CSimpleModel.h"
 #include "WoW/Source/Glue/CSimpleModelFFX.h"

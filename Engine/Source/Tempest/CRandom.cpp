@@ -1,4 +1,5 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <cstdint>
 #include <cstring>
 static uint32_t NativeRotateLeft(uint32_t x, unsigned n) { return (x << n) | (x >> (32 - n)); }
 #endif

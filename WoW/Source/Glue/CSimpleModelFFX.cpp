@@ -1,5 +1,6 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Storage.h"
+#include <cmath>
 #endif
 #include "CSimpleModelFFX.h"
 #include <cstdint>
@@ -79,6 +80,9 @@ CSimpleModelFFX::CSimpleModelFFX(CSimpleFrame* parent) : CSimpleModel(parent) {
 // VERIFY: 107d2001 auto
 // OFFSET: 0x004E6160
 void CSimpleModelFFX::SetGlow(float glow) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(glow) || glow < 0 || glow > 1) throw std::invalid_argument("Native model glow must be in [0, 1]");
+#endif
     this->m_glow = glow;
 }
 

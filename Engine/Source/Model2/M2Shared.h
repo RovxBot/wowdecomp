@@ -73,6 +73,12 @@ class CM2Shared {
     /* 019C */ uint32_t m_lastUsedTime;
     /* 01A0 */ TSLink<CM2Shared> m_updateLink;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Ownership is runtime state, never inferred from unprocessed file flags.
+    uint16_t* m_nativeTextureCombos;
+    uint16_t* m_nativeTextureTransforms;
+#endif
+
     static void LoadFailedCallback(void* param);
     static void LoadSucceededCallback(void* param);
     static void LowPrioritySequenceFailedCallback(void* param);

@@ -56,6 +56,9 @@ static int32_t Script_GetModel(lua_State* L) {
     if (model->m_model) {
         lua_pushstring(L, model->m_model->m_shared->m_fileName);
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    else lua_pushnil(L);
+#endif
 
     return 1;
 }
@@ -125,6 +128,10 @@ static int32_t Script_SetSequence(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
+        std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
+#endif
     uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
 
     if (sequence >= 506) {
@@ -143,8 +150,16 @@ static int32_t Script_SetSequenceTime(lua_State* L) {
     CSimpleModel* model = static_cast<CSimpleModel*>(FrameScript_GetObjectThis(L, CSimpleModel::GetObjectType()));
 
     if (lua_isnumber(L, 2) && lua_isnumber(L, 3)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 3) < INT32_MIN || lua_tonumber(L, 3) > INT32_MAX ||
+            std::floor(lua_tonumber(L, 3)) != lua_tonumber(L, 3)) return luaL_error(L, "Invalid native model sequence time");
+#endif
         int32_t time = static_cast<int32_t>(lua_tonumber(L, 3));
-        uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
+    #ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
+        std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
+#endif
+    uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
         model->SetSequenceTime(sequence, time);
         return 0;
     }
@@ -160,6 +175,10 @@ static int32_t Script_SetCamera(lua_State* L) {
     CSimpleModel* model = static_cast<CSimpleModel*>(FrameScript_GetObjectThis(L, CSimpleModel::GetObjectType()));
 
     if (lua_isnumber(L, 2)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) > UINT32_MAX ||
+            std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model camera index");
+#endif
         model->SetCameraByIndex(static_cast<uint32_t>(lua_tonumber(L, 2)));
         return 0;
     }
