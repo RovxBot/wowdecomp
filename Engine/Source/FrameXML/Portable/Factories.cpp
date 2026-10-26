@@ -121,10 +121,14 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnDragStop", "OnReceiveDrag", "OnChar", "OnKeyDown", "OnKeyUp", "OnAttributeChanged",
             "OnEnterPressed", "OnEscapePressed", "OnSpacePressed", "OnTabPressed", "OnTextChanged", "OnTextSet", "OnCursorChanged", "OnInputLanguageChanged", "OnEditFocusGained", "OnEditFocusLost", "OnCharComposition",
             "OnValueChanged", "OnMinMaxChanged", "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick",
-            "OnHorizontalScroll", "OnVerticalScroll", "OnScrollRangeChanged", "OnHyperlinkEnter", "OnHyperlinkLeave", "OnHyperlinkClick"};
+            "OnHorizontalScroll", "OnVerticalScroll", "OnScrollRangeChanged", "OnHyperlinkEnter", "OnHyperlinkLeave", "OnHyperlinkClick",
+            "OnUpdateModel", "OnAnimFinished"};
         const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
                                    Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
+        const bool modelHandler = Is(tag, "OnUpdateModel") || Is(tag, "OnAnimFinished");
         if ((buttonHandler && (path.size() < 3 || !IsButton(path[path.size()-3]->m_name.m_str))) ||
+            (modelHandler && (path.size() < 3 ||
+                (!Is(path[path.size()-3]->m_name.m_str, "Model") && !Is(path[path.size()-3]->m_name.m_str, "ModelFFX")))) ||
             std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||
             node->m_child || node->m_bodyLen > 1024 * 1024 || node->GetAttributeByName("inherit"))
             throw std::invalid_argument("Unavailable or excessive native XML script handler");

@@ -186,7 +186,7 @@ void Factory() {
             try { html.SetText(text, nullptr); } catch (const std::invalid_argument&) { failed = true; }
             Check(failed, "HTML failure fixture did not reach image validation");
         }
-        const char* document = "<ModelFFX name=\"NativeModelBoundary\" glow=\"0.25\" fogNear=\"0.1\" fogFar=\"100\"><Size x=\"64\" y=\"64\"/><FogColor r=\"1\" g=\"0\" b=\"0\" a=\"1\"/></ModelFFX>";
+        const char* document = "<ModelFFX name=\"NativeModelBoundary\" glow=\"0.25\" fogNear=\"0.1\" fogFar=\"100\"><Size x=\"64\" y=\"64\"/><FogColor r=\"1\" g=\"0\" b=\"0\" a=\"1\"/><Scripts><OnUpdateModel>NativeModelUpdated=self</OnUpdateModel><OnAnimFinished>NativeModelFinished=self</OnAnimFinished></Scripts></ModelFFX>";
         std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
         Check(bool(tree), "Authored model XML failed to parse");
         CStatus status;
@@ -198,6 +198,19 @@ void Factory() {
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
         const auto errors = FrameScript::Native::ScriptErrorCount();
+        Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
+        model->RunScript(model->m_onUpdateModel, 0, nullptr);
+        model->RunScript(model->m_onAnimFinished, 0, nullptr);
+        FrameScript_Execute("assert(NativeModelUpdated == NativeModelBoundary and NativeModelFinished == NativeModelBoundary)",
+            "authored model callback dispatch", nullptr);
+        {
+            const char* invalid = "<Frame name=\"RejectedModelHandler\"><Scripts><OnUpdateModel>error('unreachable')</OnUpdateModel></Scripts></Frame>";
+            std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> invalidTree(XMLTree_Load(invalid, std::strlen(invalid)), XMLTree_Free);
+            bool rejected = false;
+            try { delete FrameXML_CreateFrame(XMLTree_GetRoot(invalidTree.get()), nullptr, &status); }
+            catch (const std::invalid_argument&) { rejected = true; }
+            Check(rejected, "Model-specific script handler accepted a base Frame parent");
+        }
         CharSelectRegisterScriptFunctions(); CharacterCreateRegisterScriptFunctions();
         FrameScript_Execute(R"(
             SetCharSelectModelFrame('NativeModelBoundary'); SetCharCustomizeFrame('NativeModelBoundary')
