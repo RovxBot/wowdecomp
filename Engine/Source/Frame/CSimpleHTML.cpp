@@ -1,6 +1,7 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #endif
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
@@ -326,6 +327,12 @@ void CSimpleHTML::ParseP(XMLNode* node, HTML_TEXT_TYPE type, CStatus* status) {
     }
 
     char* text = SStrDupA(node->m_body ? node->m_body : "", __FILE__, __LINE__);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    struct TextOwner {
+        char*& text;
+        ~TextOwner() { SMemFree(text, __FILE__, __LINE__, 0); }
+    } textOwner{text};
+#endif
     uint32_t offset = 0;
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
@@ -409,7 +416,9 @@ void CSimpleHTML::ParseP(XMLNode* node, HTML_TEXT_TYPE type, CStatus* status) {
     *dst = '\0';
 
     this->AddText(text, type, justify);
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     SMemFree(text, __FILE__, __LINE__, 0);
+#endif
 }
 
 // VERIFY: a10a3e21 manual
@@ -511,6 +520,9 @@ bool CSimpleHTML::SetText(const char* text, CStatus* status) {
 
     bool parsed = false;
     XMLTree* tree = XMLTree_Load(text, SStrLen(text));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> treeOwner(tree, XMLTree_Free);
+#endif
 
     if (tree) {
         XMLNode* root = XMLTree_GetRoot(tree);
@@ -531,7 +543,9 @@ bool CSimpleHTML::SetText(const char* text, CStatus* status) {
             }
         }
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         XMLTree_Free(tree);
+#endif
     }
 
     if (!parsed) {

@@ -5,6 +5,7 @@
 #include "Engine/Source/Frame/Portable/Render.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CSimpleModel.h"
+#include "Engine/Source/Frame/CSimpleHTML.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
@@ -152,6 +153,15 @@ void Factory() {
     LoginWidgets widgets;
     {
         CSimpleTop root;
+        // An unavailable image must unwind the HTML parser's borrowed tree;
+        // otherwise XML owner shutdown terminates and hides the real error.
+        {
+            CSimpleHTML html(&root);
+            const char* text = "<HTML><BODY><IMG src=\"unavailable.png\" width=\"16\" height=\"16\"/></BODY></HTML>";
+            bool failed = false;
+            try { html.SetText(text, nullptr); } catch (const std::invalid_argument&) { failed = true; }
+            Check(failed, "HTML failure fixture did not reach image validation");
+        }
         const char* document = "<ModelFFX name=\"NativeModelBoundary\" glow=\"0.25\" fogNear=\"0.1\" fogFar=\"100\"><Size x=\"64\" y=\"64\"/><FogColor r=\"1\" g=\"0\" b=\"0\" a=\"1\"/></ModelFFX>";
         std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
         Check(bool(tree), "Authored model XML failed to parse");
