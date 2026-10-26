@@ -16,6 +16,7 @@
 #include <clocale>
 #include "Engine/Source/Gx/Portable/GlContext.h"
 #include "StartupLocale.h"
+#include "HtmlSource.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include <stdexcept>
 #include <vector>
@@ -99,13 +100,40 @@ void Ordered() {
     Check(cycle, "Include cycle accepted");
     Check(FrameXML_ProcessFile("Interface\\Test\\Root.xml", nullptr, nullptr, &status), "Failed traversal did not release trees/recursion state");
 }
+void HtmlFiles() {
+    const auto directory = std::filesystem::temp_directory_path() /
+        ("wow-native-html-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    struct Remove { std::filesystem::path path; ~Remove() { std::filesystem::remove_all(path); } } remove{directory};
+    std::filesystem::create_directories(directory / "data/enUS");
+    const std::string contents = "<HTML><BODY><P>Original HTML reader fixture</P></BODY></HTML>";
+    { std::ofstream file(directory / "data/enUS/tos.html"); file << contents; }
+    { std::ofstream file(directory / "outside.html"); file << "outside"; }
+    std::filesystem::create_symlink(directory / "outside.html", directory / "data/enUS/escape.html");
+    { std::ofstream file(directory / "data/enUS/large.html"); file.seekp(8 * 1024 * 1024); file.put('x'); }
+    Blizzard::File::Native::Paths paths;
+    Check(Blizzard::File::Native::ConfigurePaths((directory / "data").c_str(), (directory / "settings").c_str(),
+        (directory / "cache").c_str(), paths), "HTML fixture roots failed");
+    Services::Native::FileQueue queue;
+    FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, std::vector<uint8_t>& bytes) {
+        return kind == FrameScript::Native::SourceKind::Html && GlueNative::ReadLocaleHtml(paths, queue, path, bytes);
+    });
+    std::string normalized; std::vector<uint8_t> bytes;
+    Check(FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Html, "TOS.HTML", normalized, bytes) &&
+        std::string(bytes.begin(), bytes.end()) == contents, "Original locale HTML bytes were not retained");
+    Check(!FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Interface, "tos.html", normalized, bytes),
+        "Host HTML was supplied as interface source");
+    for (const char* name : {"missing.html", "escape.html", "large.html", "../outside.html", "sub/tos.html", "tos.lua"})
+        Check(!FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Html, name, normalized, bytes), "Invalid HTML path admitted");
+    { std::ofstream file(directory / "data/enUS/TOS.HTML"); file << contents; }
+    Check(!FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Html, "tos.html", normalized, bytes), "Ambiguous locale HTML admitted");
+}
 }
 int main() {
     try {
         StormRtlInitialize();
         InitializeNativeCharacterLocale();
         { Gx::Native::GlContext context("Waystone — original 12340 startup", 320, 240, true); }
-        Events(); Settings(); Ordered(); CheckNativeModelIO(); CheckNativeModels();
+        Events(); Settings(); Ordered(); HtmlFiles(); CheckNativeModelIO(); CheckNativeModels();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

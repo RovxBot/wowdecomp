@@ -34,6 +34,7 @@
 #include <stdexcept>
 #include <sys/resource.h>
 #include "StartupLocale.h"
+#include "HtmlSource.h"
 using Bytes = std::vector<uint8_t>;
 using namespace Services::Native;
 namespace {
@@ -147,6 +148,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     Source source(paths);
     LegacyFiles modelFiles(source.queue, source.packages);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
+        if (kind == FrameScript::Native::SourceKind::Html) return GlueNative::ReadLocaleHtml(paths, source.queue, path, bytes);
         if (kind != FrameScript::Native::SourceKind::Interface) return false;
         try { bytes = source.Read(path); return true; } catch (...) { return false; }
     });
