@@ -156,7 +156,7 @@ void Factory() {
         // An unavailable image must unwind the HTML parser's borrowed tree;
         // otherwise XML owner shutdown terminates and hides the real error.
         {
-            CSimpleHTML html(&root);
+            CSimpleHTML html(nullptr);
             const char* text = "<HTML><BODY><IMG src=\"unavailable.png\" width=\"16\" height=\"16\"/></BODY></HTML>";
             bool failed = false;
             try { html.SetText(text, nullptr); } catch (const std::invalid_argument&) { failed = true; }
