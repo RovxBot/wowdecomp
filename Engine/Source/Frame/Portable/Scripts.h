@@ -18,7 +18,9 @@ public:
 };
 void RequireRegionScripts();
 inline int UnavailableScriptMethod(lua_State* L) {
-    return luaL_error(L, "This native Frame method requires an unavailable widget, XML, language or animation service");
+    lua_Debug call{};
+    const char* method = lua_getstack(L, 0, &call) && lua_getinfo(L, "n", &call) && call.name ? call.name : "<unknown>";
+    return luaL_error(L, "Native Frame method '%s' requires an unavailable widget, XML, language or animation service", method);
 }
 template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false> int ScriptMethod(lua_State* L) {
     // Lua errors longjmp. Convert C++ failures only after their stack unwinds;

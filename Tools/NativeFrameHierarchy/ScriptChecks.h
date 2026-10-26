@@ -117,6 +117,20 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     auto pixels = Draw(device, root);
     Check(Ink(pixels) > 4, "Lua-created pooled FontString did not render");
     Equal(pixels, Draw(device, root));
+    RegionLua(R"(
+        SavedJustifyH, SavedJustifyV = StaleText:GetJustifyH(), StaleText:GetJustifyV()
+        StaleText:SetJustifyH(SavedJustifyH == 'RIGHT' and 'LEFT' or 'RIGHT')
+        StaleText:SetJustifyV(SavedJustifyV == 'TOP' and 'BOTTOM' or 'TOP')
+        assert(StaleText:GetJustifyH() ~= SavedJustifyH and StaleText:GetJustifyV() ~= SavedJustifyV)
+        local h,v = StaleText:GetJustifyH(), StaleText:GetJustifyV()
+        assert(not pcall(StaleText.SetJustifyH,StaleText,'invalid'))
+        assert(not pcall(StaleText.SetJustifyV,StaleText,{}))
+        assert(StaleText:GetJustifyH() == h and StaleText:GetJustifyV() == v)
+    )");
+    auto justified = Draw(device, root);
+    Check(Ink(justified) > 4 && justified.size() == pixels.size() && std::memcmp(justified.data(), pixels.data(), pixels.size() * sizeof(CImVector)), "Lua justification did not move actual glyph pixels");
+    RegionLua("StaleText:SetJustifyH(SavedJustifyH); StaleText:SetJustifyV(SavedJustifyV)");
+    Equal(pixels, Draw(device, root));
     RegionLua("assert(StaleText:GetText() == 'AV Lua factory'); StaleText:Hide(); assert(not StaleText:IsShown())");
     Check(!Ink(Draw(device, root)), "Lua Hide retained text pixels");
     RegionLua("StaleText:Show(); assert(StaleText:IsVisible()); StaleText:SetFontObject(RegionFixtureFont)");

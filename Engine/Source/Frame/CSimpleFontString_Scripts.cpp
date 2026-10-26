@@ -575,18 +575,15 @@ static int32_t Script_GetStringHeight(lua_State* L) {
 
 // VERIFY: 03e2b414 manual
 // OFFSET: 0x0048DF70
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetJustifyH(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     lua_pushstring(L, JustifyToString(string->m_styleFlags & 0x7));
 
     return 1;
 }
-#endif
 
 // VERIFY: 51b186b6 auto
 // OFFSET: 0x0048E360
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetJustifyH(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     uint32_t justify;
@@ -612,22 +609,18 @@ static int32_t Script_SetJustifyH(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 31230f46 manual
 // OFFSET: 0x0048DFC0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetJustifyV(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     lua_pushstring(L, JustifyToString(string->m_styleFlags & 0x38));
 
     return 1;
 }
-#endif
 
 // VERIFY: dd3890a2 auto
 // OFFSET: 0x0048E430
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetJustifyV(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     uint32_t justify;
@@ -653,7 +646,6 @@ static int32_t Script_SetJustifyV(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 679d5c2f auto
 // OFFSET: 0x0048E010
@@ -803,10 +795,10 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetTextHeight", &Frame::Native::UnavailableScriptMethod },
     { "GetStringWidth", &Frame::Native::ScriptMethod<&Script_GetStringWidth, true, false> },
     { "GetStringHeight", &Frame::Native::ScriptMethod<&Script_GetStringHeight, true, false> },
-    { "GetJustifyH", &Frame::Native::UnavailableScriptMethod },
-    { "SetJustifyH", &Frame::Native::UnavailableScriptMethod },
-    { "GetJustifyV", &Frame::Native::UnavailableScriptMethod },
-    { "SetJustifyV", &Frame::Native::UnavailableScriptMethod },
+    { "GetJustifyH", &Frame::Native::ScriptMethod<&Script_GetJustifyH, true, false> },
+    { "SetJustifyH", &Frame::Native::ScriptMethod<&Script_SetJustifyH, true, true> },
+    { "GetJustifyV", &Frame::Native::ScriptMethod<&Script_GetJustifyV, true, false> },
+    { "SetJustifyV", &Frame::Native::ScriptMethod<&Script_SetJustifyV, true, true> },
     { "CanNonSpaceWrap", &Frame::Native::UnavailableScriptMethod },
     { "SetNonSpaceWrap", &Frame::Native::UnavailableScriptMethod },
     { "CanWordWrap", &Frame::Native::UnavailableScriptMethod },

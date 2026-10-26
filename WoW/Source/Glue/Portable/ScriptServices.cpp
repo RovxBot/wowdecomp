@@ -405,8 +405,8 @@ namespace GlueNative {
 void InitializeScriptServices(uint8_t expansionLevel) {
     FrameScript::Native::RequireOwner();
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
-    clientExpansionLevel = expansionLevel;
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
+    clientExpansionLevel = expansionLevel;
     // Client_CVar.cpp::ClientRegisterConsoleCommands (12340 0x00401B60).
     // CVar owns these entries and preserves values read from the external config.
     g_accountNameVar = CVar::Register("accountName", "Saved account name", 0x40, "", nullptr, CATEGORY_GAME, false, nullptr, false);
