@@ -17,6 +17,8 @@
 #include "Engine/Source/Model2/M2Cache.h"
 #include "Engine/Source/Os/Portable/ModelMemory.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
+#include "Engine/Source/Services/Portable/LegacyFiles.h"
+#include "Engine/Source/Services/AsyncFile.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include "Engine/Source/Services/Camera.h"
 #include "Engine/Source/Services/CameraInt.h"
@@ -108,6 +110,20 @@ void Factory() {
     using namespace Frame::Native;
     using namespace Services::Native;
     FileQueue queue;
+    // The real cache/model/shared callbacks must report failed initialization
+    // and retain their arena through owner-side cleanup. This is deliberately
+    // an authored invalid skin-profile declaration, not a rendering fixture.
+    unsigned modelReads = 0;
+    LegacyFiles modelFiles(queue, [&](const std::string& name, const Cancellation&) {
+        Check(name == "NATIVE\\EMPTY.M2", "Unexpected authored model member");
+        ++modelReads;
+        ReadResult result; result.file.bytes.resize(sizeof(M2Data), 0);
+        auto word = [&](size_t offset, uint32_t value) {
+            for (unsigned i = 0; i < 4; ++i) result.file.bytes[offset + i] = uint8_t(value >> (i * 8));
+        };
+        word(0, 0x3032444D); word(4, 0x108);
+        return result;
+    });
     FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, Bytes&) { return false; });
     FrameXML::Native::Runtime xml;
     Settings settings;
@@ -160,7 +176,21 @@ void Factory() {
         HandleClose(reinterpret_cast<HOBJECT>(camera));
         Check(CameraGetFloat(copy, 2) == 1000.0f, "Camera duplicate lost original managed values");
         HandleClose(reinterpret_cast<HOBJECT>(copy));
-        model->GetScene();
+        model->SetModel("native\\empty.m2");
+        Check(model->m_model != nullptr, "Original model instance/cache did not start its retained read");
+        bool loadFailed = false;
+        try { AsyncFileReadWaitAll(); } catch (const std::runtime_error&) { loadFailed = true; }
+        Check(loadFailed && modelReads == 1, "Original model initialization failure was hidden");
+        model->SetModel(static_cast<CM2Model*>(nullptr));
+        modelFiles.CheckCanClose();
+        {
+            CM2Shared shared(nullptr);
+            const std::string longName = std::string(256, 'a') + ".m2";
+            std::memcpy(shared.m_fileName, longName.c_str(), longName.size() + 1);
+            bool bounded = false;
+            try { shared.LoadSkinProfile(0); } catch (const std::length_error&) { bounded = true; }
+            Check(bounded, "Native model suffix overflow reached a file operation");
+        }
     }
     scripts.CheckCanClose(); renderer.CheckCanClose(); fonts.CheckCanClose();
 }
