@@ -7,6 +7,7 @@
 #include "Engine/Source/Frame/CSimpleModel.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleHTML.h"
+#include "Engine/Source/Frame/CSimpleFont.h"
 #include "Engine/Source/Frame/CSimpleMovieFrame.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
@@ -160,8 +161,11 @@ void Factory() {
         CSimpleTop root;
         {
             Frame::Native::LoadScriptEdits load;
+            Check(CSimpleFont::GetFont("NativeTooltipFont", 1) != nullptr, "Authored tooltip font owner unavailable");
             const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Frames><Button name="$parentClick"><Scripts><OnLoad>self:RegisterForClicks('LeftButtonDown','LeftButtonUp')</OnLoad></Scripts></Button></Frames><Scripts><OnLoad>
                 NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
+                NativeLoginAlignmentText:SetFontObject('NativeTooltipFont');
+                assert(NativeLoginAlignmentText:GetFontObject():IsObjectType('Font'));
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
                 self:SetFrameLevel(20); assert(self:GetFrameLevel() == 20 and NativeLoginAlignmentClick:GetFrameLevel() == 21);
                 assert(not pcall(self.SetFrameLevel,self,129) and not pcall(self.SetFrameLevel,self,-1));

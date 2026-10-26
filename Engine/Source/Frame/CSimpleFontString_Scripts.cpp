@@ -777,7 +777,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
     { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
     { "GetFontObject", &Frame::Native::ScriptMethod<&Script_GetFontObject, true, false> },
-    { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject> },
+    { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject, true, false, true> },
     { "GetFont", &Frame::Native::UnavailableScriptMethod },
     { "SetFont", &Frame::Native::UnavailableScriptMethod },
     { "GetText", &Frame::Native::ScriptMethod<&Script_GetText, true, false> },
