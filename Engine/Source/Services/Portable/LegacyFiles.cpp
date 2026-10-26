@@ -216,6 +216,9 @@ int32_t STORMAPI SFile::SetFilePointer(SFileImpl* handle, int32_t distance, int3
 }
 const char* SFile::GetErrorDetails() { return Current().error.c_str(); }
 int32_t SFile::IsStreamingMode() { Current(); return 0; } // Mounted local packages only.
+// CheckIfStreamingAndTrial requires streaming-ready. This adapter accepts only
+// complete mounted retail packages, never split trial/streaming installations.
+int32_t SFile::IsTrial() { Current(); return 0; }
 int32_t STORMAPI SFile::GetActualFileName(SFileImpl* handle, char* buffer, uint32_t size) {
     auto& s = Current(); auto file = s.File(handle);
     if (!buffer || file->name.size() >= size) return s.Error("Insufficient SFile filename buffer");

@@ -22,6 +22,7 @@
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "WoW/Source/Glue/Portable/Startup.h"
 #include "WoW/Source/Glue/GlueMgr.h"
+#include "WoW/Source/Glue/Portable/ScriptServices.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
@@ -107,17 +108,6 @@ struct Source {
         return std::move(result->file.bytes);
     }
 };
-int Locale(lua_State* L) { lua_pushstring(L, "enUS"); return 1; }
-int OtherPlatform(lua_State* L) { lua_pushnil(L); return 1; }
-// Original GlueScriptEvents_Scripts.cpp 0x004DCC20 / 0x004DCC70.
-int ScreenWidth(lua_State* L) {
-    float width = NDCToDDCWidth(1.0f);
-    lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * width)); return 1;
-}
-int ScreenHeight(lua_State* L) {
-    float height = NDCToDDCHeight(1.0f);
-    lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * height)); return 1;
-}
 int Update(const void* raw, void* root) {
     static_cast<CSimpleTop*>(root)->OnLayerUpdate(static_cast<const EVENT_DATA_UPDATE*>(raw)->m_elapsedSec);
     return 1;
@@ -172,11 +162,9 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     Frame::Native::LoginWidgets widgets;
     {
         CSimpleTop root;
-        FrameScript_RegisterFunction("GetLocale", Locale);
-        FrameScript_RegisterFunction("IsMacClient", OtherPlatform);
-        FrameScript_RegisterFunction("IsWindowsClient", OtherPlatform);
-        FrameScript_RegisterFunction("GetScreenWidth", ScreenWidth);
-        FrameScript_RegisterFunction("GetScreenHeight", ScreenHeight);
+        GlueNative::RegisterConsoleVariables();
+        GlueScriptEventsRegisterFunctions();
+        struct GlueScripts { ~GlueScripts() { GlueScriptEventsUnregisterFunctions(); } } glueScripts;
         GlueScriptEventsInitialize();
         CharSelectRegisterScriptFunctions();
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);

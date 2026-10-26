@@ -14,7 +14,8 @@ add_library(WowNativeStartup STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/ConsoleBase/Portable/Console.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Event/Portable/Loop.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/FrameXML/Portable/Load.cpp
-    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Startup.cpp)
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Startup.cpp
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/ScriptServices.cpp)
 target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)

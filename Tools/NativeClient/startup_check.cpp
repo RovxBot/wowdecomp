@@ -18,6 +18,9 @@
 #include "StartupLocale.h"
 #include "HtmlSource.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
+#include "WoW/Source/Glue/GlueMgr.h"
+#include "WoW/Source/Glue/Portable/ScriptServices.h"
+#include "GameVersion.h"
 #include <stdexcept>
 #include <vector>
 void CheckNativeModelIO();
@@ -100,6 +103,56 @@ void Ordered() {
     Check(cycle, "Include cycle accepted");
     Check(FrameXML_ProcessFile("Interface\\Test\\Root.xml", nullptr, nullptr, &status), "Failed traversal did not release trees/recursion state");
 }
+void GlueServices() {
+    const auto directory = std::filesystem::temp_directory_path() /
+        ("wow-native-glue-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    struct Remove { std::filesystem::path path; ~Remove() { std::filesystem::remove_all(path); } } remove{directory};
+    FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, std::vector<uint8_t>&) { return false; });
+    FrameXML::Native::Runtime xml;
+    const auto config = (directory / "Config.wtf").string();
+    { std::ofstream file(config); file << "SET accountName \"saved fixture\"\n"; }
+    ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
+    struct Console { ~Console() { CVar::Destroy(); ConsoleCommandDestroy(); } } console;
+    GlueNative::RegisterConsoleVariables();
+    GlueScriptEventsRegisterFunctions();
+    struct Scripts { ~Scripts() { GlueScriptEventsUnregisterFunctions(); } } scripts;
+    auto* option = CVar::Register("glueFixture", "fixture", 0, "7", nullptr, 0, false, nullptr, false);
+    auto* locked = CVar::Register("glueReadOnly", "fixture", 4, "1", nullptr, 0, false, nullptr, false);
+    Check(option && locked, "Glue CVar fixtures failed");
+    const auto errors = FrameScript::Native::ScriptErrorCount();
+    FrameScript_Execute(R"lua(
+        VERSION = 'localized version'; RELEASE_BUILD = 'localized release';
+        assert(select('#', GetBuildInfo()) == 5);
+        local label, release, version, build, date = GetBuildInfo();
+        assert(label == VERSION and release == RELEASE_BUILD);
+        assert(version == ')lua" GAME_VERSION R"lua(' and build == ')lua" GAME_BUILD_STRING R"lua(' and date == ')lua" GAME_BUILD_DATE R"lua(');
+        VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
+        assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
+        assert(IsWindowsClient() == nil and IsMacClient() == nil);
+        assert(GetSavedAccountName() == 'saved fixture');
+        SetSavedAccountName('changed fixture'); assert(GetSavedAccountName() == 'changed fixture');
+        assert(GetSavedAccountList() == ''); SetSavedAccountList('one|two'); assert(GetSavedAccountList() == 'one|two');
+        assert(GetUsesToken() == false); SetUsesToken(true); assert(GetUsesToken() == true);
+        assert(not pcall(SetUsesToken, 1));
+        assert(not pcall(SetSavedAccountName, {}));
+        assert(GetCVar('glueFixture') == '7' and GetCVarDefault('glueFixture') == '7');
+        SetCVar('glueFixture', 9); assert(GetCVar('glueFixture') == '9' and GetCVarBool('glueFixture') == 1);
+        SetCVar('glueFixture'); assert(GetCVar('glueFixture') == '0' and GetCVarBool('glueFixture') == nil);
+        assert(GetCVarBool('missingGlueCVar') == nil);
+        assert(not pcall(GetCVar, 'missingGlueCVar'));
+        assert(not pcall(GetCVarDefault, 'missingGlueCVar'));
+        assert(not pcall(SetCVar, 'missingGlueCVar', '1'));
+        assert(not pcall(SetCVar, 'glueReadOnly', '0') and GetCVar('glueReadOnly') == '1');
+        RunScript('glueNestedScript = 42'); assert(glueNestedScript == 42);
+    )lua", "native Glue services fixture", nullptr);
+    Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue build/CVar contracts failed");
+    Check(option->m_intValue == 0 && locked->m_intValue == 1, "Glue scripts bypassed original CVar state");
+    EventInitialize(1, 0);
+    FrameScript_Execute("QuitGame()", "native Glue close fixture", nullptr);
+    Check(EventNative::Closing(), "Glue QuitGame did not close the native Event owner");
+    EventDestroy();
+}
 void HtmlFiles() {
     const auto directory = std::filesystem::temp_directory_path() /
         ("wow-native-html-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -133,7 +186,7 @@ int main() {
         StormRtlInitialize();
         InitializeNativeCharacterLocale();
         { Gx::Native::GlContext context("Waystone — original 12340 startup", 320, 240, true); }
-        Events(); Settings(); Ordered(); HtmlFiles(); CheckNativeModelIO(); CheckNativeModels();
+        Events(); Settings(); Ordered(); GlueServices(); HtmlFiles(); CheckNativeModelIO(); CheckNativeModels();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
