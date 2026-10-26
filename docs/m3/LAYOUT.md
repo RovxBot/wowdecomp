@@ -24,7 +24,18 @@ and allocator bodies remain selected for the original client. Unsigned native
 anchor indices are checked before indexing, and nonfinite coordinates/scales,
 negative dimensions and nonpositive scales are rejected. Zero dimensions retain
 original anchor-derived size behavior; depth retains its original 0.2 minimum.
-At most 1,024 live frames and 64 frames per anchor path are admitted. Proposed
+The original qualification admitted 1,024 live layout objects. PR #84's integrated
+Glue creation reaches that bound while retaining hidden screens and regions, so
+the bounded population is now 8,192. Original SimpleHTML then exceeded the old
+64-frame anchor bound; its supplied credits chain more than 1,000 regions.
+Anchor paths are now bounded at 2,048, separately from the unchanged 64-level
+Frame parent graph. The existing depth fixture admits 2,047 dependent objects
+after its root and rejects the next edge, while retaining cycle rejection. The existing
+layout fixture fills the population, rejects the next object, retires/reuses a
+slot and closes all owners in three cycles. The existing MessageFrame partial-row
+rollback test retains equivalent pressure at the new bound. See the
+[continuation record](integrated-model-render-validation.json) for its separate
+hosted identities; the original qualification below remains historical. Proposed
 edges are validated over the whole graph with memoization, rejecting cycles and
 excessive depth before mutating anchors, including repeated references.
 

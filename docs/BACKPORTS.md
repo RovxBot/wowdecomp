@@ -805,6 +805,38 @@ and source inspection are different evidence levels.
   [the exact-source record](m3/integrated-model-io-validation.json) and
   [the integrated contract](m3/INTEGRATED_CLIENT.md#model2-loading-continuation--2026-10-25).
 
+## NP-026 — Original ModelFFX factory and integrated Glue dependencies
+
+- Reference: the pinned Apple startup/model review in
+  [APPLE_STARTUP_REVIEW.md](m3/APPLE_STARTUP_REVIEW.md). No reference source bodies,
+  dependencies, notices or donor address/verification annotations were imported.
+- Benefit/adaptation: select this checkout's original Model/ModelFFX factories,
+  Model2 scene/cache/shared/render consumers, Camera, particle/ribbon,
+  ShaderEffect and FFX/glow sources together in the existing opt-in Linux target.
+  Reuse qualified native owners and retained file reads. Retain near/root ownership,
+  checked relocation/track spans, callback failure delivery, aligned deallocation,
+  pooled lifetime and partial FFX rollback. Detach the FFX effect before deletion.
+- Destination: `Tools/NativeClient`, `Glue/Portable/Models*`, native-guarded original
+  Frame/Model2/FFX/Services/Tempest sources, existing Gx/Gxu and file/image Services.
+  The original stream identity query preserves allocation. Layout population is
+  bounded at 8,192 and anchor chains at 2,048 for original HTML; Frame parent depth
+  stays 64 and image pixel storage remains capped at 256 MiB. Original `.tga`
+  spellings can select their BLP basename, without TGA decoding or fake pixels.
+  SimpleHTML uses an explicit read-only locale-file route distinct from authenticated
+  Lua/XML/TOC sources. HTML parser/text ownership unwinds on native exceptions.
+- Scope/defaults: original unchanged 12340 data, required signatures and full
+  ordered post-creation digest, external writable roots, real 94-register/one-TMU
+  device limits. Original model/login rendering remains unfinished; optional model
+  animation audio reports failure. No credential, protocol, server/Warden policy,
+  new Apple graphics acceptance or gameplay claim is introduced.
+- Validation: the existing startup fixture exercises real factory/camera/FFX
+  rollback, model/shared read failures, root retirement, nested track relocation
+  and bounded locale reads. Existing layout, image and hierarchy checks retain
+  population/rollback/cache assertions. All compilation runs in Actions. See
+  [individual hosted identities, failures and desktop reports](m3/integrated-model-render-validation.json)
+  and [the integrated contract](m3/INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26).
+  Authored checks stay separate from observed original-data startup.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

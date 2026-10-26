@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-25. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-26. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -61,7 +61,7 @@ milestone; full native startup/login/gameplay remain unestablished.
 - Connect the original startup, CVar/settings, Event loop, resource Services,
   Frame/FrameXML/FrameScript and Glue callers through the existing native services
   and engine-facing interfaces. Select broader coherent source groups where
-  practical. Add an opt-in integrated native client target through Actions and
+  practical. Continue the opt-in integrated native client target through Actions and
   resolve concrete compile/link/startup failures along its actual call path.
 - Implement missing widgets, model/animation consumers and other reachable
   dependencies as needed by original login startup, in reviewable batches.
@@ -93,9 +93,17 @@ milestone; full native startup/login/gameplay remain unestablished.
 
 ### Immediate deliverables and acceptance
 
-1. Establish an Actions-built integrated Linux startup target using the existing
+1. Continue the Actions-built integrated Linux startup target using the existing
    SDL3/Gx path, original archive mounting, settings, Event and client lifecycle.
    Identify reachable missing interfaces and adapt them in coherent source groups.
+   [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) now selects original
+   Model/ModelFFX, Model2 scene/cache/shared loading, Camera, ShaderEffect and FFX
+   sources. Factory and failure-path checks do not establish original model or
+   login rendering; retain the [integrated execution record](docs/m3/INTEGRATED_CLIENT.md).
+   Current clean-data execution reaches `AccountLogin_OnLoad` and stops at the
+   missing original Glue `GetBuildInfo` registration. Connect the reached original
+   script services next, then observe Model2/material/FFX paint. The full creation
+   digest remains enabled and unreached; M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,
    retaining archive/member verification and the full post-creation interface
    digest comparison. Render the actual original login screen, exercise its input

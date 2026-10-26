@@ -17,7 +17,7 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-25. Linux has a tested native rendering and UI foundation.
+**Updated: 2026-10-26. Linux has a tested native rendering and UI foundation.
 A playable native Linux or macOS client is still in development.**
 
 | Platform | What is demonstrated | What still blocks a playable prototype |
@@ -26,9 +26,11 @@ A playable native Linux or macOS client is still in development.**
 | **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
 
-The Actions-built `WowNativeClient` now executes ordered original GlueXML through
-RealmList and AddonList, then stops at AccountLogin's **ModelFFX factory**. Its
-retained model file/async and relative-storage prerequisites are qualified, but
+The Actions-built `WowNativeClient` now constructs the original **ModelFFX
+AccountLogin** factory using original Model2, Camera, ShaderEffect and FFX sources.
+Clean-data startup now reaches `AccountLogin_OnLoad` and stops because the original
+Glue `GetBuildInfo` function is not registered. Locale HTML reads and their layout
+chains are connected. Startup integration continues through the original services;
 the model/animation/material/FFX rendering path remains unfinished. The full
 post-creation digest check stays enabled and has not been reached. See
 [integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
@@ -62,7 +64,7 @@ identified separately in the linked reports.
 | **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
 | **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The latest qualified package, [original StatusBar widgets PR #83](https://github.com/RovxBot/wowdecomp/pull/83),
+The most recent widget qualification, [original StatusBar widgets PR #83](https://github.com/RovxBot/wowdecomp/pull/83),
 passed **38 CTest checks per final-source Linux GL release/strict sanitizer
 configuration**. Full signature-enabled Windows x64 compilation retains its exact
 unchanged production identity. Native Lua/XML StatusBars now use original
@@ -87,9 +89,9 @@ unchanged 12340 data, signs in, selects a character, enters the world, supports
 basic play, saves settings and exits cleanly. A rendered test or successful build
 does not close that milestone.
 
-1. **Continue integrated original-client startup.** Connect ModelFFX's original
-   model/scene/animation, Camera, ShaderEffect and FFX callers through the native
-   graphics services. Resolve reachable widget/service gaps in coherent batches
+1. **Continue integrated original-client startup.** Complete ModelFFX's selected
+   original model/scene/animation, Camera, ShaderEffect and FFX callers through the
+   native graphics services. Resolve reachable widget/service gaps in coherent batches
    along that startup path. Extend the qualified base Frame
    XML/templates to remaining widgets and animation/model consumers,
    broader template/structural callback semantics, image tiling and

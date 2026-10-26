@@ -49,6 +49,30 @@ handoffs; those reports retain their original evidence and implementation identi
   policy changes follow from this direction. The user signs in interactively
   when ready; login rendering alone does not establish authentication/gameplay.
 
+## Integrated ModelFFX continuation — 2026-10-26
+
+PR #84 selects original Model/ModelFFX factories, Model2 scene/cache/shared loading,
+Camera, ShaderEffect and FFX sources through existing native owners. The factory
+is now constructed on original-data startup; model/material/FFX rendering remains
+unfinished. Read [the current integrated contract](docs/m3/INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26)
+and [exact validation/observed stop](docs/m3/integrated-model-render-validation.json).
+Do not treat earlier ModelFFX-factory stops as current runtime evidence or authored
+factory/relocation/rollback success as original model rendering. Keep the device's
+94-register/one-texture-unit limits truthful. Full ordered post-creation verification
+remains enabled. Layout population is bounded at 8,192 and anchor chains at 2,048;
+the separate Frame parent graph remains limited to 64 levels. Original HTML
+credits exceed 1,000 chained text regions. Keep cycles and excess depth rejected;
+retain the adjusted partial-row rollback assertions. SimpleHTML locale files use
+a distinct read kind and the explicit read-only enUS data root; Lua/XML/TOC source
+reads stay on authenticated packages. Both installations stay read-only, all
+compilation stays in Actions, and interactive sign-in/server policy are unchanged.
+Current original-data release/three strict runs stop at `AccountLogin.lua:15` in
+OnLoad because Glue `GetBuildInfo` is not registered, with zero workers and no
+sanitizer finding. Its original Glue contract returns five values; the in-game
+four-result API is distinct. Continue that original service group before claiming
+complete creation or model rendering. PR #84 remains draft; preserve the record's
+earlier Windows identity/input proof and the retained X11 `BadWindow` failure.
+
 ## Current handoff and build policy
 
 - All client and dependency compilation must run in GitHub Actions, including

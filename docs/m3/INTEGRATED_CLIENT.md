@@ -5,11 +5,12 @@ The opt-in `WOWDECOMP_BUILD_NATIVE_CLIENT` target `WowNativeClient` and
 retained reads, SDL/Gx/Gxu, original FrameScript/XML/layout/Frame and images.
 All compilation runs in Actions; Windows remains a separate regression target.
 
-**Login rendering is incomplete.** The [Model2 loading continuation](#model2-loading-continuation--2026-10-25)
-at `8a00e6203b8fc54bf74a886f9ee95a8bd1067931` qualifies retained original
-file/async entry points and signed-relative model storage. Its downloaded
-executable still stops at the actual ModelFFX factory. See the
-[separate continuation record](integrated-model-io-validation.json).
+**Login rendering is incomplete.** The [original model factory continuation](#original-model-factory-continuation--2026-10-26)
+selects actual Model/ModelFFX, Model2 scene/cache/shared loading, Camera,
+ShaderEffect and FFX sources. Downloaded execution now passes the ModelFFX
+factory and exposes subsequent original AccountLogin dependencies. Its
+[separate evidence record](integrated-model-render-validation.json) distinguishes
+authored factory/loading checks from actual original-data startup and rendering.
 
 The earlier downloaded release and three strict
 ASan/UBSan/leak executions at implementation
@@ -109,7 +110,7 @@ reported a 33-byte Xlib title-conversion leak before character-locale initializa
 these remain failed evidence. Subsequent compile/CVar-contract failures and exact
 source/build/runtime identities are recorded separately as integration proceeds.
 
-The next concrete source group is original `CSimpleModel`/`CSimpleModelFFX`,
+The loading continuation initially identified original `CSimpleModel`/`CSimpleModelFFX`,
 Model2 scene/cache/model/shared loading, Camera, ShaderEffect and FFX/glow. Original
 `AccountLogin_OnLoad` selects camera/sequence and loads
 `UI_MainMenu_Northrend.m2`. This requires the real model's retained read/animation
@@ -121,7 +122,113 @@ this path. The pinned-port
 model review is recorded in [the Apple review](APPLE_STARTUP_REVIEW.md); its Metal
 backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
-them; registering only a frame tag would leave those dependencies unresolved.
+them. The following factory continuation selects these real callers together;
+their device/material/rendering requirements remain open.
+
+## Original model factory continuation — 2026-10-26
+
+The existing integrated target now links the original Frame Model/ModelFFX
+factories and script tables, Model2 cache/model/shared/scene/render consumers,
+Camera, particles/ribbons, ShaderEffect and FFX/glow as a coherent source group.
+This reuses reconstructed product sources and qualified native services. The
+[pinned Apple review](APPLE_STARTUP_REVIEW.md) informed the boundaries; no Apple
+source bodies, dependencies or new donor verification claims were imported.
+
+Model roots remain in the retained native reservation. Skin/animation and expanded
+combo arrays use checked near allocations without moving a root away from its
+external arrays. Native relocation validates spans, alignment, nested track arrays
+and inline/external sequence bases before access. Original native callbacks retire
+their async object before initialization and propagate initialization failures.
+Suffix construction is bounded by the original filename storage. Initialized flags,
+aligned allocation/deallocation and native `new`/`delete` pairs retain ownership.
+The single-owner integration does not enable Model2's animation worker bit.
+
+Factories initialize original Prop/Model2/ShaderEffect/FFX and real glow passes.
+Partial FFX construction rolls back earlier shader-owning passes. Frames and their
+callbacks close before these owners; the global FFX effect detaches before its
+deletion. Model/cache/FFX owners close before scripts, images/fonts/device/context
+and files. The original `(0, 0)` stream query now returns the active shared stream
+without retiring its allocation. Queue scopes stay on the legacy object owner;
+native workers own staged bytes only. Optional model animation audio returns
+failure with a diagnostic until real audio is integrated.
+
+The device still advertises its qualified **94 shader registers and one texture
+unit**. Selecting model/material/FFX code or successfully constructing its shaders
+does not qualify model rendering, additional samplers or full scene effects.
+Original fog/glow XML is admitted through the real handlers. Integrated hidden
+screens/regions exceeded the old layout population: the bounded limit is now
+8,192 objects. Reading the original HTML then exposed the old 64-frame anchor
+bound; the supplied credits contain more than 1,000 chained text regions. Anchor
+paths are now bounded at 2,048, independently of the unchanged 64-level Frame
+parent graph. The image pixel budget remains 256 MiB.
+Original `.tga` image requests try the corresponding BLP basename unless exact
+suffix bit 3 is set; there is no TGA decoder, fallback pixel or substituted asset.
+
+Original SimpleHTML's locale files are a distinct read kind. The existing resolver
+and retained worker read explicit `Data/enUS/*.html` basenames, with an 8 MiB cap,
+case ambiguity and escaping-symlink rejection. Lua/XML/TOC bytes still come only
+from authenticated packages; the locale reader cannot supply interface scripts.
+As in original `CSimpleHTML::LoadXML`'s conditional `SFile::ReadFile`, a failed
+optional HTML read leaves the widget empty; clean data has no `termination.html`.
+The reader still returns failure, and no replacement bytes are generated.
+Both reference installations remain read-only. HTML content and game data are
+not copied into Git. Original ordered GlueXML/post-creation verification remains
+mandatory, and no credentials or server/Warden policy changes are involved.
+
+The existing `NativeStartupCheck` exercises real pooled ModelFFX construction,
+injected shader-construction rollback/retry, FogColor/glow XML, guarded original
+Lua model methods, Camera duplication, stream query identity, original M2 track
+relocation and invalid model initialization through the real instance/cache/shared
+read path. It verifies root retirement at owner shutdown. Its locale-file cases
+cover exact bytes, source-kind separation, missing/large/traversing/escaping and
+case-colliding files. HTML parser trees and temporary paragraph text now close
+when content creation throws, preserving the underlying error. Existing layout
+and image/hierarchy fixtures cover the new
+population bound, partial row rollback and BLP cache identity. These authored
+checks do not establish a rendered original model or complete login UI.
+
+The [durable record](integrated-model-render-validation.json) retains individual
+source/checkouts, jobs, artifact hashes, failures and downloaded desktop reports.
+Earlier reports below retain their own historical ModelFFX stop; they are not
+relabeled as results of this continuation.
+
+At implementation `e07f774147c865bf087ded33683ed28ddfa68cb3`, one release and
+three strict ASan/UBSan/leak-enabled original-data desktop executions authenticate
+28,948 archive records and 60 GlueXML visits, construct ModelFFX and reach
+`AccountLogin_OnLoad`. Each exits 1 at `AccountLogin.lua:15`: original Glue
+`GetBuildInfo` is not registered. Each reports zero workers after cleanup; no
+sanitizer finding occurs. **The full post-creation digest stays enabled and
+unreached.** No original model or complete login screen has been rendered.
+
+The corresponding four authored startup-check executions pass with empty stderr.
+Both hosted startup configurations pass. Linux GL release/strict configurations
+at `8e4f993ee0850c13674fea24460f50e63d52c7cc` each pass 38 CTest checks;
+four native layout configurations each pass 15 checks, including actual ARM64
+macOS and the 2,048 anchor bound. Full signature-enabled Windows x64 compilation
+passes at `dc0b0ca6937bba26092ba0dc070344c861303da0`. Later edits are confined
+to excluded native inputs or native conditional bodies; the record retains that
+earlier Windows identity and the unchanged-input proof. The final source audit
+passes separately. This is five selected workflows/ten jobs across their stated
+checkouts, not a claim that all fourteen workflows ran at the final head.
+
+Six downloaded archives, all 67 packaged executable hashes/types and their notices
+are verified. Current release/strict image and hierarchy fixtures each pass three
+original-data desktop cycles with empty stderr and zero workers. The GPU profile
+is RX 7900 XTX / Mesa 26.2.5 / SDL X11. An earlier strict hierarchy execution
+aborted on X11 `BadWindow`, then reported leaks during abrupt exit. Its symptoms
+and report digests remain recorded; three identical-binary repeats and the later
+matching checks pass without disabling detectors. The exact X11 cause was not
+captured. No new physical-input, Windows runtime, macOS graphics or server
+acceptance is established. PR #84 remains draft.
+
+Continue with the original Glue script service group reached by login OnLoad.
+Its `GlueScriptEvents_Scripts.cpp::Script_GetBuildInfo` returns **five** values:
+localized `VERSION`/`RELEASE_BUILD` labels, then the original version, build and
+date from `GameVersion.h`. The separate in-game API returns four values and is
+not this caller's contract. Preserve original service/state behavior and the
+mandatory creation digest as further calls become reachable. Then observe actual
+Model2/material/shader/FFX update and paint through the truthful device limits;
+factory success alone does not supply that rendering path.
 
 ## Model2 loading continuation — 2026-10-25
 
