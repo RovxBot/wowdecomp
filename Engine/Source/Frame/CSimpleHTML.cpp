@@ -579,7 +579,7 @@ void CSimpleHTML::LoadXML(XMLNode* node, CStatus* status) {
     if (file) {
         std::string path; std::vector<uint8_t> bytes;
         if (!FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Interface, file, path, bytes))
-            throw std::runtime_error("HTML file unavailable");
+            throw std::runtime_error(std::string("HTML file unavailable: ") + file);
         bytes.push_back(0);
         this->SetText(reinterpret_cast<const char*>(bytes.data()), status);
     }
