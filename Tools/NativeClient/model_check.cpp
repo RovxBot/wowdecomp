@@ -168,6 +168,10 @@ void Factory() {
                 assert(NativeLoginAlignmentText:GetFontObject():IsObjectType('Font'));
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
                 self:SetFrameLevel(20); assert(self:GetFrameLevel() == 20 and NativeLoginAlignmentClick:GetFrameLevel() == 21);
+                self:EnableKeyboard(true); self:EnableMouse(true); self:EnableMouseWheel(true);
+                assert(self:IsKeyboardEnabled() and self:IsMouseEnabled() and self:IsMouseWheelEnabled());
+                self:EnableKeyboard(false); self:EnableMouse(false); self:EnableMouseWheel(false);
+                assert(not self:IsKeyboardEnabled() and not self:IsMouseEnabled() and not self:IsMouseWheelEnabled());
                 assert(not pcall(self.SetFrameLevel,self,129) and not pcall(self.SetFrameLevel,self,-1));
                 assert(not pcall(self.SetFrameLevel,self,1e30) and self:GetFrameLevel() == 20);
             </OnLoad></Scripts></Frame>)";
