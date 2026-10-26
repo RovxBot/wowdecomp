@@ -122,6 +122,13 @@ void CM2Shared::LoadFailedCallback(void* param) {
 // VERIFY: df13c778 manual
 // OFFSET: 0x00835A20
 static void MakeAnimFileName(const char* fileName, uint32_t id, uint32_t variation, char* result) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const char* extension = std::strrchr(fileName, '.');
+    const auto prefix = extension ? size_t(extension - fileName) : std::strlen(fileName);
+    if (prefix >= 260) throw std::length_error("Native model member path exceeds original storage");
+    const auto length = std::snprintf(result, 260, "%.*s%04u-%02u.anim", int(prefix), fileName, id, variation);
+    if (length < 0 || length >= 260) throw std::length_error("Native model member suffix exceeds original storage");
+#else
     strcpy(result, fileName);
 
     char* extension = strrchr(result, '.');
@@ -131,11 +138,19 @@ static void MakeAnimFileName(const char* fileName, uint32_t id, uint32_t variati
     }
 
     sprintf(&result[strlen(result)], "%04d-%02d.anim", id, variation);
+#endif
 }
 
 // VERIFY: 90b40e33 manual
 // OFFSET: 0x00835A80
 static void MakeSkinFileName(const char* fileName, uint32_t profile, char* result) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const char* extension = std::strrchr(fileName, '.');
+    const auto prefix = extension ? size_t(extension - fileName) : std::strlen(fileName);
+    if (prefix >= 260) throw std::length_error("Native model member path exceeds original storage");
+    const auto length = std::snprintf(result, 260, "%.*s%02u.skin", int(prefix), fileName, profile);
+    if (length < 0 || length >= 260) throw std::length_error("Native model member suffix exceeds original storage");
+#else
     strcpy(result, fileName);
 
     char* extension = strrchr(result, '.');
@@ -145,6 +160,7 @@ static void MakeSkinFileName(const char* fileName, uint32_t profile, char* resul
     }
 
     sprintf(&result[strlen(result)], "%02d.skin", profile);
+#endif
 }
 
 // VERIFY: b5295fba manual

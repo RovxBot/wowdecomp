@@ -136,7 +136,7 @@ void Factory() {
     LoginWidgets widgets;
     {
         CSimpleTop root;
-        const char* document = "<ModelFFX name=\"NativeModelBoundary\"><Size x=\"64\" y=\"64\"/></ModelFFX>";
+        const char* document = "<ModelFFX name=\"NativeModelBoundary\" glow=\"0.25\" fogNear=\"0.1\" fogFar=\"100\"><Size x=\"64\" y=\"64\"/><FogColor r=\"1\" g=\"0\" b=\"0\" a=\"1\"/></ModelFFX>";
         std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
         Check(bool(tree), "Authored model XML failed to parse");
         CStatus status;
@@ -147,6 +147,9 @@ void Factory() {
         failShader = false;
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
+        Check((model->m_flags & CSimpleModel::MODEL_FOGGED) && model->m_fogColor.r == 255 &&
+            model->m_fogColor.g == 0 && model->m_fogNear == 0.1f && model->m_fogFar == 100.0f,
+            "Original model XML fog handler did not run");
         const auto errors = FrameScript::Native::ScriptErrorCount();
         FrameScript_Execute("NativeModelBoundary:ClearModel(); NativeModelBoundary:SetCamera(0); NativeModelBoundary:SetSequence(0); NativeModelBoundary:SetGlow(0.3); assert(NativeModelBoundary:GetModel()==nil); assert(not pcall(function() NativeModelBoundary:SetCamera(-1) end)); assert(not pcall(function() NativeModelBoundary:SetSequence(1e30) end)); assert(not pcall(function() NativeModelBoundary:SetSequenceTime(0,1e30) end)); assert(not pcall(function() NativeModelBoundary:SetGlow(2) end))", "native model contract", nullptr);
         Check(FrameScript::Native::ScriptErrorCount() == errors, "Original model Lua methods failed");

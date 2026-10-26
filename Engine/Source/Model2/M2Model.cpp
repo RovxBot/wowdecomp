@@ -3742,7 +3742,11 @@ M2BatchRange::M2BatchRange() {
 CM2Model::CM2Model() {
     this->m_scaleSq = 0.0f;
     this->m_refCount = 1;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_fFlags = 0x340;
+#else
     this->m_fFlags = (this->m_fFlags & 0xFF800000) | 0x340;
+#endif
     this->m_flags = 0;
     this->m_scenePrev = nullptr;
     this->m_sceneNext = nullptr;

@@ -133,8 +133,11 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
     }
     if (Is(tag, "Scripts") && (path.size() < 2 || !factories.Ptr(path[path.size()-2]->m_name.m_str)))
         throw std::invalid_argument("Native XML Scripts require a Frame parent");
+    if (Is(tag, "FogColor") && (path.size() < 2 ||
+        (!Is(path[path.size()-2]->m_name.m_str, "Model") && !Is(path[path.size()-2]->m_name.m_str, "ModelFFX"))))
+        throw std::invalid_argument("Native XML FogColor requires a model parent");
     // Fail before allocation for consumers with unselected ownership/services.
-    const char* supported[] = {"ScrollChild", "HitRectInsets", "StatusBar", "BarColor", "EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
+    const char* supported[] = {"FogColor", "ScrollChild", "HitRectInsets", "StatusBar", "BarColor", "EditBox", "HighlightColor", "MessageFrame", "TextInsets", "Button", "CheckButton", "NormalFont", "DisabledFont", "HighlightFont",
         "NormalColor", "DisabledColor", "HighlightColor", "PushedTextOffset", "Frame", "FontString", "TitleRegion", "Size", "Anchors", "Anchor", "Offset",
         "AbsDimension", "RelDimension", "Layers", "Layer", "Frames", "FontHeight", "AbsValue", "RelValue",
         "AbsInset", "RelInset", "Backdrop", "TileSize", "EdgeSize", "BackgroundInsets", "BorderColor", "Color", "Shadow", "Scripts", "ResizeBounds", "minResize", "maxResize", "Texture", "TexCoords", "Rect", "Gradient", "MinColor", "MaxColor"};
@@ -151,7 +154,7 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
         const char* key = attr.m_name.m_str;
         const char* value = attr.m_value.m_str;
         if (!value || !*value) continue;
-        const char* numeric[] = {"x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing", "left", "right", "top", "bottom", "ULx", "ULy", "LLx", "LLy", "URx", "URy", "LRx", "LRy", "displayDuration", "fadeDuration", "blinkSpeed", "minValue", "maxValue", "defaultValue"};
+        const char* numeric[] = {"glow", "fogNear", "fogFar", "x", "y", "val", "r", "g", "b", "a", "alpha", "depth", "spacing", "left", "right", "top", "bottom", "ULx", "ULy", "LLx", "LLy", "URx", "URy", "LRx", "LRy", "displayDuration", "fadeDuration", "blinkSpeed", "minValue", "maxValue", "defaultValue"};
         const char* integer[] = {"id", "bytes", "maxLines", "frameLevel", "letters", "historyLines"};
         bool integral = std::any_of(std::begin(integer), std::end(integer), [&](const char* s) { return Is(key, s); });
         if (integral || std::any_of(std::begin(numeric), std::end(numeric), [&](const char* s) { return Is(key, s); })) {
