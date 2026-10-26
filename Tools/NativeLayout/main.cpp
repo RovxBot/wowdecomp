@@ -150,12 +150,12 @@ static void InvalidInputs() {
     // Bounded dependency depth, including repeated anchors, without exponential walks.
     std::vector<std::unique_ptr<Layout>> chain;
     CLayoutFrame* previous=&root;bool bounded=false;
-    for(int i=0;i<70;++i) {
+    for(int i=0;i<2050;++i) {
         auto next=std::make_unique<Layout>();
         try { next->SetAllPoints(previous,0); } catch(const std::invalid_argument&) { bounded=true;break; }
         previous=next.get();chain.push_back(std::move(next));
     }
-    Check(bounded,"layout dependency depth is unbounded");
+    Check(chain.size()==2047 && bounded,"original HTML anchor depth or its bound changed");
     while(!chain.empty()) chain.pop_back();
 }
 static void XML() {

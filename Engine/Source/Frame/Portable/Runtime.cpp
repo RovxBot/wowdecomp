@@ -19,8 +19,9 @@ constexpr size_t NoFactory = std::numeric_limits<size_t>::max();
 size_t factoryCallbackDepth = NoFactory;
 std::unordered_set<CFramePoint*> points;
 // Ordered original Glue creation retains hidden screens and their regions too.
-// Keep metadata bounded independently of anchor depth and image pixel storage.
-constexpr size_t MaxFrames = 8192, MaxDepth = 64;
+// Original HTML credits chain more than 1,000 paragraphs through prior regions.
+// Bound anchor dependencies separately from the 64-level Frame parent graph.
+constexpr size_t MaxFrames = 8192, MaxDepth = 2048;
 size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
              std::unordered_set<CLayoutFrame*>& active,
              std::unordered_map<CLayoutFrame*, size_t>& memo) {
