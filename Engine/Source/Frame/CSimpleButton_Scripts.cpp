@@ -664,7 +664,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetPushedTextOffset", &Frame::Native::ScriptMethod<&Script_GetPushedTextOffset, true, false> },
     { "GetTextWidth", &Frame::Native::ScriptMethod<&Script_GetTextWidth, true, false> },
     { "GetTextHeight", &Frame::Native::ScriptMethod<&Script_GetTextHeight, true, false> },
-    { "RegisterForClicks", &Frame::Native::ScriptMethod<&Script_RegisterForClicks> },
+    { "RegisterForClicks", &Frame::Native::ScriptMethod<&Script_RegisterForClicks, true, false, true> },
     { "Click", &Frame::Native::ScriptMethod<&Script_Click, false, false> },
     { "LockHighlight", &Frame::Native::ScriptMethod<&Script_LockHighlight, true, false, true> },
     { "UnlockHighlight", &Frame::Native::ScriptMethod<&Script_UnlockHighlight, true, false, true> },

@@ -122,11 +122,13 @@ void Validate(XMLNode* node, std::vector<XMLNode*>& path, size_t& visits) {
             "OnEnterPressed", "OnEscapePressed", "OnSpacePressed", "OnTabPressed", "OnTextChanged", "OnTextSet", "OnCursorChanged", "OnInputLanguageChanged", "OnEditFocusGained", "OnEditFocusLost", "OnCharComposition",
             "OnValueChanged", "OnMinMaxChanged", "OnEnable", "OnDisable", "PreClick", "OnClick", "PostClick", "OnDoubleClick",
             "OnHorizontalScroll", "OnVerticalScroll", "OnScrollRangeChanged", "OnHyperlinkEnter", "OnHyperlinkLeave", "OnHyperlinkClick",
-            "OnUpdateModel", "OnAnimFinished"};
+            "OnUpdateModel", "OnAnimFinished", "OnMovieFinished", "OnMovieShowSubtitle", "OnMovieHideSubtitle"};
         const bool buttonHandler = Is(tag, "PreClick") || Is(tag, "OnClick") ||
                                    Is(tag, "PostClick") || Is(tag, "OnDoubleClick");
         const bool modelHandler = Is(tag, "OnUpdateModel") || Is(tag, "OnAnimFinished");
+        const bool movieHandler = Is(tag, "OnMovieFinished") || Is(tag, "OnMovieShowSubtitle") || Is(tag, "OnMovieHideSubtitle");
         if ((buttonHandler && (path.size() < 3 || !IsButton(path[path.size()-3]->m_name.m_str))) ||
+            (movieHandler && (path.size() < 3 || !Is(path[path.size()-3]->m_name.m_str, "MovieFrame"))) ||
             (modelHandler && (path.size() < 3 ||
                 (!Is(path[path.size()-3]->m_name.m_str, "Model") && !Is(path[path.size()-3]->m_name.m_str, "ModelFFX")))) ||
             std::none_of(std::begin(scripts), std::end(scripts), [&](const char* s) { return Is(tag, s); }) ||

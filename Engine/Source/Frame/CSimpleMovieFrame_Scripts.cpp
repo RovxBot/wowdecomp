@@ -6,6 +6,9 @@
 #include "Engine/Source/FrameXML/LoadXML.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 
 // INLINED
 void CSimpleMovieFrame::CreateScriptMetaTable() {
@@ -28,6 +31,11 @@ static int32_t Script_StartMovie(lua_State* L) {
         luaL_error(L, "Usage: %s:StartMovie(\"filename\", volume_0_to_255)", name ? name : "<unnamed>");
         return 0;
     }
+
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 3) < 0 || lua_tonumber(L, 3) > 255)
+        return luaL_error(L, "Native movie volume must be in [0, 255]");
+#endif
 
     if (movieFrame->StartMovie(lua_tolstring(L, 2, nullptr), lua_tointeger(L, 3))) {
         lua_pushnumber(L, 1.0);
@@ -58,9 +66,15 @@ static int32_t Script_EnableSubtitles(lua_State* L) {
 
 // STATIC: 0x00B2CD30
 static FrameScript_Method s_ScriptMethods[] = {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    { "StartMovie", &Frame::Native::ScriptMethod<Script_StartMovie, true, false, true> },
+    { "StopMovie", &Frame::Native::ScriptMethod<Script_StopMovie, true, false, true> },
+    { "EnableSubtitles", &Frame::Native::ScriptMethod<Script_EnableSubtitles, true, false, true> },
+#else
     { "StartMovie", &Script_StartMovie },
     { "StopMovie", &Script_StopMovie },
     { "EnableSubtitles", &Script_EnableSubtitles },
+#endif
 };
 
 // VERIFY: eda0e55c auto

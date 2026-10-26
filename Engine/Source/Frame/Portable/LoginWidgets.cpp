@@ -3,6 +3,7 @@
 #include "WoW/Source/Glue/Portable/Models.h"
 #include "Scripts.h"
 #include "Engine/Source/Frame/CSimpleHTML.h"
+#include "Engine/Source/Frame/CSimpleMovieFrame.h"
 #include "Engine/Source/Frame/CSimpleScrollFrame.h"
 #include "Engine/Source/Frame/CSimpleSlider.h"
 #include "Engine/Source/FrameXML/Portable/Factories.h"
@@ -28,9 +29,11 @@ LoginWidgets::LoginWidgets() {
     CSimpleHTML::CreateScriptMetaTable();
     CSimpleScrollFrame::CreateScriptMetaTable();
     CSimpleSlider::CreateScriptMetaTable();
+    CSimpleMovieFrame::CreateScriptMetaTable();
     FrameXML::Native::RegisterLoginFactory("SimpleHTML", Create<CSimpleHTML>);
     FrameXML::Native::RegisterLoginFactory("ScrollFrame", Create<CSimpleScrollFrame>);
     FrameXML::Native::RegisterLoginFactory("Slider", Create<CSimpleSlider>);
+    FrameXML::Native::RegisterLoginFactory("MovieFrame", Create<CSimpleMovieFrame>);
     GlueNative::RegisterModels();
     SetScrollNotify(ScrollChanged);
 }
@@ -39,6 +42,7 @@ LoginWidgets::~LoginWidgets() {
         RequireNoScripts();
         SetScrollNotify(nullptr);
         GlueNative::UnregisterModels();
+        CSimpleMovieFrame::DestroyScriptMetaTable();
         CSimpleSlider::DestroyScriptMetaTable();
         CSimpleScrollFrame::DestroyScriptMetaTable();
         CSimpleHTML::DestroyScriptMetaTable();

@@ -5,7 +5,9 @@
 #include "Engine/Source/Frame/Portable/Render.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CSimpleModel.h"
+#include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleHTML.h"
+#include "Engine/Source/Frame/CSimpleMovieFrame.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
@@ -158,7 +160,7 @@ void Factory() {
         CSimpleTop root;
         {
             Frame::Native::LoadScriptEdits load;
-            const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Scripts><OnLoad>
+            const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Frames><Button name="$parentClick"><Scripts><OnLoad>self:RegisterForClicks('LeftButtonDown','LeftButtonUp')</OnLoad></Scripts></Button></Frames><Scripts><OnLoad>
                 NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
             </OnLoad></Scripts></Frame>)";
@@ -168,6 +170,9 @@ void Factory() {
             std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
             Check(frame && FrameScript::Native::ScriptErrorCount() == errors,
                 "Original login OnLoad could not change FontString alignment inside the scoped load");
+            auto* button = static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeLoginAlignmentClick", CSimpleButton::GetObjectType()));
+            Check(button && button->m_clickAction == (CLICK_ON_LEFTDOWN | CLICK_ON_LEFTUP),
+                "Original character screen OnLoad could not register both click edges");
         }
         {
             const char* document = "<SimpleHTML name=\"NativeOptionalHtml\" file=\"missing.html\"/>";
@@ -176,6 +181,29 @@ void Factory() {
             std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
             auto* html = dynamic_cast<CSimpleHTML*>(frame.get());
             Check(html && decltype(html->m_content)::IsEnd(html->m_content.Head()), "Absent optional HTML did not preserve the original empty widget");
+        }
+        {
+            const char* document = R"(<MovieFrame name="NativeInactiveMovie" hidden="true"><Scripts>
+                <OnMovieFinished>NativeMovieFinished=true</OnMovieFinished>
+                <OnMovieShowSubtitle>NativeMovieSubtitle=text</OnMovieShowSubtitle>
+                <OnMovieHideSubtitle>NativeMovieSubtitle=nil</OnMovieHideSubtitle>
+            </Scripts></MovieFrame>)";
+            std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
+            CStatus status;
+            std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
+            auto* movie = dynamic_cast<CSimpleMovieFrame*>(frame.get());
+            Check(movie && !movie->m_isPlaying && !movie->m_sound.m_internal && movie->m_onMovieFinished.m_luaRef,
+                "Original inactive MovieFrame identity or callback ownership failed");
+            const auto errors = FrameScript::Native::ScriptErrorCount();
+            FrameScript_Execute(R"(
+                assert(NativeInactiveMovie:IsObjectType('MovieFrame') and NativeInactiveMovie:HasScript('OnMovieShowSubtitle'))
+                NativeInactiveMovie:EnableSubtitles(true)
+                assert(NativeInactiveMovie:StartMovie('unavailable-native-movie', 100) == nil)
+                assert(not pcall(NativeInactiveMovie.StartMovie,NativeInactiveMovie,'invalid',1e30))
+                NativeInactiveMovie:StopMovie(); assert(NativeMovieFinished == nil)
+            )", "native movie explicit unavailability", nullptr);
+            Check(FrameScript::Native::ScriptErrorCount() == errors && movie->m_subtitlesEnabled && !movie->m_isPlaying,
+                "Native MovieFrame fabricated playback or a finished callback");
         }
         // An unavailable image must unwind the HTML parser's borrowed tree;
         // otherwise XML owner shutdown terminates and hides the real error.

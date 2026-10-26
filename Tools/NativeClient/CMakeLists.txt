@@ -8,6 +8,8 @@ add_library(WowNativeStartup STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleSlider.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleSlider_Scripts.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/Portable/LoginWidgets.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/Portable/MovieFrame.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Frame/CSimpleMovieFrame_Scripts.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/GlueMgr.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/ConsoleBase/ConsoleVar.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/ConsoleBase/ConsoleCommand.cpp
