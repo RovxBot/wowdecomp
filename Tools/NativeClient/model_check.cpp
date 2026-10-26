@@ -192,7 +192,7 @@ void Factory() {
                 NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
                 NativeLoginAlignmentText:SetFontObject('NativeTooltipFont');
                 NativeLoginAlignmentText:SetTextColor(1,0,0,.5); NativeLoginAlignmentText:SetVertexColor(0,1,0);
-                local r,g,b,a=NativeLoginAlignmentText:GetTextColor(); assert(r==0 and g>.99 and b==0 and a>.49 and a<.51);
+                local r,g,b,a=NativeLoginAlignmentText:GetTextColor(); assert(r==0 and g>.99 and b==0 and a>.49 and .51>a);
                 assert(NativeLoginAlignmentText:GetFontObject():IsObjectType('Font'));
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
                 self:SetFrameLevel(20); assert(self:GetFrameLevel() == 20 and NativeLoginAlignmentClick:GetFrameLevel() == 21);
@@ -211,6 +211,7 @@ void Factory() {
             </OnLoad></Scripts></Frame>)";
             std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
             CStatus status;
+            Check(bool(tree), "Authored login OnLoad XML failed to parse");
             const auto errors = FrameScript::Native::ScriptErrorCount();
             std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
             Check(frame && FrameScript::Native::ScriptErrorCount() == errors,
