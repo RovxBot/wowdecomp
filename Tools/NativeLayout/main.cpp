@@ -180,13 +180,24 @@ static void XML() {
     }
     CoordinateSetAspectRatio(4.0f/3.0f);
 }
+static void Capacity() {
+    // Actual signed Glue creation exceeded the initial 1,024-object surface.
+    // This metadata fixture has no anchors, scripts, images or replacement UI.
+    std::vector<std::unique_ptr<Layout>> frames;
+    for (size_t i = 0; i < 8192; ++i) frames.push_back(std::make_unique<Layout>());
+    Reject([] { auto excessive = std::make_unique<Layout>(); });
+    frames.pop_back();
+    frames.push_back(std::make_unique<Layout>());
+    frames.clear();
+    RequireNoObjects();
+}
 int main() {
     try {
         for(int cycle=0;cycle<3;++cycle) {
             FrameScript::Native::Runtime scripts([](auto,const auto&,auto&){return false;});
             FrameXML::Native::Runtime xml;
             { Frame::Native::Runtime layout;
-              Anchors();Dependencies();InvalidInputs();XML();CLayoutFrame::ResizePending();RequireNoObjects(); }
+              Anchors();Dependencies();InvalidInputs();XML();Capacity();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");
             std::cout<<"Original layout/anchor/XML cycle "<<cycle+1<<" passed\n";

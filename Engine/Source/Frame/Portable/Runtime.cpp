@@ -18,8 +18,9 @@ size_t callbacks = 0, loadScriptEdits = 0;
 constexpr size_t NoFactory = std::numeric_limits<size_t>::max();
 size_t factoryCallbackDepth = NoFactory;
 std::unordered_set<CFramePoint*> points;
-// Initial bounded layout surface; larger graphs require separate qualification.
-constexpr size_t MaxFrames = 1024, MaxDepth = 64;
+// Ordered original Glue creation retains hidden screens and their regions too.
+// Keep metadata bounded independently of anchor depth and image pixel storage.
+constexpr size_t MaxFrames = 8192, MaxDepth = 64;
 size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
              std::unordered_set<CLayoutFrame*>& active,
              std::unordered_map<CLayoutFrame*, size_t>& memo) {
