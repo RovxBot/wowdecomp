@@ -396,18 +396,15 @@ static int32_t Script_SetFrameStrata(lua_State* L) {
 
 // VERIFY: afff24c6 manual
 // OFFSET: 0x0049E980
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_level);
     return 1;
 }
-#endif
 
 // VERIFY: 2dedbf38 manual
 // OFFSET: 0x0049E9D0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -425,6 +422,10 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 2) < -2147483648.0 || lua_tonumber(L, 2) >= 2147483648.0)
+        return luaL_error(L, "Native Frame level must fit the original integer range");
+#endif
     int32_t level = static_cast<int32_t>(lua_tonumber(L, 2));
 
     if (level < 0) {
@@ -436,7 +437,6 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
     frame->SetFrameLevel(level, 1);
     return 0;
 }
-#endif
 
 // VERIFY: 24a44dfc auto
 // OFFSET: 0x0049EAB0
@@ -2152,8 +2152,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetChildren", &Frame::Native::ScriptMethod<&Script_GetChildren, true, false> },
     { "GetFrameStrata", &Frame::Native::UnavailableScriptMethod },
     { "SetFrameStrata", &Frame::Native::UnavailableScriptMethod },
-    { "GetFrameLevel", &Frame::Native::UnavailableScriptMethod },
-    { "SetFrameLevel", &Frame::Native::UnavailableScriptMethod },
+    { "GetFrameLevel", &Frame::Native::ScriptMethod<&Script_GetFrameLevel, true, false> },
+    { "SetFrameLevel", &Frame::Native::ScriptMethod<&Script_SetFrameLevel, true, false, true> },
     { "HasScript", &Frame::Native::ScriptMethod<&Script_HasScript, true, false> },
     { "GetScript", &Frame::Native::ScriptMethod<&Script_GetScript, true, false> },
     { "SetScript", &Frame::Native::ScriptMethod<&Script_SetScript, true, false> },

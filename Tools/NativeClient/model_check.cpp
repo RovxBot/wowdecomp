@@ -163,6 +163,9 @@ void Factory() {
             const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Frames><Button name="$parentClick"><Scripts><OnLoad>self:RegisterForClicks('LeftButtonDown','LeftButtonUp')</OnLoad></Scripts></Button></Frames><Scripts><OnLoad>
                 NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
+                self:SetFrameLevel(20); assert(self:GetFrameLevel() == 20 and NativeLoginAlignmentClick:GetFrameLevel() == 21);
+                assert(not pcall(self.SetFrameLevel,self,129) and not pcall(self.SetFrameLevel,self,-1));
+                assert(not pcall(self.SetFrameLevel,self,1e30) and self:GetFrameLevel() == 20);
             </OnLoad></Scripts></Frame>)";
             std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
             CStatus status;
