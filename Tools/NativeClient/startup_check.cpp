@@ -116,7 +116,7 @@ void GlueServices() {
     { std::ofstream file(config); file << "SET accountName \"saved fixture\"\n"; }
     ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
     struct Console { ~Console() { CVar::Destroy(); ConsoleCommandDestroy(); } } console;
-    GlueNative::RegisterConsoleVariables();
+    GlueNative::InitializeScriptServices(2);
     GlueScriptEventsRegisterFunctions();
     struct Scripts { ~Scripts() { GlueScriptEventsUnregisterFunctions(); } } scripts;
     auto* option = CVar::Register("glueFixture", "fixture", 0, "7", nullptr, 0, false, nullptr, false);
@@ -131,6 +131,7 @@ void GlueServices() {
         assert(version == ')lua" GAME_VERSION R"lua(' and build == ')lua" GAME_BUILD_STRING R"lua(' and date == ')lua" GAME_BUILD_DATE R"lua(');
         VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
         assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
+        assert(GetClientExpansionLevel() == 3);
         assert(IsWindowsClient() == nil and IsMacClient() == nil);
         assert(GetSavedAccountName() == 'saved fixture');
         SetSavedAccountName('changed fixture'); assert(GetSavedAccountName() == 'changed fixture');
@@ -154,6 +155,17 @@ void GlueServices() {
     FrameScript_Execute("QuitGame()", "native Glue close fixture", nullptr);
     Check(EventNative::Closing(), "Glue QuitGame did not close the native Event owner");
     EventDestroy();
+    FrameScript_Execute("retainedGlueQuery = GetSavedAccountName", "retain Glue closure", nullptr);
+    GlueScriptEventsUnregisterFunctions();
+    FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery))", "closed Glue closure", nullptr);
+    Check(FrameScript::Native::ScriptErrorCount() == errors, "Retained Glue closure used a closed CVar owner");
+    for (uint8_t expansion : {0, 1, 2}) {
+        GlueNative::InitializeScriptServices(expansion);
+        GlueScriptEventsRegisterFunctions();
+        lua_getglobal(s_context, "GetClientExpansionLevel"); lua_call(s_context, 0, 1);
+        Check(lua_tonumber(s_context, -1) == expansion + 1, "Installed expansion query changed"); lua_pop(s_context, 1);
+        GlueScriptEventsUnregisterFunctions();
+    }
 }
 void HtmlFiles() {
     const auto directory = std::filesystem::temp_directory_path() /

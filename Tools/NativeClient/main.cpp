@@ -160,11 +160,11 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     });
     Frame::Native::Scripts scripts;
     Frame::Native::LoginWidgets widgets;
+    GlueNative::InitializeScriptServices(source.packages->ExpansionLevel());
+    GlueScriptEventsRegisterFunctions();
+    struct GlueScripts { ~GlueScripts() { GlueScriptEventsUnregisterFunctions(); } } glueScripts;
     {
         CSimpleTop root;
-        GlueNative::RegisterConsoleVariables();
-        GlueScriptEventsRegisterFunctions();
-        struct GlueScripts { ~GlueScripts() { GlueScriptEventsUnregisterFunctions(); } } glueScripts;
         GlueScriptEventsInitialize();
         CharSelectRegisterScriptFunctions();
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);

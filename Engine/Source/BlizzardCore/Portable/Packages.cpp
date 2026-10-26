@@ -112,6 +112,9 @@ std::shared_ptr<Packages> Packages::Open12340(const File::Native::Paths& paths, 
     std::vector<std::string> expansions;
     for (const auto& name : {"alternate", "expansion", "lichking"})
         if (open(std::string(name) + ".MPQ", priority, false)) { expansions.push_back(name); ++priority; }
+    // Client.cpp::OpenArchives (12340): lichking takes precedence, then expansion.
+    result->expansionLevel = std::find(expansions.begin(), expansions.end(), "lichking") != expansions.end() ? 2 :
+        std::find(expansions.begin(), expansions.end(), "expansion") != expansions.end() ? 1 : 0;
     for (const auto& patch : patchArchives)
         for (const auto& expansion : expansions) result->Mount(patch, priority++, expansion);
     // Complete retail data (CheckDataFilesExist -> availability=2). Legacy split
