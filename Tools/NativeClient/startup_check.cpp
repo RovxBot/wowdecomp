@@ -21,6 +21,7 @@
 #include "WoW/Source/Glue/GlueMgr.h"
 #include "WoW/Source/Glue/Portable/ScriptServices.h"
 #include "GameVersion.h"
+#include "Engine/Source/Frame/Portable/Runtime.h"
 #include <stdexcept>
 #include <vector>
 void CheckNativeModelIO();
@@ -110,6 +111,7 @@ void GlueServices() {
     struct Remove { std::filesystem::path path; ~Remove() { std::filesystem::remove_all(path); } } remove{directory};
     FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, std::vector<uint8_t>&) { return false; });
     FrameXML::Native::Runtime xml;
+    Frame::Native::Runtime layout; // Original StringToBOOL shares the font/XML owner.
     const auto config = (directory / "Config.wtf").string();
     { std::ofstream file(config); file << "SET accountName \"saved fixture\"\n"; }
     ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
