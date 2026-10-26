@@ -1019,7 +1019,7 @@ void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority)
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
     if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
 #endif
@@ -1045,7 +1045,7 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType)
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
 #endif
     if (!((1 << eventType) & this->m_enabledEventsBitmask)) {

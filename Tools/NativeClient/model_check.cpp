@@ -180,7 +180,7 @@ void Factory() {
             const auto errors = FrameScript::Native::ScriptErrorCount();
             std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
             Check(frame && FrameScript::Native::ScriptErrorCount() == errors,
-                "Original login OnLoad could not change FontString alignment inside the scoped load");
+                ("Original login OnLoad state contracts failed: " + FrameScript::Native::LastScriptError()).c_str());
             auto* button = static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("NativeLoginAlignmentClick", CSimpleButton::GetObjectType()));
             Check(button && button->m_clickAction == (CLICK_ON_LEFTDOWN | CLICK_ON_LEFTUP),
                 "Original character screen OnLoad could not register both click edges");
