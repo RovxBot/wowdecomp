@@ -26,6 +26,7 @@
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/CharacterCreation.h"
 #include "WoW/Source/Ui/VideoOptions.h"
+#include "WoW/Source/SoundInterface/SoundInterface2.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cfenv>
@@ -166,6 +167,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     GlueScriptEventsRegisterFunctions();
     struct GlueScripts {
         ~GlueScripts() {
+            SI2::UnregisterScriptFunctions();
             CGVideoOptions::UnregisterScriptFunctions();
             CharacterCreateUnregisterScriptFunctions();
             CharSelectUnregisterScriptFunctions();
@@ -178,6 +180,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         CharSelectRegisterScriptFunctions();
         CharacterCreateRegisterScriptFunctions();
         CGVideoOptions::RegisterScriptFunctions();
+        SI2::RegisterScriptFunctions();
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();

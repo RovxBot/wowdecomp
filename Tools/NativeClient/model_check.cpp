@@ -35,6 +35,7 @@
 #include "WoW/Source/Glue/CSimpleModelFFX.h"
 #include "WoW/Source/Glue/Portable/Startup.h"
 #include "WoW/Source/Ui/VideoOptions.h"
+#include "WoW/Source/SoundInterface/SoundInterface2.h"
 #include <cstring>
 #include <filesystem>
 #include <chrono>
@@ -160,12 +161,20 @@ void Factory() {
     Scripts scripts;
     LoginWidgets widgets;
     CGVideoOptions::RegisterScriptFunctions();
+    SI2::RegisterScriptFunctions();
+    struct SoundScripts { ~SoundScripts() { SI2::UnregisterScriptFunctions(); } } soundScripts;
     struct VideoScripts { ~VideoScripts() { CGVideoOptions::UnregisterScriptFunctions(); } } videoScripts;
     {
         CSimpleTop root;
         {
             const auto errors = FrameScript::Native::ScriptErrorCount();
             FrameScript_Execute(R"(
+                assert(Sound_GameSystem_GetNumOutputDrivers()==0 and Sound_GameSystem_GetNumInputDrivers()==0)
+                assert(Sound_ChatSystem_GetNumOutputDrivers()==0 and Sound_ChatSystem_GetNumInputDrivers()==0)
+                assert(Sound_GameSystem_GetOutputDriverNameByIndex(0)=='' and Sound_ChatSystem_GetInputDriverNameByIndex(0)=='')
+                assert(not pcall(Sound_GameSystem_GetOutputDriverNameByIndex,1e30))
+                assert(not pcall(Sound_ChatSystem_GetInputDriverNameByIndex,{}))
+                assert(PlaySoundFile==nil and Sound_GameSystem_RestartSoundSystem==nil)
                 assert(select('#',GetMultisampleFormats()) == 3)
                 local color,depth,samples=GetMultisampleFormats()
                 assert(color==24 and depth==24 and samples==1 and GetCurrentMultisampleFormat()==1)
