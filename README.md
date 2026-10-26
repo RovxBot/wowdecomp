@@ -26,13 +26,13 @@ A playable native Linux or macOS client is still in development.**
 | **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
 
-The Actions-built `WowNativeClient` now constructs the original **ModelFFX
-AccountLogin** factory using original Model2, Camera, ShaderEffect and FFX sources.
-Clean-data startup now reaches `AccountLogin_OnLoad` and stops because the original
-Glue `GetBuildInfo` function is not registered. Locale HTML reads and their layout
-chains are connected. Startup integration continues through the original services;
-the model/animation/material/FFX rendering path remains unfinished. The full
-post-creation digest check stays enabled and has not been reached. See
+The Actions-built `WowNativeClient` constructs the original **ModelFFX
+AccountLogin** factory and now completes the original ordered GlueXML creation
+with a matching full post-creation digest. Original build/account/CVar services,
+character model bindings, locale HTML and video/audio option queries are connected.
+Activation currently stops at unregistered `SetGamma`. Login and
+model/animation/material/FFX rendering remain unfinished;
+there is no native audio/movie backend or authentication/gameplay result. See
 [integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
 
 Linux diagnostic applications can already display original resources and exercise

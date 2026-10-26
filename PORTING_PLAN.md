@@ -100,10 +100,13 @@ milestone; full native startup/login/gameplay remain unestablished.
    Model/ModelFFX, Model2 scene/cache/shared loading, Camera, ShaderEffect and FFX
    sources. Factory and failure-path checks do not establish original model or
    login rendering; retain the [integrated execution record](docs/m3/INTEGRATED_CLIENT.md).
-   Current clean-data execution reaches `AccountLogin_OnLoad` and stops at the
-   missing original Glue `GetBuildInfo` registration. Connect the reached original
-   script services next, then observe Model2/material/FFX paint. The full creation
-   digest remains enabled and unreached; M3 stays open.
+   Clean-data execution now completes ordered GlueXML creation and matches the
+   full post-creation digest. Original Glue build/account/CVar services, typed
+   model/movie callbacks and actual video/no-audio-backend queries are connected;
+   see the [service continuation and exact stop](docs/m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26).
+   Continue original login activation, then observe Model2/material/FFX paint.
+   Audio/movie playback and graphics-option application remain unavailable;
+   M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,
    retaining archive/member verification and the full post-creation interface
    digest comparison. Render the actual original login screen, exercise its input

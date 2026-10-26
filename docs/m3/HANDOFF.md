@@ -8,17 +8,19 @@ next-caller ordering below is historical. Existing evidence, lifetime correction
 Actions-only compilation, signatures, read-only data and unchanged server policy
 remain applicable; this planning update establishes no new runtime result.
 
-PR #84 now selects the original Model/ModelFFX, Model2 scene/cache/shared loading,
-Camera, ShaderEffect and FFX callers in the integrated Linux target. The original
-factory is reached and constructed; original model/login rendering remains
-unfinished. Current release/three strict original-data runs stop in
-`AccountLogin_OnLoad` at the unregistered five-result Glue `GetBuildInfo` API,
-with zero workers and no sanitizer finding. Post-creation verification stays
-enabled and unreached. Read the [current integrated contracts and observed stop](INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26)
-and [separate validation record](integrated-model-render-validation.json) before
-continuing. Keep authored factory/loading checks separate from actual startup.
-The full ordered creation digest remains enabled; no login/gameplay completion,
-physical-input acceptance or server-policy change follows from this batch.
+PR #84 selects original Model/ModelFFX, Model2 scene/cache/shared loading,
+Camera, ShaderEffect and FFX callers in the integrated Linux target. Original
+Glue build/account/CVar and option-query services now complete ordered original
+GlueXML creation with a matching full post-creation digest. Login activation now
+stops at `*:OnValueChanged` calling unregistered `SetGamma`;
+display gamma and model/material/FFX rendering remain unfinished. Read the
+[current integrated contracts and observed stop](INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+and [service validation](integrated-glue-services-validation.json) before continuing.
+Keep the [historical ModelFFX record](integrated-model-render-validation.json)
+and its earlier GetBuildInfo stop/draft state attached to their exact sources.
+Authored factory/color/loading checks do not establish actual login rendering or
+authentication. Audio/movie backends and option application remain unavailable.
+Signatures, interactive sign-in, read-only data and server/Warden policy remain.
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client

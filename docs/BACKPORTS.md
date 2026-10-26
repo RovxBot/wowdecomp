@@ -837,6 +837,30 @@ and source inspection are different evidence levels.
   and [the integrated contract](m3/INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26).
   Authored checks stay separate from observed original-data startup.
 
+## NP-027 — Original Glue services and complete ordered creation
+
+- Reference: this checkout's original GlueScriptEvents, CharacterSelection,
+  VideoOptions, SoundInterface2 and Frame script sources; the pinned
+  [Apple startup review](m3/APPLE_STARTUP_REVIEW.md) was consulted. No donor source,
+  dependencies or notices were imported.
+- Benefit/adaptation: five-result Glue build info, original account/CVar and
+  installed-expansion services, typed ModelFFX bindings/callbacks, inactive movie
+  lifecycle, scoped load-state edits, original FontString justification/color,
+  and options queries connect through existing owners. Integrated frame levels
+  use a bounded 512 budget; component default 128, original positive step 128,
+  parent depth 64, anchors 2,048 and population 8,192 remain distinct.
+- Limits: graphics queries expose the installed format/caps and original fallback
+  resolution list; option application remains unavailable. Audio has no backend:
+  zero drivers, failed name reads, preferences only. Movie start returns failure
+  without frames/audio/finished events. No rendering capability, authentication,
+  agreement acceptance or server/Warden policy is fabricated.
+- Validation: original-data creation now passes the full ordered digest gate.
+  Startup, native layout, GPU and Windows checks retain their exact checkout
+  identities and source-input proofs. Authored glyph/color/frame checks are
+  separate from integrated login/model rendering, which remains unfinished. See
+  [contracts](m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+  and [evidence, failures and observed stop](m3/integrated-glue-services-validation.json).
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

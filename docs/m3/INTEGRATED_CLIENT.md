@@ -8,11 +8,13 @@ All compilation runs in Actions; Windows remains a separate regression target.
 **Login rendering is incomplete.** The [original model factory continuation](#original-model-factory-continuation--2026-10-26)
 selects actual Model/ModelFFX, Model2 scene/cache/shared loading, Camera,
 ShaderEffect and FFX sources. Downloaded execution now passes the ModelFFX
-factory and exposes subsequent original AccountLogin dependencies. Its
+factory. The [Glue service continuation](#original-glue-service-continuation--2026-10-26)
+now completes original ordered creation and matches the mandatory post-creation
+digest; login activation and rendering remain open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
-The earlier downloaded release and three strict
+The initial integration record below is historical. Its release and three strict
 ASan/UBSan/leak executions at implementation
 `5a4c2d2f03a58403e5085c620e6b8cd8389a861a` (Actions checkout
 `86abd713d7469162f4cd8f93c926fdadf28d65db`, matching tree
@@ -124,6 +126,114 @@ backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
+
+## Original Glue service continuation — 2026-10-26
+
+The integrated target selects the reached original Glue script services through
+its existing FrameScript, CVar, file, Frame and Event owners. Glue `GetBuildInfo`
+returns the five original results: localized `VERSION` and `RELEASE_BUILD`, then
+`GAME_VERSION`, `GAME_BUILD_STRING` and `GAME_BUILD_DATE`. The separate world API
+keeps its four-result contract. The saved-account/list/token queries and setters,
+CVar value/default/bounds queries and setter retain original argument handling,
+read-only failures and number/nil/boolean distinctions. Unknown CVars still fail;
+no synthetic option values are generated.
+
+Installed expansion is derived from successfully mounted `lichking.MPQ` or
+`expansion.MPQ`, in that precedence order. Glue returns the original installed
+level plus one; it does not claim an account entitlement. The target still selects
+enUS and complete local retail packages. Streaming/trial queries reflect that
+actual file adapter. Settings stay in the external CVar owner. Retained Lua
+service closures reject access after unregistration or CVar shutdown. Frames close
+before Glue/character function unregistration, which clears borrowed character
+model-frame bindings before model/service teardown.
+
+Original character-selection/customization frame setters use the canonical live
+object lookup and actual ModelFFX objects. Model `OnUpdateModel`/`OnAnimFinished`
+and MovieFrame's three movie handlers are admitted only on their corresponding
+XML parent types. The inactive original MovieFrame identity, pooled lifecycle,
+script callbacks and subtitle setting are selected. **Native movie playback is
+unavailable:** `StartMovie` returns failure/nil with an explicit diagnostic and
+never creates a decoder, sound resource, video frame or finished event. There is
+no FMOD or Windows decoder implementation linked by this surface.
+
+The original FontString justification and vertex/text-color functions now feed
+the existing Gxu text layout/cache. Color changes retain original conversion,
+alpha omission and font-override semantics. Tooltip font assignment, click registration, keyboard/mouse/wheel
+enablement and frame-level APIs use the existing scoped load-state admission.
+Normal traversal, rendering, callback destruction and canonical-object guards
+remain enabled. The source continues to use original Lua/XML bytes; these changes
+do not substitute an authored login screen.
+
+The selected original video-option queries read the installed Gx format and
+capabilities. Only its actual 24-color-bit/24-depth-bit, single-sample drawable is
+listed as a multisample format. Monitor enumeration remains unavailable: the
+original resolution fallback list is used and refresh enumeration returns no
+rates. Original graphics/world/component preferences and original gamma/terrain-mip
+queries are registered; option application and device
+restart are unselected. Queries retain the real 94-register/one-TMU device limits.
+
+Original sound preferences and the eight game/chat driver queries are selected.
+There is no native audio backend. The original no-system contract returns zero
+drivers and failed name reads, exposed as empty strings by the original wrappers.
+Startup reports `native-unavailable=audio-backend`. Saved/default option values
+are preferences, not active hardware settings; backend callbacks, playback,
+restart and capture are unselected. No devices, playback success or movie-finished
+events are fabricated. There are no new dependencies or donor imports.
+
+The original security-matrix templates request `frameLevel="200"`. The existing
+layout owner now carries an immutable, bounded frame-level budget: historical
+component probes retain 128; integrated Glue selects 512. Original negative-to-zero
+clamping and maximum positive increment of 128 remain. Descendant changes are
+validated before list mutation. Parent depth stays 64, anchor paths 2,048 and layout
+population 8,192. A level budget is distinct from any of those graph bounds.
+
+The existing startup fixture covers five-result/localized build info, original
+saved-account/CVar behavior, closed closures, installed expansion state, actual
+character frame binding, model XML callback retention/dispatch, inactive movie
+failure and load-callback state edits. It checks original level clamping and
+rollback when a child would exceed 512. Native layout checks cover invalid budgets,
+explicit selection and restoration of the default across owner recreation. The
+Frame hierarchy fixture checks that justification moves actual glyph pixels,
+color changes tint them and both restore the original image. It rejects invalid
+color components, forged objects and edits during batch collection. These are
+authored contracts, not observed original model rendering, movie playback or
+authentication.
+
+At implementation `cffe0665ac258d3439ed83014eeca3823c881677`, downloaded
+original-data startup authenticates 28,948 archive records and 60 GlueXML visits,
+completes ordered creation and prints
+`startup-stage=glue-created post-creation-digest=matched`. Activation then fails at
+`*:OnValueChanged` calling the unregistered `SetGamma`; device display-gamma
+application remains explicitly unavailable. There is no original login/model
+paint, authentication, world entry or new physical-input acceptance.
+One release and three strict ASan/UBSan/leak original-data runs reproduce that
+stop, exit 1 and close with zero workers, without sanitizer findings. Separate
+authored startup checks pass one release/three strict executions with empty stderr;
+release/strict GPU hierarchy fixtures each pass three cycles with empty stderr
+and zero workers. Their original-resource glyph checks remain authored composition.
+
+Five selected hosted workflows/ten jobs pass at their actual checkouts: startup
+and source audit at `cffe0665`, Linux GL (38 checks per configuration) at `9bda8c1d`,
+native layout (15 checks in each of four configurations, including ARM64 macOS)
+at `290e804f`, and full signatures-enabled Windows x64 at `a13357f7`. The record
+contains the native source-group and Windows-selected-token input reuse proofs;
+earlier runs are not labelled final-head checks. Local source audits pass 61 tests
+with one skip. Earlier failed/cancelled runs, the authored invalid-XML/null-tree
+UBSan finding, GDB-only diagnostics and historical X11 failure remain separate.
+
+The next batch is original activation state and services: changed-option warning
+state, the original SSE-only `IsSystemSupported` query, current-screen/lifecycle
+tracking, Glue audio with honest unavailable-backend outcomes, and reached option
+application. A diagnostic-only release run at `9132183f` records those protected
+Lua failures separately; its then-missing graphics preferences are now registered.
+Retain real option/device failure behavior rather than treating stored preferences
+as applied hardware state. Continue model/material/FFX paint after activation,
+then transport/authentication and the user's interactive sign-in.
+
+The [Glue validation record](integrated-glue-services-validation.json) preserves
+exact build identities, downloaded reports and earlier failures. The historical
+model-factory record below retains its former GetBuildInfo stop and draft status;
+those observations are not current runtime evidence for this continuation.
 
 ## Original model factory continuation — 2026-10-26
 

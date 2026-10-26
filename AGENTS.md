@@ -49,13 +49,13 @@ handoffs; those reports retain their original evidence and implementation identi
   policy changes follow from this direction. The user signs in interactively
   when ready; login rendering alone does not establish authentication/gameplay.
 
-## Integrated ModelFFX continuation — 2026-10-26
+## Integrated Glue continuation — 2026-10-26
 
 PR #84 selects original Model/ModelFFX factories, Model2 scene/cache/shared loading,
 Camera, ShaderEffect and FFX sources through existing native owners. The factory
 is now constructed on original-data startup; model/material/FFX rendering remains
-unfinished. Read [the current integrated contract](docs/m3/INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26)
-and [exact validation/observed stop](docs/m3/integrated-model-render-validation.json).
+unfinished. Read [the current integrated contract](docs/m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+and [exact validation/observed stop](docs/m3/integrated-glue-services-validation.json).
 Do not treat earlier ModelFFX-factory stops as current runtime evidence or authored
 factory/relocation/rollback success as original model rendering. Keep the device's
 94-register/one-texture-unit limits truthful. Full ordered post-creation verification
@@ -66,12 +66,22 @@ retain the adjusted partial-row rollback assertions. SimpleHTML locale files use
 a distinct read kind and the explicit read-only enUS data root; Lua/XML/TOC source
 reads stay on authenticated packages. Both installations stay read-only, all
 compilation stays in Actions, and interactive sign-in/server policy are unchanged.
-Current original-data release/three strict runs stop at `AccountLogin.lua:15` in
-OnLoad because Glue `GetBuildInfo` is not registered, with zero workers and no
-sanitizer finding. Its original Glue contract returns five values; the in-game
-four-result API is distinct. Continue that original service group before claiming
-complete creation or model rendering. PR #84 remains draft; preserve the record's
-earlier Windows identity/input proof and the retained X11 `BadWindow` failure.
+Original-data startup now completes the full ordered GlueXML creation and matches
+its mandatory post-creation digest. Glue's five-result build/account/CVar services,
+installed-expansion state, typed model/movie callbacks, original FontString
+justification/color and video/audio option queries are connected. Integrated
+frame levels use 512; component default 128 and original positive step 128 remain.
+Audio/movie backends and graphics-option application remain unavailable, with
+truthful empty/failed driver/movie results. The latest original-data stop is
+activation `*:OnValueChanged` calling unregistered `SetGamma`; native display
+gamma remains unavailable. Continue the reached original
+login activation services, then model/material/FFX paint before interactive sign-in.
+One release/three strict original-data runs reproduce that stop, exit 1 with zero
+workers and no sanitizer finding; separate authored/GPU fixtures pass. Read the
+record's exact hosted identities/input-reuse proofs and retained invalid-XML
+fixture UBSan failure. Keep fixture success separate from actual login rendering.
+Preserve historical draft/GetBuildInfo observations, the prior Windows input proofs and the
+retained X11 `BadWindow` failure in their original records.
 
 ## Current handoff and build policy
 
