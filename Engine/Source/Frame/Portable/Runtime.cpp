@@ -11,6 +11,7 @@
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
+uint32_t frameLevelLimit = 128;
 bool renderActive = false;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
@@ -41,10 +42,12 @@ size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
     return memo[node] = depth;
 }
 }
-Runtime::Runtime() {
+Runtime::Runtime(uint32_t levels) {
     FrameXML::Native::RequireOwner();
     if (renderActive) throw std::logic_error("Finish rendering before installing layout");
     if (installed) throw std::logic_error("Only one layout runtime may be installed");
+    if (levels < 128 || levels > 4096) throw std::invalid_argument("Invalid native Frame level budget");
+    frameLevelLimit = levels;
     installed = true;
 }
 Runtime::~Runtime() {
@@ -54,6 +57,7 @@ Runtime::~Runtime() {
         std::unordered_set<CLayoutFrame*>().swap(frames);
         std::unordered_set<CFramePoint*>().swap(points);
         installed = false;
+        frameLevelLimit = 128;
     } catch (...) { std::terminate(); }
 }
 void RequireOwner() {
@@ -62,6 +66,7 @@ void RequireOwner() {
     if (renderActive) throw std::logic_error("Finish Frame rendering before layout/region access");
 }
 void SetLayoutRenderActive(bool value) { renderActive = value; }
+uint32_t MaximumFrameLevel() { RequireOwner(); return frameLevelLimit; }
 void RequireNoObjects() {
     RequireOwner();
     if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())

@@ -10,7 +10,7 @@ namespace Frame { namespace Native {
 // before this owner. Mutate public legacy fields only on this owner thread.
 class Runtime final {
 public:
-    Runtime();
+    explicit Runtime(uint32_t frameLevelLimit = 128);
     ~Runtime();
     Runtime(const Runtime&) = delete;
     Runtime& operator=(const Runtime&) = delete;
@@ -24,6 +24,9 @@ struct OwnerLease final {
     OwnerLease& operator=(const OwnerLease&) = delete;
 };
 void RequireOwner();
+// Immutable for the lifetime of the existing layout owner. Parent depth and
+// anchor/population bounds are separate; original level increments stay at 128.
+uint32_t MaximumFrameLevel();
 // Original batch callbacks may not mutate layout or derived Frame consumers.
 void SetLayoutRenderActive(bool);
 void RequireNoObjects();

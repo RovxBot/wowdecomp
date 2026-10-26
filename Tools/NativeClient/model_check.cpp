@@ -33,6 +33,7 @@
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/CharacterCreation.h"
 #include "WoW/Source/Glue/CSimpleModelFFX.h"
+#include "WoW/Source/Glue/Portable/Startup.h"
 #include <cstring>
 #include <filesystem>
 #include <chrono>
@@ -149,7 +150,7 @@ void Factory() {
     Check(device.BufStream(GxPoolTarget_Vertex, 0, 0) == stream && stream->m_itemCount == 4,
         "Original stream identity query changed the active allocation");
     CoordinateSetAspectRatio(4.0f / 3.0f);
-    Runtime layout;
+    Runtime layout(GlueNative::FrameLevelLimit);
     Gxu::Native::LegacyFonts gxu([](const std::string&) -> Bytes { throw std::runtime_error("Fixture has no font"); });
     Fonts fonts; Renderer renderer;
     TextureService images(queue, [](const std::string&, const Cancellation&) -> ReadResult {
@@ -172,8 +173,14 @@ void Factory() {
                 assert(self:IsKeyboardEnabled() and self:IsMouseEnabled() and self:IsMouseWheelEnabled());
                 self:EnableKeyboard(false); self:EnableMouse(false); self:EnableMouseWheel(false);
                 assert(not self:IsKeyboardEnabled() and not self:IsMouseEnabled() and not self:IsMouseWheelEnabled());
-                assert(not pcall(self.SetFrameLevel,self,129) and not pcall(self.SetFrameLevel,self,-1));
+                assert(not pcall(self.SetFrameLevel,self,513) and not pcall(self.SetFrameLevel,self,-1));
                 assert(not pcall(self.SetFrameLevel,self,1e30) and self:GetFrameLevel() == 20);
+                self:SetFrameLevel(200); assert(self:GetFrameLevel() == 148 and NativeLoginAlignmentClick:GetFrameLevel() == 149);
+                self:SetFrameLevel(200); assert(self:GetFrameLevel() == 200);
+                self:SetFrameLevel(383); self:SetFrameLevel(383); self:SetFrameLevel(511);
+                assert(self:GetFrameLevel() == 511 and NativeLoginAlignmentClick:GetFrameLevel() == 512);
+                assert(not pcall(self.SetFrameLevel,self,512) and self:GetFrameLevel() == 511);
+                self:SetFrameLevel(20);
             </OnLoad></Scripts></Frame>)";
             std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
             CStatus status;

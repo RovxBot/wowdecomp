@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cstdio>
 
 namespace {
 bool installed = false;
@@ -200,7 +201,7 @@ const char* ParentName(XMLNode* node, size_t depth = 0) {
 }
 int CreateFrameLua(lua_State* L) {
     // No Lua longjmp surrounds XMLNode/C++ owners. Validate and unwind first.
-    bool failed = false;
+    char failure[512]{};
     try {
         FrameXML::Native::RequireFactories();
         Frame::Native::RequireRoot(); Frame::Native::RequireStateMutation();
@@ -224,8 +225,8 @@ int CreateFrameLua(lua_State* L) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, frame->GetLuaObjectRef());
         frame.release(); // Parent/root owns the object, matching original CreateFrame.
         return 1;
-    } catch (const std::exception&) { failed = true; }
-    if (failed) return luaL_error(L, "CreateFrame rejected unavailable services, invalid state or XML arguments");
+    } catch (const std::exception& error) { std::snprintf(failure, sizeof(failure), "%s", error.what()); }
+    if (*failure) return luaL_error(L, "CreateFrame rejected unavailable services, invalid state or XML arguments: %s", failure);
     return 0;
 }
 }

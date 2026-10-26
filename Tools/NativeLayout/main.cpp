@@ -196,7 +196,11 @@ int main() {
         for(int cycle=0;cycle<3;++cycle) {
             FrameScript::Native::Runtime scripts([](auto,const auto&,auto&){return false;});
             FrameXML::Native::Runtime xml;
+            for (uint32_t limit : {0u, 127u, 4097u, UINT32_MAX})
+                Reject([&] { Frame::Native::Runtime invalid(limit); });
+            { Frame::Native::Runtime integrated(512); Check(MaximumFrameLevel()==512,"explicit Frame level budget lost"); }
             { Frame::Native::Runtime layout;
+              Check(MaximumFrameLevel()==128,"default Frame level budget changed after owner recreation");
               Anchors();Dependencies();InvalidInputs();XML();Capacity();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");

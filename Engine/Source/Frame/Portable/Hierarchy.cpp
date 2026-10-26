@@ -91,17 +91,18 @@ void RequireParent(CScriptRegion* child, CSimpleFrame* parent) {
         for (auto* current = parent; current; current = current->m_parent)
             if (++depth > MaxDepth) throw std::invalid_argument("Excessive Frame parent graph");
     }
-    if (parent && parent->m_level >= 128)
+    if (parent && parent->m_level >= static_cast<int32_t>(MaximumFrameLevel()))
         throw std::invalid_argument("Native Frame parent level limit");
 }
 void RequireLevel(CSimpleFrame* target, int32_t proposed) {
     // Preserve original negative-to-zero clamping and +128 step, while bounding
     // all potentially shifted descendants before the first list mutation.
-    if (proposed > 128) throw std::invalid_argument("Native Frame level limit");
+    const auto limit = static_cast<int32_t>(MaximumFrameLevel());
+    if (proposed > limit) throw std::invalid_argument("Native Frame level limit");
     const int delta = std::min(std::max(proposed, 0) - target->m_level, 128);
     for (auto* leaf : frames)
         for (auto* current = leaf; current; current = current->m_parent)
-            if (current == target && leaf->m_level + delta > 128)
+            if (current == target && leaf->m_level + delta > limit)
                 throw std::invalid_argument("Native descendant Frame level limit");
 }
 void RequireRaise(CSimpleFrame* target) {
@@ -109,8 +110,9 @@ void RequireRaise(CSimpleFrame* target) {
     // Predict the original compression, including hidden registered Frames.
     // No list/level changes occur until the final subtree fits the native bound.
     const auto top = CSimpleTop::s_instance->m_strata[target->m_strata]->m_topLevel;
-    std::array<bool, 129> used{};
-    std::array<int, 129> levels{};
+    const auto limit = static_cast<int32_t>(MaximumFrameLevel());
+    std::vector<bool> used(size_t(limit) + 1, false);
+    std::vector<int> levels(size_t(limit) + 1);
     for (auto* frame : frames)
         if (frame->m_strata == target->m_strata) used[frame->m_level] = true;
     for (size_t i = 0; i < levels.size(); ++i) levels[i] = int(i);
@@ -134,13 +136,13 @@ void RequireRaise(CSimpleFrame* target) {
         empty = -1;
     }
     if (empty != -1) compressedTop = empty;
-    if (compressedTop > 128) throw std::invalid_argument("Native raised Frame level limit");
+    if (compressedTop > limit) throw std::invalid_argument("Native raised Frame level limit");
     const int delta = compressedTop - levels[target->m_level];
     for (auto* leaf : frames)
         for (auto* current = leaf; current; current = current->m_parent)
             if (current == target) {
                 const int level = leaf->m_strata == target->m_strata ? levels[leaf->m_level] : leaf->m_level;
-                if (level + delta > 128)
+                if (level + delta > limit)
                     throw std::invalid_argument("Native raised descendant level limit");
             }
 }

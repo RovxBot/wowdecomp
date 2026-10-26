@@ -152,7 +152,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     Gx::Native::LegacyDevice device(context, [&](const std::string& path) { return source.Read(path); });
     CoordinateSetAspectRatio(1024.0f / 768.0f);
     GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_Culling, 0);
-    Frame::Native::Runtime layout;
+    Frame::Native::Runtime layout(GlueNative::FrameLevelLimit);
     Gxu::Native::LegacyFonts gxu([&](const std::string& path) { return source.Read(path); });
     Frame::Native::Fonts fonts;
     Frame::Native::Renderer renderer;
