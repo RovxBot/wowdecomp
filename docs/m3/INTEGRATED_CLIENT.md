@@ -10,7 +10,9 @@ selects actual Model/ModelFFX, Model2 scene/cache/shared loading, Camera,
 ShaderEffect and FFX sources. Downloaded execution now passes the ModelFFX
 factory. The [Glue service continuation](#original-glue-service-continuation--2026-10-26)
 now completes original ordered creation and matches the mandatory post-creation
-digest; login activation and rendering remain open. Its historical
+digest. The [activation continuation](#glue-activation-continuation--2026-10-26)
+now reaches the actual model-read barrier, where the original skin-profile
+selection exceeds the qualified register budget; rendering remains open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -127,6 +129,52 @@ additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
 
+## Glue activation continuation — 2026-10-26
+
+[PR #85](https://github.com/RovxBot/wowdecomp/pull/85) connects the reached original
+activation wrappers through the existing script/CVar/Event/file owners.
+`ShowChangedOptionWarnings`, `GetChangedOptionWarnings` and acknowledgement retain
+their original number/nil and result-count contracts. Warning strings are owned
+until acknowledgement/close, bounded at 256 and tested through Lua collection.
+`IsSystemSupported` retains its original SSE-only meaning on Linux x86-64.
+`SetCurrentScreen` keeps the original 64-byte state and actual
+`AsyncFileReadWaitAll` barrier. Character screens reject transition until their
+real OnHide/Idle lifecycle is available.
+
+`SetGamma` and `SetTerrainMip` now admit refreshes of the unchanged preference;
+changes fail explicitly while display/world application remains unavailable.
+They retain the original slider mappings and reject unsafe numeric conversions.
+These are bounded refresh contracts, not working graphics controls. Stored CVars
+remain preferences, not applied hardware state. Optional void Glue music/ambience
+calls report unavailable playback and create no handles, poll retries or finished
+events. Movies and actual audio remain unavailable.
+
+At implementation `e7ca007378535be03229461006b0c01b7635353b`, matching-tree Actions
+checkout `59724c1ab554567e9f9969ead05ec294a2c9bc2a`, one release and three untraced
+strict ASan/UBSan/leak original-data executions authenticate 28,948 records and 60
+GlueXML visits and match the full post-creation digest. They pass the former
+`SetGamma` stop, then fail at the real model-read barrier while initializing
+`interface\\glues\\models\\ui_mainmenu_northrend\\ui_mainmenu_northrend.m2`.
+Each exits 1 with zero workers and no sanitizer finding. The new successful
+activation marker is not reached; no login/model paint is established.
+
+Separate release GDB/source/assembly inspection reaches `CM2Shared::Initialize`
+after model relocation and observes `maxBones=20` for profile counts 4, 1 and 1.
+The truthful 94-register budget yields `(94 - 32) / 3 = 20`; the smallest original
+skin profile requires 21. Continue by selecting the existing original CPU skinning
+path when GPU skinning cannot fit, preserving 94 registers/one texture unit,
+then observe model/material/FFX initialization and paint.
+
+All three implementation workflows/four jobs pass: release/strict authored startup
+contracts, source audit and signatures-enabled full Windows compilation. The
+Actions checkout tree equals the implementation tree. All 14 post-merge PR #84
+workflows pass separately. Local source audits pass 61 tests with one skip.
+The [activation validation record](glue-activation-validation.json) preserves
+artifacts, binary/notice hashes, exact hosted identities, all four original-data
+reports and separate debugger evidence. Earlier superseded runs are cancellations,
+not passing implementation checks. No imports, local compilation, agreement
+acceptance, server-policy change, authentication or gameplay result is included.
+
 ## Original Glue service continuation — 2026-10-26
 
 The integrated target selects the reached original Glue script services through
@@ -221,7 +269,7 @@ earlier runs are not labelled final-head checks. Local source audits pass 61 tes
 with one skip. Earlier failed/cancelled runs, the authored invalid-XML/null-tree
 UBSan finding, GDB-only diagnostics and historical X11 failure remain separate.
 
-The next batch is original activation state and services: changed-option warning
+The next batch identified at that source was original activation state and services: changed-option warning
 state, the original SSE-only `IsSystemSupported` query, current-screen/lifecycle
 tracking, Glue audio with honest unavailable-backend outcomes, and reached option
 application. A diagnostic-only release run at `9132183f` records those protected
