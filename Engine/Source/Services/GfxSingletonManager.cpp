@@ -102,8 +102,12 @@ ParticleSystemManager* ParticleSystemManager::GetInstance() {
         return ParticleSystemManager::s_instance;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    ParticleSystemManager::s_instance = new ParticleSystemManager;
+#else
     void* mem = SMemAlloc(sizeof(ParticleSystemManager), __FILE__, __LINE__, 0);
     ParticleSystemManager::s_instance = mem ? new (mem) ParticleSystemManager : nullptr;
+#endif
 
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     CRndSeed seed((uint32_t(rand()) << 16) | static_cast<uint16_t>(rand()));

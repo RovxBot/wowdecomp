@@ -37,10 +37,12 @@ void CloseModels() {
     // Frames and their callbacks have already closed inside LoginWidgets.
     GxRsSet(GxRs_VertexShader, static_cast<void*>(nullptr));
     GxRsSet(GxRs_PixelShader, static_cast<void*>(nullptr));
+    FFX::SetEffect(nullptr);
     delete CGlueMgr::m_glowEffect; CGlueMgr::m_glowEffect = nullptr;
-    FFX::SetEffect(nullptr); FFX::Destroy();
+    FFX::Destroy();
     M2Destroy();
     CShaderEffectManager::DestroyAllEffects();
+    CShaderEffect::s_curEffect = nullptr;
     ObjectAllocDestroy(); PropDestroy();
     animations.clear(); animationNames.clear(); animationsLoaded = false;
     initialized = false;

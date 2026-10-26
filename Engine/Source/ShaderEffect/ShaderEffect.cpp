@@ -607,6 +607,11 @@ void CShaderEffect::SetAlphaRefDefault() {
 // VERIFY: 47270730 auto
 // OFFSET: 0x00873F30
 CShaderEffect::CShaderEffect() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_fixedFuncPassCount = 0;
+    memset(this->m_vertexShaders, 0, sizeof(this->m_vertexShaders));
+    memset(this->m_pixelShaders, 0, sizeof(this->m_pixelShaders));
+#endif
 }
 
 // VERIFY: f66fd164 auto

@@ -25,6 +25,8 @@
 #include "Engine/Source/Base/Status.h"
 #include "Engine/Source/Gx/Gx.h"
 #include <cstring>
+#include <filesystem>
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -96,8 +98,11 @@ void Relocations() {
     Check(!OsNative::LiveModelAllocations(), "M2 relocation retained an arena");
 }
 struct Settings {
-    Settings() { ConsoleInitializeClientCommand(); CVar::Initialize(nullptr); }
-    ~Settings() { CVar::Destroy(); ConsoleCommandDestroy(); }
+    std::filesystem::path directory = std::filesystem::temp_directory_path() /
+        ("wow-native-model-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::string config = (directory / "Config.wtf").string();
+    Settings() { std::filesystem::create_directory(directory); ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str()); }
+    ~Settings() { CVar::Destroy(); ConsoleCommandDestroy(); std::filesystem::remove_all(directory); }
 };
 void Factory() {
     using namespace Frame::Native;
@@ -117,6 +122,9 @@ void Factory() {
         return Program(vertex ? "!!ARBvp1.0\nMOV result.position, vertex.position;\nEND\n" :
             "!!ARBfp1.0\nMOV result.color, fragment.color;\nEND\n", count);
     });
+    auto* stream = device.BufStream(GxPoolTarget_Vertex, 24, 4);
+    Check(device.BufStream(GxPoolTarget_Vertex, 0, 0) == stream && stream->m_itemCount == 4,
+        "Original stream identity query changed the active allocation");
     CoordinateSetAspectRatio(4.0f / 3.0f);
     Runtime layout;
     Gxu::Native::LegacyFonts gxu([](const std::string&) -> Bytes { throw std::runtime_error("Fixture has no font"); });

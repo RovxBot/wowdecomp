@@ -2870,17 +2870,25 @@ void CSplineParticleEmitter::SetSpline(const C3Vector* points, uint32_t count) {
 // VERIFY: e4738c7d manual
 // OFFSET: 0x00981510
 CParticleEmitter2* CPlaneParticleEmitter::Clone(int32_t copyParticles) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return new CPlaneParticleEmitter(*this, copyParticles);
+#else
     void* mem = SMemAlloc(sizeof(CPlaneParticleEmitter), __FILE__, __LINE__, 0);
 
     return mem ? new (mem) CPlaneParticleEmitter(*this, copyParticles) : nullptr;
+#endif
 }
 
 // VERIFY: 1e5e8bbd manual
 // OFFSET: 0x00981550
 CParticleEmitter2* CSphereParticleEmitter::Clone(int32_t copyParticles) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return new CSphereParticleEmitter(*this, copyParticles);
+#else
     void* mem = SMemAlloc(sizeof(CSphereParticleEmitter), __FILE__, __LINE__, 0);
 
     return mem ? new (mem) CSphereParticleEmitter(*this, copyParticles) : nullptr;
+#endif
 }
 
 // VERIFY: 0c4d4b72 manual
@@ -3165,7 +3173,11 @@ CSplineParticleEmitter::CSplineParticleEmitter(const CSplineParticleEmitter& sou
 // VERIFY: cb65ff4c manual
 // OFFSET: 0x00982240
 CParticleEmitter2* CSplineParticleEmitter::Clone(int32_t copyParticles) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return new CSplineParticleEmitter(*this, copyParticles);
+#else
     void* mem = SMemAlloc(sizeof(CSplineParticleEmitter), __FILE__, __LINE__, 0);
 
     return mem ? new (mem) CSplineParticleEmitter(*this, copyParticles) : nullptr;
+#endif
 }

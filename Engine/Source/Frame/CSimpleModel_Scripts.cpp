@@ -155,11 +155,11 @@ static int32_t Script_SetSequenceTime(lua_State* L) {
             std::floor(lua_tonumber(L, 3)) != lua_tonumber(L, 3)) return luaL_error(L, "Invalid native model sequence time");
 #endif
         int32_t time = static_cast<int32_t>(lua_tonumber(L, 3));
-    #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
-        std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
+            std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
 #endif
-    uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
+        uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
         model->SetSequenceTime(sequence, time);
         return 0;
     }
