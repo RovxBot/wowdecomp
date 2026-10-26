@@ -19,6 +19,8 @@
 #include "Engine/Source/ConsoleBase/ConsoleCommand.h"
 #include "Engine/Source/Model2/M2Shared.h"
 #include "Engine/Source/Model2/M2Cache.h"
+#include "Engine/Source/Model2/M2ModelLight.h"
+#include "Engine/Source/Model2/Portable/InstanceLayout.h"
 #include "Engine/Source/Os/Portable/ModelMemory.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Services/Portable/LegacyFiles.h"
@@ -75,6 +77,26 @@ struct ModelBytes {
     bool Relocate() { return M2Init(reinterpret_cast<uint8_t*>(data), Size, *data) != 0; }
 };
 void Relocations() {
+    {
+        Model2Native::InstanceLayout layout;
+        const auto word = layout.Reserve<uint32_t>(1);
+        const auto light = layout.Reserve<M2ModelLight>(1);
+        const auto pointer = layout.Reserve<CTexture*>(3);
+        struct Storage {
+            void* bytes;
+            ~Storage() { SMemFree(bytes, __FILE__, __LINE__, 0); }
+        } storage{SMemAlloc(layout.Size(), __FILE__, __LINE__, 0)};
+        auto* bytes = static_cast<uint8_t*>(storage.bytes);
+        Check(word==0 && light >= sizeof(uint32_t) &&
+            reinterpret_cast<uintptr_t>(bytes+light)%alignof(M2ModelLight)==0 &&
+            reinterpret_cast<uintptr_t>(bytes+pointer)%alignof(CTexture*)==0 &&
+            pointer+3*sizeof(CTexture*)==layout.Size(), "Native instance arrays lost alignment or allocation coverage");
+        auto* object = new (bytes+light) M2ModelLight();
+        object->~M2ModelLight();
+        bool rejected=false;
+        try { layout.Reserve<uint64_t>(UINT32_MAX); } catch (const std::length_error&) { rejected=true; }
+        Check(rejected, "Native instance allocation truncated its original byte bound");
+    }
     {
         ModelBytes bytes;
         CM2Shared shared(nullptr);

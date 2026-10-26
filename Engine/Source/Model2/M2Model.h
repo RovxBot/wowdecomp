@@ -227,6 +227,12 @@ class CM2Model {
     static TSGrowableArray<C3Vector> s_collisionPositions;
     static TSGrowableArray<uint32_t> s_collisionCodes;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Native aligned instance storage is owned independently of a nonempty
+    // first bone array. Never a serialized field or Windows layout change.
+    uint8_t* m_nativeInstanceStorage;
+#endif
+
     static int32_t __stdcall SequenceCallback(void* callback, CM2Model* model, uint32_t boneId, uint32_t sequenceId, int32_t interrupted, uint32_t time, uint32_t sequenceIndex, uint32_t startTime, uint64_t param);
     static void RenderModelBatchesShadowMap(const CModelBatchList& untextured, const CModelBatchList& textured);
     static void RenderModelBatchListShadowMap(int32_t untextured, const CModelBatchList& list);
