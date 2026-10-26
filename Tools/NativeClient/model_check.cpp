@@ -29,6 +29,7 @@
 #include "Engine/Source/Gx/Gx.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/CharacterCreation.h"
+#include "WoW/Source/Glue/CSimpleModelFFX.h"
 #include <cstring>
 #include <filesystem>
 #include <chrono>
