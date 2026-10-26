@@ -88,7 +88,6 @@ static int32_t Script_SetDrawLayer(lua_State* L) {
 
 // VERIFY: 2116a458 auto
 // OFFSET: 0x0048CF30
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetVertexColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -107,7 +106,6 @@ static int32_t Script_SetVertexColor(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 2f47cd3c auto
 // OFFSET: 0x0048CFC0
@@ -397,7 +395,6 @@ static int32_t Script_SetFormattedText(lua_State* L) {
 
 // VERIFY: 5c9814f7 manual
 // OFFSET: 0x0048D890
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetTextColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -410,11 +407,9 @@ static int32_t Script_GetTextColor(lua_State* L) {
 
     return 4;
 }
-#endif
 
 // VERIFY: d25455b2 manual
 // OFFSET: 0x0048D970
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetTextColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -425,7 +420,6 @@ static int32_t Script_SetTextColor(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: b0954a68 manual
 // OFFSET: 0x0048D9E0
@@ -768,7 +762,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType, true, false> },
     { "GetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetDrawLayer", &Frame::Native::UnavailableScriptMethod },
-    { "SetVertexColor", &Frame::Native::UnavailableScriptMethod },
+    { "SetVertexColor", &Frame::Native::ScriptMethod<&Script_SetVertexColor, true, false, true> },
     { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha, true, false> },
     { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
     { "SetAlphaGradient", &Frame::Native::UnavailableScriptMethod },
@@ -784,8 +778,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize, true, false> },
     { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false, false> },
     { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false, false> },
-    { "GetTextColor", &Frame::Native::UnavailableScriptMethod },
-    { "SetTextColor", &Frame::Native::UnavailableScriptMethod },
+    { "GetTextColor", &Frame::Native::ScriptMethod<&Script_GetTextColor, true, false> },
+    { "SetTextColor", &Frame::Native::ScriptMethod<&Script_SetTextColor, true, false, true> },
     { "GetShadowColor", &Frame::Native::UnavailableScriptMethod },
     { "SetShadowColor", &Frame::Native::UnavailableScriptMethod },
     { "GetShadowOffset", &Frame::Native::UnavailableScriptMethod },

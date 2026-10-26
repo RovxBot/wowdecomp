@@ -191,6 +191,8 @@ void Factory() {
             const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Frames><Button name="$parentClick"><Scripts><OnLoad>self:RegisterForClicks('LeftButtonDown','LeftButtonUp')</OnLoad></Scripts></Button></Frames><Scripts><OnLoad>
                 NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
                 NativeLoginAlignmentText:SetFontObject('NativeTooltipFont');
+                NativeLoginAlignmentText:SetTextColor(1,0,0,.5); NativeLoginAlignmentText:SetVertexColor(0,1,0);
+                local r,g,b,a=NativeLoginAlignmentText:GetTextColor(); assert(r==0 and g>.99 and b==0 and a>.49 and a<.51);
                 assert(NativeLoginAlignmentText:GetFontObject():IsObjectType('Font'));
                 assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
                 self:SetFrameLevel(20); assert(self:GetFrameLevel() == 20 and NativeLoginAlignmentClick:GetFrameLevel() == 21);
