@@ -77,6 +77,21 @@ struct ModelBytes {
 void Relocations() {
     {
         ModelBytes bytes;
+        CM2Shared shared(nullptr);
+        shared.m_data = bytes.data;
+        struct Detach { CM2Shared& shared; ~Detach() { shared.m_data = nullptr; } } detach{shared};
+        // The original lookup must reject the observed 20-bone GPU budget;
+        // admitting a profile here would hide an unsupported device capability.
+        shared.m_data->m_numSkinProfiles = 4;
+        Check(shared.GetSkinProfileIndex(20)==UINT32_MAX && shared.GetSkinProfileIndex(21)==3 &&
+            shared.GetSkinProfileIndex(53)==2 && shared.GetSkinProfileIndex(256)==0,
+            "Original skin-profile register boundaries changed");
+        shared.m_data->m_numSkinProfiles = 1;
+        Check(shared.GetSkinProfileIndex(20)==UINT32_MAX && shared.GetSkinProfileIndex(256)==0,
+            "Original single skin-profile selection changed");
+    }
+    {
+        ModelBytes bytes;
         std::memcpy(bytes.Array(bytes.data->m_name, 4), "m2\0", 4);
         auto* sequence = bytes.Array(bytes.data->m_sequences, 1);
         sequence->m_id = 0; sequence->m_flags = 0x21;
@@ -292,6 +307,8 @@ void Factory() {
         failShader = false;
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
+        Check(!(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
+            device.Caps().m_numTmus==1, "Original CPU skinning changed device limits or enabled a worker");
         const auto errors = FrameScript::Native::ScriptErrorCount();
         Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
         model->RunScript(model->m_onUpdateModel, 0, nullptr);
