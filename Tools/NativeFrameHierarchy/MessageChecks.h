@@ -103,7 +103,9 @@ static void MessageChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& f
     const auto previousRows=messages->m_rows, previousStrings=CSimpleFontString::s_allocator.m_dataUsed;
     {
         std::vector<std::unique_ptr<CLayoutFrame>> pressure;
-        for(unsigned i=0;i<900;++i)pressure.emplace_back(std::make_unique<CLayoutFrame>());
+        // Retain the original 124-object headroom after the integrated Glue
+        // layout bound grew to 8,192. PrepareRows must still fail partway.
+        for(unsigned i=0;i<8192-124;++i)pressure.emplace_back(std::make_unique<CLayoutFrame>());
         messages->SetHeight(rowHeight*128.1f+messages->m_messageFrameInset.maxY+messages->m_messageFrameInset.minY);
         CLayoutFrame::ResizePending();
         Check(messages->m_nativeRowsDirty,"Pressure resize did not invalidate rows");

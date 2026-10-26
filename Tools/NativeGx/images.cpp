@@ -184,6 +184,11 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     Handle raw(create("Interface/raw"));
     Handle duplicate(create("interface\\RAW.blp"));
     Require(raw.value == duplicate.value && raw.value->m_refcount == 2, "Image cache/refcount identity failed");
+    {
+        Handle originalName(create("Interface/raw.tga"));
+        Require(originalName.value == raw.value && TextureIsSame(raw.value, "Interface/raw.tga"),
+                "Original BLP-first TGA basename search lost cache identity");
+    }
     Require(!raw.value->m_asyncObject, "Native ticket leaked into CAsyncObject field");
     uint32_t width = 999, height = 999;
     Require(!TextureGetDimensions(raw.value, &width, &height, 0) && width == 999 && height == 999,
@@ -243,7 +248,9 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         errors.Add(errors);
         Require(errors.GetErrorStrLen(STATUS_INFO, " ") == entries, "Status self-copy appended diagnostics");
     }
-    Reject([&] { create("../escape"); }); Reject([&] { create("Interface/raw.tga"); });
+    Reject([&] { create("../escape"); });
+    Reject([&] { create("Interface/raw.tga", CGxTexFlags(GxTex_Nearest), 9); });
+    Reject([&] { create("Interface/raw.png"); });
     Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_Anisotropic)); });
     Reject([&] { create("Interface/raw", CGxTexFlags(), 0x20); });
     Reject([&] { TextureGetGxTex(raw.value, 3, nullptr); });
