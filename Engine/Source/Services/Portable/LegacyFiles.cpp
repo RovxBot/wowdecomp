@@ -39,6 +39,7 @@ struct LegacyFiles::State {
     std::vector<std::shared_ptr<Request>> ready;
     std::string error;
     bool delivering = false;
+    uint32_t lockDepth = 0;
     State(FileQueue& q, Reader r) : queue(q), reader(std::move(r)) {}
     void Check() const {
         if (std::this_thread::get_id() != owner) throw std::logic_error("Legacy files require their owner thread");
@@ -148,7 +149,7 @@ LegacyFiles::~LegacyFiles() {
 void LegacyFiles::Poll() { state->Check(); state->queue.Poll(); state->Deliver(); }
 void LegacyFiles::CheckCanClose() const {
     state->Check();
-    if (!state->requests.empty() || !state->files.empty() || state->delivering)
+    if (!state->requests.empty() || !state->files.empty() || state->delivering || state->lockDepth)
         throw std::logic_error("Close model async objects and file handles before native files");
 }
 }}
@@ -289,3 +290,29 @@ void AsyncFileReadWaitAll() {
 }
 void AsyncFileReadUnloadPostList() { auto& s = Current(); s.queue.Poll(); s.Deliver(true); }
 int32_t AsyncFileReadPollHandler(const void*, void*) { auto& s = Current(); s.queue.Poll(); s.Deliver(); return 1; }
+
+// Workers never access legacy objects. The original queue critical section is
+// therefore an owner-thread scope over this adapter, with balanced nested calls.
+void AsyncFile::EnterQueueLock() {
+    auto& state = Current();
+    if (state.lockDepth == UINT32_MAX) throw std::overflow_error("Native model queue-lock nesting");
+    ++state.lockDepth;
+}
+void AsyncFile::LeaveQueueLock() {
+    auto& state = Current();
+    if (!state.lockDepth) throw std::logic_error("Unbalanced native model queue lock");
+    --state.lockDepth;
+}
+void AsyncFileReadLinkObject(CAsyncObject* object, int32_t urgent) {
+    auto& state = Current(); auto request = state.Object(object);
+    if (object->m_queue) throw std::logic_error("Native legacy queue objects are unavailable");
+    if (request->ticket && urgent) state.queue.Promote(request->ticket, object->m_priority);
+}
+bool SFile::FileGetIsLocalAmount(const char* name, int64_t& local, int64_t& total) {
+    local = total = 0;
+    SFileImpl* file = nullptr;
+    if (!SFileOpenFile(name, &file)) return false;
+    local = total = SFileGetFileSize(file, nullptr);
+    SFileCloseFile(file);
+    return true;
+}

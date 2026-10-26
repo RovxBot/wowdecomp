@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <vector>
 void CheckNativeModelIO();
+void CheckNativeModels();
 namespace {
 void Check(bool good, const char* message) { if (!good) throw std::runtime_error(message); }
 std::vector<int> order;
@@ -104,7 +105,7 @@ int main() {
         StormRtlInitialize();
         InitializeNativeCharacterLocale();
         { Gx::Native::GlContext context("Waystone — original 12340 startup", 320, 240, true); }
-        Events(); Settings(); Ordered(); CheckNativeModelIO();
+        Events(); Settings(); Ordered(); CheckNativeModelIO(); CheckNativeModels();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

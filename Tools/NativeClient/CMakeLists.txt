@@ -58,6 +58,13 @@ target_sources(WowNativeModels PRIVATE
     ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/C4Quaternion.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CFacet.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CFrustum.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CAaBox.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CAaSphere.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/CMemBlock.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/C3Ray.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/C3Spline.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/C3Spline_Bezier3.cpp
+    ${PROJECT_SOURCE_DIR}/Engine/Source/Tempest/Portable/ModelMath.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/SysMessage.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/DB/Rec/AnimationDataRec.cpp)
 target_link_libraries(WowNativeModels PUBLIC WowNativeFrameRegions)
@@ -70,7 +77,7 @@ if(WOWDECOMP_CORE_SANITIZERS)
 endif()
 add_executable(WowNativeClient main.cpp)
 target_link_libraries(WowNativeClient PRIVATE WowNativeStartup)
-add_executable(NativeStartupCheck startup_check.cpp model_io_check.cpp)
+add_executable(NativeStartupCheck startup_check.cpp model_io_check.cpp model_check.cpp)
 target_link_libraries(NativeStartupCheck PRIVATE WowNativeStartup)
 if(BUILD_TESTING)
     add_test(NAME native-integrated-startup-contracts COMMAND NativeStartupCheck)

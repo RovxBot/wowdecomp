@@ -93,3 +93,17 @@ CTexture* TextureCreateSolid(const CImVector& color) {
     HandleCreate(texture.get(), "HTEXTURE");
     return texture.release();
 }
+
+void TextureComputeLoadProgress(CTexture* texture, int64_t& loaded, int64_t& total) {
+    if (!texture) return;
+    texture->NativeCheckOwner();
+    // Native input is local. The remaining unit represents completed decode and
+    // publication, observed on the texture owner rather than a legacy ticket.
+    ++total;
+    if (TextureIsLoaded(texture)) ++loaded;
+}
+void TextureIncreasePriority(CTexture* texture) {
+    if (texture) texture->NativeCheckOwner();
+    // Original TextureIncreasePriority returns immediately for non-streaming
+    // files. Native image Services deliberately has no remote streaming mode.
+}
