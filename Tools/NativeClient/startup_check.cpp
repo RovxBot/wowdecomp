@@ -19,6 +19,8 @@
 #include "HtmlSource.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/GlueMgr.h"
+#include "WoW/Source/Glue/CGlueMgr.h"
+#include "Engine/Source/Services/Portable/LegacyFiles.h"
 #include "WoW/Source/Glue/Portable/ScriptServices.h"
 #include "GameVersion.h"
 #include "Engine/Source/Frame/Portable/Runtime.h"
@@ -105,6 +107,10 @@ void Ordered() {
     Check(FrameXML_ProcessFile("Interface\\Test\\Root.xml", nullptr, nullptr, &status), "Failed traversal did not release trees/recursion state");
 }
 void GlueServices() {
+    Services::Native::FileQueue queue;
+    Services::Native::LegacyFiles files(queue, [](const std::string&, const Services::Native::Cancellation&) -> Services::Native::ReadResult {
+        throw std::runtime_error("Glue activation fixture has no model data");
+    });
     const auto directory = std::filesystem::temp_directory_path() /
         ("wow-native-glue-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(directory);
@@ -131,6 +137,10 @@ void GlueServices() {
         assert(version == ')lua" GAME_VERSION R"lua(' and build == ')lua" GAME_BUILD_STRING R"lua(' and date == ')lua" GAME_BUILD_DATE R"lua(');
         VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
         assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
+        assert(IsSystemSupported() == 1);
+        assert(ShowChangedOptionWarnings() == nil and select('#',GetChangedOptionWarnings())==0);
+        assert(select('#',SetCurrentScreen('login'))==0);
+        assert(not pcall(SetCurrentScreen,{}) and not pcall(SetCurrentScreen,'charselect'));
         assert(GetClientExpansionLevel() == 3);
         assert(IsWindowsClient() == nil and IsMacClient() == nil);
         assert(GetSavedAccountName() == 'saved fixture');
@@ -151,13 +161,25 @@ void GlueServices() {
     )lua", "native Glue services fixture", nullptr);
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue build/CVar contracts failed");
     Check(option->m_intValue == 0 && locked->m_intValue == 1, "Glue scripts bypassed original CVar state");
+    Check(!std::strcmp(CGlueMgr::m_currentScreen,"login"), "Rejected screen transition mutated lifecycle state");
+    FrameScript_Execute("NATIVE_WARNING='authored warning'", "option warning fixture", nullptr);
+    CGlueMgr::AddChangedOptionWarning("NATIVE_WARNING");
+    FrameScript_Execute(R"(
+        NATIVE_WARNING=nil; collectgarbage('collect');
+        assert(ShowChangedOptionWarnings()==1 and select('#',GetChangedOptionWarnings())==1);
+        assert(GetChangedOptionWarnings()=='authored warning');
+        assert(select('#',AcceptChangedOptionWarnings())==0);
+        assert(ShowChangedOptionWarnings()==nil and select('#',GetChangedOptionWarnings())==0);
+    )", "owned option warning fixture", nullptr);
+    Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue warning ownership/acknowledgement failed");
     EventInitialize(1, 0);
     FrameScript_Execute("QuitGame()", "native Glue close fixture", nullptr);
     Check(EventNative::Closing(), "Glue QuitGame did not close the native Event owner");
     EventDestroy();
-    FrameScript_Execute("retainedGlueQuery = GetSavedAccountName", "retain Glue closure", nullptr);
+    FrameScript_Execute("retainedGlueQuery = GetSavedAccountName; retainedScreenSetter=SetCurrentScreen", "retain Glue closure", nullptr);
     GlueScriptEventsUnregisterFunctions();
-    FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery))", "closed Glue closure", nullptr);
+    FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery) and not pcall(retainedScreenSetter,'login'))", "closed Glue closure", nullptr);
+    Check(!*CGlueMgr::m_currentScreen && CGlueMgr::m_numChangedOptionWarnings==0, "Glue activation state survived close");
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Retained Glue closure used a closed CVar owner");
     for (uint8_t expansion : {0, 1, 2}) {
         GlueNative::InitializeScriptServices(expansion);

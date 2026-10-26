@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 
 int32_t SI2::GetNumInputDrivers(int32_t) { return 0; }
@@ -19,11 +20,42 @@ int32_t SI2::GetNumOutputDrivers_Cached(int32_t) { return 0; }
 bool SI2::GetInputDriverName(int32_t, char*, int32_t, int32_t) { return false; }
 bool SI2::GetInputDriverName_Cached(int32_t, char*, int32_t, int32_t) { return false; }
 bool SI2::GetOutputDriverName_Cached(int32_t, char*, int32_t, int32_t) { return false; }
+// Optional original Glue calls have void script contracts. No sound kit, poll
+// retry, handle or playback/finished event is created without an audio backend.
+void SI2::StartGlueMusic(const char*) {
+    std::cout << "native-unavailable=glue-music-playback" << std::endl;
+}
+void SI2::StartGlueAmbience(const char*, float) {
+    std::cout << "native-unavailable=glue-ambience-playback" << std::endl;
+}
+void SI2::StopGlueMusic(float) {}
+void SI2::StopGlueAmbience(float) {}
+void SI2::StopCreditsMusic() {}
 namespace {
 bool registered = false;
 void RequireSoundQueries(lua_State* L) {
     FrameScript::Native::RequireOwner();
     if (!registered || !CVar::m_initialized) luaL_error(L, "Native sound-option queries are closed");
+}
+static int32_t Script_PlayGlueMusic(lua_State* L) {
+    RequireSoundQueries(L);
+    if (!lua_isstring(L, 1)) return luaL_error(L, "Usage: PlayGlueMusic(\"filename\")");
+    SI2::StartGlueMusic(lua_tostring(L, 1)); return 0;
+}
+static int32_t Script_PlayGlueAmbience(lua_State* L) {
+    RequireSoundQueries(L);
+    if (!lua_isstring(L, 1)) return luaL_error(L, "Usage: PlayGlueAmbience(\"sound name\", fadeInTime)");
+    const double fade = lua_isnumber(L, 2) ? lua_tonumber(L, 2) : -1.0;
+    if (!std::isfinite(fade) || std::abs(fade) > std::numeric_limits<float>::max())
+        return luaL_error(L, "Glue ambience fade must be a finite float");
+    SI2::StartGlueAmbience(lua_tostring(L, 1), static_cast<float>(fade)); return 0;
+}
+static int32_t Script_StopGlueMusic(lua_State* L) {
+    RequireSoundQueries(L);
+    SI2::StopCreditsMusic(); SI2::StopGlueMusic(-1.0f); return 0;
+}
+static int32_t Script_StopGlueAmbience(lua_State* L) {
+    RequireSoundQueries(L); SI2::StopGlueAmbience(1.0f); return 0;
 }
 static int32_t Script_Sound_ChatSystem_GetNumInputDrivers(lua_State* L) {
     RequireSoundQueries(L);
@@ -125,6 +157,10 @@ static int32_t Script_Sound_GameSystem_GetOutputDriverNameByIndex(lua_State* L) 
     return 1;
 }
 FrameScript_Method functions[] = {
+    { "PlayGlueMusic", Script_PlayGlueMusic },
+    { "PlayGlueAmbience", Script_PlayGlueAmbience },
+    { "StopGlueMusic", Script_StopGlueMusic },
+    { "StopGlueAmbience", Script_StopGlueAmbience },
     { "Sound_ChatSystem_GetNumInputDrivers", Script_Sound_ChatSystem_GetNumInputDrivers },
     { "Sound_ChatSystem_GetInputDriverNameByIndex", Script_Sound_ChatSystem_GetInputDriverNameByIndex },
     { "Sound_ChatSystem_GetNumOutputDrivers", Script_Sound_ChatSystem_GetNumOutputDrivers },

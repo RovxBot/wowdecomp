@@ -180,6 +180,18 @@ void Factory() {
                 assert(color==24 and depth==24 and samples==1 and GetCurrentMultisampleFormat()==1)
                 assert(select('#',GetVideoCaps()) == 7 and IsStereoVideoAvailable()==nil)
                 assert(GetGamma()==0 and GetTerrainMip()==0)
+                assert(select('#',SetGamma(GetGamma()))==0 and select('#',SetTerrainMip(GetTerrainMip()))==0)
+                assert(not pcall(SetGamma, 0.5) and GetGamma()==0)
+                assert(not pcall(SetGamma, {}) and not pcall(SetGamma, 0/0))
+                assert(not pcall(SetTerrainMip, 1) and GetTerrainMip()==0)
+                assert(not pcall(SetTerrainMip, -2147483647) and not pcall(SetTerrainMip, 1e30))
+                assert(not pcall(SetTerrainMip, {}) and not pcall(SetTerrainMip, 0/0))
+                assert(select('#',PlayGlueMusic('authored music'))==0)
+                assert(select('#',PlayGlueAmbience('authored ambience',4))==0)
+                assert(select('#',StopGlueMusic())==0 and select('#',StopGlueAmbience())==0)
+                assert(not pcall(PlayGlueMusic,{}) and not pcall(PlayGlueAmbience,{}))
+                assert(not pcall(PlayGlueAmbience,'authored ambience',1e300))
+                assert(not pcall(PlayGlueAmbience,'authored ambience',0/0))
                 local a,b=GetScreenResolutions(); assert(a=='800x600' and b=='1024x768')
                 assert(select('#',GetRefreshRates(1e30))==0 and select('#',GetRefreshRates(-1))==0)
             )", "original video capability query contracts", nullptr);
@@ -334,6 +346,12 @@ void Factory() {
             Check(bounded, "Native model suffix overflow reached a file operation");
         }
     }
+    const auto closeErrors = FrameScript::Native::ScriptErrorCount();
+    FrameScript_Execute("retainedGamma=SetGamma; retainedGlueMusic=PlayGlueMusic", "retain option closures", nullptr);
+    CGVideoOptions::UnregisterScriptFunctions(); SI2::UnregisterScriptFunctions();
+    FrameScript_Execute("assert(SetGamma==nil and PlayGlueMusic==nil); assert(not pcall(retainedGamma,0) and not pcall(retainedGlueMusic,'closed'))",
+        "closed option closures", nullptr);
+    Check(FrameScript::Native::ScriptErrorCount()==closeErrors, "Option closures survived their native owners");
     scripts.CheckCanClose(); renderer.CheckCanClose(); fonts.CheckCanClose();
 }
 }

@@ -72,7 +72,7 @@ installed-expansion state, typed model/movie callbacks, original FontString
 justification/color and video/audio option queries are connected. Integrated
 frame levels use 512; component default 128 and original positive step 128 remain.
 Audio/movie backends and graphics-option application remain unavailable, with
-truthful empty/failed driver/movie results. The latest original-data stop is
+truthful empty/failed driver/movie results. The original-data stop at `cffe0665` was
 activation `*:OnValueChanged` calling unregistered `SetGamma`; native display
 gamma remains unavailable. Continue the reached original
 login activation services, then model/material/FFX paint before interactive sign-in.
@@ -82,6 +82,28 @@ record's exact hosted identities/input-reuse proofs and retained invalid-XML
 fixture UBSan failure. Keep fixture success separate from actual login rendering.
 Preserve historical draft/GetBuildInfo observations, the prior Windows input proofs and the
 retained X11 `BadWindow` failure in their original records.
+
+## Glue activation continuation — 2026-10-26
+
+PR #85 connects original warning state, the SSE-only system query, current-screen
+tracking and its real async model-read barrier. Optional void Glue audio calls
+report unavailable playback and create no handles, retries or finished events.
+Gamma/terrain setters admit unchanged preference refreshes and reject actual
+changes while their application is unavailable. CVar storage remains a preference,
+not applied hardware state. Character OnHide/Idle lifecycle stays explicitly gated.
+Read [activation contracts](docs/m3/INTEGRATED_CLIENT.md#glue-activation-continuation--2026-10-26)
+and [exact evidence](docs/m3/glue-activation-validation.json).
+At implementation `e7ca007378535be03229461006b0c01b7635353b` (matching-tree Actions
+checkout `59724c1ab554567e9f9969ead05ec294a2c9bc2a`), one release/three untraced
+strict original-data runs retain the full ordered creation digest, then fail
+initializing `ui_mainmenu_northrend.m2`, exit 1 and close with zero workers and no
+sanitizer finding. Separate release GDB inspection reaches original skin selection:
+94 constants fit 20 skinned bones; the smallest profile requires 21. Keep device
+limits truthful and select the existing original CPU path before model/material/
+FFX paint. Three implementation workflows/four jobs pass, including full Windows
+compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
+authentication and gameplay remain unobserved. Both installations stay read-only,
+all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
 ## Current handoff and build policy
 

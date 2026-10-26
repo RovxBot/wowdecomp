@@ -30,7 +30,11 @@ The Actions-built `WowNativeClient` constructs the original **ModelFFX
 AccountLogin** factory and now completes the original ordered GlueXML creation
 with a matching full post-creation digest. Original build/account/CVar services,
 character model bindings, locale HTML and video/audio option queries are connected.
-Activation currently stops at unregistered `SetGamma`. Login and
+Activation now reaches the real model-read barrier and stops during Model2
+initialization: the 94-register device budget fits 20 skinned bones, below the
+smallest original profile's 21. Unchanged gamma/terrain preference refreshes,
+warning state, screen tracking and optional unavailable-audio calls are connected.
+Login and
 model/animation/material/FFX rendering remain unfinished;
 there is no native audio/movie backend or authentication/gameplay result. See
 [integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
