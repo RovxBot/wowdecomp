@@ -39,5 +39,6 @@ void LoadInterface() {
     FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "login");
     if (FrameScript::Native::ScriptErrorCount() != errors)
         throw std::runtime_error("Original Glue screen activation failed: " + FrameScript::Native::LastScriptError());
+    std::cout << "startup-stage=glue-activated screen=login" << std::endl;
 }
 }

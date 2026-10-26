@@ -346,6 +346,12 @@ void Factory() {
             Check(bounded, "Native model suffix overflow reached a file operation");
         }
     }
+    const auto closeErrors = FrameScript::Native::ScriptErrorCount();
+    FrameScript_Execute("retainedGamma=SetGamma; retainedGlueMusic=PlayGlueMusic", "retain option closures", nullptr);
+    CGVideoOptions::UnregisterScriptFunctions(); SI2::UnregisterScriptFunctions();
+    FrameScript_Execute("assert(SetGamma==nil and PlayGlueMusic==nil); assert(not pcall(retainedGamma,0) and not pcall(retainedGlueMusic,'closed'))",
+        "closed option closures", nullptr);
+    Check(FrameScript::Native::ScriptErrorCount()==closeErrors, "Option closures survived their native owners");
     scripts.CheckCanClose(); renderer.CheckCanClose(); fonts.CheckCanClose();
 }
 }
