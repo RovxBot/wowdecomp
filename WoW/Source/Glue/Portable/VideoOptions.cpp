@@ -300,7 +300,22 @@ static int32_t Script_GetRefreshRates(lua_State* L) {
 
     return results;
 }
+static int32_t Script_GetGamma(lua_State* L) {
+    RequireVideo(L);
+    CVar* gamma = CVar::Lookup("gamma");
+    lua_pushnumber(L, 1.0 - gamma->m_floatValue);
+    return 1;
+}
+
+static int32_t Script_GetTerrainMip(lua_State* L) {
+    RequireVideo(L);
+    CVar* shadowLevel = CVar::Lookup("shadowLevel");
+    lua_pushnumber(L, 1.0 - shadowLevel->m_intValue);
+    return 1;
+}
 FrameScript_Method functions[] = {
+    { "GetGamma", Script_GetGamma },
+    { "GetTerrainMip", Script_GetTerrainMip },
     { "GetVideoCaps", Script_GetVideoCaps },
     { "IsStereoVideoAvailable", Script_IsStereoVideoAvailable },
     { "IsPlayerResolutionAvailable", Script_IsPlayerResolutionAvailable },
@@ -333,6 +348,37 @@ void CGVideoOptions::RegisterScriptFunctions() {
     CVar::Register("gxRefresh","refresh rate",3,"75",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
     CVar::Register("gxApi","graphics api",3,"OpenGL",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
     CVar::Register("widescreen","Allow widescreen support",0,"1",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
+    // Original graphics/world/component preferences from ConsoleDevice_CVar,
+    // Client_CVar, WorldParam_CVar, Client, MapWeather and CharacterComponent.
+    // No backend-changing callbacks or world objects are fabricated. These
+    // values remain saved preferences until those owners are integrated.
+    CVar::Register("gxStereoEnabled", "Enable stereoscopic rendering", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxStereoConvergence", "Set stereoscopic rendering convergence depth", 1, "1", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxStereoSeparation", "Set stereoscopic rendering separation percentage", 1, "25", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxVSync", "vsync on or off", 3, "1", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxTripleBuffer", "triple buffer", 3, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxCursor", "toggle hardware cursor", 3, "1", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("windowResizeLock", "prevent resizing in windowed mode", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("DesktopGamma", nullptr, 0, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("Gamma", nullptr, 0, "1.0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("farclip", "Far clip plane distance", 1, "350", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("particleDensity", "Video option: Particle density", 1, "1.0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("environmentDetail", "Environment detail", 1, "1.0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("groundEffectDensity", "Ground effect density", 1, "16", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("groundEffectDist", "Ground effect dist", 1, "70.0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("baseMip", "base mipmap level", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("shadowLevel", "Terrain shadow map mip level", 1, "1", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("extShadowQuality", "Quality of exterior shadows (0-5)", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("textureFilteringMode", "Texture filtering mode", 1, "1", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("weatherDensity", nullptr, 0, "2", nullptr, CATEGORY_DEFAULT, false, nullptr, false);
+    CVar::Register("componentTextureLevel", "Number of mip levels used for character component textures", 0x1, "8", nullptr, 0, false, nullptr, false);
+    CVar::Register("specular", "Specularity", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("projectedTextures", "Projected Textures", 1, "0", nullptr, CATEGORY_GRAPHICS, false, nullptr, false);
+    CVar::Register("gxWindow","toggle fullscreen/window",3,active.m_window ? "1" : "0",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
+    CVar::Register("gxMaximize","maximize game window",3,active.m_maximize ? "1" : "0",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
+    CVar::Register("gxFixLag","prevent cursor lag",3,active.m_fixLag ? "1" : "0",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
+    // EffectDeath's original base Effect defaults enabled; no death renderer is selected.
+    CVar::Register("ffxDeath","full screen death effect",1,"1",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
     for (const auto& function : functions) FrameScript_RegisterFunction(function.m_name,function.m_method);
     registered = true;
 }

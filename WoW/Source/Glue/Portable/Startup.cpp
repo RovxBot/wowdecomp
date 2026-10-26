@@ -32,6 +32,8 @@ void LoadInterface() {
     std::cout << "startup-stage=glue-created post-creation-digest=matched" << std::endl;
     const auto errors = FrameScript::Native::ScriptErrorCount();
     FrameScript_SignalEvent(GLUE_EVENT_FRAMES_LOADED, nullptr);
+    if (FrameScript::Native::ScriptErrorCount() != errors)
+        throw std::runtime_error("Original Glue FRAMES_LOADED failed: " + FrameScript::Native::LastScriptError());
     // Original CGlueMgr::SetScreen (0x004D82A0): let unchanged GlueParent choose
     // and show the login frame. Missing activation services remain real errors.
     FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "login");

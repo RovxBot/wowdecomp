@@ -179,11 +179,20 @@ void Factory() {
                 local color,depth,samples=GetMultisampleFormats()
                 assert(color==24 and depth==24 and samples==1 and GetCurrentMultisampleFormat()==1)
                 assert(select('#',GetVideoCaps()) == 7 and IsStereoVideoAvailable()==nil)
+                assert(GetGamma()==0 and GetTerrainMip()==0)
                 local a,b=GetScreenResolutions(); assert(a=='800x600' and b=='1024x768')
                 assert(select('#',GetRefreshRates(1e30))==0 and select('#',GetRefreshRates(-1))==0)
             )", "original video capability query contracts", nullptr);
             Check(FrameScript::Native::ScriptErrorCount()==errors && device.Caps().m_numTmus==1 &&
                 device.Caps().m_shaderConstants[GxSh_Vertex]==94, "Video queries changed capabilities or format contracts");
+            auto* stereo=CVar::LookupRegistered("gxStereoEnabled");
+            auto* farclip=CVar::LookupRegistered("farclip");
+            Check(stereo && stereo->m_intValue==0 && farclip && farclip->m_intValue==350,
+                "Original graphics preference defaults changed");
+            stereo->Set("1",true,false,false,true);
+            Check(!device.Caps().m_stereoAvailable && !device.m_format.m_stereoEnabled,
+                "An unavailable stereo preference changed actual graphics capabilities");
+            stereo->Set("0",true,false,false,true);
         }
         {
             Frame::Native::LoadScriptEdits load;
