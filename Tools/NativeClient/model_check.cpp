@@ -153,6 +153,14 @@ void Factory() {
     LoginWidgets widgets;
     {
         CSimpleTop root;
+        {
+            const char* document = "<SimpleHTML name=\"NativeOptionalHtml\" file=\"missing.html\"/>";
+            std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
+            CStatus status;
+            std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
+            auto* html = dynamic_cast<CSimpleHTML*>(frame.get());
+            Check(html && decltype(html->m_content)::IsEnd(html->m_content.Head()), "Absent optional HTML did not preserve the original empty widget");
+        }
         // An unavailable image must unwind the HTML parser's borrowed tree;
         // otherwise XML owner shutdown terminates and hides the real error.
         {
