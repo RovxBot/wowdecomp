@@ -19,6 +19,7 @@ add_library(WowNativeStartup STATIC
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/Startup.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/ScriptServices.cpp)
 target_sources(WowNativeStartup PRIVATE
+    ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/VideoOptions.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions)

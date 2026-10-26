@@ -57,7 +57,8 @@ void EnsureModels() {
     initialized = true;
     try {
         CShaderEffect::InitShaderSystem(1, 0);
-        CVar::Register("gxMultisample", "Native surface sample count", 0, "1", nullptr, 0, false, nullptr, false);
+        if (!CVar::LookupRegistered("gxMultisample"))
+            CVar::Register("gxMultisample", "Native surface sample count", 0, "1", nullptr, 0, false, nullptr, false);
         FFX::Init();
         CGlueMgr::m_glowEffect = new EffectGlow;
     } catch (...) { CloseModels(); throw; }

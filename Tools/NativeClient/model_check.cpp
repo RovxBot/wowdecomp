@@ -34,6 +34,7 @@
 #include "WoW/Source/Glue/CharacterCreation.h"
 #include "WoW/Source/Glue/CSimpleModelFFX.h"
 #include "WoW/Source/Glue/Portable/Startup.h"
+#include "WoW/Source/Ui/VideoOptions.h"
 #include <cstring>
 #include <filesystem>
 #include <chrono>
@@ -158,8 +159,23 @@ void Factory() {
     });
     Scripts scripts;
     LoginWidgets widgets;
+    CGVideoOptions::RegisterScriptFunctions();
+    struct VideoScripts { ~VideoScripts() { CGVideoOptions::UnregisterScriptFunctions(); } } videoScripts;
     {
         CSimpleTop root;
+        {
+            const auto errors = FrameScript::Native::ScriptErrorCount();
+            FrameScript_Execute(R"(
+                assert(select('#',GetMultisampleFormats()) == 3)
+                local color,depth,samples=GetMultisampleFormats()
+                assert(color==24 and depth==24 and samples==1 and GetCurrentMultisampleFormat()==1)
+                assert(select('#',GetVideoCaps()) == 7 and IsStereoVideoAvailable()==nil)
+                local a,b=GetScreenResolutions(); assert(a=='800x600' and b=='1024x768')
+                assert(select('#',GetRefreshRates(1e30))==0 and select('#',GetRefreshRates(-1))==0)
+            )", "original video capability query contracts", nullptr);
+            Check(FrameScript::Native::ScriptErrorCount()==errors && device.Caps().m_numTmus==1 &&
+                device.Caps().m_shaderConstants[GxSh_Vertex]==94, "Video queries changed capabilities or format contracts");
+        }
         {
             Frame::Native::LoadScriptEdits load;
             Check(CSimpleFont::GetFont("NativeTooltipFont", 1) != nullptr, "Authored tooltip font owner unavailable");
