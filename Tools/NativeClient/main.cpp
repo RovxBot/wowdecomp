@@ -24,6 +24,7 @@
 #include "WoW/Source/Glue/GlueMgr.h"
 #include "WoW/Source/Glue/Portable/ScriptServices.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
+#include "WoW/Source/Glue/CharacterCreation.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cfenv>
@@ -162,11 +163,18 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     Frame::Native::LoginWidgets widgets;
     GlueNative::InitializeScriptServices(source.packages->ExpansionLevel());
     GlueScriptEventsRegisterFunctions();
-    struct GlueScripts { ~GlueScripts() { GlueScriptEventsUnregisterFunctions(); } } glueScripts;
+    struct GlueScripts {
+        ~GlueScripts() {
+            CharacterCreateUnregisterScriptFunctions();
+            CharSelectUnregisterScriptFunctions();
+            GlueScriptEventsUnregisterFunctions();
+        }
+    } glueScripts;
     {
         CSimpleTop root;
         GlueScriptEventsInitialize();
         CharSelectRegisterScriptFunctions();
+        CharacterCreateRegisterScriptFunctions();
         FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();

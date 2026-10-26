@@ -27,6 +27,8 @@
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Status.h"
 #include "Engine/Source/Gx/Gx.h"
+#include "WoW/Source/Glue/CharacterSelection.h"
+#include "WoW/Source/Glue/CharacterCreation.h"
 #include <cstring>
 #include <filesystem>
 #include <chrono>
@@ -154,6 +156,19 @@ void Factory() {
     {
         CSimpleTop root;
         {
+            Frame::Native::LoadScriptEdits load;
+            const char* document = R"(<Frame name="NativeLoginAlignment"><Layers><Layer level="OVERLAY"><FontString name="$parentText"/></Layer></Layers><Scripts><OnLoad>
+                NativeLoginAlignmentText:SetJustifyH('LEFT'); NativeLoginAlignmentText:SetJustifyV('TOP');
+                assert(NativeLoginAlignmentText:GetJustifyH() == 'LEFT' and NativeLoginAlignmentText:GetJustifyV() == 'TOP');
+            </OnLoad></Scripts></Frame>)";
+            std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
+            CStatus status;
+            const auto errors = FrameScript::Native::ScriptErrorCount();
+            std::unique_ptr<CSimpleFrame> frame(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
+            Check(frame && FrameScript::Native::ScriptErrorCount() == errors,
+                "Original login OnLoad could not change FontString alignment inside the scoped load");
+        }
+        {
             const char* document = "<SimpleHTML name=\"NativeOptionalHtml\" file=\"missing.html\"/>";
             std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
             CStatus status;
@@ -181,10 +196,22 @@ void Factory() {
         failShader = false;
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
+        const auto errors = FrameScript::Native::ScriptErrorCount();
+        CharSelectRegisterScriptFunctions(); CharacterCreateRegisterScriptFunctions();
+        FrameScript_Execute(R"(
+            SetCharSelectModelFrame('NativeModelBoundary'); SetCharCustomizeFrame('NativeModelBoundary')
+            SetCharSelectModelFrame('MissingModelFrame'); SetCharCustomizeFrame('MissingModelFrame')
+            assert(not pcall(SetCharSelectModelFrame, {}))
+            assert(not pcall(SetCharCustomizeFrame, {}))
+        )", "original character model frame binding", nullptr);
+        Check(CCharacterSelection::m_modelFrame == model && CCharacterCreation::m_charCustomizeFrame == model,
+            "Original character consumers did not retain their actual ModelFFX frame");
+        CharSelectUnregisterScriptFunctions(); CharacterCreateUnregisterScriptFunctions();
+        Check(!CCharacterSelection::m_modelFrame && !CCharacterCreation::m_charCustomizeFrame,
+            "Original character frame bindings survived native unregistration");
         Check((model->m_flags & CSimpleModel::MODEL_FOGGED) && model->m_fogColor.r == 255 &&
             model->m_fogColor.g == 0 && model->m_fogNear == 0.1f && model->m_fogFar == 100.0f,
             "Original model XML fog handler did not run");
-        const auto errors = FrameScript::Native::ScriptErrorCount();
         FrameScript_Execute("NativeModelBoundary:ClearModel(); NativeModelBoundary:SetCamera(0); NativeModelBoundary:SetSequence(0); NativeModelBoundary:SetGlow(0.3); assert(NativeModelBoundary:GetModel()==nil); assert(not pcall(function() NativeModelBoundary:SetCamera(-1) end)); assert(not pcall(function() NativeModelBoundary:SetSequence(1e30) end)); assert(not pcall(function() NativeModelBoundary:SetSequenceTime(0,1e30) end)); assert(not pcall(function() NativeModelBoundary:SetGlow(2) end))", "native model contract", nullptr);
         Check(FrameScript::Native::ScriptErrorCount() == errors, "Original model Lua methods failed");
         Check(!model->m_model && model->m_pendingCameraIndex == 0, "Empty model state changed");
