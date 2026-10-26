@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 namespace {
 bool registered = false;
 TSGrowableArray<C2iVector> s_resolutions;
@@ -307,15 +308,44 @@ static int32_t Script_GetGamma(lua_State* L) {
     return 1;
 }
 
+// Original SetGamma (0x0054EA90) maps the slider to 1 - value. A refresh
+// of the existing preference needs no device mutation. Reject changes until
+// native display-ramp ownership is implemented; storing a value is not applying it.
+static int32_t Script_SetGamma(lua_State* L) {
+    RequireVideo(L);
+    if (!lua_isnumber(L, 1)) return luaL_error(L, "Usage: SetGamma(value)");
+    const double gamma = 1.0 - lua_tonumber(L, 1);
+    if (!std::isfinite(gamma)) return luaL_error(L, "Gamma must be finite");
+    auto* current = CVar::Lookup("gamma");
+    if (gamma != current->m_floatValue)
+        return luaL_error(L, "Native display gamma application unavailable");
+    return 0;
+}
+
 static int32_t Script_GetTerrainMip(lua_State* L) {
     RequireVideo(L);
     CVar* shadowLevel = CVar::Lookup("shadowLevel");
     lua_pushnumber(L, 1.0 - shadowLevel->m_intValue);
     return 1;
 }
+// Original SetTerrainMip (0x0054EB40), with checked native conversion. As with
+// gamma, activation may refresh the current preference, but cannot apply a new
+// terrain setting without the world renderer.
+static int32_t Script_SetTerrainMip(lua_State* L) {
+    RequireVideo(L);
+    if (!lua_isnumber(L, 1)) return luaL_error(L, "Usage: SetTerrainMip(value)");
+    const double value = lua_tonumber(L, 1);
+    if (!std::isfinite(value) || value < 1.0 - INT32_MAX || value > INT32_MAX)
+        return luaL_error(L, "Terrain mip is outside the original integer range");
+    if (1 - static_cast<int32_t>(value) != CVar::Lookup("shadowLevel")->m_intValue)
+        return luaL_error(L, "Native terrain mip application unavailable");
+    return 0;
+}
 FrameScript_Method functions[] = {
     { "GetGamma", Script_GetGamma },
+    { "SetGamma", Script_SetGamma },
     { "GetTerrainMip", Script_GetTerrainMip },
+    { "SetTerrainMip", Script_SetTerrainMip },
     { "GetVideoCaps", Script_GetVideoCaps },
     { "IsStereoVideoAvailable", Script_IsStereoVideoAvailable },
     { "IsPlayerResolutionAvailable", Script_IsPlayerResolutionAvailable },
@@ -381,6 +411,7 @@ void CGVideoOptions::RegisterScriptFunctions() {
     CVar::Register("ffxDeath","full screen death effect",1,"1",nullptr,CATEGORY_GRAPHICS,false,nullptr,false);
     for (const auto& function : functions) FrameScript_RegisterFunction(function.m_name,function.m_method);
     registered = true;
+    std::cout << "native-unavailable=display-gamma,graphics-option-application" << std::endl;
 }
 void CGVideoOptions::UnregisterScriptFunctions() {
     FrameScript::Native::RequireOwner();

@@ -3,6 +3,7 @@
 // shutdown. Original world GetBuildInfo is a separate four-result API.
 #include "ScriptServices.h"
 #include "WoW/Source/Glue/GlueMgr.h"
+#include "WoW/Source/Glue/CGlueMgr.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/FrameScript/FrameScript_Object.h"
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
@@ -14,9 +15,19 @@
 #include "Engine/Source/ShaderEffect/ShadowCache.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Event/Event.h"
+#include "Engine/Source/Os/Processor.h"
+#include "Engine/Source/Services/AsyncFile.h"
 #include "GameVersion.h"
+#include <deque>
+#include <string>
 #include <stdexcept>
+// Native selection of original CGlueMgr activation state. Warning text is owned
+// until acknowledgement/close, rather than borrowing collectable Lua strings.
+char CGlueMgr::m_currentScreen[64];
+uint32_t CGlueMgr::m_numChangedOptionWarnings;
+TSGrowableArray<const char*> CGlueMgr::m_changedOptionWarnings;
 namespace {
+std::deque<std::string> warningText;
 CVar* g_accountNameVar;
 CVar* g_accountListVar;
 CVar* g_accountUsesTokenVar;
@@ -96,6 +107,45 @@ static int32_t Script_GetSavedAccountList(lua_State* L) {
     RequireServices(L);
     lua_pushstring(L, g_accountListVar->m_stringValue.m_str);
     return 1;
+}
+
+// Original Glue activation wrappers, retaining number/nil and zero-result APIs.
+static int32_t Script_ShowChangedOptionWarnings(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::ShowChangedOptionWarnings()) lua_pushnumber(L, 1.0);
+    else lua_pushnil(L);
+    return 1;
+}
+static int32_t Script_GetChangedOptionWarnings(lua_State* L) {
+    RequireServices(L);
+    const auto count = CGlueMgr::m_numChangedOptionWarnings;
+    if (!lua_checkstack(L, count)) return luaL_error(L, "Too many option warnings");
+    for (uint32_t i = 0; i < count; ++i) lua_pushstring(L, CGlueMgr::m_changedOptionWarnings[i]);
+    return count;
+}
+static int32_t Script_AcceptChangedOptionWarnings(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptChangedOptionWarnings(); return 0;
+}
+static int32_t Script_IsSystemSupported(lua_State* L) {
+    RequireServices(L);
+    // This original query tests SSE only, not overall native client readiness.
+    if (OsGetProcessorFeatures() & 4) lua_pushnumber(L, 1.0);
+    else lua_pushnil(L);
+    return 1;
+}
+bool CharacterScreen(const char* screen) {
+    return !SStrCmpI(screen, "charselect", STORM_MAX_STR) || !SStrCmpI(screen, "charcreate", STORM_MAX_STR);
+}
+static int32_t Script_SetCurrentScreen(lua_State* L) {
+    RequireServices(L);
+    if (!lua_isstring(L, 1)) return luaL_error(L, "Usage: SetCurrentScreen(\"screen\")");
+    const char* screen = lua_tostring(L, 1);
+    if (CharacterScreen(screen) || CharacterScreen(CGlueMgr::m_currentScreen))
+        return luaL_error(L, "Native character screen lifecycle unavailable");
+    CGlueMgr::UpdateCurrentScreen(screen);
+    if (!SFile::IsStreamingMode()) AsyncFileReadWaitAll();
+    return 0;
 }
 
 // OFFSET: 0x004DDD10
@@ -381,6 +431,11 @@ FrameScript_Method functions[] = {
     { "SetSavedAccountList", Script_SetSavedAccountList },
     { "GetSavedAccountName", Script_GetSavedAccountName },
     { "GetSavedAccountList", Script_GetSavedAccountList },
+    { "ShowChangedOptionWarnings", Script_ShowChangedOptionWarnings },
+    { "GetChangedOptionWarnings", Script_GetChangedOptionWarnings },
+    { "AcceptChangedOptionWarnings", Script_AcceptChangedOptionWarnings },
+    { "IsSystemSupported", Script_IsSystemSupported },
+    { "SetCurrentScreen", Script_SetCurrentScreen },
     { "GetCVar", Script_GetCVar },
     { "SetCVar", Script_SetCVar },
     { "GetCVarBool", Script_GetCVarBool },
@@ -401,12 +456,40 @@ FrameScript_Method functions[] = {
     { "QuitGame", Script_QuitGame },
 };
 }
+// Selected original warning/lifecycle operations from CGlueMgr.cpp. Character
+// screens require their real OnHide/Idle services before entering this surface.
+void CGlueMgr::UpdateCurrentScreen(const char* screen) {
+    FrameScript::Native::RequireOwner();
+    if (!screen || CharacterScreen(screen) || CharacterScreen(m_currentScreen))
+        throw std::logic_error("Native character screen lifecycle unavailable");
+    SStrCopy(m_currentScreen, screen, sizeof(m_currentScreen));
+}
+int32_t CGlueMgr::ShowChangedOptionWarnings() {
+    FrameScript::Native::RequireOwner(); return m_numChangedOptionWarnings != 0;
+}
+void CGlueMgr::AcceptChangedOptionWarnings() {
+    FrameScript::Native::RequireOwner();
+    m_changedOptionWarnings.Clear(); m_numChangedOptionWarnings = 0; warningText.clear();
+}
+void CGlueMgr::AddChangedOptionWarning(const char* warning) {
+    FrameScript::Native::RequireOwner();
+    if (!warning) return;
+    const char* text = FrameScript_GetText(warning, -1, GENDER_NOT_APPLICABLE);
+    if (!text) return;
+    if (m_numChangedOptionWarnings >= 256) throw std::length_error("Native option warning limit");
+    warningText.emplace_back(text);
+    try { m_changedOptionWarnings.New(warningText.back().c_str()); }
+    catch (...) { warningText.pop_back(); throw; }
+    ++m_numChangedOptionWarnings;
+}
 namespace GlueNative {
 void InitializeScriptServices(uint8_t expansionLevel) {
     FrameScript::Native::RequireOwner();
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
     clientExpansionLevel = expansionLevel;
+    CGlueMgr::m_currentScreen[0] = '\0';
+    CGlueMgr::AcceptChangedOptionWarnings();
     // Client_CVar.cpp::ClientRegisterConsoleCommands (12340 0x00401B60).
     // CVar owns these entries and preserves values read from the external config.
     g_accountNameVar = CVar::Register("accountName", "Saved account name", 0x40, "", nullptr, CATEGORY_GAME, false, nullptr, false);
@@ -428,5 +511,7 @@ void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
+    CGlueMgr::AcceptChangedOptionWarnings();
+    CGlueMgr::m_currentScreen[0] = '\0';
     g_accountNameVar = g_accountListVar = g_accountUsesTokenVar = nullptr;
 }
