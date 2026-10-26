@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include "CSimpleModelFFX.h"
 #include <cstdint>
 #include "Engine/Source/FrameScript/FrameScript.h"
@@ -147,12 +150,21 @@ void CSimpleModelFFX::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00AC465C
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "ResetLights", &Frame::Native::ScriptMethod<Script_ResetLights, true, false, true> },
+    { "AddLight", &Frame::Native::ScriptMethod<Script_AddLight, true, false, true> },
+    { "AddCharacterLight", &Frame::Native::ScriptMethod<Script_AddCharacterLight, true, false, true> },
+    { "AddPetLight", &Frame::Native::ScriptMethod<Script_AddPetLight, true, false, true> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "ResetLights", &Script_ResetLights },
     { "AddLight", &Script_AddLight },
     { "AddCharacterLight", &Script_AddCharacterLight },
     { "AddPetLight", &Script_AddPetLight },
 };
+#endif
 
 // VERIFY: f7905f30 auto
 // OFFSET: 0x004E6BC0

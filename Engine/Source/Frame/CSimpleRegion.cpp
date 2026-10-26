@@ -42,7 +42,7 @@ uint8_t CSimpleRegion::GetVertexAlpha() {
 void CSimpleRegion::Hide() {
     FRAME_REGION_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     this->m_shown = 0;
     this->HideThis();

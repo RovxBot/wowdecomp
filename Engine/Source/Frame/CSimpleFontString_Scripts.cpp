@@ -88,7 +88,6 @@ static int32_t Script_SetDrawLayer(lua_State* L) {
 
 // VERIFY: 2116a458 auto
 // OFFSET: 0x0048CF30
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetVertexColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -107,7 +106,6 @@ static int32_t Script_SetVertexColor(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 2f47cd3c auto
 // OFFSET: 0x0048CFC0
@@ -397,7 +395,6 @@ static int32_t Script_SetFormattedText(lua_State* L) {
 
 // VERIFY: 5c9814f7 manual
 // OFFSET: 0x0048D890
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetTextColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -410,11 +407,9 @@ static int32_t Script_GetTextColor(lua_State* L) {
 
     return 4;
 }
-#endif
 
 // VERIFY: d25455b2 manual
 // OFFSET: 0x0048D970
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetTextColor(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
 
@@ -425,7 +420,6 @@ static int32_t Script_SetTextColor(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: b0954a68 manual
 // OFFSET: 0x0048D9E0
@@ -575,18 +569,15 @@ static int32_t Script_GetStringHeight(lua_State* L) {
 
 // VERIFY: 03e2b414 manual
 // OFFSET: 0x0048DF70
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetJustifyH(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     lua_pushstring(L, JustifyToString(string->m_styleFlags & 0x7));
 
     return 1;
 }
-#endif
 
 // VERIFY: 51b186b6 auto
 // OFFSET: 0x0048E360
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetJustifyH(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     uint32_t justify;
@@ -612,22 +603,18 @@ static int32_t Script_SetJustifyH(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 31230f46 manual
 // OFFSET: 0x0048DFC0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetJustifyV(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     lua_pushstring(L, JustifyToString(string->m_styleFlags & 0x38));
 
     return 1;
 }
-#endif
 
 // VERIFY: dd3890a2 auto
 // OFFSET: 0x0048E430
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetJustifyV(lua_State* L) {
     CSimpleFontString* string = static_cast<CSimpleFontString*>(FrameScript_GetObjectThis(L, CSimpleFontString::GetObjectType()));
     uint32_t justify;
@@ -653,7 +640,6 @@ static int32_t Script_SetJustifyV(lua_State* L) {
 
     return 0;
 }
-#endif
 
 // VERIFY: 679d5c2f auto
 // OFFSET: 0x0048E010
@@ -772,28 +758,28 @@ static int32_t Script_SetIndentedWordWrap(lua_State* L) {
 // STATIC: 0x00AC1118
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
-    { "IsObjectType", &Frame::Native::ScriptMethod<&Script_IsObjectType> },
-    { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType> },
+    { "IsObjectType", &Frame::Native::ScriptMethod<&Script_IsObjectType, true, false> },
+    { "GetObjectType", &Frame::Native::ScriptMethod<&Script_GetObjectType, true, false> },
     { "GetDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "SetDrawLayer", &Frame::Native::UnavailableScriptMethod },
-    { "SetVertexColor", &Frame::Native::UnavailableScriptMethod },
+    { "SetVertexColor", &Frame::Native::ScriptMethod<&Script_SetVertexColor, true, false, true> },
     { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha, true, false> },
     { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
     { "SetAlphaGradient", &Frame::Native::UnavailableScriptMethod },
-    { "Show", &Frame::Native::ScriptMethod<&Script_Show> },
-    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide> },
+    { "Show", &Frame::Native::ScriptMethod<&Script_Show, true, false, true> },
+    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide, true, false, true> },
     { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
     { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
     { "GetFontObject", &Frame::Native::ScriptMethod<&Script_GetFontObject, true, false> },
-    { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject> },
+    { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject, true, false, true> },
     { "GetFont", &Frame::Native::UnavailableScriptMethod },
     { "SetFont", &Frame::Native::UnavailableScriptMethod },
     { "GetText", &Frame::Native::ScriptMethod<&Script_GetText, true, false> },
-    { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize> },
+    { "GetFieldSize", &Frame::Native::ScriptMethod<&Script_GetFieldSize, true, false> },
     { "SetText", &Frame::Native::ScriptMethod<&Script_SetText, false, false> },
     { "SetFormattedText", &Frame::Native::ScriptMethod<&Script_SetFormattedText, false, false> },
-    { "GetTextColor", &Frame::Native::UnavailableScriptMethod },
-    { "SetTextColor", &Frame::Native::UnavailableScriptMethod },
+    { "GetTextColor", &Frame::Native::ScriptMethod<&Script_GetTextColor, true, false> },
+    { "SetTextColor", &Frame::Native::ScriptMethod<&Script_SetTextColor, true, false, true> },
     { "GetShadowColor", &Frame::Native::UnavailableScriptMethod },
     { "SetShadowColor", &Frame::Native::UnavailableScriptMethod },
     { "GetShadowOffset", &Frame::Native::UnavailableScriptMethod },
@@ -801,12 +787,12 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetSpacing", &Frame::Native::UnavailableScriptMethod },
     { "SetSpacing", &Frame::Native::UnavailableScriptMethod },
     { "SetTextHeight", &Frame::Native::UnavailableScriptMethod },
-    { "GetStringWidth", &Frame::Native::ScriptMethod<&Script_GetStringWidth> },
-    { "GetStringHeight", &Frame::Native::ScriptMethod<&Script_GetStringHeight> },
-    { "GetJustifyH", &Frame::Native::UnavailableScriptMethod },
-    { "SetJustifyH", &Frame::Native::UnavailableScriptMethod },
-    { "GetJustifyV", &Frame::Native::UnavailableScriptMethod },
-    { "SetJustifyV", &Frame::Native::UnavailableScriptMethod },
+    { "GetStringWidth", &Frame::Native::ScriptMethod<&Script_GetStringWidth, true, false> },
+    { "GetStringHeight", &Frame::Native::ScriptMethod<&Script_GetStringHeight, true, false> },
+    { "GetJustifyH", &Frame::Native::ScriptMethod<&Script_GetJustifyH, true, false> },
+    { "SetJustifyH", &Frame::Native::ScriptMethod<&Script_SetJustifyH, true, false, true> },
+    { "GetJustifyV", &Frame::Native::ScriptMethod<&Script_GetJustifyV, true, false> },
+    { "SetJustifyV", &Frame::Native::ScriptMethod<&Script_SetJustifyV, true, false, true> },
     { "CanNonSpaceWrap", &Frame::Native::UnavailableScriptMethod },
     { "SetNonSpaceWrap", &Frame::Native::UnavailableScriptMethod },
     { "CanWordWrap", &Frame::Native::UnavailableScriptMethod },

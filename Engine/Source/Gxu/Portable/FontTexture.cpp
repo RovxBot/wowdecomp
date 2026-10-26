@@ -3,6 +3,7 @@
 #include "LegacyFonts.h"
 #include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/Gx/Gx.h"
+#include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include <memory>
 #include <stdexcept>
@@ -21,14 +22,20 @@ const char* CTexture::GetObjectName() { return m_filename; }
 CTexture* TextureCreate(uint32_t width, uint32_t height, EGxTexFormat format,
     EGxTexFormat dataFormat, CGxTexFlags flags, void* user, GxTexUserFunc callback,
     const char* name, int32_t defaultFilter) {
+    return TextureCreate(GxTex_2d, width, height, 0, format, dataFormat, flags,
+        user, callback, name, defaultFilter);
+}
+CTexture* TextureCreate(EGxTexTarget target, uint32_t width, uint32_t height,
+    uint32_t depth, EGxTexFormat format, EGxTexFormat dataFormat, CGxTexFlags flags,
+    void* user, GxTexUserFunc callback, const char* name, int32_t defaultFilter) {
     Gxu::Native::RequireFontOwner();
-    if (defaultFilter || width != 256 || height != 256 || format != GxTex_Argb4444 ||
-        dataFormat != format || !callback)
-        throw std::invalid_argument("Native Gxu texture service requires a 256x256 ARGB4444 callback atlas");
+    if (defaultFilter || !width || !height || width > UINT16_MAX || height > UINT16_MAX || !callback)
+        throw std::invalid_argument("Unavailable native callback texture dimensions or filtering");
     auto texture = std::make_unique<CTexture>();
-    if (!GxTexCreate(GxTex_2d, width, height, 0, format, dataFormat, flags, user, callback,
+    if (!GxTexCreate(target, width, height, depth, format, dataFormat, flags, user, callback,
                      name, texture->m_gxTex))
-        throw std::runtime_error("Native Gxu atlas allocation failed");
+        throw std::runtime_error("Native callback texture allocation failed");
+    texture->m_gxTexTarget = target;
     texture->m_gxWidth = width;
     texture->m_gxHeight = height;
     texture->m_gxTexFormat = format;
@@ -37,6 +44,13 @@ CTexture* TextureCreate(uint32_t width, uint32_t height, EGxTexFormat format,
     SStrCopy(texture->m_filename, name ? name : "GxuFont", sizeof(texture->m_filename));
     HandleCreate(texture.get(), "HTEXTURE");
     return texture.release();
+}
+void GxTexNullUserFunc(EGxTexCommand, uint32_t, uint32_t, uint32_t, uint32_t,
+    void*, uint32_t& stride, const void*& pixels) { stride = 0; pixels = nullptr; }
+int32_t TextureCanUpdate(CTexture* texture) {
+    if (!texture) return 0;
+    texture->NativeCheckOwner();
+    return texture->m_gxTex && g_theGxDevicePtr->TexCanUpdate(texture->m_gxTex);
 }
 CGxTex* TextureGetGxTex(CTexture* texture, int32_t wait, CStatus* status) {
     return Services::Native::GetFileTexture(texture, wait, status);
@@ -78,4 +92,18 @@ CTexture* TextureCreateSolid(const CImVector& color) {
     GxTexUpdate(texture->m_gxTex, 0, 0, 8, 8, 1);
     HandleCreate(texture.get(), "HTEXTURE");
     return texture.release();
+}
+
+void TextureComputeLoadProgress(CTexture* texture, int64_t& loaded, int64_t& total) {
+    if (!texture) return;
+    texture->NativeCheckOwner();
+    // Native input is local. The remaining unit represents completed decode and
+    // publication, observed on the texture owner rather than a legacy ticket.
+    ++total;
+    if (TextureIsLoaded(texture)) ++loaded;
+}
+void TextureIncreasePriority(CTexture* texture) {
+    if (texture) texture->NativeCheckOwner();
+    // Original TextureIncreasePriority returns immediately for non-streaming
+    // files. Native image Services deliberately has no remote streaming mode.
 }

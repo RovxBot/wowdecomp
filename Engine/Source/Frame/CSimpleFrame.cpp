@@ -476,7 +476,8 @@ uint8_t CSimpleFrame::GetEffectiveAlpha() {
 void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    if (flag == 0x400) Frame::Native::RequireStateMutation(); // Button disabled state
+    else Frame::Native::RequireTreeMutation();
     // Qualified base movement flags plus Button disabled/widget markers.
     if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000 && flag != 0x400 && flag != 0x10000) Frame::Native::UnavailableFrameFeature();
     this->m_simpleTop->m_strata[this->m_strata]->m_levelsDirty = 1;
@@ -557,7 +558,7 @@ void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
 void CSimpleFrame::RegisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
@@ -572,7 +573,7 @@ void CSimpleFrame::RegisterForEvents(int32_t a2) {
 void CSimpleFrame::UnregisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
@@ -975,7 +976,7 @@ bool CSimpleFrame::SetFrameDepth(float depth, bool force) {
 int32_t CSimpleFrame::Hide() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -994,7 +995,7 @@ int32_t CSimpleFrame::Hide() {
 int32_t CSimpleFrame::Show() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -1018,7 +1019,7 @@ void CSimpleFrame::EnableEvent(CSimpleEventType eventType, int32_t priority)
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
     if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
 #endif
@@ -1044,7 +1045,7 @@ void CSimpleFrame::DisableEvent(CSimpleEventType eventType)
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     if (eventType > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
 #endif
     if (!((1 << eventType) & this->m_enabledEventsBitmask)) {
@@ -1411,7 +1412,7 @@ void CSimpleFrame::OnReceiveDrag(const CMouseEvent& evt) {
 void CSimpleFrame::NotifyScrollParent() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (this->m_frameFlags & 0x2000) Frame::Native::UnavailableFrameFeature();
+    if (this->m_frameFlags & 0x2000) Frame::Native::NotifyScroll(this);
 #else
 
     if (!(this->m_frameFlags & 0x2000) || !this->m_isVisible) {
@@ -1990,7 +1991,10 @@ void CSimpleFrame::GetScriptTime(lua_State* L, double* time, uint32_t* count, in
 void CSimpleFrame::SetBeingScrolled(int32_t scrolled, int32_t a3) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (scrolled || a3 >= 0) Frame::Native::UnavailableFrameFeature();
+    if (scrolled || a3 >= 0) {
+        Frame::Native::RequireTreeMutation();
+        if (!Frame::Native::HasScrollSupport()) Frame::Native::UnavailableFrameFeature();
+    }
 #endif
     uint32_t visible = this->m_isVisible;
 
@@ -2063,7 +2067,7 @@ void CSimpleFrame::SetFrameStrata(FRAME_STRATA strata) {
 void CSimpleFrame::SetFrameLevel(int32_t level, int32_t shiftChildren) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     Frame::Native::RequireLevel(this, level);
 #endif
     if (level < 0) {
@@ -2317,7 +2321,7 @@ bool CSimpleFrame::UpdateDepth(bool force) {
 int32_t CSimpleFrame::HideThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     if (!this->m_isVisible) {
         return 1;
@@ -2351,7 +2355,7 @@ int32_t CSimpleFrame::HideThis() {
 int32_t CSimpleFrame::ShowThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
 #endif
     if (!this->m_isShown || (this->m_parent && !this->m_parent->m_isVisible)) {
         return 0;
@@ -2942,7 +2946,7 @@ void CSimpleFrame::LoadXML(XMLNode* node, CStatus* status) {
 void CSimpleFrame::RunScript(const FrameScript_Object::ScriptIx& script, int32_t count, const char* taint) {
     Frame::Native::RequireRegionScripts();
     Frame::Native::RequireSimpleFrame(this);
-    Frame::Native::ResizeScope callback;
+    Frame::Native::CallbackScope callback;
     FrameScript_Object::RunScript(script, count, taint);
 }
 #endif

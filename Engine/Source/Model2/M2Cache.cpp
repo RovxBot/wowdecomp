@@ -89,7 +89,11 @@ void M2SetGlobalOptFlags(uint32_t flags) {
 // VERIFY: 01e775e8 manual
 // OFFSET: 0x0081C080
 CM2Scene* M2CreateScene() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return new CM2Scene(&s_cache);
+#else
     return new (SMemAlloc(sizeof(CM2Scene), __FILE__, __LINE__, 0)) CM2Scene(&s_cache);
+#endif
 }
 
 // VERIFY: 3f7a837f auto
@@ -155,7 +159,11 @@ int32_t CM2Cache::Initialize(uint32_t flags) {
 
     this->m_flags |= flags & 0x1A0;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    uint32_t high = uint32_t(rand()) << 16;
+#else
     uint32_t high = rand() << 16;
+#endif
     CRndSeed seed(high | static_cast<uint16_t>(rand()));
 
     for (uint32_t i = 0; i < sizeof(s_randomTable) / sizeof(s_randomTable[0]); i++) {
@@ -322,7 +330,11 @@ CM2Shared* CM2Cache::CreateShared(const char* name, uint32_t flags) {
         return nullptr;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CM2Shared* shared = new CM2Shared(this);
+#else
     CM2Shared* shared = new (SMemAlloc(sizeof(CM2Shared), __FILE__, __LINE__, 0)) CM2Shared(this);
+#endif
 
     if (!shared) {
         SFileCloseFile(file);
@@ -379,7 +391,11 @@ void M2Initialize(uint32_t flags, uint32_t modelCount) {
         modelCount = 2048;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    g_modelPool = new CM2ModelHeap;
+#else
     g_modelPool = new (SMemAlloc(sizeof(CM2ModelHeap), __FILE__, __LINE__, 0)) CM2ModelHeap;
+#endif
 
     if (g_modelPool) {
         g_modelPool->m_heapId = ObjectAllocAddHeap(sizeof(CM2Model), modelCount, "CM2Model", true);

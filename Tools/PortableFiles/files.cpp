@@ -94,6 +94,11 @@ void Creation(const fs::path& root) {
     const auto missing = Name(root / "unsupported.bin");
     Check(!F::Open(missing.c_str(), 3 | 0x40, unsupported) && !unsupported && !fs::exists(fs::u8path(missing)), "unsupported direct I/O fails before creation");
     Check(OsCreateFile(missing.c_str(), OS_GENERIC_WRITE, 3, 2, 0x20000000, 0) == OS_INVALID_FILE, "Os direct I/O is explicitly unavailable");
+    auto anyType = OsCreateFile(name.c_str(), OS_GENERIC_READ, 3, OS_OPEN_EXISTING, OS_FILE_ATTRIBUTE_NORMAL, OS_FILE_TYPE_ANY);
+    Check(anyType != OS_INVALID_FILE, "Original ANY file-type hint must allow regular files");
+    Check(OsCloseFile(anyType), "Close original ANY file-type handle");
+    Check(OsCreateFile(missing.c_str(), OS_GENERIC_WRITE, 3, OS_CREATE_ALWAYS, OS_FILE_ATTRIBUTE_NORMAL, 1) == OS_INVALID_FILE,
+          "Specific extended file types remain unavailable");
     Check(!N::Open(missing.c_str(), 3, static_cast<N::Disposition>(999), unsupported) && !unsupported && !fs::exists(fs::u8path(missing)), "invalid disposition fails before file creation");
 }
 void Transfers(const fs::path& root) {

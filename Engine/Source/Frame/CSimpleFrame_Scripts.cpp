@@ -396,18 +396,15 @@ static int32_t Script_SetFrameStrata(lua_State* L) {
 
 // VERIFY: afff24c6 manual
 // OFFSET: 0x0049E980
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_level);
     return 1;
 }
-#endif
 
 // VERIFY: 2dedbf38 manual
 // OFFSET: 0x0049E9D0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetFrameLevel(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -425,6 +422,10 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 2) < -2147483648.0 || lua_tonumber(L, 2) >= 2147483648.0)
+        return luaL_error(L, "Native Frame level must fit the original integer range");
+#endif
     int32_t level = static_cast<int32_t>(lua_tonumber(L, 2));
 
     if (level < 0) {
@@ -436,7 +437,6 @@ static int32_t Script_SetFrameLevel(lua_State* L) {
     frame->SetFrameLevel(level, 1);
     return 0;
 }
-#endif
 
 // VERIFY: 24a44dfc auto
 // OFFSET: 0x0049EAB0
@@ -993,18 +993,15 @@ static int32_t Script_SetAlpha(lua_State* L) {
 
 // VERIFY: 0dd1fea4 manual
 // OFFSET: 0x0049FAB0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_id);
     return 1;
 }
-#endif
 
 // VERIFY: f0877b88 manual
 // OFFSET: 0x0049FB00
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetID(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1022,10 +1019,14 @@ static int32_t Script_SetID(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    const auto id = lua_tonumber(L, 2);
+    if (!std::isfinite(id) || std::trunc(id) < INT32_MIN || std::trunc(id) > INT32_MAX)
+        return luaL_error(L, "Native Frame ID must fit int32");
+#endif
     frame->m_id = static_cast<int32_t>(lua_tonumber(L, 2));
     return 0;
 }
-#endif
 
 // VERIFY: 8a7deb8f auto
 // OFFSET: 0x0049FBB0
@@ -2140,19 +2141,19 @@ void CSimpleFrame::DestroyScriptMetaTable() {
 // STATIC: 0x00AC1550
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
-    { "GetTitleRegion", &Frame::Native::ScriptMethod<&Script_GetTitleRegion> },
+    { "GetTitleRegion", &Frame::Native::ScriptMethod<&Script_GetTitleRegion, true, false> },
     { "CreateTitleRegion", &Frame::Native::ScriptMethod<&Script_CreateTitleRegion> },
     { "CreateTexture", &Frame::Native::ScriptMethod<&Script_CreateTexture> },
     { "CreateFontString", &Frame::Native::ScriptMethod<&Script_CreateFontString> },
     { "GetBoundsRect", &Frame::Native::UnavailableScriptMethod },
-    { "GetNumRegions", &Frame::Native::ScriptMethod<&Script_GetNumRegions> },
-    { "GetRegions", &Frame::Native::ScriptMethod<&Script_GetRegions> },
-    { "GetNumChildren", &Frame::Native::ScriptMethod<&Script_GetNumChildren> },
-    { "GetChildren", &Frame::Native::ScriptMethod<&Script_GetChildren> },
+    { "GetNumRegions", &Frame::Native::ScriptMethod<&Script_GetNumRegions, true, false> },
+    { "GetRegions", &Frame::Native::ScriptMethod<&Script_GetRegions, true, false> },
+    { "GetNumChildren", &Frame::Native::ScriptMethod<&Script_GetNumChildren, true, false> },
+    { "GetChildren", &Frame::Native::ScriptMethod<&Script_GetChildren, true, false> },
     { "GetFrameStrata", &Frame::Native::UnavailableScriptMethod },
     { "SetFrameStrata", &Frame::Native::UnavailableScriptMethod },
-    { "GetFrameLevel", &Frame::Native::UnavailableScriptMethod },
-    { "SetFrameLevel", &Frame::Native::UnavailableScriptMethod },
+    { "GetFrameLevel", &Frame::Native::ScriptMethod<&Script_GetFrameLevel, true, false> },
+    { "SetFrameLevel", &Frame::Native::ScriptMethod<&Script_SetFrameLevel, true, false, true> },
     { "HasScript", &Frame::Native::ScriptMethod<&Script_HasScript, true, false> },
     { "GetScript", &Frame::Native::ScriptMethod<&Script_GetScript, true, false> },
     { "SetScript", &Frame::Native::ScriptMethod<&Script_SetScript, true, false> },
@@ -2172,16 +2173,16 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetEffectiveAlpha", &Frame::Native::UnavailableScriptMethod },
     { "GetAlpha", &Frame::Native::UnavailableScriptMethod },
     { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
-    { "GetID", &Frame::Native::UnavailableScriptMethod },
-    { "SetID", &Frame::Native::UnavailableScriptMethod },
+    { "GetID", &Frame::Native::ScriptMethod<&Script_GetID, true, false> },
+    { "SetID", &Frame::Native::ScriptMethod<&Script_SetID, true, false, true> },
     { "SetToplevel", &Frame::Native::UnavailableScriptMethod },
     { "IsToplevel", &Frame::Native::UnavailableScriptMethod },
     { "EnableDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "DisableDrawLayer", &Frame::Native::UnavailableScriptMethod },
-    { "Show", &Frame::Native::ScriptMethod<&Script_Show> },
-    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide> },
-    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible> },
-    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown> },
+    { "Show", &Frame::Native::ScriptMethod<&Script_Show, true, false, true> },
+    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide, true, false, true> },
+    { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
+    { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
     { "Raise", &Frame::Native::UnavailableScriptMethod },
     { "Lower", &Frame::Native::UnavailableScriptMethod },
     { "GetHitRectInsets", &Frame::Native::UnavailableScriptMethod },
@@ -2206,20 +2207,20 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetClampedToScreen", &Frame::Native::UnavailableScriptMethod },
     { "IsClampedToScreen", &Frame::Native::UnavailableScriptMethod },
     { "RegisterForDrag", &Frame::Native::UnavailableScriptMethod },
-    { "EnableKeyboard", &Frame::Native::ScriptMethod<&Script_EnableKeyboard, true, true> },
+    { "EnableKeyboard", &Frame::Native::ScriptMethod<&Script_EnableKeyboard, true, false, true> },
     { "IsKeyboardEnabled", &Frame::Native::ScriptMethod<&Script_IsKeyboardEnabled, true, false> },
-    { "EnableMouse", &Frame::Native::ScriptMethod<&Script_EnableMouse, true, true> },
+    { "EnableMouse", &Frame::Native::ScriptMethod<&Script_EnableMouse, true, false, true> },
     { "IsMouseEnabled", &Frame::Native::ScriptMethod<&Script_IsMouseEnabled, true, false> },
-    { "EnableMouseWheel", &Frame::Native::ScriptMethod<&Script_EnableMouseWheel, true, true> },
+    { "EnableMouseWheel", &Frame::Native::ScriptMethod<&Script_EnableMouseWheel, true, false, true> },
     { "IsMouseWheelEnabled", &Frame::Native::ScriptMethod<&Script_IsMouseWheelEnabled, true, false> },
     { "EnableJoystick", &Frame::Native::UnavailableScriptMethod },
     { "IsJoystickEnabled", &Frame::Native::UnavailableScriptMethod },
-    { "GetBackdrop", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdrop> },
+    { "GetBackdrop", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdrop, true, false> },
     { "SetBackdrop", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdrop> },
-    { "GetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropColor> },
-    { "SetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropColor> },
-    { "GetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropBorderColor> },
-    { "SetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropBorderColor> },
+    { "GetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropColor, true, false> },
+    { "SetBackdropColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropColor, true, false, true> },
+    { "GetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::GetBackdropBorderColor, true, false> },
+    { "SetBackdropBorderColor", &Frame::Native::ScriptMethod<&Frame::Native::SetBackdropBorderColor, true, false, true> },
     { "SetDepth", &Frame::Native::UnavailableScriptMethod },
     { "GetDepth", &Frame::Native::UnavailableScriptMethod },
     { "GetEffectiveDepth", &Frame::Native::UnavailableScriptMethod },

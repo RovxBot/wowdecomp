@@ -17,7 +17,7 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-24. Linux has a tested native rendering and UI foundation.
+**Updated: 2026-10-26. Linux has a tested native rendering and UI foundation.
 A playable native Linux or macOS client is still in development.**
 
 | Platform | What is demonstrated | What still blocks a playable prototype |
@@ -25,6 +25,15 @@ A playable native Linux or macOS client is still in development.**
 | **Linux x86-64** | Native SDL3 shell; original asset loading; OpenGL UI shaders, images and fonts; original Frame layout, hierarchy and text rendering; resize, keyboard/text/focus and IME event delivery | Complete original login UI and its Frame factories/consumers, portable networking/authentication, full world rendering and an observed server session |
 | **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
+
+The Actions-built `WowNativeClient` constructs the original **ModelFFX
+AccountLogin** factory and now completes the original ordered GlueXML creation
+with a matching full post-creation digest. Original build/account/CVar services,
+character model bindings, locale HTML and video/audio option queries are connected.
+Activation currently stops at unregistered `SetGamma`. Login and
+model/animation/material/FFX rendering remain unfinished;
+there is no native audio/movie backend or authentication/gameplay result. See
+[integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
 
 Linux diagnostic applications can already display original resources and exercise
 parts of the original UI engine. The next visible milestone is the **actual
@@ -55,7 +64,7 @@ identified separately in the linked reports.
 | **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
 | **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
 
-The latest qualified package, [original StatusBar widgets PR #83](https://github.com/RovxBot/wowdecomp/pull/83),
+The most recent widget qualification, [original StatusBar widgets PR #83](https://github.com/RovxBot/wowdecomp/pull/83),
 passed **38 CTest checks per final-source Linux GL release/strict sanitizer
 configuration**. Full signature-enabled Windows x64 compilation retains its exact
 unchanged production identity. Native Lua/XML StatusBars now use original
@@ -80,7 +89,10 @@ unchanged 12340 data, signs in, selects a character, enters the world, supports
 basic play, saves settings and exits cleanly. A rendered test or successful build
 does not close that milestone.
 
-1. **Finish original UI creation and interaction.** Extend the qualified base Frame
+1. **Continue integrated original-client startup.** Complete ModelFFX's selected
+   original model/scene/animation, Camera, ShaderEffect and FFX callers through the
+   native graphics services. Resolve reachable widget/service gaps in coherent batches
+   along that startup path. Extend the qualified base Frame
    XML/templates to remaining widgets and animation/model consumers,
    broader template/structural callback semantics, image tiling and
    DB-backed declensions.
@@ -104,7 +116,10 @@ does not close that milestone.
 5. **Bring the application to Apple silicon.** Validate and select the maintained
    graphics/shader path, complete Metal rendering and ARM64 application integration,
    then test Retina scaling, input, audio/movies and gameplay on a real Mac.
-   The proposed Gx/bgfx Vulkan/Metal direction remains a prototype/decision task.
+   Review the [pinned Apple ports](docs/m3/APPLE_STARTUP_REVIEW.md) before adapting
+   equivalent platform, transport or Metal code. Early macOS integration can
+   proceed as dependencies and hardware permit; maintained graphics selection
+   still requires representative Linux and Apple rendering evidence.
 
 Audio, movies, wider GPU/display coverage, long-session stability and packaging
 are further requirements for a complete release. Optional 4.3.4 visual upgrades
@@ -126,8 +141,10 @@ See [PORTING_PLAN.md](PORTING_PLAN.md) for milestone exit criteria and
 
 **All client and dependency compilation for this fork runs in GitHub Actions.**
 Download artifacts from a passing run and verify their manifests/hashes before
-execution. Native artifacts currently contain diagnostic/component executables;
-the full client CMake target still requires Windows and MSVC.
+execution. Native artifacts include diagnostic/component executables and the
+opt-in [integrated Linux startup](docs/m3/INTEGRATED_CLIENT.md), which is still
+being connected to the complete original login UI. The full Windows client target
+requires Windows and MSVC; native startup success does not establish gameplay.
 
 | Build or check | Workflow |
 | --- | --- |
@@ -136,6 +153,7 @@ the full client CMake target still requires Windows and MSVC.
 | Files, assets and asynchronous reads | [M2 files](.github/workflows/m2-files.yml), [M2 assets](.github/workflows/m2-assets.yml), [M2 async](.github/workflows/m2-async.yml) |
 | Native SDL3 shell | [M2 shell](.github/workflows/m2-shell.yml) |
 | Linux graphics, images, fonts and Frame probes | [M3 OpenGL](.github/workflows/m3-gl.yml) |
+| Opt-in integrated Linux startup | [Integrated Linux client](.github/workflows/native-client.yml) |
 | Portable packet/script/XML/layout components | [Packets](.github/workflows/m3-packets.yml), [Lua](.github/workflows/m3-lua.yml), [FrameScript](.github/workflows/m3-framescript.yml), [XML](.github/workflows/m3-xml.yml), [layout](.github/workflows/m3-layout.yml) |
 
 The [shell guide](docs/m2/SHELL.md#build-and-execution) covers artifact verification

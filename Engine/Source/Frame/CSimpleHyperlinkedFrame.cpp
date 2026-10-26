@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleHyperlinkedFrame.h"
@@ -13,7 +17,11 @@ CDataAllocator CSimpleHyperlinkButton::s_allocator(sizeof(CSimpleHyperlinkButton
 // INLINED
 void CSimpleHyperlinkButton::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleHyperlinkButton::s_allocator, ptr);
+#else
         CSimpleHyperlinkButton::s_allocator.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 

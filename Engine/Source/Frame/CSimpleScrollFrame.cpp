@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#endif
 #include <cfloat>
 #include <cmath>
 #include <cstddef>
@@ -35,7 +39,11 @@ CDataAllocator CSimpleScrollFrame::s_allocator(sizeof(CSimpleScrollFrame), 5);
 // INLINED
 void CSimpleScrollFrame::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleScrollFrame::s_allocator, ptr);
+#else
         CSimpleScrollFrame::s_allocator.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 

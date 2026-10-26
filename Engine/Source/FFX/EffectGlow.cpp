@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <memory>
+#include <vector>
+#endif
 #include "Engine/Source/FFX/EffectGlow.h"
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 #include "Engine/Source/FFX/PassBox4.h"
@@ -64,6 +68,25 @@ EffectGlow::EffectGlow() {
     FFX::Tex* glowInputs[] = { &FFX::s_full[0], &FFX::s_quart[0] };
     FFX::Tex* waveInputs[] = { &PassGlowWave::s_waveTex, &FFX::s_full[0], &FFX::s_quart[0] };
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Constructor failure must release every earlier shader-owning pass.
+    std::vector<std::unique_ptr<FFX::Pass>> passes;
+    passes.reserve(6);
+    passes.emplace_back(new PassBox4(fullInputs, 1, &FFX::s_quart[0], GxBlend_Opaque, false));
+    passes.emplace_back(new PassGauss4(quartInputs, 1, &FFX::s_quart[0], GxBlend_Opaque, false));
+    passes.emplace_back(new PassGlow(glowInputs, 2, &FFX::s_screen, GxBlend_Opaque, true));
+    passes.emplace_back(new PassBox4(fullInputs, 1, &FFX::s_quart[0], GxBlend_Opaque, false));
+    passes.emplace_back(new PassGauss4(quartInputs, 1, &FFX::s_quart[0], GxBlend_Opaque, false));
+    if (FFX::s_useRECT && g_theGxDevicePtr->Caps().m_texNonPow2)
+        passes.emplace_back(new PassGlow(glowInputs, 2, &FFX::s_screen, GxBlend_Opaque, true));
+    else
+        passes.emplace_back(new PassGlowWave(waveInputs, 3, &FFX::s_screen, GxBlend_Opaque, true));
+    this->m_passes.SetCount(3); this->m_altPasses.SetCount(3);
+    for (uint32_t i = 0; i < 3; ++i) {
+        this->m_passes[i] = passes[i].release();
+        this->m_altPasses[i] = passes[i + 3].release();
+    }
+#else
     FFX::Pass* pass = new (__FILE__, __LINE__) PassBox4(fullInputs, 1, &FFX::s_quart[0], GxBlend_Opaque, false);
     this->m_passes.New(pass);
 
@@ -86,6 +109,8 @@ EffectGlow::EffectGlow() {
         pass = new (__FILE__, __LINE__) PassGlowWave(waveInputs, 3, &FFX::s_screen, GxBlend_Opaque, true);
         *this->m_altPasses.New() = pass;
     }
+
+#endif
 
     this->m_mode = 0;
 }

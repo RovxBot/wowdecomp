@@ -143,7 +143,11 @@ void CM2Light::Link() {
 
     if (this->m_type == M2LIGHT_POINT) {
         if (!this->m_scene->m_lightGrid) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            this->m_scene->m_lightGrid = new CM2Light*[64 * 64];
+#else
             this->m_scene->m_lightGrid = static_cast<CM2Light**>(SMemAlloc(sizeof(CM2Light*) * 64 * 64, __FILE__, __LINE__, 0));
+#endif
             memset(this->m_scene->m_lightGrid, 0, sizeof(CM2Light*) * 64 * 64);
         }
 

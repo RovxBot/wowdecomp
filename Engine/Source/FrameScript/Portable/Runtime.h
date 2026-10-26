@@ -9,10 +9,12 @@
 class FrameScript_Object;
 struct lua_State;
 namespace FrameScript { namespace Native {
-enum class SourceKind { Interface, SavedVariables };
+enum class SourceKind { Interface, SavedVariables, Html };
 // Return completed reads, delivered on the owner thread by the retained file
 // worker. Interface bytes must come from authenticated packages (and later the
 // separate TOC signature traversal); saved variables use an external user root.
+// Html is the original SimpleHTML data member, which may use the explicit
+// read-only locale data root. It never supplies Lua/XML/TOC source bytes.
 // No native ticket is a legacy SFile/CAsyncObject handle. False is a read error;
 // an empty successful read is a valid Lua chunk.
 using SourceReader = std::function<bool(SourceKind, const std::string&, std::vector<uint8_t>&)>;
@@ -30,6 +32,11 @@ private:
 };
 void RequireOwner();
 void RequireIdle();
+// Diagnostics observe protected Lua failures without changing the original
+// handler, taint or error propagation. Integration must not hide failed OnLoad.
+void RecordScriptError(const char*);
+uint64_t ScriptErrorCount();
+const std::string& LastScriptError();
 void ObjectCreated(FrameScript_Object*);
 void ObjectDestroyed(FrameScript_Object*);
 FrameScript_Object* GetObject(lua_State*, int index);

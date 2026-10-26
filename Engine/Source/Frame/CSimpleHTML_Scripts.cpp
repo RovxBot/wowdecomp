@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleHTML.h"
@@ -279,6 +282,33 @@ void CSimpleHTML::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2D150
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetFontObject", &Frame::Native::ScriptMethod<&Script_SetFontObject> },
+    { "GetFontObject", &Frame::Native::ScriptMethod<&Script_GetFontObject, true, false> },
+    { "SetFont", &Frame::Native::ScriptMethod<&Script_SetFont> },
+    { "GetFont", &Frame::Native::ScriptMethod<&Script_GetFont, true, false> },
+    { "SetTextColor", &Frame::Native::ScriptMethod<&Script_SetTextColor> },
+    { "GetTextColor", &Frame::Native::ScriptMethod<&Script_GetTextColor, true, false> },
+    { "SetShadowColor", &Frame::Native::ScriptMethod<&Script_SetShadowColor> },
+    { "GetShadowColor", &Frame::Native::ScriptMethod<&Script_GetShadowColor, true, false> },
+    { "SetShadowOffset", &Frame::Native::ScriptMethod<&Script_SetShadowOffset> },
+    { "GetShadowOffset", &Frame::Native::ScriptMethod<&Script_GetShadowOffset, true, false> },
+    { "SetSpacing", &Frame::Native::ScriptMethod<&Script_SetSpacing> },
+    { "GetSpacing", &Frame::Native::ScriptMethod<&Script_GetSpacing, true, false> },
+    { "SetJustifyH", &Frame::Native::ScriptMethod<&Script_SetJustifyH> },
+    { "GetJustifyH", &Frame::Native::ScriptMethod<&Script_GetJustifyH, true, false> },
+    { "SetJustifyV", &Frame::Native::ScriptMethod<&Script_SetJustifyV> },
+    { "GetJustifyV", &Frame::Native::ScriptMethod<&Script_GetJustifyV, true, false> },
+    { "SetIndentedWordWrap", &Frame::Native::ScriptMethod<&Script_SetIndentedWordWrap> },
+    { "GetIndentedWordWrap", &Frame::Native::ScriptMethod<&Script_GetIndentedWordWrap, true, false> },
+    { "SetText", &Frame::Native::ScriptMethod<&Script_SetText> },
+    { "SetHyperlinkFormat", &Frame::Native::ScriptMethod<&Script_SetHyperlinkFormat> },
+    { "GetHyperlinkFormat", &Frame::Native::ScriptMethod<&Script_GetHyperlinkFormat, true, false> },
+    { "SetHyperlinksEnabled", &Frame::Native::ScriptMethod<&Script_SetHyperlinksEnabled> },
+    { "GetHyperlinksEnabled", &Frame::Native::ScriptMethod<&Script_GetHyperlinksEnabled, true, false> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetFontObject", &Script_SetFontObject },
     { "GetFontObject", &Script_GetFontObject },
@@ -304,6 +334,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "SetHyperlinksEnabled", &Script_SetHyperlinksEnabled },
     { "GetHyperlinksEnabled", &Script_GetHyperlinksEnabled },
 };
+#endif
 
 // VERIFY: bf499fdd auto
 // OFFSET: 0x009749C0

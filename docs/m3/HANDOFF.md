@@ -1,4 +1,26 @@
-# M3 Linux game integration — 2026-10-24
+# M3 Linux game integration — 2026-10-26
+
+For new work, follow the [current integration direction](../../PORTING_PLAN.md#current-integration-direction--2026-10-25)
+and [agent priority](../../AGENTS.md#current-integration-priority--2026-10-25).
+Prioritise integrated original-client startup and the complete signed original
+login UI, with reachable widget/service work batched around that path. Earlier
+next-caller ordering below is historical. Existing evidence, lifetime corrections,
+Actions-only compilation, signatures, read-only data and unchanged server policy
+remain applicable; this planning update establishes no new runtime result.
+
+PR #84 selects original Model/ModelFFX, Model2 scene/cache/shared loading,
+Camera, ShaderEffect and FFX callers in the integrated Linux target. Original
+Glue build/account/CVar and option-query services now complete ordered original
+GlueXML creation with a matching full post-creation digest. Login activation now
+stops at `*:OnValueChanged` calling unregistered `SetGamma`;
+display gamma and model/material/FFX rendering remain unfinished. Read the
+[current integrated contracts and observed stop](INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+and [service validation](integrated-glue-services-validation.json) before continuing.
+Keep the [historical ModelFFX record](integrated-model-render-validation.json)
+and its earlier GetBuildInfo stop/draft state attached to their exact sources.
+Authored factory/color/loading checks do not establish actual login rendering or
+authentication. Audio/movie backends and option application remain unavailable.
+Signatures, interactive sign-in, read-only data and server/Warden policy remain.
 
 M3 is in progress. The first work package introduces a Linux native ABI host
 boundary under Gx for SDL3-owned desktop OpenGL contexts. The full native client

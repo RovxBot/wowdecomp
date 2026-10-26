@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleScrollFrame.h"
@@ -194,6 +197,19 @@ void CSimpleScrollFrame::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2CE90
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetScrollChild", &Frame::Native::ScriptMethod<&Script_SetScrollChild> },
+    { "GetScrollChild", &Frame::Native::ScriptMethod<&Script_GetScrollChild, true, false> },
+    { "SetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_SetHorizontalScroll, true, false, true> },
+    { "SetVerticalScroll", &Frame::Native::ScriptMethod<&Script_SetVerticalScroll, true, false, true> },
+    { "GetHorizontalScroll", &Frame::Native::ScriptMethod<&Script_GetHorizontalScroll, true, false> },
+    { "GetVerticalScroll", &Frame::Native::ScriptMethod<&Script_GetVerticalScroll, true, false> },
+    { "GetHorizontalScrollRange", &Frame::Native::ScriptMethod<&Script_GetHorizontalScrollRange, true, false> },
+    { "GetVerticalScrollRange", &Frame::Native::ScriptMethod<&Script_GetVerticalScrollRange, true, false> },
+    { "UpdateScrollChildRect", &Frame::Native::ScriptMethod<&Script_UpdateScrollChildRect> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetScrollChild", &Script_SetScrollChild },
     { "GetScrollChild", &Script_GetScrollChild },
@@ -205,6 +221,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetVerticalScrollRange", &Script_GetVerticalScrollRange },
     { "UpdateScrollChildRect", &Script_UpdateScrollChildRect },
 };
+#endif
 
 // VERIFY: 144bac6f auto
 // OFFSET: 0x009721C0

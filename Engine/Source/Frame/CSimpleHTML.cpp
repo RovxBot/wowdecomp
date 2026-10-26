@@ -1,3 +1,16 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#include <stdexcept>
+#endif
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#endif
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -39,7 +52,11 @@ CDataAllocator CSimpleHTML::s_allocator(sizeof(CSimpleHTML), 5);
 // INLINED
 void CSimpleHTML::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleHTML::s_allocator, ptr);
+#else
         CSimpleHTML::s_allocator.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 
@@ -82,6 +99,20 @@ void CSimpleHTML::OnFrameSizeChanged(const CRect& rect) {
 
 // VERIFY: 012bb8ae manual
 // OFFSET: 0x0096C820
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+CSimpleHTML::CSimpleHTML(CSimpleFrame* parent) : CSimpleHyperlinkedFrame(parent) {
+    std::fill(std::begin(m_fonts), std::end(m_fonts), nullptr);
+    m_layoutAnchor = nullptr; m_layoutOffset = 0.0f;
+    m_hyperlinkFormat = nullptr; m_hyperlinksDirty = 0; m_hyperlinksEnabled = true;
+    try {
+        for (auto& font : m_fonts) font = new CSimpleFontedFrameFont(this);
+        SetHyperlinkFormat("|H%s|h%s|h");
+    } catch (...) {
+        for (auto* font : m_fonts) delete font;
+        throw;
+    }
+}
+#else
 CSimpleHTML::CSimpleHTML(CSimpleFrame* parent) : CSimpleHyperlinkedFrame(parent) {
     for (int32_t i = 0; i < NUM_HTML_TEXT_TYPES; i++) {
         void* data = SMemAlloc(sizeof(CSimpleFontedFrameFont), __FILE__, __LINE__, 0);
@@ -93,6 +124,7 @@ CSimpleHTML::CSimpleHTML(CSimpleFrame* parent) : CSimpleHyperlinkedFrame(parent)
     this->m_hyperlinksDirty = 0;
     this->m_hyperlinksEnabled = true;
 }
+#endif
 
 // VERIFY: 0a33d401 auto
 // OFFSET: 0x0096C930
@@ -148,8 +180,12 @@ void CSimpleHTML::ParseIMG(XMLNode* node, CStatus* status) {
         height = NDCToDDCWidth(SStrToFloat(heightAttr) / (CoordinateGetAspectCompensation() * 1024.0f));
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleTexture* texture = Frame::Native::ConstructRegion<CSimpleTexture>(CSimpleTexture::s_allocator, this, 2, 1);
+#else
     void* data = CSimpleTexture::s_allocator.GetData(0, typeid(CSimpleTexture).raw_name(), SLOG_OBJECT);
     CSimpleTexture* texture = data ? new (data) CSimpleTexture(this, 2, 1) : nullptr;
+#endif
 
     texture->SetWidth(width);
     texture->SetHeight(height);
@@ -188,8 +224,12 @@ void CSimpleHTML::ParseIMG(XMLNode* node, CStatus* status) {
 // VERIFY: bbbb23ac manual
 // OFFSET: 0x0096CC90
 void CSimpleHTML::AddText(const char* text, HTML_TEXT_TYPE type, uint32_t justify) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    CSimpleFontString* string = Frame::Native::ConstructRegion<CSimpleFontString>(CSimpleFontString::s_allocator, this, 2, 1);
+#else
     void* data = CSimpleFontString::s_allocator.GetData(0, typeid(CSimpleFontString).raw_name(), SLOG_OBJECT);
     CSimpleFontString* string = data ? new (data) CSimpleFontString(this, 2, 1) : nullptr;
+#endif
 
     if (this->m_layoutAnchor) {
         string->SetPoint(FRAMEPOINT_TOPLEFT, this->m_layoutAnchor, FRAMEPOINT_BOTTOMLEFT, 0.0f, this->m_layoutOffset, 1);
@@ -222,6 +262,10 @@ void CSimpleHTML::AddText(const char* text, HTML_TEXT_TYPE type, uint32_t justif
 // VERIFY: 31268dcd auto
 // OFFSET: [0x0096C950, 0x0096CF00, 0x0096D6D0]
 CSimpleHTML::~CSimpleHTML() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Close text blocks and inherited font consumers before private fonts.
+    this->ClearContent();
+#endif
     for (int32_t i = 0; i < NUM_HTML_TEXT_TYPES; i++) {
         if (this->m_fonts[i]) {
             delete this->m_fonts[i];
@@ -283,6 +327,12 @@ void CSimpleHTML::ParseP(XMLNode* node, HTML_TEXT_TYPE type, CStatus* status) {
     }
 
     char* text = SStrDupA(node->m_body ? node->m_body : "", __FILE__, __LINE__);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    struct TextOwner {
+        char*& text;
+        ~TextOwner() { SMemFree(text, __FILE__, __LINE__, 0); }
+    } textOwner{text};
+#endif
     uint32_t offset = 0;
 
     for (XMLNode* child = node->m_child; child; child = child->m_next) {
@@ -366,7 +416,9 @@ void CSimpleHTML::ParseP(XMLNode* node, HTML_TEXT_TYPE type, CStatus* status) {
     *dst = '\0';
 
     this->AddText(text, type, justify);
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
     SMemFree(text, __FILE__, __LINE__, 0);
+#endif
 }
 
 // VERIFY: a10a3e21 manual
@@ -398,8 +450,12 @@ void CSimpleHTML::RefreshHyperlinks() {
             uint32_t count = GxuFontStringHyperLinkInfo(string->m_string ? TextBlockGetStringPtr(string->m_string) : nullptr, info);
 
             for (uint32_t i = 0; i < count; i++) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+                CSimpleHyperlinkButton* link = Frame::Native::ConstructRegion<CSimpleHyperlinkButton>(CSimpleHyperlinkButton::s_allocator, this);
+#else
                 void* data = CSimpleHyperlinkButton::s_allocator.GetData(0, typeid(CSimpleHyperlinkButton).raw_name(), SLOG_OBJECT);
                 CSimpleHyperlinkButton* link = data ? new (data) CSimpleHyperlinkButton(this) : nullptr;
+#endif
                 this->m_hyperlinks.LinkToTail(link);
                 link->SetHyperlink(string, &info[i]);
             }
@@ -464,6 +520,9 @@ bool CSimpleHTML::SetText(const char* text, CStatus* status) {
 
     bool parsed = false;
     XMLTree* tree = XMLTree_Load(text, SStrLen(text));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> treeOwner(tree, XMLTree_Free);
+#endif
 
     if (tree) {
         XMLNode* root = XMLTree_GetRoot(tree);
@@ -484,7 +543,9 @@ bool CSimpleHTML::SetText(const char* text, CStatus* status) {
             }
         }
 
+#ifndef WOWDECOMP_PORTABLE_RUNTIME
         XMLTree_Free(tree);
+#endif
     }
 
     if (!parsed) {
@@ -528,12 +589,24 @@ void CSimpleHTML::LoadXML(XMLNode* node, CStatus* status) {
     }
 
     const char* file = node->GetAttributeByName("file");
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (file) {
+        std::string path; std::vector<uint8_t> bytes;
+        // Match the original conditional SFile::ReadFile below. Locale HTML
+        // members such as termination.html may be absent in clean 12340 data.
+        if (FrameScript::Native::ReadSource(FrameScript::Native::SourceKind::Html, file, path, bytes)) {
+            bytes.push_back(0);
+            this->SetText(reinterpret_cast<const char*>(bytes.data()), status);
+        }
+    }
+#else
     void* data;
 
     if (file && SFile::ReadFile(nullptr, file, &data, nullptr, 1, 1, nullptr)) {
         this->SetText(static_cast<const char*>(data), nullptr);
         SFile::Unload(data);
     }
+#endif
 
     const char* hyperlinkFormat = node->GetAttributeByName("hyperlinkFormat");
 

@@ -172,7 +172,9 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
             entered = true;
             while (!release && !cancel.Requested()) std::this_thread::yield();
         }
-        ReadResult result; result.file.bytes = files.at(name); return result;
+        ReadResult result;
+        result.file.bytes = name.find("INTERFACE\\PRESSURE") == 0 ? Raw() : files.at(name);
+        return result;
     });
     struct Unblock { std::atomic<bool>& release; ~Unblock() { release = true; } } unblock{release};
     CStatus status;
@@ -182,6 +184,11 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
     Handle raw(create("Interface/raw"));
     Handle duplicate(create("interface\\RAW.blp"));
     Require(raw.value == duplicate.value && raw.value->m_refcount == 2, "Image cache/refcount identity failed");
+    {
+        Handle originalName(create("Interface/raw.tga"));
+        Require(originalName.value == raw.value && TextureIsSame(raw.value, "Interface/raw.tga"),
+                "Original BLP-first TGA basename search lost cache identity");
+    }
     Require(!raw.value->m_asyncObject, "Native ticket leaked into CAsyncObject field");
     uint32_t width = 999, height = 999;
     Require(!TextureGetDimensions(raw.value, &width, &height, 0) && width == 999 && height == 999,
@@ -241,7 +248,9 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         errors.Add(errors);
         Require(errors.GetErrorStrLen(STATUS_INFO, " ") == entries, "Status self-copy appended diagnostics");
     }
-    Reject([&] { create("../escape"); }); Reject([&] { create("Interface/raw.tga"); });
+    Reject([&] { create("../escape"); });
+    Reject([&] { create("Interface/raw.tga", CGxTexFlags(GxTex_Nearest), 9); });
+    Reject([&] { create("Interface/raw.png"); });
     Reject([&] { create("Interface/raw", CGxTexFlags(GxTex_Anisotropic)); });
     Reject([&] { create("Interface/raw", CGxTexFlags(), 0x20); });
     Reject([&] { TextureGetGxTex(raw.value, 3, nullptr); });
@@ -282,6 +291,22 @@ void Fixture(LegacyDevice& device, FileQueue& queue) {
         Require(readOrder.size() == orderStart+3 && readOrder[orderStart] == "INTERFACE\\PROMOTED.BLP" &&
                 readOrder[orderStart+1] == "INTERFACE\\UI.BLP" && readOrder[orderStart+2] == "INTERFACE\\FIRST.BLP",
                 "Original UI priority or cached priority promotion was lost");
+    }
+    {
+        // Original GlueXML retains images for hidden screens. Reproduce the
+        // observed >32-live-entry failure while preserving cache and callback
+        // lifetimes across a batch of distinct source names.
+        std::vector<std::unique_ptr<Handle>> pressure;
+        for (unsigned i = 0; i < 64; ++i) {
+            const auto name = "Interface/pressure" + std::to_string(i);
+            pressure.emplace_back(new Handle(create(name.c_str())));
+        }
+        Handle shared(create("Interface/pressure63"));
+        Require(shared.value == pressure.back()->value, "Pressure batch lost cache identity");
+        Require(TextureGetGxTex(shared.value, 1, nullptr), "Pressure batch failed completed image delivery");
+        Pixel(Draw(device, shared.value), 8,24,255,0,0,255);
+        pressure.clear();
+        Require(TextureIsLoaded(shared.value), "Closing pressure batch invalidated retained duplicate");
     }
     duplicate.Close(); raw.Close(); wrap.Close(); linear.Close();
     Require(queue.WaitAll(std::chrono::seconds(5)), "Image fixture callbacks did not drain");

@@ -35,7 +35,11 @@ int32_t SysMsgAdd(const char* text, SYSMSG_TYPE severity) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return std::fprintf(stdout, "native-system-message[%d]=%s\n", int(severity), text) >= 0;
+#else
     return 1;
+#endif
 }
 
 // VERIFY: 852e1d4d manual
@@ -60,7 +64,11 @@ int32_t SysMsgVPrintf(SYSMSG_TYPE severity, uint32_t flags, const char* format, 
     buffer[255] = '\0';
 
     if (severity < SYSMSG_NUMTYPES) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        return SysMsgAdd(buffer, severity);
+#else
         return 1;
+#endif
     }
 
     SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
@@ -71,6 +79,12 @@ int32_t SysMsgVPrintf(SYSMSG_TYPE severity, uint32_t flags, const char* format, 
 // VERIFY: 82062d21 manual
 // OFFSET: 0x004B5040
 int32_t SysMsgPrintf(SYSMSG_TYPE severity, uint32_t flags, const char* format, ...) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!format) return 0;
+    va_list args; va_start(args, format);
+    const auto result = SysMsgVPrintf(severity, flags, format, args);
+    va_end(args); return result;
+#else
     va_list args;
     va_start(args, format);
 
@@ -87,17 +101,25 @@ int32_t SysMsgPrintf(SYSMSG_TYPE severity, uint32_t flags, const char* format, .
     SErrSetLastError(STORM_ERROR_INVALID_PARAMETER);
 
     return 0;
+#endif
 }
 
 // VERIFY: fe511d8e auto
 // OFFSET: 0x004D8520
 int32_t SysMsgPrintf(SYSMSG_TYPE severity, const char* format, ...) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!format) return 0;
+    va_list args; va_start(args, format);
+    const auto result = SysMsgVPrintf(severity, 0, format, args);
+    va_end(args); return result;
+#else
     va_list args;
     va_start(args, format);
     int32_t result = SysMsgVPrintf(severity, 1, format, args);
     va_end(args);
 
     return result;
+#endif
 }
 
 // VERIFY: 75a92c2f auto

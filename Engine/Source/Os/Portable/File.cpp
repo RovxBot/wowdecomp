@@ -63,7 +63,7 @@ int32_t OsGetCurrentDirectory(uint32_t size, char* buffer) {
 HOSFILE OsCreateFile(const char* name, uint32_t access, uint32_t share, uint32_t disposition, uint32_t attributes, uint32_t extended) {
     using D = F::Native::Disposition;
     if ((access & ~uint32_t{0xC0000000}) || !access || (share & ~uint32_t{3}) ||
-        disposition < 1 || disposition > 5 || extended) {
+        disposition < 1 || disposition > 5 || (extended && extended != OS_FILE_TYPE_ANY)) {
         NativeFile::Fail(EINVAL);
         return OS_INVALID_FILE;
     }

@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-25. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-26. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -38,6 +38,106 @@ can log into the intended compatible test server, enter the world, play, save
 settings and shut down cleanly. Compilation, a login screen, running through Wine,
 or an x86-64 executable translated on Apple silicon are distinct intermediate
 results and do not establish that outcome.
+
+## Current integration direction — 2026-10-25
+
+The user confirmed the deployment model: unchanged clean 3.3.5a/12340 game data
+used by our compiled native Linux executable or macOS ARM64 application. The
+reconstructed original client supplies UI and gameplay logic. Both supplied
+reference installations remain read-only; settings, cache and logs live outside
+them. Game data stays outside Git and ordinary hosted CI.
+
+Prioritise bringing up the existing client as an integrated application. The next
+observable result is original engine/client startup displaying and accepting input
+in the complete original login UI, followed by native authentication, character
+selection and world entry. The earlier component work remains useful, but its
+widget-by-widget qualification sequence is no longer the default work queue.
+This direction supersedes historical next-caller ordering below and in module
+handoffs. It changes planning, not the recorded completion or evidence of any
+milestone; full native startup/login/gameplay remain unestablished.
+
+### Implementation approach
+
+- Connect the original startup, CVar/settings, Event loop, resource Services,
+  Frame/FrameXML/FrameScript and Glue callers through the existing native services
+  and engine-facing interfaces. Select broader coherent source groups where
+  practical. Continue the opt-in integrated native client target through Actions and
+  resolve concrete compile/link/startup failures along its actual call path.
+- Implement missing widgets, model/animation consumers and other reachable
+  dependencies as needed by original login startup, in reviewable batches.
+  Complete standalone coverage of every widget/style/language is not a gate to
+  attempting that startup. Record any specific unavailable caller that blocks it;
+  do not substitute authored UI composition for the original login screen.
+- Permit bounded source compatibility helpers for existing CRT/platform interfaces
+  where semantics, fixed-width types and ownership are understood. Reuse original
+  module behaviour and qualified native facilities before introducing another
+  independent service/owner/probe. Preserve established alignment, allocation,
+  thread, callback and teardown corrections; integration does not discard them.
+- Audit existing native ports for reusable implementations before independently
+  implementing equivalent platform, transport or graphics work. Review each import
+  for source/dependency provenance, notices, ABI, data/shader compatibility and
+  Windows regression impact. Record imported paths and revisions in
+  [the backport/native-reference ledger](docs/BACKPORTS.md). A reference review is
+  not authorisation for a wholesale merge or a claim of compatibility.
+- Start macOS integration as its dependencies and hardware permit. M4-M6 retain
+  their release acceptance requirements, but do not prohibit earlier native Apple
+  startup or a reviewed Metal backend. Keep a Linux-capable graphics path; Apple's
+  Metal implementation cannot directly serve Linux. Evaluate the existing Metal
+  implementations alongside the proposed maintained renderer before choosing
+  further graphics work.
+- Keep required Actions checks, full Windows regression compilation and strict
+  sanitizer coverage. Run focused regressions for changed contracts and exposed
+  failures, with validation batched around coherent integration changes. Additional
+  probes should resolve an integration uncertainty or protect an actual contract;
+  a separately qualified package for every widget/module is not required.
+
+### Immediate deliverables and acceptance
+
+1. Continue the Actions-built integrated Linux startup target using the existing
+   SDL3/Gx path, original archive mounting, settings, Event and client lifecycle.
+   Identify reachable missing interfaces and adapt them in coherent source groups.
+   [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) now selects original
+   Model/ModelFFX, Model2 scene/cache/shared loading, Camera, ShaderEffect and FFX
+   sources. Factory and failure-path checks do not establish original model or
+   login rendering; retain the [integrated execution record](docs/m3/INTEGRATED_CLIENT.md).
+   Clean-data execution now completes ordered GlueXML creation and matches the
+   full post-creation digest. Original Glue build/account/CVar services, typed
+   model/movie callbacks and actual video/no-audio-backend queries are connected;
+   see the [service continuation and exact stop](docs/m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26).
+   Continue original login activation, then observe Model2/material/FFX paint.
+   Audio/movie playback and graphics-option application remain unavailable;
+   M3 stays open.
+2. Execute the complete original ordered GlueXML/Include/Script creation path,
+   retaining archive/member verification and the full post-creation interface
+   digest comparison. Render the actual original login screen, exercise its input
+   and verify shutdown with downloaded release and strict sanitizer artifacts on
+   the read-only clean data. This result does not require a server sign-in.
+3. Adapt the original active network dispatch, DNS, framing and authentication
+   callers, with loopback checks for partial I/O, callback ordering, cancellation,
+   reconnect and teardown. This work can proceed alongside UI integration; inspect
+   actual startup/session use before deciding which Os IOCP interfaces are needed.
+4. With the login path ready, let the user sign in interactively to GrimGuzzler.
+   Observe authentication, advertised realm endpoints, Warden outcomes, character
+   selection and world entry against the then-current server identity. Preserve
+   the server's policy and the distinction between its tag and embedded revision.
+
+Progress reports should name the integrated target, what its actual execution
+reaches, and the next concrete blocker. Keep component fixtures, hosted builds,
+original-data rendering, physical input and server/gameplay evidence distinct.
+Unavailable services fail visibly. Original signatures and 12340 protocol behaviour
+remain required; this direction does not introduce unchecked authentication,
+fabricated integrity responses or changes to cluster/server/Warden policy.
+
+### Inspected Apple integration references
+
+These are additional 12340 implementation references, separate from the historical
+M0 product source and pinned 15595 donor. Inspection does not qualify their binaries
+on our hardware/data/server or import their code into this fork.
+
+| Reference snapshot | Useful implementation direction | Evidence limits |
+| --- | --- | --- |
+| [jerrywossion/wowdecomp `apple` at `7489b5f2df6628a434b2ad9aceed66c0f2e6a431`](https://github.com/jerrywossion/wowdecomp/tree/7489b5f2df6628a434b2ad9aceed66c0f2e6a431) | Original client/Glue integration through Apple platform services; direct Metal with recognised original shader families; native transport and focused probes | README reports local original-client/world execution with ASan/UBSan/Metal validation. Documented local login omits executable challenge verification, requires existing `StrictVersionCheck=0` and does not implement native Warden. It does not qualify unchanged GrimGuzzler policy. |
+| [fmustafayaman/WoWReMac `WowRe` at `3c7f82c02fa9d4c8399b8f95d30ef0df575ef069`](https://github.com/fmustafayaman/WoWReMac/tree/3c7f82c02fa9d4c8399b8f95d30ef0df575ef069) | Full original client target, bounded Mac compatibility headers/platform replacements and D3D9-bytecode-to-Metal translation | Source and published scene measurements support integrated native rendering work. Warden and Epoch integrations belong to separate branches; their results do not qualify the default branch or our server. |
 
 ## Source baselines and evidence
 
@@ -99,10 +199,10 @@ dependencies or interfaces already exist.
 | --- | --- | --- |
 | Build | GitHub Actions exclusively for client/dependency compilation; CMake, C++17, MSVC on Windows, Clang first on Linux and macOS | Explicit OS/CPU source selection and reproducible dependencies; Windows hosted baseline is verified, native jobs are future work |
 | Windowing and input | SDL3 behind existing engine-facing interfaces | Events, text input/IME, relative mouse, focus, fullscreen, DPI and clipboard work on target hardware |
-| Core services | Standard C++ and POSIX implementations behind `Os`, Storm and BlizzardCore interfaces | File, synchronization, timer and callback semantics match existing callers |
+| Core services | Standard C++ and POSIX implementations behind `Os`, Storm and BlizzardCore interfaces; bounded source compatibility helpers may retain shared callers | File, synchronization, timer and callback semantics match existing callers; preserve native widths and ownership |
 | Networking | POSIX sockets with a portable event-loop implementation first | Partial I/O, cancellation, ordering, reconnect and shutdown pass controlled tests; select epoll/kqueue or a maintained library only as needed |
 | Initial Linux graphics | Adapt the existing OpenGL compatibility path | Validate required ARB extensions and matching 3.3.5a shader assets on representative drivers |
-| Maintained graphics | Prefer a Gx adapter using bgfx with Vulkan on Linux and Metal on macOS | A representative UI, terrain, skinned-model and render-target/shader prototype passes before committing to a full migration |
+| Maintained graphics | Compare reviewed existing Metal Gx implementations/shader strategies with a bgfx Vulkan/Metal adapter and other bounded alternatives; retain Linux graphics support | A representative UI, terrain, skinned-model and render-target/shader prototype passes before committing to a full migration; assess reusable native-port code first |
 | Audio | Preserve `SE2` behavior; investigate a portable FMOD output path first | Source/dependency availability, codec support, 3D mixing, streaming and device recovery; replace behind `SE2` if necessary |
 | Movies | Build a portable decoder dependency or adapt another decoder behind the existing interface | Existing movie playback, audio sync and skip behavior; no Windows import library in native targets |
 | CPU | Portable scalar reference functions, then architecture-specific acceleration where measured | SSE replacements preserve texture, animation and numerical behavior on ARM64 |
@@ -113,6 +213,11 @@ its integration and shader conversion are still project work. If the graphics
 prototype fails, record the specific gap and compare a direct Vulkan/Metal adapter
 or SDL GPU before selecting an alternative. Avoid maintaining multiple new full
 renderers during the initial port.
+
+The inspected Apple ports above make direct Metal and their shader strategies
+concrete reuse candidates. bgfx remains a candidate, not a prerequisite to original
+client startup or early macOS integration. Keep implementation selection explicit
+and supported by representative behaviour on both target platforms.
 
 Preserve the engine-facing Gx abstraction where practical. Introduce explicit
 shader/material translation and resource ownership at its boundary. The modern
@@ -130,7 +235,10 @@ object to match the original Windows ABI.
 
 ## Milestones and exit criteria
 
-The critical path is M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M8.
+The release acceptance path is M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M8.
+Implementation may overlap: the current integration direction prioritises original
+client startup and permits early transport, graphics-reference and macOS work
+without waiting for every preceding component or release check to finish.
 An audited, independent correctness fix from M7 can land earlier; visual upgrades
 follow a stable native baseline and the graphics support they need.
 
@@ -279,6 +387,10 @@ assets need to be copied into the repository.
 ### M3 — Render the login screen and enter the world on Linux
 
 Depends on: M2. The modern graphics/shader prototype can begin during this stage.
+Apply the [current integration direction](#current-integration-direction--2026-10-25)
+for new work. The reports below retain historical source/evidence and next-caller
+descriptions; they do not require a separate widget qualification before integrated
+original-client startup can be attempted.
 
 Status: in progress through the [Linux OpenGL context work package](docs/m3/HANDOFF.md).
 Its separate native ABI probe does not establish the original login UI or gameplay.
@@ -476,21 +588,27 @@ fixture's queued-read expectation failure remains recorded; no detector was
 disabled. No new input, Windows runtime, macOS graphics or server acceptance.
 M3 is incomplete; signatures, server discrepancies and interactive sign-in stay.
 
-1. Replace WGL/window ownership and extension loading in the existing OpenGL
-   backend with SDL integration. Keep compatibility-profile requirements explicit
-   and detect missing capabilities with actionable errors.
-2. Validate shader loading, UI/text, models, terrain, world objects, particles,
+1. Bring up integrated original-client startup and the complete signed original
+   login UI through the existing SDL3/Gx services. Reuse original Frame/Glue
+   source groups and add required widgets/services in coherent batches. Adapt
+   remaining legacy OpenGL/window dispatch as needed; keep compatibility-profile
+   requirements explicit and report missing capabilities with actionable errors.
+2. Expand graphics coverage as original login/world callers become reachable.
+   Validate shader loading, UI/text, models, terrain, world objects, particles,
    shadows and water against M0 captures. Check clipping/depth, blending, gamma,
    texture formats and render-target transitions.
-3. Replace IOCP behind the existing network interfaces. Preserve connection
+3. Adapt the active original network dispatch behind existing interfaces, including
+   `WowConnectionNet`'s WSA event/worker dispatcher. Determine reachable Os IOCP
+   requirements from the integrated startup/session path. Preserve connection
    lifetimes, callback threads/order, framing, partial reads/writes, cancellation,
    error reporting and disconnect/reconnect behavior. Leave 12340 packet formats,
    authentication and serialization semantics intact.
-   The client also uses `WowConnectionNet`'s WSA event/worker dispatcher, which
-   must be adapted alongside Os IOCP. The [native packet prerequisite target](docs/m3/PACKETS.md)
+   The [native packet prerequisite target](docs/m3/PACKETS.md)
    is qualified separately in PR #25; it does not establish transport or login.
-4. Complete login, character selection, world entry and movement against the same
-   server used for M0. Test zoning/teleports, combat, chat, inventory and logout.
+4. Complete interactive login, character selection, world entry and movement
+   against GrimGuzzler with its unchanged policy and a current identity record.
+   Historical M0 server evidence remains separate. Test zoning/teleports, combat,
+   chat, inventory and logout, and record actual Warden outcomes.
 
 Exit: a native Linux executable can complete an observed world session with
 unchanged data. Audio or movie limitations must be listed; this milestone alone
@@ -964,7 +1082,9 @@ data stays read-only and user sign-in stays interactive. M3 remains incomplete.
 
 ### M4 — Complete the Linux experience and select modern graphics
 
-Depends on: M3; the graphics selection prototype must complete before M5 migration.
+Depends on: M3 for Linux completion. Graphics reference review/prototypes and
+early macOS integration may proceed during M3; backend selection must precede a
+full maintained-renderer migration.
 
 1. Implement and validate audio device output, decoding/streaming, positional sound,
    music, volume controls and device changes. Document capture/voice support
@@ -973,10 +1093,11 @@ Depends on: M3; the graphics selection prototype must complete before M5 migrati
    world transitions, device/resource recreation and clean shutdown.
 3. Test SDL integration under X11 and Wayland, including fullscreen/windowed mode,
    mouse capture, alt-tab, DPI and multi-monitor behavior on available hardware.
-4. Prototype the proposed Gx/bgfx adapter: a UI quad/text, terrain material, skinned
-   character, representative shader permutations, compressed textures, depth and
-   offscreen rendering. Exercise Vulkan and obtain an early Metal hardware smoke
-   test so the selection addresses both targets.
+4. Compare reusable native Metal Gx/shader implementations with the proposed
+   Gx/bgfx route before selecting further renderer work. Prototype UI/text, terrain,
+   a skinned character, representative shader permutations, compressed textures,
+   depth and offscreen rendering. Exercise the proposed Linux Vulkan path and
+   obtain an early Metal hardware smoke test so selection addresses both targets.
 5. Record the backend/dependency decision, shader strategy, minimum OS/GPU/toolchain
    requirements and remaining unsupported features. Keep the existing renderer as
    a selectable comparison path while the replacement matures.
@@ -988,7 +1109,8 @@ behavior on Vulkan and Metal. Report driver/session coverage actually tested.
 ### M5 — Implement the maintained renderer and ARM64 core support
 
 Depends on: M4 graphics decision. CPU isolation and scalar implementations can
-start earlier without waiting for graphics completion.
+start earlier without waiting for graphics completion. Reviewed Metal adaptation
+and integrated Apple startup may also proceed before this release milestone.
 
 1. Complete the selected Gx adapter and material/shader coverage for unchanged
    3.3.5a assets. Translate legacy behavior explicitly; avoid copying the 4.3.4
@@ -1007,7 +1129,9 @@ hardware prototype exists, with full macOS application validation still in M6.
 
 ### M6 — Deliver a native macOS ARM64 client
 
-Depends on: M5. macOS core compilation and SDL shell work can begin during M2-M4.
+Depends on: M5 for release completion. macOS platform/renderer adaptation and
+integrated original-client startup can begin during M2-M4 as dependencies and
+hardware permit; do not defer them until all Linux widgets are qualified.
 
 1. Add Apple Clang builds, macOS POSIX/platform adapters and an application bundle
    with documented external data discovery and writable user settings/cache paths.
@@ -1094,9 +1218,18 @@ Always distinguish source inspection, compilation, fixture tests, hardware rende
 and observed gameplay. Missing hardware, game data or a compatible server is an
 explicit validation gap, not a passing result.
 
-## First implementation work packages
+Apply this contract to the changed interfaces and integration path. Keep required
+workflow checks and regressions, and batch additional validation around coherent
+changes. Existing probes protect qualified behaviour; exhaustive standalone
+qualification of all modules/widgets is not a prerequisite to exercising the
+integrated client. Record actual failures and add focused regressions without
+disabling detectors or weakening original-data/signature/server requirements.
 
-Start with these reviewable changes; maintain milestone status as evidence arrives.
+## Current implementation priorities and completed foundations
+
+Use the current integration deliverables above for new work; maintain milestone
+status as evidence arrives. Completed foundations and historical packages below
+remain evidence, rather than a requirement to continue one widget at a time.
 
 - [ ] Record M0 Windows gameplay/OpenGL evidence and the actual data/server setup.
 - [x] Complete the initial dependency/platform inventory, including bundled audio codecs,
@@ -1110,9 +1243,16 @@ Start with these reviewable changes; maintain milestone status as evidence arriv
 - [x] Add the SDL shell, original-data startup, settings reload and joined shutdown.
 - [x] Record operator acceptance of the requested physical-input checklist; IME language/display coverage remains limited.
 - [x] Establish the clean X11 sanitizer baseline and disposition the reproduced external Wayland Fontconfig report.
-- [ ] Adapt Linux OpenGL context creation and display the original login UI.
-- [ ] Implement portable network I/O and enter the world against the M0 server.
-- [ ] Complete sound/movie support and the Vulkan/Metal graphics decision prototype.
+- [ ] Add an Actions-built integrated Linux original-client startup target through
+      the existing SDL3/Gx/native services and resolve its reachable dependencies.
+- [ ] Render and interact with the complete signed original login UI, including
+      ordered GlueXML execution/full post-creation verification and clean shutdown.
+- [ ] Adapt active original transport/authentication and observe interactive
+      GrimGuzzler character selection/world entry with unchanged server policy.
+- [ ] Audit the pinned Apple ports for reusable platform/network/Metal code and
+      begin macOS integration as dependencies and hardware permit.
+- [ ] Complete sound/movie support and select the maintained Linux/macOS graphics
+      direction using representative prototypes and reviewed reuse candidates.
 
 The original [CheckButton package](docs/m3/CHECKBOXES.md),
 [PR #79](https://github.com/RovxBot/wowdecomp/pull/79), is qualified at

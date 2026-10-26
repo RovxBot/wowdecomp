@@ -54,12 +54,16 @@ public:
     Loaded Read(const std::string& name, size_t limit = 256 * 1024 * 1024) const;
     std::vector<std::string> Mounts() const;
     size_t SignatureCount() const { return signatures.size(); }
+    // Original Client::OpenArchives installed expansion, independent of account
+    // entitlements. Open12340 derives this from successfully mounted archives.
+    uint8_t ExpansionLevel() const { return expansionLevel; }
 private:
     struct MountPoint { std::shared_ptr<Archive> archive; int priority; std::string prefix; };
     Loaded ReadRaw(const std::string& name, size_t limit) const;
     std::vector<MountPoint> mounts;
     std::unordered_map<std::string, std::array<uint8_t, 16>> signatures;
     bool authenticated = false;
+    uint8_t expansionLevel = 0;
     Bytes verificationModulus;
 };
 

@@ -7,15 +7,22 @@
 #include <stdexcept>
 #include <unordered_set>
 #include <unordered_map>
+#include <limits>
 namespace Frame { namespace Native {
 namespace {
 bool installed = false;
+uint32_t frameLevelLimit = 128;
 bool renderActive = false;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
+size_t callbacks = 0, loadScriptEdits = 0;
+constexpr size_t NoFactory = std::numeric_limits<size_t>::max();
+size_t factoryCallbackDepth = NoFactory;
 std::unordered_set<CFramePoint*> points;
-// Initial bounded layout surface; larger graphs require separate qualification.
-constexpr size_t MaxFrames = 1024, MaxDepth = 64;
+// Ordered original Glue creation retains hidden screens and their regions too.
+// Original HTML credits chain more than 1,000 paragraphs through prior regions.
+// Bound anchor dependencies separately from the 64-level Frame parent graph.
+constexpr size_t MaxFrames = 8192, MaxDepth = 2048;
 size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
              std::unordered_set<CLayoutFrame*>& active,
              std::unordered_map<CLayoutFrame*, size_t>& memo) {
@@ -35,10 +42,12 @@ size_t Depth(CLayoutFrame* node, CLayoutFrame* target, CLayoutFrame* relative,
     return memo[node] = depth;
 }
 }
-Runtime::Runtime() {
+Runtime::Runtime(uint32_t levels) {
     FrameXML::Native::RequireOwner();
     if (renderActive) throw std::logic_error("Finish rendering before installing layout");
     if (installed) throw std::logic_error("Only one layout runtime may be installed");
+    if (levels < 128 || levels > 4096) throw std::invalid_argument("Invalid native Frame level budget");
+    frameLevelLimit = levels;
     installed = true;
 }
 Runtime::~Runtime() {
@@ -48,6 +57,7 @@ Runtime::~Runtime() {
         std::unordered_set<CLayoutFrame*>().swap(frames);
         std::unordered_set<CFramePoint*>().swap(points);
         installed = false;
+        frameLevelLimit = 128;
     } catch (...) { std::terminate(); }
 }
 void RequireOwner() {
@@ -56,9 +66,10 @@ void RequireOwner() {
     if (renderActive) throw std::logic_error("Finish Frame rendering before layout/region access");
 }
 void SetLayoutRenderActive(bool value) { renderActive = value; }
+uint32_t MaximumFrameLevel() { RequireOwner(); return frameLevelLimit; }
 void RequireNoObjects() {
     RequireOwner();
-    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
@@ -105,8 +116,23 @@ void RequireDimension(float value) {
 }
 void RequireDestroyable() {
     RequireOwner();
-    if (resizing) throw std::logic_error("Finish resize callbacks before destroying layout objects");
+    if (resizing || (callbacks && callbacks != factoryCallbackDepth))
+        throw std::logic_error("Finish callbacks before destroying layout objects");
 }
+void RequireTreeMutable() {
+    RequireOwner();
+    if (resizing || (callbacks && !loadScriptEdits))
+        throw std::logic_error("Defer Frame structure edits until callbacks finish");
+}
+CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }
+CallbackScope::~CallbackScope() { --callbacks; }
+LoadScriptEdits::LoadScriptEdits() { RequireTreeMutable(); ++loadScriptEdits; }
+LoadScriptEdits::~LoadScriptEdits() { --loadScriptEdits; }
+FactoryScope::FactoryScope() : previous(factoryCallbackDepth) {
+    RequireTreeMutable();
+    factoryCallbackDepth = callbacks;
+}
+FactoryScope::~FactoryScope() { factoryCallbackDepth = previous; }
 ResizeScope::ResizeScope() { RequireOwner(); ++resizing; }
 ResizeScope::~ResizeScope() { --resizing; }
 }}

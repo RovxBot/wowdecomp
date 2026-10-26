@@ -11,6 +11,78 @@ the Windows client and hosted native targets; the full native game is still gate
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
 
+## Current integration priority — 2026-10-25
+
+Use the [current integration direction](PORTING_PLAN.md#current-integration-direction--2026-10-25)
+to choose new work. It supersedes historical next-caller/widget ordering in the
+handoffs; those reports retain their original evidence and implementation identities.
+
+- The product uses unchanged clean 3.3.5a/12340 game data with our compiled native
+  Linux x86-64 executable or macOS ARM64 application. Reuse the reconstructed
+  client, original Lua/XML interfaces and gameplay logic. Keep both reference
+  installations read-only, with settings/cache/logs outside them.
+- Prioritise integrated original-client startup and the complete original login UI,
+  then native transport/authentication, character selection and observed world
+  entry. Bring up the original engine/Event/Frame/Glue callers together; implement
+  reachable missing widgets/services in coherent batches driven by that path.
+  Exhaustive standalone qualification of every widget is not a prerequisite to
+  attempting integrated startup.
+- Prefer adapting existing engine-facing interfaces and reusing qualified native
+  services. Bounded source compatibility helpers are allowed when they preserve
+  required widths, semantics and ownership. Do not require a new independent
+  service/owner/probe for every original module. Retain established lifetime,
+  alignment, callback and shutdown corrections when connecting the client.
+- Audit the pinned Apple-port references in the plan for reusable startup,
+  platform, network and Metal code before independently implementing equivalents.
+  Review dependencies, provenance/notices and target compatibility; record actual
+  imports. Metal code requires a separate Linux graphics path. macOS integration
+  may begin as dependencies and hardware permit without waiting for all Linux
+  widgets or later renderer/release milestones.
+- Keep required hosted checks, Windows regression compilation and sanitizers.
+  Add focused regression coverage for changed contracts and observed failures;
+  batch validation around coherent integration changes. Report the integrated
+  executable's observed behaviour and next concrete blocker separately from
+  component-fixture success. Existing probes remain useful regression tools.
+- All compilation still runs in GitHub Actions. Preserve original archive/interface
+  signatures, full ordered GlueXML/post-creation verification and protocol
+  behaviour. No fake-success services, unchecked login mode or server/Warden
+  policy changes follow from this direction. The user signs in interactively
+  when ready; login rendering alone does not establish authentication/gameplay.
+
+## Integrated Glue continuation — 2026-10-26
+
+PR #84 selects original Model/ModelFFX factories, Model2 scene/cache/shared loading,
+Camera, ShaderEffect and FFX sources through existing native owners. The factory
+is now constructed on original-data startup; model/material/FFX rendering remains
+unfinished. Read [the current integrated contract](docs/m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+and [exact validation/observed stop](docs/m3/integrated-glue-services-validation.json).
+Do not treat earlier ModelFFX-factory stops as current runtime evidence or authored
+factory/relocation/rollback success as original model rendering. Keep the device's
+94-register/one-texture-unit limits truthful. Full ordered post-creation verification
+remains enabled. Layout population is bounded at 8,192 and anchor chains at 2,048;
+the separate Frame parent graph remains limited to 64 levels. Original HTML
+credits exceed 1,000 chained text regions. Keep cycles and excess depth rejected;
+retain the adjusted partial-row rollback assertions. SimpleHTML locale files use
+a distinct read kind and the explicit read-only enUS data root; Lua/XML/TOC source
+reads stay on authenticated packages. Both installations stay read-only, all
+compilation stays in Actions, and interactive sign-in/server policy are unchanged.
+Original-data startup now completes the full ordered GlueXML creation and matches
+its mandatory post-creation digest. Glue's five-result build/account/CVar services,
+installed-expansion state, typed model/movie callbacks, original FontString
+justification/color and video/audio option queries are connected. Integrated
+frame levels use 512; component default 128 and original positive step 128 remain.
+Audio/movie backends and graphics-option application remain unavailable, with
+truthful empty/failed driver/movie results. The latest original-data stop is
+activation `*:OnValueChanged` calling unregistered `SetGamma`; native display
+gamma remains unavailable. Continue the reached original
+login activation services, then model/material/FFX paint before interactive sign-in.
+One release/three strict original-data runs reproduce that stop, exit 1 with zero
+workers and no sanitizer finding; separate authored/GPU fixtures pass. Read the
+record's exact hosted identities/input-reuse proofs and retained invalid-XML
+fixture UBSan failure. Keep fixture success separate from actual login rendering.
+Preserve historical draft/GetBuildInfo observations, the prior Windows input proofs and the
+retained X11 `BadWindow` failure in their original records.
+
 ## Current handoff and build policy
 
 - All client and dependency compilation must run in GitHub Actions, including

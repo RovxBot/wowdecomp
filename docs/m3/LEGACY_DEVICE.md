@@ -51,6 +51,13 @@ native transform service before the original UI transpose API or submission.
 Nonidentity texture matrices and texgen remain visibly unavailable. Native
 state-cache comparison uses bit comparison instead of signed subtraction.
 
+The PR #84 original model integration additionally admits `BufStream(target, 0, 0)`
+as the original stream identity query used by model/particle teardown. It validates
+the target and owner, returns the existing stream and preserves its allocation.
+Partial-zero extents remain invalid. The existing integrated startup fixture
+checks identity and item count; this adds no model rendering or larger device
+capability claim. See [the continuation](integrated-model-render-validation.json).
+
 ## Validation
 
 All client/dependency compilation runs in Actions. `LegacyGxCheck` is added to

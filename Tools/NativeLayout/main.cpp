@@ -150,12 +150,12 @@ static void InvalidInputs() {
     // Bounded dependency depth, including repeated anchors, without exponential walks.
     std::vector<std::unique_ptr<Layout>> chain;
     CLayoutFrame* previous=&root;bool bounded=false;
-    for(int i=0;i<70;++i) {
+    for(int i=0;i<2050;++i) {
         auto next=std::make_unique<Layout>();
         try { next->SetAllPoints(previous,0); } catch(const std::invalid_argument&) { bounded=true;break; }
         previous=next.get();chain.push_back(std::move(next));
     }
-    Check(bounded,"layout dependency depth is unbounded");
+    Check(chain.size()==2047 && bounded,"original HTML anchor depth or its bound changed");
     while(!chain.empty()) chain.pop_back();
 }
 static void XML() {
@@ -180,13 +180,28 @@ static void XML() {
     }
     CoordinateSetAspectRatio(4.0f/3.0f);
 }
+static void Capacity() {
+    // Actual signed Glue creation exceeded the initial 1,024-object surface.
+    // This metadata fixture has no anchors, scripts, images or replacement UI.
+    std::vector<std::unique_ptr<Layout>> frames;
+    for (size_t i = 0; i < 8192; ++i) frames.push_back(std::make_unique<Layout>());
+    Reject([] { auto excessive = std::make_unique<Layout>(); });
+    frames.pop_back();
+    frames.push_back(std::make_unique<Layout>());
+    frames.clear();
+    RequireNoObjects();
+}
 int main() {
     try {
         for(int cycle=0;cycle<3;++cycle) {
             FrameScript::Native::Runtime scripts([](auto,const auto&,auto&){return false;});
             FrameXML::Native::Runtime xml;
+            for (uint32_t limit : {0u, 127u, 4097u, UINT32_MAX})
+                Reject([&] { Frame::Native::Runtime invalid(limit); });
+            { Frame::Native::Runtime integrated(512); Check(MaximumFrameLevel()==512,"explicit Frame level budget lost"); }
             { Frame::Native::Runtime layout;
-              Anchors();Dependencies();InvalidInputs();XML();CLayoutFrame::ResizePending();RequireNoObjects(); }
+              Check(MaximumFrameLevel()==128,"default Frame level budget changed after owner recreation");
+              Anchors();Dependencies();InvalidInputs();XML();Capacity();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");
             std::cout<<"Original layout/anchor/XML cycle "<<cycle+1<<" passed\n";

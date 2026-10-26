@@ -17,7 +17,9 @@
 namespace Services { namespace Native {
 namespace {
 std::atomic<TextureService*> active{nullptr};
-constexpr size_t MaxTextures = 32, MaxPixels = 2 * 1024 * 1024, MaxSource = 32 * 1024 * 1024;
+// Signed GlueXML eagerly creates images for hidden screens as well as login.
+// Bound metadata independently of the shared 256 MiB retained-pixel budget.
+constexpr size_t MaxTextures = 1024, MaxPixels = 2 * 1024 * 1024, MaxSource = 32 * 1024 * 1024;
 struct PixelBudget { std::atomic<size_t> bytes{0}; };
 struct Key {
     std::string name;
@@ -139,12 +141,16 @@ TextureService& Owner() {
     service->Check();
     return *service;
 }
-std::string Filename(const char* name) {
+std::string Filename(const char* name, bool exact = false) {
     if (!name || !*name) throw std::invalid_argument("Empty image filename");
     auto path = Blizzard::Mopaq::Native::Name(name);
     auto slash = path.find_last_of('\\'), dot = path.find_last_of('.');
     if (dot == std::string::npos || (slash != std::string::npos && dot < slash)) path += ".BLP";
-    else if (path.substr(dot) != ".BLP") throw std::invalid_argument("Native file image service requires BLP2");
+    // Original TextureCreate tries the BLP basename first unless bit 3 asks
+    // for an exact suffix. Original GlueXML also names these members as .tga.
+    else if (!exact && path.substr(dot) == ".TGA") path.replace(dot, std::string::npos, ".BLP");
+    else if (path.substr(dot) != ".BLP")
+        throw std::invalid_argument("Native image decoder requires BLP2; unsupported source: " + path);
     if (path.size() >= 260) throw std::invalid_argument("Image filename exceeds original CTexture storage");
     return path;
 }
@@ -276,7 +282,7 @@ CTexture* CreateFileTexture(const char* filename, CGxTexFlags flags, CStatus* st
         flags.m_forceMipTracking || flags.m_generateMipMaps || flags.m_renderTarget || flags.m_bit8 ||
         flags.m_maxAnisotropy != 1 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 || flags.m_bit31)
         throw std::invalid_argument("Unavailable native file texture options/sampler");
-    Key key{Filename(filename), flags.m_filter, flags.m_wrapU, flags.m_wrapV,
+    Key key{Filename(filename, options & 8), flags.m_filter, flags.m_wrapU, flags.m_wrapV,
             bool(options & 2), bool(options & 4) && s.atlasEnabled, !(options & 1)};
     auto cached = s.cache.find(key);
     if (cached != s.cache.end()) {

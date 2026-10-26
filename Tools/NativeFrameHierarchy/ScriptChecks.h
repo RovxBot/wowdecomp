@@ -117,6 +117,33 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     auto pixels = Draw(device, root);
     Check(Ink(pixels) > 4, "Lua-created pooled FontString did not render");
     Equal(pixels, Draw(device, root));
+    RegionLua(R"(
+        SavedJustifyH, SavedJustifyV = StaleText:GetJustifyH(), StaleText:GetJustifyV()
+        StaleText:SetJustifyH(SavedJustifyH == 'RIGHT' and 'LEFT' or 'RIGHT')
+        StaleText:SetJustifyV(SavedJustifyV == 'TOP' and 'BOTTOM' or 'TOP')
+        assert(StaleText:GetJustifyH() ~= SavedJustifyH and StaleText:GetJustifyV() ~= SavedJustifyV)
+        local h,v = StaleText:GetJustifyH(), StaleText:GetJustifyV()
+        assert(not pcall(StaleText.SetJustifyH,StaleText,'invalid'))
+        assert(not pcall(StaleText.SetJustifyV,StaleText,{}))
+        assert(StaleText:GetJustifyH() == h and StaleText:GetJustifyV() == v)
+    )");
+    auto justified = Draw(device, root);
+    Check(Ink(justified) > 4 && justified.size() == pixels.size() && std::memcmp(justified.data(), pixels.data(), pixels.size() * sizeof(CImVector)), "Lua justification did not move actual glyph pixels");
+    RegionLua("StaleText:SetJustifyH(SavedJustifyH); StaleText:SetJustifyV(SavedJustifyV)");
+    Equal(pixels, Draw(device, root));
+    RegionLua(R"(
+        SavedR,SavedG,SavedB,SavedA=StaleText:GetTextColor()
+        StaleText:SetTextColor(1,0,0,.5)
+        StaleText:SetVertexColor(0,1,0) -- Original omission preserves alpha.
+        local r,g,b,a=StaleText:GetTextColor()
+        assert(r==0 and g>.99 and b==0 and a>.49 and a<.51)
+        assert(not pcall(StaleText.SetVertexColor,StaleText,0/0,0,0))
+        assert(not pcall(StaleText.SetTextColor,{[0]=StaleText[0]},1,1,1))
+    )");
+    auto tinted = Draw(device, root);
+    Check(Ink(tinted)>4 && tinted.size()==pixels.size() && std::memcmp(tinted.data(),pixels.data(),pixels.size()*sizeof(CImVector)), "Lua FontString color did not change rendered glyphs");
+    RegionLua("StaleText:SetTextColor(SavedR,SavedG,SavedB,SavedA)");
+    Equal(pixels, Draw(device, root));
     RegionLua("assert(StaleText:GetText() == 'AV Lua factory'); StaleText:Hide(); assert(not StaleText:IsShown())");
     Check(!Ink(Draw(device, root)), "Lua Hide retained text pixels");
     RegionLua("StaleText:Show(); assert(StaleText:IsVisible()); StaleText:SetFontObject(RegionFixtureFont)");
@@ -127,7 +154,7 @@ static void ScriptChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fo
     {
         Frame::Native::CollectScope traversal;
         RegionLua("assert(not pcall(NativeLuaFrame.CreateFontString,NativeLuaFrame,'RejectedTraversal')); assert(RejectedTraversal == nil); "
-                  "assert(not pcall(StaleText.SetText,StaleText,'blocked'))");
+                  "assert(not pcall(StaleText.SetText,StaleText,'blocked')); assert(not pcall(StaleText.SetVertexColor,StaleText,1,0,0))");
     }
     RegionLua("assert(StaleText:GetText() == 'AV Lua factory')");
     Check(lua_gettop(L) == top && lua_taintexpected == expectedTaint, "Region Lua left stack/taint nesting");

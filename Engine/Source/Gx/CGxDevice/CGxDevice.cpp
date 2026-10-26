@@ -1094,7 +1094,11 @@ CGxBuf* CGxDevice::BufStream(EGxPoolTarget target, uint32_t itemSize, uint32_t i
     this->NativeCheckOwner();
 #endif
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
-    if (uint32_t(target) >= 2 || !itemSize || !itemCount || itemCount > uint32_t(INT32_MAX) / itemSize) throw std::invalid_argument("Invalid native stream extent");
+    if (uint32_t(target) >= 2) throw std::invalid_argument("Invalid native stream target");
+    // Original model/particle teardown uses (0, 0) to identify the shared
+    // stream buffer. A query must not retire its existing native allocation.
+    if (!itemSize && !itemCount) return this->m_streamBufs[target];
+    if (!itemSize || !itemCount || itemCount > uint32_t(INT32_MAX) / itemSize) throw std::invalid_argument("Invalid native stream extent");
 #endif
     CGxBuf* buf = this->m_streamBufs[target];
     CGxPool* pool = buf->m_pool;

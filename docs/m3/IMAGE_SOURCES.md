@@ -22,8 +22,12 @@ Disk policy and atlas representation participate in cache identity. Existing
 handles retain their representation when atlas creation is disabled. UI priority
 continues to promote identical queued requests without changing their handles.
 Reads/decode execute on the retained worker; source selection never publishes
-native tickets as `CAsyncObject`. TGA/alternate-format search, basename aliases,
-texture substitutions and remote streaming remain unavailable and fail visibly.
+native tickets as `CAsyncObject`. The PR #84 startup continuation adds the original
+BLP-first basename lookup for `.tga` requests unless exact-suffix bit 3 is set.
+The `.tga` and `.blp` spellings share the actual BLP cache entry. This does not
+decode TGA or provide TGA fallback, broader format substitutions or remote
+streaming; those remain unavailable and fail visibly. See the
+[integration evidence](integrated-model-render-validation.json).
 
 Atlas construction is disabled initially, matching the original global. With
 `TextureEnableAtlas(1)`, BLP header flag `0x10`, square dimensions at most 64 and

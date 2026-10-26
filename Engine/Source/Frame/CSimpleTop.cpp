@@ -1078,7 +1078,7 @@ void CSimpleTop::CompressStrata(int32_t strata) {
 int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     Frame::Native::RequireSimpleFrame(frame);
 #endif
 
@@ -1402,7 +1402,7 @@ void CSimpleTop::RegisterForEvent(CSimpleFrame* frame, CSimpleEventType event, i
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     Frame::Native::RequireSimpleFrame(frame);
     if (event > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
     if (priority < -1) throw std::invalid_argument("Invalid Frame event priority");
@@ -1450,7 +1450,7 @@ void CSimpleTop::UnregisterForEvent(CSimpleFrame* frame, CSimpleEventType event,
 {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStateMutation();
     Frame::Native::RequireSimpleFrame(frame);
     if (event > SIMPLE_EVENT_MOUSEWHEEL) throw std::invalid_argument("Invalid Frame event type");
     if (!a4 && event == SIMPLE_EVENT_MOUSE && frame == this->m_moveResizeFrame) this->StopMoveOrResizeFrame();

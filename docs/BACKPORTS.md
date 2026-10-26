@@ -4,6 +4,23 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-025 — Integrated startup and pinned Apple platform review
+
+- [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) adds an opt-in Linux
+  startup target using this fork's original sources and qualified native services.
+- Reviewed `jerrywossion/wowdecomp` at
+  `7489b5f2df6628a434b2ad9aceed66c0f2e6a431` and `fmustafayaman/WoWReMac` at
+  `3c7f82c02fa9d4c8399b8f95d30ef0df575ef069` before implementation. The
+  [path-by-path review](m3/APPLE_STARTUP_REVIEW.md) records platform, dependencies,
+  notices, ABI and server-policy limitations. **No files/code are imported from
+  either reference in this batch.** Their integrated source-group approach informs
+  the implementation; this is not a wholesale merge or qualification of their code.
+- Product adaptations retain original TOC/InterfaceKey/post-creation signatures,
+  original data/protocol and existing lifetime corrections. Windows-selected
+  implementation branches remain; required Windows/sanitizer checks are retained.
+- [Integrated contracts](m3/INTEGRATED_CLIENT.md) distinguish actual startup stages,
+  failed attempts and missing login/gameplay from component-fixture success.
+
 ## NP-001 — Native filesystem contract references (12340 forks)
 
 - Status: independent native file/path implementation and synthetic fixtures pass
@@ -758,6 +775,91 @@ and source inspection are different evidence levels.
   workers; 16 capture pairs and 15 historical comparisons match. Preserve the
   record's older layout/shell checkouts and both retained compile failures.
   Actual Windows gameplay/audio, original native login, macOS graphics and server compatibility remain unobserved for this batch.
+
+## NP-025 — Model2 loading prerequisites in integrated startup
+
+- Reference: jerrywossion/wowdecomp `apple` at
+  `7489b5f2df6628a434b2ad9aceed66c0f2e6a431`, complete
+  `Engine/Source/Model2/M2Memory.h` and `Engine/Source/Os/Apple/OsMemory.cpp`.
+  See [the pinned review](m3/APPLE_STARTUP_REVIEW.md). No implementation bodies,
+  dependencies or donor address/verification annotations were imported.
+- Benefit/adaptation: model roots and external relative arrays share this fork's
+  existing native `ModelArena`; allocation kinds retain reservation ownership and
+  reject exhaustion, unknown anchors, foreign owners and signed-offset narrowing.
+  Original SFile/CAsyncObject entry points adapt the qualified native FileQueue;
+  owner-side staging/delivery makes immediate cancellation safe even after reads.
+- Destination: `Os/Portable/ModelMemory*`, native-guarded `Model2/M2Data.h`,
+  `Services/Portable/LegacyFiles*` and the existing integrated startup/check target.
+  Windows keeps its original runtime implementation and M2 array bodies.
+- Scope/defaults: opt-in Linux startup, local authenticated unchanged 12340 data,
+  external writable roots, no streaming/host-file fallback or signature changes.
+  Actual ModelFFX/Model2/FFX rendering remains unavailable; no login, protocol,
+  Warden, server policy, optional asset or gameplay behavior is changed.
+- Validation: local Python source/policy checks pass (61 tests, one skipped);
+  no local compilation. All 14 final-source workflows / 47 jobs passed, including
+  strict sanitizers, actual ARM64 prerequisites, 38 CTest checks per Linux GL
+  configuration and full signature-enabled Windows x64 compilation. Downloaded
+  release/three strict startup fixtures passed; corresponding original-data
+  executions still exited 1 at ModelFFX with zero workers and no sanitizer finding.
+  Two archive digests/four ELF executable hashes/types/notices verified. See
+  [the exact-source record](m3/integrated-model-io-validation.json) and
+  [the integrated contract](m3/INTEGRATED_CLIENT.md#model2-loading-continuation--2026-10-25).
+
+## NP-026 — Original ModelFFX factory and integrated Glue dependencies
+
+- Reference: the pinned Apple startup/model review in
+  [APPLE_STARTUP_REVIEW.md](m3/APPLE_STARTUP_REVIEW.md). No reference source bodies,
+  dependencies, notices or donor address/verification annotations were imported.
+- Benefit/adaptation: select this checkout's original Model/ModelFFX factories,
+  Model2 scene/cache/shared/render consumers, Camera, particle/ribbon,
+  ShaderEffect and FFX/glow sources together in the existing opt-in Linux target.
+  Reuse qualified native owners and retained file reads. Retain near/root ownership,
+  checked relocation/track spans, callback failure delivery, aligned deallocation,
+  pooled lifetime and partial FFX rollback. Detach the FFX effect before deletion.
+- Destination: `Tools/NativeClient`, `Glue/Portable/Models*`, native-guarded original
+  Frame/Model2/FFX/Services/Tempest sources, existing Gx/Gxu and file/image Services.
+  The original stream identity query preserves allocation. Layout population is
+  bounded at 8,192 and anchor chains at 2,048 for original HTML; Frame parent depth
+  stays 64 and image pixel storage remains capped at 256 MiB. Original `.tga`
+  spellings can select their BLP basename, without TGA decoding or fake pixels.
+  SimpleHTML uses an explicit read-only locale-file route distinct from authenticated
+  Lua/XML/TOC sources. HTML parser/text ownership unwinds on native exceptions.
+- Scope/defaults: original unchanged 12340 data, required signatures and full
+  ordered post-creation digest, external writable roots, real 94-register/one-TMU
+  device limits. Original model/login rendering remains unfinished; optional model
+  animation audio reports failure. No credential, protocol, server/Warden policy,
+  new Apple graphics acceptance or gameplay claim is introduced.
+- Validation: the existing startup fixture exercises real factory/camera/FFX
+  rollback, model/shared read failures, root retirement, nested track relocation
+  and bounded locale reads. Existing layout, image and hierarchy checks retain
+  population/rollback/cache assertions. All compilation runs in Actions. See
+  [individual hosted identities, failures and desktop reports](m3/integrated-model-render-validation.json)
+  and [the integrated contract](m3/INTEGRATED_CLIENT.md#original-model-factory-continuation--2026-10-26).
+  Authored checks stay separate from observed original-data startup.
+
+## NP-027 — Original Glue services and complete ordered creation
+
+- Reference: this checkout's original GlueScriptEvents, CharacterSelection,
+  VideoOptions, SoundInterface2 and Frame script sources; the pinned
+  [Apple startup review](m3/APPLE_STARTUP_REVIEW.md) was consulted. No donor source,
+  dependencies or notices were imported.
+- Benefit/adaptation: five-result Glue build info, original account/CVar and
+  installed-expansion services, typed ModelFFX bindings/callbacks, inactive movie
+  lifecycle, scoped load-state edits, original FontString justification/color,
+  and options queries connect through existing owners. Integrated frame levels
+  use a bounded 512 budget; component default 128, original positive step 128,
+  parent depth 64, anchors 2,048 and population 8,192 remain distinct.
+- Limits: graphics queries expose the installed format/caps and original fallback
+  resolution list; option application remains unavailable. Audio has no backend:
+  zero drivers, failed name reads, preferences only. Movie start returns failure
+  without frames/audio/finished events. No rendering capability, authentication,
+  agreement acceptance or server/Warden policy is fabricated.
+- Validation: original-data creation now passes the full ordered digest gate.
+  Startup, native layout, GPU and Windows checks retain their exact checkout
+  identities and source-input proofs. Authored glyph/color/frame checks are
+  separate from integrated login/model rendering, which remains unfinished. See
+  [contracts](m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
+  and [evidence, failures and observed stop](m3/integrated-glue-services-validation.json).
 
 ## BP-001 — Correct CPUID structure initialization
 

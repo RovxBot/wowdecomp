@@ -1,3 +1,6 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#endif
 #include <cstddef>
 #include <cstdint>
 #include "Engine/Source/Frame/CSimpleModel.h"
@@ -53,6 +56,9 @@ static int32_t Script_GetModel(lua_State* L) {
     if (model->m_model) {
         lua_pushstring(L, model->m_model->m_shared->m_fileName);
     }
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    else lua_pushnil(L);
+#endif
 
     return 1;
 }
@@ -122,6 +128,10 @@ static int32_t Script_SetSequence(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
+        std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
+#endif
     uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
 
     if (sequence >= 506) {
@@ -140,7 +150,15 @@ static int32_t Script_SetSequenceTime(lua_State* L) {
     CSimpleModel* model = static_cast<CSimpleModel*>(FrameScript_GetObjectThis(L, CSimpleModel::GetObjectType()));
 
     if (lua_isnumber(L, 2) && lua_isnumber(L, 3)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 3) < INT32_MIN || lua_tonumber(L, 3) > INT32_MAX ||
+            std::floor(lua_tonumber(L, 3)) != lua_tonumber(L, 3)) return luaL_error(L, "Invalid native model sequence time");
+#endif
         int32_t time = static_cast<int32_t>(lua_tonumber(L, 3));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) >= 506 ||
+            std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model sequence");
+#endif
         uint32_t sequence = static_cast<uint32_t>(lua_tonumber(L, 2));
         model->SetSequenceTime(sequence, time);
         return 0;
@@ -157,6 +175,10 @@ static int32_t Script_SetCamera(lua_State* L) {
     CSimpleModel* model = static_cast<CSimpleModel*>(FrameScript_GetObjectThis(L, CSimpleModel::GetObjectType()));
 
     if (lua_isnumber(L, 2)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        if (lua_tonumber(L, 2) < 0 || lua_tonumber(L, 2) > UINT32_MAX ||
+            std::floor(lua_tonumber(L, 2)) != lua_tonumber(L, 2)) return luaL_error(L, "Invalid native model camera index");
+#endif
         model->SetCameraByIndex(static_cast<uint32_t>(lua_tonumber(L, 2)));
         return 0;
     }
@@ -483,6 +505,34 @@ void CSimpleModel::CreateScriptMetaTable() {
 }
 
 // STATIC: 0x00B2CB10
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+static FrameScript_Method s_ScriptMethods[] = {
+    { "SetModel", &Frame::Native::ScriptMethod<Script_SetModel, true, false, true> },
+    { "GetModel", &Frame::Native::ScriptMethod<Script_GetModel, true, false, false> },
+    { "ClearModel", &Frame::Native::ScriptMethod<Script_ClearModel, true, false, true> },
+    { "SetPosition", &Frame::Native::ScriptMethod<Script_SetPosition, true, false, true> },
+    { "SetFacing", &Frame::Native::ScriptMethod<Script_SetFacing, true, false, true> },
+    { "SetModelScale", &Frame::Native::ScriptMethod<Script_SetModelScale, true, false, true> },
+    { "SetSequence", &Frame::Native::ScriptMethod<Script_SetSequence, true, false, true> },
+    { "SetSequenceTime", &Frame::Native::ScriptMethod<Script_SetSequenceTime, true, false, true> },
+    { "SetCamera", &Frame::Native::ScriptMethod<Script_SetCamera, true, false, true> },
+    { "SetLight", &Frame::Native::ScriptMethod<Script_SetLight, true, false, true> },
+    { "GetLight", &Frame::Native::ScriptMethod<Script_GetLight, true, false, false> },
+    { "GetPosition", &Frame::Native::ScriptMethod<Script_GetPosition, true, false, false> },
+    { "GetFacing", &Frame::Native::ScriptMethod<Script_GetFacing, true, false, false> },
+    { "GetModelScale", &Frame::Native::ScriptMethod<Script_GetModelScale, true, false, false> },
+    { "AdvanceTime", &Frame::Native::ScriptMethod<Script_AdvanceTime, true, false, true> },
+    { "ReplaceIconTexture", &Frame::Native::ScriptMethod<Script_ReplaceIconTexture, true, false, true> },
+    { "SetFogColor", &Frame::Native::ScriptMethod<Script_SetFogColor, true, false, true> },
+    { "GetFogColor", &Frame::Native::ScriptMethod<Script_GetFogColor, true, false, false> },
+    { "SetFogNear", &Frame::Native::ScriptMethod<Script_SetFogNear, true, false, true> },
+    { "GetFogNear", &Frame::Native::ScriptMethod<Script_GetFogNear, true, false, false> },
+    { "SetFogFar", &Frame::Native::ScriptMethod<Script_SetFogFar, true, false, true> },
+    { "GetFogFar", &Frame::Native::ScriptMethod<Script_GetFogFar, true, false, false> },
+    { "ClearFog", &Frame::Native::ScriptMethod<Script_ClearFog, true, false, true> },
+    { "SetGlow", &Frame::Native::ScriptMethod<Script_SetGlow, true, false, true> },
+};
+#else
 static FrameScript_Method s_ScriptMethods[] = {
     { "SetModel", &Script_SetModel },
     { "GetModel", &Script_GetModel },
@@ -509,6 +559,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "ClearFog", &Script_ClearFog },
     { "SetGlow", &Script_SetGlow },
 };
+#endif
 
 // VERIFY: 89102caf auto
 // OFFSET: 0x009603D0

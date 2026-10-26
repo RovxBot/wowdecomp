@@ -1,3 +1,7 @@
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Frame/Portable/Storage.h"
+#include <cmath>
+#endif
 #include "CSimpleModelFFX.h"
 #include <cstdint>
 #include <new>
@@ -27,6 +31,9 @@ static void AnimEventCallback(CM2Model* model, uint32_t boneId, uint32_t eventId
 // OFFSET: 0x004E5ED0
 void CSimpleModelFFX::SetModel(CM2Model* model) {
     this->CSimpleModel::SetModel(model);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!this->m_model) return;
+#endif
     this->m_model->SetEventCallback(reinterpret_cast<void*>(AnimEventCallback), reinterpret_cast<uintptr_t>(this));
 }
 
@@ -73,6 +80,9 @@ CSimpleModelFFX::CSimpleModelFFX(CSimpleFrame* parent) : CSimpleModel(parent) {
 // VERIFY: 107d2001 auto
 // OFFSET: 0x004E6160
 void CSimpleModelFFX::SetGlow(float glow) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!std::isfinite(glow) || glow < 0 || glow > 1) throw std::invalid_argument("Native model glow must be in [0, 1]");
+#endif
     this->m_glow = glow;
 }
 
@@ -123,15 +133,23 @@ CSimpleModelFFX::~CSimpleModelFFX() {
 // INLINED
 void CSimpleModelFFX::operator delete(void* ptr) {
     if (ptr) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::FreeRegionStorage(CSimpleModelFFX::s_simpleModelFFXHeap, ptr);
+#else
         CSimpleModelFFX::s_simpleModelFFXHeap.PutData(ptr, nullptr, 0);
+#endif
     }
 }
 
 // VERIFY: 9f5b0582 auto
 // OFFSET: 0x004E6300
 CSimpleFrame* CSimpleModelFFX::Create(CSimpleFrame* parent) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    return Frame::Native::ConstructRegion<CSimpleModelFFX>(s_simpleModelFFXHeap, parent);
+#else
     void* data = CSimpleModelFFX::s_simpleModelFFXHeap.GetData(0, typeid(CSimpleModelFFX).raw_name(), SLOG_OBJECT);
     return data ? new (data) CSimpleModelFFX(parent) : nullptr;
+#endif
 }
 
 // VERIFY: e9124733 auto
