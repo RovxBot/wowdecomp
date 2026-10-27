@@ -79,6 +79,14 @@ struct ModelBytes {
 };
 void Relocations() {
     {
+        // Reproduce the former inline-only model ownership: capacity zero can
+        // still carry an owned SMem allocation, which the destructor must free.
+        CM2Shared shared(nullptr);
+        shared.m_lowPrioritySequenceBuffers = static_cast<uint8_t**>(SMemAlloc(0, __FILE__, __LINE__, 8));
+        Check(shared.m_lowPrioritySequenceBuffers && !shared.m_lowPrioritySequenceCapacity,
+            "Authored zero-capacity sequence owner was not created");
+    }
+    {
         CPlaneParticleEmitter emitter;
         CPlaneParticleEmitter copy(emitter, 0);
         Check(emitter.m_emitterType==CParticleEmitter2::PET_PLANE_EMITTER &&
