@@ -65,9 +65,16 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
     lua("NativeRangeContent:SetHeight(40)");
     root.OnLayerUpdate(.016f);
     root.OnLayerUpdate(.016f);
-    lua("assert(RangeCalls==2 and RangeValues==1 and NativeRangeSlider:GetValue()==0 and NativeRange:GetVerticalScroll()==0); "
-        "assert(not NativeRangeSlider:IsShown() and not NativeRangeUp:IsShown() and not NativeRangeDown:IsShown()); "
-        "assert(not NativeRangeUp:IsEnabled() and not NativeRangeDown:IsEnabled() and RangeTail==3)");
+    lua(R"(
+        local s=NativeRangeSlider
+        local lo,hi=s:GetMinMaxValues()
+        local state=string.format('calls=%s values=%s tail=%s range=%g,%g value=%g scroll=%g shown=%s up=%s down=%s',
+            tostring(RangeCalls),tostring(RangeValues),tostring(RangeTail),lo,hi,s:GetValue(),NativeRange:GetVerticalScroll(),
+            tostring(s:IsShown()),tostring(NativeRangeUp:IsEnabled()),tostring(NativeRangeDown:IsEnabled()))
+        assert(RangeCalls==2 and RangeValues==1 and s:GetValue()==0 and NativeRange:GetVerticalScroll()==0,state)
+        assert(not s:IsShown() and not NativeRangeUp:IsShown() and not NativeRangeDown:IsShown(),state)
+        assert(not NativeRangeUp:IsEnabled() and not NativeRangeDown:IsEnabled() and RangeTail==3,state)
+    )");
     lua("NativeRangeContent:SetHeight(260)");
     root.OnLayerUpdate(.016f);
     root.OnLayerUpdate(.016f);
