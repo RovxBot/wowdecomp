@@ -10,8 +10,11 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
     const auto errors = FrameScript::Native::ScriptErrorCount();
     auto lua = [&](const char* source) {
         CStatus status;
-        ScrollCheck(FrameScript_ExecuteBuffer(source, std::strlen(source), "authored scroll-range controls", &status, nullptr) && status.IsEmpty(),
-              "Authored scroll-range setup/assertion failed");
+        const auto result = FrameScript_ExecuteBuffer(source, std::strlen(source), "authored scroll-range controls", &status, nullptr);
+        if (!result || !status.IsEmpty()) {
+            char error[2048]{};
+            throw std::runtime_error(std::string("Scroll-range fixture: ") + status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; "));
+        }
         ScrollCheck(FrameScript::Native::ScriptErrorCount() == errors, "Scroll-range callback failed");
     };
     lua(R"(
