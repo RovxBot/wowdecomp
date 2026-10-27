@@ -126,8 +126,11 @@ void RequireDestroyable() {
         throw std::logic_error("Finish callbacks before destroying layout objects");
 }
 void RequireTreeMutable() {
+    RequireStateMutable(false);
+}
+void RequireStateMutable(bool callbacksAllowed) {
     RequireOwner();
-    if (resizing || (callbacks && !loadScriptEdits))
+    if (resizing || (callbacks && !loadScriptEdits && !callbacksAllowed))
         throw std::logic_error("Defer Frame structure edits until callbacks finish");
 }
 CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }

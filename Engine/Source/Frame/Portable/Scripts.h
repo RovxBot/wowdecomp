@@ -22,7 +22,7 @@ inline int UnavailableScriptMethod(lua_State* L) {
     const char* method = lua_getstack(L, 0, &call) && lua_getinfo(L, "n", &call) && call.name ? call.name : "<unknown>";
     return luaL_error(L, "Native Frame method '%s' requires an unavailable widget, XML, language or animation service", method);
 }
-template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false> int ScriptMethod(lua_State* L) {
+template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false, bool ScrollCallback = false> int ScriptMethod(lua_State* L) {
     // Lua errors longjmp. Convert C++ failures only after their stack unwinds;
     // no owning automatic object may surround the subsequent luaL_error call.
     char failure[512]{};
@@ -30,7 +30,7 @@ template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation =
         RequireRegionScripts();
         RequireRoot();
         if (TreeMutation) RequireTreeMutation();
-        else if (StateMutation) RequireStateMutation();
+        else if (StateMutation) RequireStateMutation(ScrollCallback);
         for (int i = 2; i <= lua_gettop(L); ++i)
             if (Coordinates && lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
                 std::fabs(lua_tonumber(L, i)) > FLT_MAX))

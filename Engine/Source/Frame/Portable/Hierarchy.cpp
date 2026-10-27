@@ -18,6 +18,7 @@ namespace {
 std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
+bool scrollRangeEdits = false;
 ScrollNotify scrollNotify = nullptr;
 constexpr size_t MaxDepth = 64;
 }
@@ -60,10 +61,18 @@ void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
 }
-void RequireStateMutation() {
-    RequireRegions(); RequireTreeMutable();
-    if (updating || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
+void RequireStateMutation(bool scrollCallback) {
+    RequireRegions();
+    const bool admitted = scrollCallback && scrollRangeEdits;
+    RequireStateMutable(admitted);
+    if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
+ScrollRangeEdits::ScrollRangeEdits() {
+    RequireRegions(); RequireTreeMutable();
+    if (collecting || scrollRangeEdits) throw std::logic_error("Nested or collecting scroll-range notification");
+    scrollRangeEdits = true;
+}
+ScrollRangeEdits::~ScrollRangeEdits() { scrollRangeEdits = false; }
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();
     if (!frames.count(frame)) throw std::invalid_argument("Frame parent is not live");

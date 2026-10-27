@@ -13,6 +13,14 @@ void SetScrollNotify(ScrollNotify);
 bool HasScrollSupport();
 void NotifyScroll(CSimpleFrame*);
 void RequireScriptTextMutation();
+// Only the original scroll-range notification may update qualified existing
+// controls while layer traversal is pinned. No tree/layout/deletion capability.
+struct ScrollRangeEdits final {
+    ScrollRangeEdits();
+    ~ScrollRangeEdits();
+    ScrollRangeEdits(const ScrollRangeEdits&) = delete;
+    ScrollRangeEdits& operator=(const ScrollRangeEdits&) = delete;
+};
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);

@@ -80,6 +80,9 @@ void CSimpleScrollFrame::RunOnVerticalScrollScript() {
 // OFFSET: 0x0096AFD0
 void CSimpleScrollFrame::RunOnScrollRangeChangedScript() {
     if (this->m_onScrollRangeChanged.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::ScrollRangeEdits edits;
+#endif
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * this->m_scrollRange.x));
         lua_pushnumber(L, DDCToNDCWidth(CoordinateGetAspectCompensation() * 1024.0f * this->m_scrollRange.y));

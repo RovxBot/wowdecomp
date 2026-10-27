@@ -75,6 +75,14 @@ painting the next frame, as well as after the tick. A renderer failure must not
 mask an earlier callback failure. Callback admission is tracked in
 [#95](https://github.com/RovxBot/wowdecomp/issues/95); this diagnostic ordering does
 not relax mutation or traversal guards.
+The original scroll-range notification has a bounded existing-control capability:
+qualified slider range/value, scroll offset, visibility and Button enable changes
+may use the original pending-frame lists during update. Other state edits and
+layout-script/construction/deletion guards retain their normal admission. Resize,
+collection, rendering and foreign-thread access still reject these operations.
+The notification completes synchronously in original callback order; capability
+cleanup follows protected errors and native exceptions. Qualification and remaining
+integration stops live in [#95](https://github.com/RovxBot/wowdecomp/issues/95).
 SimpleHTML/hyperlink/ScrollFrame/Slider form the first startup-driven source batch.
 Aligned pools retain matching deletion; HTML text closes before private fonts.
 

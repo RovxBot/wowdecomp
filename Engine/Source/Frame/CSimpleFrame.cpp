@@ -476,7 +476,7 @@ uint8_t CSimpleFrame::GetEffectiveAlpha() {
 void CSimpleFrame::SetFrameFlag(uint32_t flag, int32_t set) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    if (flag == 0x400) Frame::Native::RequireStateMutation(); // Button disabled state
+    if (flag == 0x400) Frame::Native::RequireStateMutation(true); // Button disabled state
     else Frame::Native::RequireTreeMutation();
     // Qualified base movement flags plus Button disabled/widget markers.
     if (flag != 1 && flag != 0x100 && flag != 0x200 && flag != 0x1000 && flag != 0x400 && flag != 0x10000) Frame::Native::UnavailableFrameFeature();
@@ -564,7 +564,7 @@ void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
 void CSimpleFrame::RegisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
@@ -579,7 +579,7 @@ void CSimpleFrame::RegisterForEvents(int32_t a2) {
 void CSimpleFrame::UnregisterForEvents(int32_t a2) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     for (uint32_t i = 0; i < NUM_SIMPLE_EVENTS; i++) {
         if ((1 << i) & this->m_enabledEventsBitmask) {
@@ -982,7 +982,7 @@ bool CSimpleFrame::SetFrameDepth(float depth, bool force) {
 int32_t CSimpleFrame::Hide() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -1001,7 +1001,7 @@ int32_t CSimpleFrame::Hide() {
 int32_t CSimpleFrame::Show() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -2330,7 +2330,7 @@ bool CSimpleFrame::UpdateDepth(bool force) {
 int32_t CSimpleFrame::HideThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     if (!this->m_isVisible) {
         return 1;
@@ -2364,7 +2364,7 @@ int32_t CSimpleFrame::HideThis() {
 int32_t CSimpleFrame::ShowThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStateMutation(true);
 #endif
     if (!this->m_isShown || (this->m_parent && !this->m_parent->m_isVisible)) {
         return 0;
