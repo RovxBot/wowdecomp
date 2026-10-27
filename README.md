@@ -17,132 +17,28 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-27. Linux has a tested native rendering and UI foundation.
-A playable native Linux or macOS client is still in development.**
+A playable native Linux or macOS client is still in development. Use the
+[issue tracker](https://github.com/RovxBot/wowdecomp/issues) for current blockers, acceptance criteria and
+validation evidence, and [PORTING_PLAN.md](PORTING_PLAN.md) for strategy.
 
-| Platform | What is demonstrated | What still blocks a playable prototype |
+| Platform | Demonstrated scope | Remaining acceptance |
 | --- | --- | --- |
-| **Linux x86-64** | Native SDL3 shell; original asset loading; OpenGL UI shaders, images and fonts; original Frame layout, hierarchy and text rendering; resize, keyboard/text/focus and IME event delivery | Complete original login UI and its Frame factories/consumers, portable networking/authentication, full world rendering and an observed server session |
-| **macOS ARM64** | Native ARM64 builds and execution of core, file/asset/async, SDL shell, packet, Lua, FrameScript, XML/signature and layout fixtures in Actions | A game graphics backend and shader integration, complete application/UI/input integration, and desktop/gameplay validation on Apple silicon |
-| **Windows x64** | Full client compilation in Actions; operator-reported D3D9 gameplay passes | Complete baseline captures and data/server/Warden evidence; the existing OpenGL warped-scene and busy-cursor failures remain recorded |
+| Linux x86-64 | Native assets/SDL/OpenGL/UI foundation; original ordered GlueXML creation with full post-creation digest and login activation | Complete original login/model/FFX frames and input, transport/authentication, character selection and world entry |
+| macOS ARM64 | Actual ARM64 core/file/asset/packet/script/XML/layout fixture execution in Actions | Native game renderer, original application/startup, desktop input and gameplay on Apple silicon |
+| Windows x64 | Full client compilation in Actions and operator-reported D3D9 passes | Complete runtime/data/server/capture baseline; retained OpenGL warped-scene and busy-cursor failures |
 
-The Actions-built `WowNativeClient` constructs the original **ModelFFX
-AccountLogin** factory and now completes the original ordered GlueXML creation
-with a matching full post-creation digest. Original build/account/CVar services,
-character model bindings, locale HTML and video/audio option queries are connected.
-The original CPU skinning path now passes that model-initialization barrier with
-native array alignment and clean strict shutdown. Original login activation now
-completes; first ModelFFX paint now passes the original depth-render-target flag
-and cached-rectangle read. A checked GPU palette write rejects the oversized
-request safely; CPU rendering/material dispatch remains unfinished.
-Original agreement/account state and unchanged gamma/terrain preference refreshes,
-warning state, screen tracking and optional unavailable-audio calls are connected.
-Login and
-model/animation/material/FFX rendering remain unfinished;
-there is no native audio/movie backend or authentication/gameplay result. See
-[integrated startup and exact evidence](docs/m3/INTEGRATED_CLIENT.md).
+The immediate Linux path is [CPU dispatch integration #93](https://github.com/RovxBot/wowdecomp/issues/93),
+[original material continuation #94](https://github.com/RovxBot/wowdecomp/issues/94), then
+[complete login rendering/input #96](https://github.com/RovxBot/wowdecomp/issues/96). Read those issues for
+each source revision's actual observed stop and next step, including work on
+pending branches. Neither authored model pixels nor login activation establishes
+a complete original login frame. Sign-in stays interactive when ready.
 
-Linux diagnostic applications can already display original resources and exercise
-parts of the original UI engine. The next visible milestone is the **actual
-original login screen**, followed by interactive sign-in, character selection and
-world entry. macOS shares the portable foundations, but the current Gx graphics
-target is Linux-only. SDL shell presentation on macOS does not establish a working
-macOS game renderer.
-
-There is no measured percentage or delivery date for a playable port. Completed
-components reduce the remaining work, but UI integration, networking and world
-rendering still need substantial implementation and validation. The source
-reconstruction figures below measure a different kind of progress.
-
-## Work completed
-
-The following capabilities are implemented and qualified within their documented
-scope. Cross-platform component tests and Linux desktop/GPU observations are
-identified separately in the linked reports.
-
-| Area | Completed work | Details and evidence |
-| --- | --- | --- |
-| **Build and runtime foundations** | OS/CPU-aware CMake targets, allocation, logging, time, synchronization, threads and native startup/shutdown; Linux, actual ARM64 macOS and Windows fixture execution | [M1 foundations](docs/m1/FOUNDATIONS.md), [runtime design](docs/m1/RUNTIME_DESIGN.md) |
-| **Files and original assets** | Host paths, read-only MPQs, original-key authentication and registered-member MD5 checks; representative DBC, BLP, M2, WMO and map inspection; retained asynchronous reads | [Files](docs/m2/FILESYSTEM.md), [assets](docs/m2/ASSETS.md), [async](docs/m2/ASYNC.md) |
-| **Native application shell** | SDL3 window/input, clipboard, settings save/reload and joined shutdown; original-data Linux X11/Wayland execution and recorded operator input acceptance | [M2 handoff](docs/m2/HANDOFF.md), [shell](docs/m2/SHELL.md), [closeout](docs/m2/closeout.json) |
-| **Linux graphics and images** | OpenGL context, original `0x10003` UI shaders, render targets, transforms, vertex/index buffers, sampled textures and bounded legacy Gx UI dispatch; BLP2 image Services, authored mip chains and atlas/loose-image lookup | [M3 handoff](docs/m3/HANDOFF.md), [Gx device](docs/m3/LEGACY_DEVICE.md), [images](docs/m3/IMAGES.md), [mips](docs/m3/IMAGE_MIPS.md), [image sources](docs/m3/IMAGE_SOURCES.md) |
-| **Original fonts and UI rendering** | Friz Quadrata rasterization; original Gxu handles, text layout and caches; 18 original GlueFonts definitions and 57 original font styles; original blue Button and CheckButton template rendering; Frame anchors, font/name factories, FontString regions, retained batches, parent/layer/root rendering; pooled Frame/Button/CheckButton/EditBox/MessageFrame/StatusBar/FontString/Texture allocation; file/solid/atlas texture regions | [Gxu](docs/m3/LEGACY_GXU.md), [layout](docs/m3/LAYOUT.md), [font factories](docs/m3/FRAME_FONTS.md), [regions](docs/m3/FRAME_REGIONS.md), [batches](docs/m3/FRAME_RENDER.md), [hierarchy](docs/m3/FRAME_HIERARCHY.md), [pooled allocation](docs/m3/FRAME_POOLS.md), [texture regions](docs/m3/FRAME_TEXTURES.md), [Buttons](docs/m3/BUTTONS.md), [CheckButtons](docs/m3/CHECKBOXES.md), [EditBoxes](docs/m3/EDITBOXES.md), [MessageFrames](docs/m3/MESSAGE_FRAMES.md), [StatusBars](docs/m3/STATUSBARS.md), [backdrops](docs/m3/BACKDROPS.md) |
-| **Scripts and interface verification** | Product-modified Lua VM, original FrameScript execution/events/secure handlers and saved-variable serialization; XML trees, signed GlueXML/FrameXML manifest verification and AccountLogin XML parsing; bounded region/Frame/Button/CheckButton/title/FontString/Texture Lua metatables, pooled Lua Frame/Button/CheckButton/FontString/Texture creation, retained base Frame XML templates/named parents, original Korean/French/plural text processing and bounded nonempty base Frame Lua/XML handlers | [Lua](docs/m3/LUA.md), [FrameScript](docs/m3/FRAMESCRIPT.md), [XML/signatures](docs/m3/XML.md), [Storm strings](docs/m3/LEGACY_STRINGS.md), [Frame Lua methods](docs/m3/FRAME_SCRIPTS.md), [language/text setters](docs/m3/LANGUAGE.md), [Frame XML factories](docs/m3/FRAME_XML.md), [Frame callbacks](docs/m3/FRAME_HANDLERS.md) |
-| **Frame window and input delivery** | SDL size events update Gx/Gxu/layout; original priority queues receive captured key/repeat/up, committed Unicode, focus and retained IME composition/candidate/result events; hit tracking, captured buttons, wheel, relative callbacks, typed drag/drop, top-level occlusion/click raising and title/layout move/resize | [Resize](docs/m3/FRAME_WINDOW.md), [keyboard/text/focus](docs/m3/FRAME_KEYBOARD.md), [IME](docs/m3/FRAME_IME.md), [pointer delivery](docs/m3/FRAME_MOUSE.md), [top-level stacking](docs/m3/FRAME_STACKING.md), [movement](docs/m3/FRAME_MOVEMENT.md) |
-| **Packet prerequisites** | Original `CDataStore` packet buffers, ARC4 and SHA1/HMAC adapted to the native ABI, tested on Linux, ARM64 macOS and Windows | [Packet contracts and validation](docs/m3/PACKETS.md) |
-
-The most recent widget qualification, [original StatusBar widgets PR #83](https://github.com/RovxBot/wowdecomp/pull/83),
-passed **38 CTest checks per final-source Linux GL release/strict sanitizer
-configuration**. Full signature-enabled Windows x64 compilation retains its exact
-unchanged production identity. Native Lua/XML StatusBars now use original
-range/value callbacks and render horizontal/vertical fills, including the original
-loading-bar image on authored geometry. Twelve downloaded desktop executions
-passed, with 48 matching capture pairs and 24 matching prior widget captures.
-The earlier EditBox typing/focus/candidate qualification remains in
-[its record](docs/m3/EDITBOXES.md). Complete signed GlueXML and actual login remain
-open; [StatusBar contracts/evidence](docs/m3/STATUSBARS.md) retain earlier visible
-fixture input failures and the separation of authored input from SDL resize tests.
-
-The real-GPU results cover the recorded **AMD RX 7900 XTX / Mesa 26.2.5 / SDL X11**
-profile with ASan, UBSan and leak detection. Current Frame input checks use injected
-SDL events; they do not establish physical IME/language or EditBox/candidate acceptance. Earlier shell operator acceptance remains separate. Wayland shell
-functionality is observed, with an external Fontconfig leak qualification retained
-in the [desktop lifetime report](docs/m2/DESKTOP_LIFETIMES.md).
-
-## What remains before a working prototype
-
-For this project, a playable prototype means a native executable that uses
-unchanged 12340 data, signs in, selects a character, enters the world, supports
-basic play, saves settings and exits cleanly. A rendered test or successful build
-does not close that milestone.
-
-1. **Continue integrated original-client startup.** Complete ModelFFX's selected
-   original model/scene/animation, Camera, ShaderEffect and FFX callers through the
-   native graphics services. Resolve reachable widget/service gaps in coherent batches
-   along that startup path. Extend the qualified base Frame
-   XML/templates to remaining widgets and animation/model consumers,
-   broader template/structural callback semantics, image tiling and
-   DB-backed declensions.
-   Extend the qualified single-line EditBox surface and its physical IME acceptance. Title/layout
-   move/resize and base Lua Frame/FontString creation now run through the original root.
-2. **Run and render the signed original login UI.** Execute complete ordered
-   GlueXML creation, retain the full post-creation digest comparison, and validate
-   the real screen and its required shaders/models. Current original-resource text
-   and font-definition tests cover a subset of that path.
-3. **Implement portable transport and authentication integration.** Replace the
-   Windows IOCP/WSA backends beneath the existing interfaces, preserving partial
-   I/O, framing, cancellation and callback lifetimes. The packet/crypto prerequisites
-   do not yet provide sockets, a connection or login.
-4. **Validate world rendering and gameplay on Linux.** Complete model, animation,
-   material, terrain, world-object and effect coverage as required; observe character
-   selection, world entry and basic play on the target local server.
-   Verify the live realm endpoint and Warden outcomes. The
-   [server snapshot](docs/m3/SERVER_IDENTITY.md) records an image-tag/embedded-revision
-   discrepancy and does not establish session compatibility. Sign-in will be
-   interactive, with credentials kept outside the repository.
-5. **Bring the application to Apple silicon.** Validate and select the maintained
-   graphics/shader path, complete Metal rendering and ARM64 application integration,
-   then test Retina scaling, input, audio/movies and gameplay on a real Mac.
-   Review the [pinned Apple ports](docs/m3/APPLE_STARTUP_REVIEW.md) before adapting
-   equivalent platform, transport or Metal code. Early macOS integration can
-   proceed as dependencies and hardware permit; maintained graphics selection
-   still requires representative Linux and Apple rendering evidence.
-
-Audio, movies, wider GPU/display coverage, long-session stability and packaging
-are further requirements for a complete release. Optional 4.3.4 visual upgrades
-follow the baseline and remain separate from portability work.
-
-| Roadmap milestone | Current position |
-| --- | --- |
-| **M0 — Windows baseline and dependency audit** | Source/build audit complete; runtime/data/server evidence remains partial |
-| **M1 — Portable core and lifecycle** | Complete for the defined core scope |
-| **M2 — Original assets and native shell** | Complete for the observed Linux X11 acceptance profile |
-| **M3 — Linux login and world entry** | In progress; graphics/UI/input prerequisites qualified, login/network/world gates open |
-| **M4–M6 — Complete Linux, maintained graphics, macOS ARM64** | Ahead; shared ARM64 component work is already tested |
-| **M7 / M8 — Selected enhancements / release stabilization** | Enhancements tracked separately; native release qualification remains ahead |
-
-See [PORTING_PLAN.md](PORTING_PLAN.md) for milestone exit criteria and
-[the current M3 handoff](docs/m3/HANDOFF.md) for implementation dependencies.
+Durable references: [runtime foundations](docs/m1/RUNTIME_DESIGN.md),
+[assets and shell](docs/m2/HANDOFF.md), [graphics/UI contracts](docs/m3/HANDOFF.md)
+and [integrated original-client startup](docs/m3/INTEGRATED_CLIENT.md).
+Native audio/movie playback and applied graphics options remain separate open
+requirements. No native authentication or gameplay result is established.
 
 ## Getting builds and running diagnostics
 
