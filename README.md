@@ -32,7 +32,8 @@ with a matching full post-creation digest. Original build/account/CVar services,
 character model bindings, locale HTML and video/audio option queries are connected.
 The original CPU skinning path now passes that model-initialization barrier with
 native array alignment and clean strict shutdown. Original login activation now
-completes; its first ModelFFX paint rejects the required depth-render-target flag.
+completes; first ModelFFX paint now passes the original depth-render-target flag
+and reaches the model's cached-rectangle access guard.
 Original agreement/account state and unchanged gamma/terrain preference refreshes,
 warning state, screen tracking and optional unavailable-audio calls are connected.
 Login and

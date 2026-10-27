@@ -1,0 +1,832 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "pr": "https://github.com/RovxBot/wowdecomp/pull/88",
+  "scope": "Original FFX implicit-depth flag admission through existing retained native storage; original model paint remains incomplete",
+  "local_compilation": false,
+  "source_imports": [],
+  "dependency_imports": [],
+  "implementation_commit": "e08c076f3ecaa6778b7e249e2c91b054bdc159c2",
+  "actions_checkout": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+  "implementation_tree": "fc75e7c33e7852ee2d3e8b91758c8c67f4e677da",
+  "actions_tree": "fc75e7c33e7852ee2d3e8b91758c8c67f4e677da",
+  "hosted_runs": [
+    {
+      "id": 40428554864,
+      "name": "Integrated Linux client",
+      "head_sha": "e08c076f3ecaa6778b7e249e2c91b054bdc159c2",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864",
+      "jobs": [
+        {
+          "id": 121940332266,
+          "name": "startup (linux-client)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864/job/121940332266"
+        },
+        {
+          "id": 121940332467,
+          "name": "startup (linux-client-asan)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864/job/121940332467"
+        }
+      ]
+    },
+    {
+      "id": 40428554862,
+      "name": "M3 Linux OpenGL context",
+      "head_sha": "e08c076f3ecaa6778b7e249e2c91b054bdc159c2",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554862",
+      "jobs": [
+        {
+          "id": 121940332491,
+          "name": "shell (ubuntu-24.04, linux-gl-asan, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554862/job/121940332491"
+        },
+        {
+          "id": 121940332741,
+          "name": "shell (ubuntu-24.04, linux-gl, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554862/job/121940332741"
+        }
+      ]
+    },
+    {
+      "id": 40428554863,
+      "name": "M0 Windows baseline",
+      "head_sha": "e08c076f3ecaa6778b7e249e2c91b054bdc159c2",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554863",
+      "jobs": [
+        {
+          "id": 121940332439,
+          "name": "windows-x64",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554863/job/121940332439"
+        }
+      ]
+    },
+    {
+      "id": 40428554842,
+      "name": "M0 source audit",
+      "head_sha": "e08c076f3ecaa6778b7e249e2c91b054bdc159c2",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554842",
+      "jobs": [
+        {
+          "id": 121940332263,
+          "name": "source-audit",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554842/job/121940332263"
+        }
+      ]
+    }
+  ],
+  "source_tests": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -q",
+    "tests": 61,
+    "skipped": 1,
+    "result": "passed"
+  },
+  "artifacts": [
+    {
+      "artifact_id": 12700528051,
+      "name": "native-linux-client-ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "zip_sha256": "sha256:81496fecdc502ba4c888f1693d82997d3b8948c48b568da3e0ca3f751907a89a",
+      "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "53a928a9bd3562940721e2f14cd80802321ac29bb0e7e9767fae3e546f50f7ff",
+        "NativeStartupCheck": "4682d140ee1639d2c23b6728e0a4dd08e91cfa801ac8b206b8721c67c51825ef"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12701430481,
+      "name": "native-linux-client-asan-ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "zip_sha256": "sha256:149da92eb6ebee75b42b556b293747513f186302f5282cd72c45e1de285e98bf",
+      "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "11cb5293137d4c723234bd39074c7ef2794d34517e6b6b741b6d416f71d24988",
+        "NativeStartupCheck": "2e8ad443cbf3f285116d3eb6eb25cc75b3c9dbe99bdade50cfe83ac557f3d866"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12700622891,
+      "name": "m3-linux-gl-ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "zip_sha256": "sha256:8347df5f1644f91c558a55524a9d1a511cd7b447aea92f67d5432ecc1c35901f",
+      "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "db68a11d5e7777769286a7a9a1a39725713fa094d14d02e6e2e8ea02881042e8"
+        },
+        {
+          "name": "GlBuffersCheck",
+          "sha256": "6e421c2c7ab01ebe83b1f067313afc74b37619ac09c332b6ce97007a0def6f51"
+        },
+        {
+          "name": "GlRenderTargetsCheck",
+          "sha256": "d7091bf82d5dfda08a9dc737ec4c2f84daf5c626c760daee4d18435dd3dce041"
+        },
+        {
+          "name": "GlTexturesCheck",
+          "sha256": "cc44ac0a15be56efef441ad768cfb136b1893df9d97b1c3af3cd0126ead74f9f"
+        },
+        {
+          "name": "GlTransformsCheck",
+          "sha256": "3d4e59d37cc66b38eb52ee0133536ff1adffc5800a1a0c2856d123569ae9e15d"
+        },
+        {
+          "name": "LegacyGxCheck",
+          "sha256": "313ff7db6e73d8fdba9c5bdf6e1c9590114c62faf50519c8566c28c5a86cdb89"
+        },
+        {
+          "name": "LegacyGxuCheck",
+          "sha256": "eeca83d3ca8bb84468a4051235eadb945895b82602f0e41ceab5087e4ada53fc"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "1248fc56cfc296b389e86bb2220a640eee94641e079fd04852a46a7bb1c0663f"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "85cafc69e2d3f8076ec080e2a01de75d5ff1da4f6ab61e4a8ee4f725846b007b"
+        },
+        {
+          "name": "NativeFontsCheck",
+          "sha256": "6746385cf8e235536c9b3055777e1d30eb4ae5823e872e4285ffde2fce188a32"
+        },
+        {
+          "name": "NativeFrameFontsCheck",
+          "sha256": "5928a6d8551ed3305b0fdc77ec57730df5a4b7ccd63fcbc737c46bce2b5579ba"
+        },
+        {
+          "name": "NativeFrameHierarchyCheck",
+          "sha256": "077573eea1ce034064c3697cb881683c1561567baccebd9d2c5802f2a58a7820"
+        },
+        {
+          "name": "NativeFrameRegionsCheck",
+          "sha256": "41efbdced571600791c0f9af40f8392bdc195c34833a369e76611bb65895aea0"
+        },
+        {
+          "name": "NativeFrameRenderCheck",
+          "sha256": "042ebc70ce835206cc3976c6069ec708371866d85d0b4c68c4f3e832477a0558"
+        },
+        {
+          "name": "NativeFrameScriptCheck",
+          "sha256": "2d34cf1d2fe7a52319f2191ac337b872100b57d395e3b97cd5b7a7f07713fc6f"
+        },
+        {
+          "name": "NativeGlCheck",
+          "sha256": "54a1dc3071c21ff4f6bc724d62b2861c85f326366fd43b3500c38035a7817c48"
+        },
+        {
+          "name": "NativeImageCheck",
+          "sha256": "15905b0114da7e6b469988451b9e55c7fcf65ce2e7bbb4769a2a9c43ed091001"
+        },
+        {
+          "name": "NativeLayoutCheck",
+          "sha256": "2bef852f291ba7d61196055f33b629b25da9d7304e8411670e50d6064ad77c2d"
+        },
+        {
+          "name": "NativeLuaCheck",
+          "sha256": "baf71cd3d55841f407577e69449a451d0ba24b9539bbc1283d4e02b0f3e40a2f"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "87bd55b5bca99d793d7230237415091733de5d0b096a7414bdeac740f7c62df2"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "9ba989e0f47e93caabb5ca1a61b6d2b70000f0f982d1250d1f59ae84f68acb3c"
+        },
+        {
+          "name": "NativeXMLCheck",
+          "sha256": "5b4c21c54b60473db8fa5cbe8ddb3d36ea799e092392a83698531e42c2fd3e10"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "8cdc3ed8c797ad25b571698ae973335decb2ef0fb0f83cbba31ba56d2b7f23a6"
+        },
+        {
+          "name": "SDLDesktopControl",
+          "sha256": "dab6002376d0f4bee04b61f36b7085f4f94ac7fc88965a0056124e662bab84b0"
+        }
+      ],
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12701380964,
+      "name": "m3-linux-gl-asan-ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "zip_sha256": "sha256:573d3e9872a6b52bc9bab7a2bf9eb08cce91fbad4de024fda7e8643d3938b497",
+      "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": [
+        {
+          "name": "FileServicesCheck",
+          "sha256": "5b9838c428d2f43bf0cd6669dc2d60d599e7c43f5fa4ba525b09c15c97ea0f02"
+        },
+        {
+          "name": "GlBuffersCheck",
+          "sha256": "90398f0202c3f2a23149bdd207bfddc224f8de1656a8847c66f00913cb6d8140"
+        },
+        {
+          "name": "GlRenderTargetsCheck",
+          "sha256": "0f0e480717a2a530603453d39cdf84d01740e9784107d361cf13484dfd9b40cf"
+        },
+        {
+          "name": "GlTexturesCheck",
+          "sha256": "00e9626c471b6e416cfd9b3ff085c8390ac13e2e38e86ce6e20e523bae036f4a"
+        },
+        {
+          "name": "GlTransformsCheck",
+          "sha256": "4490be989859cd923a730d5781b901316a27202c5c84170d168cd8d950a54493"
+        },
+        {
+          "name": "LegacyGxCheck",
+          "sha256": "07afa9fac5865a1f290e3dd0b786d0a1c0224a6a7f23a2db54e6d888d8e25329"
+        },
+        {
+          "name": "LegacyGxuCheck",
+          "sha256": "eadfda6d1177c05bf21db7d216f2b02a26031c89209521ef51388aebb52f2405"
+        },
+        {
+          "name": "NativeAssetCheck",
+          "sha256": "aa23175ad28e27871e4ae680266135f618430b81684a16c5162ec24769e7c785"
+        },
+        {
+          "name": "NativeCore",
+          "sha256": "991681091840772c3b4eec83e6cf228e45ac5040e1b9ac18438bd98c3e18e3dd"
+        },
+        {
+          "name": "NativeFontsCheck",
+          "sha256": "6534c3cbd2977f5419bca06b57e5bb2c9853bf904b931769ed43b356c3880f53"
+        },
+        {
+          "name": "NativeFrameFontsCheck",
+          "sha256": "5648e324b97a9250e11db70a3780608f1e4be271e113ea6e84db502adcdd1dfb"
+        },
+        {
+          "name": "NativeFrameHierarchyCheck",
+          "sha256": "853cec38612cfa12b5f9a160e64912c3a7e5fdc138322b7ec377e5260b494354"
+        },
+        {
+          "name": "NativeFrameRegionsCheck",
+          "sha256": "71e26ad097e6ca0797a59ab74e84bbbb39190479ca8ac6c0f4c5ef52874ac94c"
+        },
+        {
+          "name": "NativeFrameRenderCheck",
+          "sha256": "6b7296d044c0be97038ffa53786379f35e5ebb7c76ce48f5a9607f5596c57ed2"
+        },
+        {
+          "name": "NativeFrameScriptCheck",
+          "sha256": "f4dfcb513dfadaef82b157380c4bb72dafd526f0e63732ee5c4a4587d775ab32"
+        },
+        {
+          "name": "NativeGlCheck",
+          "sha256": "1084ea2adffe01446cf386be1fc0fdeeacdc08efba580493d62a1a8aa6a13b28"
+        },
+        {
+          "name": "NativeImageCheck",
+          "sha256": "e7ed8c7294d7e0c690cfef6ac7230d74153ddd8aa7f061790be73125bc34b692"
+        },
+        {
+          "name": "NativeLayoutCheck",
+          "sha256": "dd3b6477da18d87ab7c60deabf4dd5a05d6f91251fcc231e0af88600cab4d674"
+        },
+        {
+          "name": "NativeLuaCheck",
+          "sha256": "c67c3063f66177b9d48a115a5fe8485257b24e44286f3cd5a1beee551f9937dc"
+        },
+        {
+          "name": "NativeShell",
+          "sha256": "139f22cc28d1d457a81ef573c67894c9cc06c173877af762d9358408d4b906d2"
+        },
+        {
+          "name": "NativeWindowCheck",
+          "sha256": "3670ca81c8ebb610bdc43cdcd271cc923df421448bc2c1b0067118cc3ffba95b"
+        },
+        {
+          "name": "NativeXMLCheck",
+          "sha256": "48d4ec26b21a84c0b654f3b1c9a690f46b41da2b6151b5256850e4107adc5caa"
+        },
+        {
+          "name": "PackageServicesCheck",
+          "sha256": "259c35e75b3dcc6b93064c501939ecb5514a88839f49476084b88b77e742abf7"
+        },
+        {
+          "name": "SDLDesktopControl",
+          "sha256": "f28915cd54eca905ad37dad91e6e00bf5fcc937c1edc166d2437ff7e99d5baf5"
+        }
+      ],
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    }
+  ],
+  "original_data_runs": [
+    {
+      "name": "e08c-client-release.json",
+      "sha256": "f1af0f9d913264513ff3d64d33b0255d030dbe833be870ecc9de585d2e2a4e00",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864",
+        "preset": "linux-client",
+        "binary_sha256": "53a928a9bd3562940721e2f14cd80802321ac29bb0e7e9767fae3e546f50f7ff",
+        "started_at": "2026-10-27T00:50:01.667757+00:00",
+        "completed_at": "2026-10-27T00:50:05.431137+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Finish Frame rendering before layout/region access"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": null,
+          "UBSAN_OPTIONS": null,
+          "ASAN_SYMBOLIZER_PATH": null,
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "e08c-client-asan-1.json",
+      "sha256": "a2e5f4a92852a54bb56893b02bd07f2b6d8ceed3d03da258bd9e4d828ab5947e",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864",
+        "preset": "linux-client-asan",
+        "binary_sha256": "11cb5293137d4c723234bd39074c7ef2794d34517e6b6b741b6d416f71d24988",
+        "started_at": "2026-10-27T00:50:32.747663+00:00",
+        "completed_at": "2026-10-27T00:50:49.209134+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Finish Frame rendering before layout/region access"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "e08c-client-asan-2.json",
+      "sha256": "ebcd9694cdf5d630cd69cd35137b8158565847563767ddd960c8aba0f73c542c",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864",
+        "preset": "linux-client-asan",
+        "binary_sha256": "11cb5293137d4c723234bd39074c7ef2794d34517e6b6b741b6d416f71d24988",
+        "started_at": "2026-10-27T00:51:11.060636+00:00",
+        "completed_at": "2026-10-27T00:51:27.462734+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Finish Frame rendering before layout/region access"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "e08c-client-asan-3.json",
+      "sha256": "08b1f51990d1ae965cda103feb5e56ae3088de0407c1db66253f23d38cb99edb",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554864",
+        "preset": "linux-client-asan",
+        "binary_sha256": "11cb5293137d4c723234bd39074c7ef2794d34517e6b6b741b6d416f71d24988",
+        "started_at": "2026-10-27T00:51:27.515842+00:00",
+        "completed_at": "2026-10-27T00:51:43.858586+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Finish Frame rendering before layout/region access"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    }
+  ],
+  "gpu_fixture_runs": [
+    {
+      "name": "e08c-gl-runtime-release.json",
+      "sha256": "900d28a78418741a7fbd28e90e9644f9af2f2fb179e3e6e1197bcaaa9e923232",
+      "report": {
+        "schema_version": 1,
+        "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+        "started_at": "2026-10-27T00:49:47.581447+00:00",
+        "completed_at": "2026-10-27T00:49:47.869904+00:00",
+        "probe": "LegacyGxCheck",
+        "frame_mouse_events": false,
+        "frame_ime_events": false,
+        "frame_keyboard_events": false,
+        "frame_window_events": false,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554862",
+        "binary_sha256": "313ff7db6e73d8fdba9c5bdf6e1c9590114c62faf50519c8566c28c5a86cdb89",
+        "preset": "linux-gl",
+        "os": "Linux-6.18.58-1-lts-x86_64-with-glibc2.44",
+        "machine": "x86_64",
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "video": "x11",
+        "original_data_requested": true,
+        "locale": "enUS",
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": null,
+          "UBSAN_OPTIONS": null,
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        },
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=1 workers=0",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=2 workers=0",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=3 workers=0"
+        ],
+        "stderr": []
+      }
+    },
+    {
+      "name": "e08c-gl-runtime-asan.json",
+      "sha256": "deaa1f36a2cbcf5a8f3e37d3ec379357f0f419bbb5c4047fdd7fc3bf268d8977",
+      "report": {
+        "schema_version": 1,
+        "scope": "M3 SDL3/Gx context and asset probe; no original login UI or gameplay",
+        "started_at": "2026-10-27T00:56:20.148991+00:00",
+        "completed_at": "2026-10-27T00:56:20.832835+00:00",
+        "probe": "LegacyGxCheck",
+        "frame_mouse_events": false,
+        "frame_ime_events": false,
+        "frame_keyboard_events": false,
+        "frame_window_events": false,
+        "source_commit": "ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40428554862",
+        "binary_sha256": "07afa9fac5865a1f290e3dd0b786d0a1c0224a6a7f23a2db54e6d888d8e25329",
+        "preset": "linux-gl-asan",
+        "os": "Linux-6.18.58-1-lts-x86_64-with-glibc2.44",
+        "machine": "x86_64",
+        "sdl3": {
+          "version": "3.2.28",
+          "commit": "7f3ae3d57459e59943a4ecfefc8f6277ec6bf540",
+          "archive_sha256": "7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5"
+        },
+        "video": "x11",
+        "original_data_requested": true,
+        "locale": "enUS",
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        },
+        "exit_code": 0,
+        "timed_out": false,
+        "stdout": [
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=1 workers=0",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=2 workers=0",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "original-member=Shaders\\Vertex\\arbvp1\\UI.bls registered-md5=0",
+          "original-member=Shaders\\Pixel\\arbfp1\\UI.bls registered-md5=0",
+          "original-member=Fonts\\FRIZQT__.TTF registered-md5=0",
+          "original-signaturefile=authenticated records=28948",
+          "legacy-gx-authored-mips-lock-latch-unlock-retry-sampler=passed",
+          "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed",
+          "legacy-gx-callback-lock-latch-unlock-failure-retry-dirty-rectangle=passed",
+          "legacy-gx-cache-pct-u16-bounds-unsupported-state=passed",
+          "original-font-family=Friz Quadrata TT",
+          "original-font-through-legacy-gx-callback-pct-ui-shader-pixel=passed",
+          "legacy-gx-cycle-closed=3 workers=0"
+        ],
+        "stderr": []
+      }
+    }
+  ],
+  "contracts": {
+    "original_request": "Original FFX::AllocTex calls FFX::CreateTex for a 1024-square ARGB8888 2D target with flags 0x381. Original OpenGL IDeviceSetRenderTargetFBO interprets bit 8 as implicit GL_DEPTH_COMPONENT24 storage.",
+    "native_ownership": "Renderable legacy allocations already retained native depth-24 renderbuffers. Admit bit 8 only on render targets and require retained implicitDepth when sampler flags include it. No allocation backend, signature, feedback, callback or teardown rule was bypassed.",
+    "gpu_regression": "Existing three-cycle GPU fixture now uses the original FFX flag combination and independently queries actual depth attachment type, nonzero name, >=24-bit depth and 32x32 extent. It rejects the flag on sampled creation and sampler edits and retains callback/PCT/index/font/shader pixel regressions.",
+    "limits": "94 constants and one texture unit remain truthful. Unsupported copy, additional units and model/material contracts remain unavailable."
+  },
+  "separate_release_debugger": {
+    "qualification": false,
+    "name": "e08c-model-rect-gdb.log",
+    "sha256": "4c77e49096864f04729c6263a983ba6498183265da16dd758ef87189bfe05208",
+    "observed_stack": [
+      "CSimpleModel::RenderModel",
+      "CLayoutFrame::GetRect",
+      "Frame::Native::RequireOwner"
+    ],
+    "observation": "After FFX::Start, original model paint reads its resolved rectangle. GetRect copies cached m_rect when layout flag 0x100 is set; the broad native layout guard currently rejects the read while drawing.",
+    "earlier_inspection": "The first conditional GDB command interpreted an untyped symbol as an address and stopped during Fonts creation. A second command dereferenced the symbol but was interrupted because frequent breakpoints slowed startup. Neither is runtime qualification; the targeted RenderModel breakpoint above supplies the selected call-stack evidence."
+  },
+  "apple_review": {
+    "document": "docs/m3/APPLE_STARTUP_REVIEW.md#ffx-render-target-continuation--2026-10-27",
+    "imports": [],
+    "files": [
+      {
+        "repo": "jerrywossion/wowdecomp",
+        "pin": "7489b5f2df6628a434b2ad9aceed66c0f2e6a431",
+        "path": "Engine/Source/Gx/Metal/CGxDeviceMetal.mm",
+        "git_blob": "65956f97e4a73054e5d3e73a6f32f7a8be9cbd32"
+      },
+      {
+        "repo": "fmustafayaman/WoWReMac",
+        "pin": "3c7f82c02fa9d4c8399b8f95d30ef0df575ef069",
+        "path": "Engine/Source/Gx/CGxDeviceMetal/CGxDeviceMetalNative.mm",
+        "git_blob": "1d3a890553e62b213f9702e9d7af61ac2088a517"
+      },
+      {
+        "repo": "fmustafayaman/WoWReMac",
+        "pin": "3c7f82c02fa9d4c8399b8f95d30ef0df575ef069",
+        "path": "Engine/Source/Gx/CGxDeviceMetal/MetalResources.mm",
+        "git_blob": "87ce0b19c81ca3095d7831915e49f0454eadb5ed"
+      }
+    ],
+    "disposition": "Both pinned Metal backends retain offscreen color/depth ownership. No source/dependency import. Objective-C++/Metal cannot serve Linux; qualified OpenGL depth-24 storage is retained."
+  },
+  "post_merge_pr87": [
+    {
+      "conclusion": "success",
+      "databaseId": 40428104008,
+      "headSha": "a28374a9d8e463f1804ffe7762d14381bfc8c20e",
+      "name": "M0 source audit",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428104008"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40428104018,
+      "headSha": "a28374a9d8e463f1804ffe7762d14381bfc8c20e",
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428104018"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40428104011,
+      "headSha": "a28374a9d8e463f1804ffe7762d14381bfc8c20e",
+      "name": "Integrated Linux client",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40428104011"
+    }
+  ],
+  "limitations": [
+    "One release/three strict original-data executions pass full ordered Glue creation/digest and activation, then stop at the cached-layout read guard; no completed original model/login frame is established.",
+    "The GPU fixture uses authored composition with authenticated original UI shaders and Friz Quadrata; it is separate from original login/model painting.",
+    "No new physical input, authentication, original-data agreement acceptance, live server identity or gameplay observations.",
+    "Both installations remain read-only and all settings/cache/reports are external. Original signatures, user-interactive sign-in and server/Warden policy are unchanged."
+  ]
+}

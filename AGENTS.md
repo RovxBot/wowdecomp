@@ -105,6 +105,27 @@ compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
 authentication and gameplay remain unobserved. Both installations stay read-only,
 all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
+## FFX depth-target continuation — 2026-10-27
+
+PR #88 admits original bit 8 only on render targets with retained implicit depth,
+reusing qualified depth-24 storage. Sampled creation/sampler edits still reject
+the flag. Read [contracts](docs/m3/INTEGRATED_CLIENT.md#ffx-depth-target-continuation--2026-10-27)
+and [exact evidence](docs/m3/ffx-depth-target-validation.json). At implementation
+`e08c076f3ecaa6778b7e249e2c91b054bdc159c2`, matching-tree Actions checkout
+`ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f`, one release/three untraced strict
+original-data runs retain the full creation digest and login activation, then
+stop at the layout-access guard during ModelFFX paint, exit 1 with zero workers
+and no sanitizer finding. Separate release GDB identifies `CSimpleModel::RenderModel`
+calling the cached `CLayoutFrame::GetRect` getter. Admit only that resolved read
+with owner/lifetime checks; retain layout mutation, callback and shutdown guards.
+All four implementation workflows/six jobs pass, including Windows; separate
+release/strict GPU fixtures each pass three depth-attachment and original-font/
+UI-shader pixel cycles. All PR #87 post-merge checks pass. No completed original
+login/model frame, physical input, authentication or gameplay is established.
+Pinned Apple depth ownership was reviewed with no source/dependency import.
+Keep 94 constants/one texture unit, required signatures, read-only installations,
+Actions-only compilation, original agreement state and server/sign-in policy.
+
 ## Original login activation — 2026-10-27
 
 PR #87 connects the five original agreement status/notice/explicit callback
