@@ -13,7 +13,7 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
         const auto result = FrameScript_ExecuteBuffer(source, std::strlen(source), "authored scroll-range controls", &status, nullptr);
         if (!result || !status.IsEmpty()) {
             char error[2048]{};
-            throw std::runtime_error(std::string("Scroll-range fixture: ") + status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; "));
+            throw std::runtime_error(std::string("Scroll-range fixture: ") + status.GetErrorStr(error, sizeof(error), STATUS_WARNING, "; ") + " source=" + source);
         }
         ScrollCheck(FrameScript::Native::ScriptErrorCount() == errors, "Scroll-range callback failed");
     };
@@ -57,7 +57,9 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
     )");
     root.OnLayerUpdate(.016f);
     lua("assert(RangeCalls==1 and NativeRangeSlider:IsShown() and NativeRangeUp:IsEnabled() and NativeRangeDown:IsEnabled()); "
-        "assert(NativeRangeSlider:GetValue()==100 and RangeTail==1)");
+        // Original Slider LoadXML selects a .001 step, whose float snap can
+        // produce 100.000008. Preserve that arithmetic; compare within a step.
+        "assert(math.abs(NativeRangeSlider:GetValue()-100)<.001 and RangeTail==1)");
     lua("NativeRangeContent:SetHeight(40)");
     root.OnLayerUpdate(.016f);
     root.OnLayerUpdate(.016f);
