@@ -28,6 +28,7 @@
 #include "Engine/Source/Services/Portable/Texture.h"
 #include "Engine/Source/Services/Camera.h"
 #include "Engine/Source/Services/CameraInt.h"
+#include "Engine/Source/Services/ParticleSystem2.h"
 #include "Engine/Source/Base/Handle.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Status.h"
@@ -77,6 +78,14 @@ struct ModelBytes {
     bool Relocate() { return M2Init(reinterpret_cast<uint8_t*>(data), Size, *data) != 0; }
 };
 void Relocations() {
+    {
+        CPlaneParticleEmitter emitter;
+        CPlaneParticleEmitter copy(emitter, 0);
+        Check(emitter.m_emitterType==CParticleEmitter2::PET_PLANE_EMITTER &&
+            copy.m_emitterType==emitter.m_emitterType && !copy.m_childEmitterCount &&
+            !copy.m_model && !copy.m_childModel && !copy.m_texture,
+            "Original particle construction/copy created unexpected resources");
+    }
     {
         Model2Native::InstanceLayout layout;
         const auto word = layout.Reserve<uint32_t>(1);

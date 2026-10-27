@@ -2208,7 +2208,13 @@ CParticleEmitter2::CParticleEmitter2() : m_random(0) {
     this->m_worldBounds.t.z = -3.4028235e38f;
     this->unused_0230 = 0;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Native rand() may use 31 bits. Preserve the original low-32-bit seed
+    // composition without overflowing a signed int before conversion.
+    this->m_random.SetSeed((static_cast<uint32_t>(rand()) << 16) | static_cast<uint16_t>(rand()));
+#else
     this->m_random.SetSeed((rand() << 16) | static_cast<uint16_t>(rand()));
+#endif
     this->m_childEmitterCount = 0;
 }
 
@@ -2603,7 +2609,11 @@ CParticleEmitter2::CParticleEmitter2(const CParticleEmitter2& source, int32_t co
     this->m_worldBounds.t.z = 0.0f;
     this->unused_0230 = 0;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_random.SetSeed((static_cast<uint32_t>(rand()) << 16) | static_cast<uint16_t>(rand()));
+#else
     this->m_random.SetSeed((rand() << 16) | static_cast<uint16_t>(rand()));
+#endif
     this->m_childEmitterCount = source.m_childEmitterCount;
 
     for (uint32_t i = 0; i < source.m_childEmitterCount; i++) {
