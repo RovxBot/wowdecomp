@@ -15,8 +15,11 @@ struct Api {
     GlContext& context;
 #define BASE(name) decltype(&gl##name) name = reinterpret_cast<decltype(name)>(context.Proc("gl" #name))
     BASE(GetError); BASE(GetIntegerv); BASE(IsEnabled); BASE(DrawArrays); BASE(DrawElements);
+    BASE(EnableClientState); BASE(DisableClientState); BASE(VertexPointer);
+    BASE(NormalPointer); BASE(ColorPointer); BASE(TexCoordPointer);
 #undef BASE
 #define EXT(type, name) type name = reinterpret_cast<type>(context.Proc("gl" #name))
+    EXT(PFNGLCLIENTACTIVETEXTUREARBPROC, ClientActiveTextureARB);
     EXT(PFNGLGENBUFFERSARBPROC, GenBuffersARB);
     EXT(PFNGLDELETEBUFFERSARBPROC, DeleteBuffersARB);
     EXT(PFNGLBINDBUFFERARBPROC, BindBufferARB);
@@ -40,12 +43,13 @@ struct Api {
 };
 struct Bindings {
     Api& api;
-    GLint array, vao;
+    GLint array, vao, clientTexture;
     explicit Bindings(Api& value) : api(value), array(api.Get(GL_ARRAY_BUFFER_BINDING)),
-        vao(api.Get(GL_VERTEX_ARRAY_BINDING)) {}
+        vao(api.Get(GL_VERTEX_ARRAY_BINDING)), clientTexture(api.Get(GL_CLIENT_ACTIVE_TEXTURE_ARB)) {}
     ~Bindings() {
         api.BindVertexArray(static_cast<GLuint>(vao));
         api.BindBufferARB(GL_ARRAY_BUFFER_ARB, static_cast<GLuint>(array));
+        api.ClientActiveTextureARB(static_cast<GLenum>(clientTexture));
     }
 };
 // Same seven type codes as 12340 s_glAttribSize/Type/Normalized. Packed color
@@ -243,7 +247,7 @@ void GlBuffers::IndexBuffer(const GlBuffer& buffer) {
     if (buffer) state->Validate(buffer, GxPoolTarget_Index);
     state->index = buffer;
 }
-void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed) {
+void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction) {
     auto& s = *state;
     auto& a = *s.api;
     a.context.CheckCurrent();
@@ -278,18 +282,45 @@ void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool in
         }
     }
     a.Check("Before native buffered draw");
-    if (!a.IsEnabled(GL_VERTEX_PROGRAM_ARB))
-        throw std::logic_error("Native buffered draw requires an enabled ARB vertex program");
+    if (bool(a.IsEnabled(GL_VERTEX_PROGRAM_ARB)) == fixedFunction)
+        throw std::logic_error("Native buffered draw vertex pipeline mismatch");
+    if (fixedFunction) {
+        for (const auto& field : s.attributes) {
+            const bool vector = (field.attribute == GxVA_Position || field.attribute == GxVA_Normal) && field.type == 4;
+            const bool color = field.attribute == GxVA_Color0 && (field.type == 0 || field.type == 2);
+            const bool uv = (field.attribute == GxVA_TexCoord0 || field.attribute == GxVA_TexCoord1) && field.type == 3;
+            if (!vector && !color && !uv)
+                throw std::invalid_argument("Unsupported native fixed vertex input");
+        }
+    }
     {
         Bindings restore(a);
         a.BindVertexArray(s.vao);
         for (GLuint i = 0; i < 14; ++i) a.DisableVertexAttribArrayARB(i);
+        a.ClientActiveTextureARB(GL_TEXTURE0_ARB);
+        for (GLenum array : {GL_VERTEX_ARRAY, GL_NORMAL_ARRAY, GL_COLOR_ARRAY, GL_TEXTURE_COORD_ARRAY})
+            a.DisableClientState(array);
         for (const auto& field : s.attributes) {
             const auto& type = types[field.type];
             a.BindBufferARB(GL_ARRAY_BUFFER_ARB, field.buffer.storage->name);
-            a.VertexAttribPointerARB(field.attribute, type.count, type.kind, type.normalized,
-                field.stride, reinterpret_cast<const void*>(uintptr_t(field.offset)));
-            a.EnableVertexAttribArrayARB(field.attribute);
+            const void* offset = reinterpret_cast<const void*>(uintptr_t(field.offset));
+            if (!fixedFunction) {
+                a.VertexAttribPointerARB(field.attribute, type.count, type.kind, type.normalized, field.stride, offset);
+                a.EnableVertexAttribArrayARB(field.attribute);
+            } else if (field.attribute == GxVA_Position) {
+                a.VertexPointer(type.count, type.kind, field.stride, offset);
+                a.EnableClientState(GL_VERTEX_ARRAY);
+            } else if (field.attribute == GxVA_Normal) {
+                a.NormalPointer(type.kind, field.stride, offset);
+                a.EnableClientState(GL_NORMAL_ARRAY);
+            } else if (field.attribute == GxVA_Color0) {
+                a.ColorPointer(type.count, type.kind, field.stride, offset);
+                a.EnableClientState(GL_COLOR_ARRAY);
+            } else if (field.attribute == GxVA_TexCoord0) {
+                a.TexCoordPointer(type.count, type.kind, field.stride, offset);
+                a.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+            }
+            // PNT2 retains both UV sets; this device exposes only texture unit 0.
         }
         if (indexed) {
             a.BindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, s.index.storage->name);
