@@ -36,6 +36,8 @@
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/Tempest/CMath.h"
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "Engine/Source/Model2/Portable/InstanceLayout.h"
+#include <vector>
 #include "WoW/Source/Glue/Portable/Models.h"
 #include "WoW/Source/DB/Rec/AnimationDataRec.h"
 #else
@@ -3740,6 +3742,9 @@ M2BatchRange::M2BatchRange() {
 // VERIFY: 2ddf06e6 manual
 // OFFSET: 0x0082BE60
 CM2Model::CM2Model() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    this->m_nativeInstanceStorage = nullptr;
+#endif
     this->m_scaleSq = 0.0f;
     this->m_refCount = 1;
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
@@ -3895,7 +3900,12 @@ CM2Model::CM2Model() {
 // VERIFY: 6ff1ddfd manual
 // OFFSET: 0x0082C1C0
 void CM2Model::FreeInternalResources() {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    void* bones = this->m_nativeInstanceStorage;
+    this->m_nativeInstanceStorage = nullptr;
+#else
     M2ModelBone* bones = this->m_bones;
+#endif
 
     if (!bones) {
         return;
@@ -7023,6 +7033,40 @@ int32_t CM2Model::InitializeLoaded() {
 
     M2Data* data = shared->m_data;
     M2SkinProfile* skin = shared->m_skinData;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // The original packed sum assumes four-byte pointers. Reserve each native
+    // array and polymorphic emitter with its actual alignment before allocating.
+    Model2Native::InstanceLayout nativeLayout;
+    const auto native_bones = nativeLayout.Reserve<M2ModelBone>(data->m_bones.m_count);
+    const auto native_loops = nativeLayout.Reserve<int32_t>(data->m_loops.m_count);
+    const auto native_skinSections = nativeLayout.Reserve<uint32_t>(skin->m_skinSections.m_count);
+    const auto native_colors = nativeLayout.Reserve<M2ModelColor>(data->m_colors.m_count);
+    const auto native_textures = nativeLayout.Reserve<CTexture*>(data->m_textures.m_count);
+    const auto native_textureWeights = nativeLayout.Reserve<M2ModelTrack<float>>(data->m_textureWeights.m_count);
+    const auto native_textureTransforms = nativeLayout.Reserve<M2ModelTextureTransform>(data->m_textureTransforms.m_count);
+    const auto native_attachments = nativeLayout.Reserve<M2ModelTrack<uint8_t>>(data->m_attachments.m_count);
+    const auto native_lights = nativeLayout.Reserve<M2ModelLight>(data->m_lights.m_count);
+    const auto native_cameras = nativeLayout.Reserve<M2ModelCamera>(data->m_cameras.m_count);
+    const auto native_ribbons = nativeLayout.Reserve<M2ModelRibbon>(data->m_ribbons.m_count);
+    const auto native_ribbonEmitters = nativeLayout.Reserve<CRibbonEmitter*>(data->m_ribbons.m_count);
+    const auto native_particles = nativeLayout.Reserve<M2ModelParticle>(data->m_particles.m_count);
+    const auto native_particleEmitters = nativeLayout.Reserve<CParticleEmitter2*>(data->m_particles.m_count);
+    const auto ribbonOffset = nativeLayout.Reserve<CRibbonEmitter>(data->m_ribbons.m_count);
+    std::vector<size_t> nativeEmitterOffsets;
+    nativeEmitterOffsets.reserve(data->m_particles.m_count);
+    for (uint32_t i = 0; i < data->m_particles.m_count; ++i) {
+        switch (data->m_particles[i].m_emitterType) {
+            case 1: nativeEmitterOffsets.push_back(nativeLayout.Reserve<CPlaneParticleEmitter>(1)); break;
+            case 2: nativeEmitterOffsets.push_back(nativeLayout.Reserve<CSphereParticleEmitter>(1)); break;
+            case 3: nativeEmitterOffsets.push_back(nativeLayout.Reserve<CSplineParticleEmitter>(1)); break;
+            default: throw std::invalid_argument("Unknown native model particle emitter type");
+        }
+    }
+    const auto emitterOffset = nativeEmitterOffsets.empty() ? nativeLayout.Size() : nativeEmitterOffsets.front();
+    uint8_t* memory = static_cast<uint8_t*>(SMemAlloc(nativeLayout.Size(), __FILE__, __LINE__, 0));
+    if (!memory) return 0;
+    this->m_nativeInstanceStorage = memory;
+#else
     uint32_t emitterBytes = 0;
 
     for (uint32_t i = 0; i < data->m_particles.m_count; i++) {
@@ -7062,9 +7106,14 @@ int32_t CM2Model::InitializeLoaded() {
         return 0;
     }
 
+#endif
+
     uint8_t* cursor = memory;
 
     if (data->m_bones.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_bones;
+#endif
         this->m_bones = reinterpret_cast<M2ModelBone*>(cursor);
         cursor += data->m_bones.m_count * sizeof(M2ModelBone);
 
@@ -7088,6 +7137,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_loops.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_loops;
+#endif
         this->m_loops = reinterpret_cast<int32_t*>(cursor);
         cursor += data->m_loops.m_count * sizeof(int32_t);
 
@@ -7098,6 +7150,9 @@ int32_t CM2Model::InitializeLoaded() {
 
     if (skin->m_skinSections.m_count) {
         CM2Model* source = this->m_model30;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_skinSections;
+#endif
         this->m_skinSections = reinterpret_cast<uint32_t*>(cursor);
         cursor += skin->m_skinSections.m_count * sizeof(uint32_t);
 
@@ -7111,6 +7166,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_colors.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_colors;
+#endif
         this->m_colors = reinterpret_cast<M2ModelColor*>(cursor);
         cursor += data->m_colors.m_count * sizeof(M2ModelColor);
 
@@ -7120,6 +7178,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_textures.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_textures;
+#endif
         this->m_textures = reinterpret_cast<CTexture**>(cursor);
         cursor += data->m_textures.m_count * sizeof(CTexture*);
 
@@ -7130,6 +7191,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_textureWeights.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_textureWeights;
+#endif
         this->m_textureWeights = reinterpret_cast<M2ModelTrack<float>*>(cursor);
         cursor += data->m_textureWeights.m_count * sizeof(M2ModelTrack<float>);
 
@@ -7139,6 +7203,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_textureTransforms.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_textureTransforms;
+#endif
         this->m_textureTransforms = reinterpret_cast<M2ModelTextureTransform*>(cursor);
         cursor += data->m_textureTransforms.m_count * sizeof(M2ModelTextureTransform);
 
@@ -7154,6 +7221,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_attachments.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_attachments;
+#endif
         this->m_attachments = reinterpret_cast<M2ModelTrack<uint8_t>*>(cursor);
         cursor += data->m_attachments.m_count * sizeof(M2ModelTrack<uint8_t>);
 
@@ -7167,6 +7237,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_lights.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_lights;
+#endif
         this->m_lights = reinterpret_cast<M2ModelLight*>(cursor);
         cursor += data->m_lights.m_count * sizeof(M2ModelLight);
 
@@ -7182,6 +7255,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_cameras.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_cameras;
+#endif
         this->m_cameras = reinterpret_cast<M2ModelCamera*>(cursor);
         cursor += data->m_cameras.m_count * sizeof(M2ModelCamera);
 
@@ -7211,6 +7287,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_ribbons.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_ribbons;
+#endif
         this->m_ribbons = reinterpret_cast<M2ModelRibbon*>(cursor);
         cursor += data->m_ribbons.m_count * sizeof(M2ModelRibbon);
 
@@ -7218,6 +7297,9 @@ int32_t CM2Model::InitializeLoaded() {
             new (&this->m_ribbons[i]) M2ModelRibbon();
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_ribbonEmitters;
+#endif
         this->m_ribbonEmitters = reinterpret_cast<CRibbonEmitter**>(cursor);
         cursor += data->m_ribbons.m_count * sizeof(CRibbonEmitter*);
         memset(this->m_ribbonEmitters, 0, data->m_ribbons.m_count * sizeof(CRibbonEmitter*));
@@ -7274,6 +7356,9 @@ int32_t CM2Model::InitializeLoaded() {
     }
 
     if (data->m_particles.m_count) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_particles;
+#endif
         this->m_particles = reinterpret_cast<M2ModelParticle*>(cursor);
         cursor += data->m_particles.m_count * sizeof(M2ModelParticle);
 
@@ -7281,6 +7366,9 @@ int32_t CM2Model::InitializeLoaded() {
             new (&this->m_particles[i]) M2ModelParticle();
         }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        cursor = memory + native_particleEmitters;
+#endif
         this->m_particleEmitters = reinterpret_cast<CParticleEmitter2**>(cursor);
         memset(this->m_particleEmitters, 0, data->m_particles.m_count * sizeof(CParticleEmitter2*));
 
@@ -7290,6 +7378,9 @@ int32_t CM2Model::InitializeLoaded() {
             M2Particle* particleData = &data->m_particles[i];
             M2ModelParticle* particle = &this->m_particles[i];
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            emitterMemory = memory + nativeEmitterOffsets[i];
+#endif
             if (particleData->m_emitterType == 1) {
                 this->m_particleEmitters[i] = new (emitterMemory) CPlaneParticleEmitter();
                 emitterMemory += sizeof(CPlaneParticleEmitter);
