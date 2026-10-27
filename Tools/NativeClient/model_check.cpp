@@ -229,6 +229,8 @@ void Factory() {
                 assert(not pcall(Sound_GameSystem_GetOutputDriverNameByIndex,1e30))
                 assert(not pcall(Sound_ChatSystem_GetInputDriverNameByIndex,{}))
                 assert(PlaySoundFile==nil and Sound_GameSystem_RestartSoundSystem==nil)
+                assert(select('#',PlaySound('authored UI sound'))==0 and select('#',PlaySound(12.5))==0)
+                assert(not pcall(PlaySound,{}) and not pcall(PlaySound,1e300) and not pcall(PlaySound,0/0))
                 assert(select('#',GetMultisampleFormats()) == 3)
                 local color,depth,samples=GetMultisampleFormats()
                 assert(color==24 and depth==24 and samples==1 and GetCurrentMultisampleFormat()==1)
