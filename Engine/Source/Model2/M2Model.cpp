@@ -2963,7 +2963,12 @@ void CM2Model::RenderBatchShadowMap(int32_t untextured, M2Batch* batch, const CM
         }
 
         if (total > 1 || !prevSection || section->m_boneComboIndex != prevSection->m_boneComboIndex) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            float* constants = g_theGxDevicePtr->ShaderConstantsLockRange(GxSh_Vertex, 31,
+                uint64_t(instances) * section->m_boneCount * 3);
+#else
             float* constants = g_theGxDevicePtr->ShaderConstantsLock(GxSh_Vertex) + 31 * 4;
+#endif
             uint32_t registers = 0;
 
             for (uint32_t n = 0; n < instances; n++) {

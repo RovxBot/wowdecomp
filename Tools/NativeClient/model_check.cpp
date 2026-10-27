@@ -205,6 +205,26 @@ void Factory() {
     auto* stream = device.BufStream(GxPoolTarget_Vertex, 24, 4);
     Check(device.BufStream(GxPoolTarget_Vertex, 0, 0) == stream && stream->m_itemCount == 4,
         "Original stream identity query changed the active allocation");
+    {
+        auto* shadow = device.ShaderConstantsLock(GxSh_Vertex);
+        Check(device.ShaderConstantsLockRange(GxSh_Vertex,93,1)==shadow+93*4 &&
+            device.ShaderConstantsLockRange(GxSh_Vertex,31,63)==shadow+31*4,
+            "Native constant write span lost its first/last register");
+        std::vector<float> before(shadow,shadow+256*4);
+        for (auto span : {uint64_t(64),uint64_t(256)*3,UINT64_MAX}) {
+            bool rejected=false;
+            try { device.ShaderConstantsLockRange(GxSh_Vertex,31,span); }
+            catch(const std::out_of_range&) { rejected=true; }
+            Check(rejected,"Oversized model palette obtained writable constants");
+        }
+        Check(!std::memcmp(before.data(),shadow,before.size()*sizeof(float)),
+            "Rejected model palettes changed the shadow constants");
+        bool rejected=false;
+        try { device.ShaderConstantsLockRange(GxSh_Pixel,94,1); }
+        catch(const std::out_of_range&) { rejected=true; }
+        Check(rejected,"Pixel palette exceeded the same device budget");
+        std::cout<<"native-model-palette-write-range-preflight=passed\n";
+    }
     CoordinateSetAspectRatio(4.0f / 3.0f);
     Runtime layout(GlueNative::FrameLevelLimit);
     Gxu::Native::LegacyFonts gxu([](const std::string&) -> Bytes { throw std::runtime_error("Fixture has no font"); });

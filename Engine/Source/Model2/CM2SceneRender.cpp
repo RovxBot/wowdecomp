@@ -427,7 +427,12 @@ void CM2SceneRender::DrawBatch() {
     this->SetupTextures();
 
     if (CShaderEffect::s_enableShaders && (this->m_curType != this->m_prevType || this->m_curModel != this->m_prevModel || this->m_curSkinSection->m_boneComboIndex != this->m_prevSkinSection->m_boneComboIndex)) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        float* constants = g_theGxDevicePtr->ShaderConstantsLockRange(GxSh_Vertex, 31,
+            uint64_t(this->m_curSkinSection->m_boneCount) * 3);
+#else
         float* constants = g_theGxDevicePtr->ShaderConstantsLock(GxSh_Vertex) + 31 * 4;
+#endif
 
         for (uint32_t i = 0; i < this->m_curSkinSection->m_boneCount; i++) {
             const C44Matrix& bone = this->m_curModel->m_boneMatrices[this->m_data->m_boneCombos[i + this->m_curSkinSection->m_boneComboIndex]];
@@ -622,7 +627,12 @@ void CM2SceneRender::DrawBatchDoodad(M2Element* elements, uint32_t* indices) {
                 instances = total - done;
             }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            float* constants = g_theGxDevicePtr->ShaderConstantsLockRange(GxSh_Vertex, 31,
+                uint64_t(instances) * this->m_curSkinSection->m_boneCount * 3);
+#else
             float* constants = g_theGxDevicePtr->ShaderConstantsLock(GxSh_Vertex) + 31 * 4;
+#endif
             uint32_t registers = 0;
 
             for (uint32_t n = 0; n < instances; n++) {
