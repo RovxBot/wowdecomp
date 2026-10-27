@@ -105,6 +105,32 @@ compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
 authentication and gameplay remain unobserved. Both installations stay read-only,
 all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
+## CPU model/material continuation — 2026-10-27
+
+PR #90 connects ShaderEffect's original CPU vertex/fixed-material selection with
+Model2 cache flags, clears inherited UI shaders in native original model passes,
+and submits checked CPU arrays/materials/lights/fog/texture0 through existing Gx
+owners. Keep the 94-register/one-texture-unit caps and all palette write preflights.
+Read [contracts](docs/m3/INTEGRATED_CLIENT.md#cpu-modelmaterial-continuation--2026-10-27)
+and [exact evidence](docs/m3/cpu-model-material-validation.json).
+At implementation `7fc76f952405c3e672bfd1c3f64eb7198cbb4609`, matching-tree Actions
+checkout `e44fe5394d3f8d1c3faf832fed67db179979c5f9`, one release/three untraced
+strict original-data runs retain the full creation digest and login activation,
+then reject `Native legacy render state unavailable`, exit 1 with zero workers
+and no sanitizer finding. Separate release GDB identifies state 22 (`Texture1`)
+in original `CM2SceneRender::DrawBatch`: a model material requests a second unit.
+Continue bounded original material/multipass handling under the retained one-unit
+limit; do not silently discard the binding or advertise an unqualified capability.
+Four final implementation workflows/six jobs pass, including both GL configurations
+(38 checks each) and full Windows compilation. Downloaded release/strict authored
+143-bone CPU batch pixels and original font/UI shader fixtures pass three cycles
+each on RX 7900 XTX. Preserve initial fixture null-scene UBSan, uncleared-depth
+pixel and ARB texgen regression failures, superseded cancellations and all PR #89
+post-merge checks. No completed original model/FFX/login frame, physical input,
+authentication or gameplay is established. Both installations remain read-only,
+all compilation stays in Actions, original agreements stay unaccepted, and
+signatures/interactive sign-in/server/Warden policy are unchanged.
+
 ## Model paint bounds — 2026-10-27
 
 PR #89 admits only cached `GetRect` reads during model paint, with owner-thread,

@@ -17,8 +17,10 @@ The [login activation continuation](#original-login-activation--2026-10-27) now
 completes original activation. The [FFX target continuation](#ffx-depth-target-continuation--2026-10-27)
 passes its depth flag. The [model paint continuation](#model-paint-bounds--2026-10-27)
 admits the cached rectangle read and rejects an oversized GPU palette before
-writes. CPU rendering/material dispatch and complete login/model rendering remain
-open. Its historical
+writes. The [CPU material continuation](#cpu-modelmaterial-continuation--2026-10-27)
+now connects original CPU vertices/fixed materials; original-data paint rejects a
+second texture binding beyond the qualified one-unit device. Complete login/model
+rendering remains open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -151,8 +153,32 @@ A focused authored regression runs original `CM2SceneRender::DrawBatch`, CPU
 weighted transforms using bone 142, rebased indices and fixed material paint.
 It checks pixels at the translated and original positions and unchanged vertex
 constant storage with a 143-bone section. It is separate from game-data evidence.
-Hosted compilation and original-data execution are pending for this implementation;
-no new original login frame, authentication or gameplay is claimed.
+Implementation `7fc76f952405c3e672bfd1c3f64eb7198cbb4609` and matching-tree
+Actions checkout `e44fe5394d3f8d1c3faf832fed67db179979c5f9` pass four workflows/six
+jobs, including release/strict startup, both Linux GL configurations (38 CTest
+checks each) and full signatures-enabled Windows compilation. The local source
+suite runs 61 tests successfully with one existing skip. Downloaded release and strict
+fixtures each pass three authored CPU pixel cycles and three separate original
+font/UI-shader cycles on RX 7900 XTX / Mesa 26.2.5 / SDL X11, with empty stderr.
+No client or dependency compilation ran locally.
+
+One release and three untraced strict ASan/UBSan/leak original-data executions
+retain the full ordered creation digest and login activation, then exit 1 at
+`Native legacy render state unavailable`, with zero workers and no sanitizer
+finding. Separate release GDB identifies state 22, `Texture1`, during original
+`CM2SceneRender::DrawBatch`. A material requests a second texture binding while
+the device qualifies only one unit. Continue bounded original material/multipass
+handling under that limit; do not silently omit the binding or advertise an
+unqualified capability. Actual original model/FFX/login frames remain incomplete.
+
+The [durable validation](cpu-model-material-validation.json) retains exact source,
+artifact hashes/types/notices, all five PR #89 post-merge checks, initial fixture
+null-scene UBSan and uncleared-depth pixel failures, the ARB texgen regression,
+and superseded workflow cancellations. The missing-manifest wrapper invocation
+before its download completed launched no client and is not runtime evidence.
+Original-data agreements remain unaccepted. No physical-input, authentication,
+character-selection or gameplay result is established. Signatures, read-only data,
+interactive sign-in and server/Warden policy remain unchanged.
 
 ## Model paint bounds — 2026-10-27
 

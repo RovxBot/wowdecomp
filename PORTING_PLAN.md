@@ -1,6 +1,6 @@
 # Native 3.3.5a client implementation plan
 
-Created: 2026-10-16. Updated: 2026-10-26. M0 source inventory and Windows
+Created: 2026-10-16. Updated: 2026-10-27. M0 source inventory and Windows
 compilation are verified; operator Windows sessions report D3D9 passing and the
 same OpenGL rendering/busy-cursor failures on M0 and M1. M0 remains partial because
 complete data provenance, live server/Warden evidence and captures/timings remain
@@ -114,9 +114,13 @@ milestone; full native startup/login/gameplay remain unestablished.
    the original depth-target flag to retained native depth-24 storage. First
    ModelFFX paint in [PR #89](https://github.com/RovxBot/wowdecomp/pull/89) now
    reads its cached rectangle and rejects an oversized GPU palette before writes.
-   CPU loading still reaches shader-enabled GPU material dispatch; connect the
-   original CPU rendering/material path, retaining the new write preflight and
-   truthful device limits. Original login/model painting remains unfinished.
+   [PR #90](https://github.com/RovxBot/wowdecomp/pull/90) connects original CPU
+   vertices/fixed materials through the existing native owners, retaining write
+   preflights and truthful limits. Authored CPU pixels pass, while original-data
+   paint next rejects `Texture1` beyond the qualified one-unit device. Continue
+   bounded original material/multipass handling before model/FFX/login frames;
+   see [exact evidence](docs/m3/cpu-model-material-validation.json). Original
+   login/model painting remains unfinished.
    Audio/movie playback and graphics-option application remain unavailable;
    M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,

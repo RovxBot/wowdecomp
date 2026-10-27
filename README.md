@@ -33,8 +33,9 @@ character model bindings, locale HTML and video/audio option queries are connect
 The original CPU skinning path now passes that model-initialization barrier with
 native array alignment and clean strict shutdown. Original login activation now
 completes; first ModelFFX paint now passes the original depth-render-target flag
-and cached-rectangle read. A checked GPU palette write rejects the oversized
-request safely; CPU rendering/material dispatch remains unfinished.
+and cached-rectangle read. Original CPU vertex/fixed-material dispatch is now
+connected, with palette bounds checks retained. Original-data painting next
+rejects a second texture binding beyond the qualified one-unit device.
 Original agreement/account state and unchanged gamma/terrain preference refreshes,
 warning state, screen tracking and optional unavailable-audio calls are connected.
 Login and

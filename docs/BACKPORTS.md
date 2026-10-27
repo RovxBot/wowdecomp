@@ -880,6 +880,24 @@ and source inspection are different evidence levels.
   and [exact validation](m3/model-paint-validation.json). No authentication,
   agreement acceptance or server/Warden policy change follows from this work.
 
+## NP-029 — Original CPU model/material submission
+
+- Reference: this checkout's original Model2 CPU transforms, fixed material
+  dispatch and OpenGL light/material/texture environment submission. The
+  [pinned Apple review](m3/APPLE_STARTUP_REVIEW.md#cpu-modelmaterial-continuation--2026-10-27)
+  covers both original vertex dispatches and WoWReMac's Metal fixed pipeline.
+  No source, dependency or notice is imported from either reference.
+- Adaptation: keep Model2 cache and ShaderEffect selection consistent, clear
+  inherited UI shader bindings in original model passes, and deliver CPU vertex
+  arrays, fixed materials/lights/fog and texture0 through existing native owners.
+  Keep 94 constants, one texture unit, buffer fetch bounds and palette preflights.
+  Original Windows paths and signatures remain intact.
+- Validation: authored original DrawBatch/143-bone weighted-transform/index/pixel
+  regression and hosted builds are distinct from original-data execution. See
+  [current contracts and evidence](m3/INTEGRATED_CLIENT.md#cpu-modelmaterial-continuation--2026-10-27).
+  This batch establishes no authentication, agreement acceptance or gameplay and
+  changes no interactive sign-in or server/Warden policy.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.
