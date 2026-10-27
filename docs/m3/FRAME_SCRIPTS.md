@@ -1,5 +1,17 @@
 # Bounded original region Lua methods
 
+Frame `GetAlpha`, `GetEffectiveAlpha` and `SetAlpha` retain original 8-bit
+clamping and inherited integer multiplication. Finite scalar alpha writes use
+the existing pre-collection script-text guard: update callbacks may change color,
+while collection, rendering, foreign threads and expired objects reject access.
+Hierarchy/visibility/deletion guards remain separate. Native regions invalidate
+copied mesh colors on every effective-alpha change; retained text also receives
+the original color/shadow notification. Repeated fades and restoration are covered
+by the hierarchy fixture. Integrated callback disposition is tracked in
+[#110](https://github.com/RovxBot/wowdecomp/issues/110) and
+[#95](https://github.com/RovxBot/wowdecomp/issues/95); full login rendering remains
+[#96](https://github.com/RovxBot/wowdecomp/issues/96).
+
 This selects original 12340 region, Frame, title and FontString metatables on the
 native ABI. `Frame::Native::Scripts` belongs inside the Fonts owner and outside
 all region/script objects. Close objects and external function references before
