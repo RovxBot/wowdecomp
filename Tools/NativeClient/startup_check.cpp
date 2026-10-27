@@ -119,7 +119,7 @@ void GlueServices() {
     FrameXML::Native::Runtime xml;
     Frame::Native::Runtime layout; // Original StringToBOOL shares the font/XML owner.
     const auto config = (directory / "Config.wtf").string();
-    { std::ofstream file(config); file << "SET accountName \"saved fixture\"\n"; }
+    { std::ofstream file(config); file << "SET accountName \"saved fixture\"\nSET readTOS \"1\"\nSET readEULA \"-2\"\nSET readTerminationWithoutNotice \"-2\"\nSET readScanning \"-1\"\n"; }
     ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
     struct Console { ~Console() { CVar::Destroy(); ConsoleCommandDestroy(); } } console;
     GlueNative::InitializeScriptServices(2);
@@ -138,6 +138,25 @@ void GlueServices() {
         VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
         assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
         assert(IsSystemSupported() == 1);
+        assert(IsTrialAccount()==nil);
+        assert(select('#',GetServerName())==4);
+        local realm,pvp,rp,down=GetServerName();
+        assert(realm=='' and pvp==nil and rp==nil and down==1);
+        SetCVar('realmName','authored saved realm');
+        assert(GetServerName()=='authored saved realm');
+        SetCVar('realmName','');
+        assert(TOSAccepted()==1 and ShowTOSNotice()==nil);
+        assert(EULAAccepted()==nil and ShowEULANotice()==1);
+        assert(TerminationWithoutNoticeAccepted()==nil and ShowTerminationWithoutNoticeNotice()==1);
+        assert(ScanningAccepted()==nil and ShowScanningNotice()==1);
+        assert(ContestAccepted()==nil and ShowContestNotice()==nil);
+        -- This VM has no agreement files or game data: exercise authored state only.
+        assert(select('#',AcceptEULA())==0 and EULAAccepted()==1 and ShowEULANotice()==nil);
+        assert(GetCVar('readEULA')=='-1');
+        AcceptTerminationWithoutNotice(); assert(GetCVar('readTerminationWithoutNotice')=='-1');
+        AcceptScanning(); AcceptContest();
+        assert(ScanningAccepted()==1 and ShowScanningNotice()==nil and GetCVar('readScanning')=='1');
+        assert(ContestAccepted()==1 and GetCVar('readContest')=='1');
         assert(ShowChangedOptionWarnings() == nil and select('#',GetChangedOptionWarnings())==0);
         assert(select('#',SetCurrentScreen('login'))==0);
         assert(not pcall(SetCurrentScreen,{}) and not pcall(SetCurrentScreen,'charselect'));
@@ -161,6 +180,13 @@ void GlueServices() {
     )lua", "native Glue services fixture", nullptr);
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue build/CVar contracts failed");
     Check(option->m_intValue == 0 && locked->m_intValue == 1, "Glue scripts bypassed original CVar state");
+    CGlueMgr::m_authenticated=1;
+    FrameScript_Execute("assert(not pcall(GetServerName) and not pcall(IsTrialAccount))", "unavailable authenticated realm metadata", nullptr);
+    CGlueMgr::m_authenticated=0;
+    auto* converted=CVar::Register("converted","authored trial preference",0,"0",nullptr,0,false,nullptr,false);
+    FrameScript_Execute("assert(IsTrialAccount()==1)", "original no-login trial preference", nullptr);
+    converted->Set("1",true,false,false,true);
+    FrameScript_Execute("assert(IsTrialAccount()==nil)", "original no-login converted preference", nullptr);
     Check(!std::strcmp(CGlueMgr::m_currentScreen,"login"), "Rejected screen transition mutated lifecycle state");
     FrameScript_Execute("NATIVE_WARNING='authored warning'", "option warning fixture", nullptr);
     CGlueMgr::AddChangedOptionWarning("NATIVE_WARNING");
@@ -176,18 +202,30 @@ void GlueServices() {
     FrameScript_Execute("QuitGame()", "native Glue close fixture", nullptr);
     Check(EventNative::Closing(), "Glue QuitGame did not close the native Event owner");
     EventDestroy();
-    FrameScript_Execute("retainedGlueQuery = GetSavedAccountName; retainedScreenSetter=SetCurrentScreen", "retain Glue closure", nullptr);
+    FrameScript_Execute("retainedGlueQuery = GetSavedAccountName; retainedScreenSetter=SetCurrentScreen; retainedAgreement=AcceptEULA; retainedAgreementQuery=EULAAccepted", "retain Glue closure", nullptr);
     GlueScriptEventsUnregisterFunctions();
-    FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery) and not pcall(retainedScreenSetter,'login'))", "closed Glue closure", nullptr);
+    FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery) and not pcall(retainedScreenSetter,'login')); assert(EULAAccepted==nil and not pcall(retainedAgreement) and not pcall(retainedAgreementQuery))", "closed Glue closure", nullptr);
     Check(!*CGlueMgr::m_currentScreen && CGlueMgr::m_numChangedOptionWarnings==0, "Glue activation state survived close");
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Retained Glue closure used a closed CVar owner");
     for (uint8_t expansion : {0, 1, 2}) {
         GlueNative::InitializeScriptServices(expansion);
         GlueScriptEventsRegisterFunctions();
+        if (expansion==0) {
+            FrameScript_Execute(R"(
+                assert(EULAAccepted()==nil and ShowEULANotice()==1);
+                assert(TerminationWithoutNoticeAccepted()==nil and ShowTerminationWithoutNoticeNotice()==1);
+                AcceptEULA(); AcceptTerminationWithoutNotice();
+                assert(GetCVar('readEULA')=='1' and GetCVar('readTerminationWithoutNotice')=='1');
+            )", "authored agreement reread state", nullptr);
+        } else {
+            FrameScript_Execute("assert(EULAAccepted()==1 and ShowEULANotice()==nil and TerminationWithoutNoticeAccepted()==1)",
+                "authored durable agreement state", nullptr);
+        }
         lua_getglobal(s_context, "GetClientExpansionLevel"); lua_call(s_context, 0, 1);
         Check(lua_tonumber(s_context, -1) == expansion + 1, "Installed expansion query changed"); lua_pop(s_context, 1);
         GlueScriptEventsUnregisterFunctions();
     }
+    Check(FrameScript::Native::ScriptErrorCount()==errors, "Original agreement reread/durable state changed");
 }
 void HtmlFiles() {
     const auto directory = std::filesystem::temp_directory_path() /

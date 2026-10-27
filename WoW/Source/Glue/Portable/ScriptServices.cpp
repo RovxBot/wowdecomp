@@ -24,8 +24,25 @@
 // Native selection of original CGlueMgr activation state. Warning text is owned
 // until acknowledgement/close, rather than borrowing collectable Lua strings.
 char CGlueMgr::m_currentScreen[64];
+uint8_t CGlueMgr::m_authenticated;
 uint32_t CGlueMgr::m_numChangedOptionWarnings;
 TSGrowableArray<const char*> CGlueMgr::m_changedOptionWarnings;
+// Original client agreement state; external Config.wtf remains the sole saved owner.
+CVar* g_readTOSVar;
+int32_t CGlueMgr::m_acceptedTOS;
+int32_t CGlueMgr::m_rereadTOS;
+CVar* g_readEULAVar;
+int32_t CGlueMgr::m_acceptedEULA;
+int32_t CGlueMgr::m_rereadEULA;
+CVar* g_readTerminationWithoutNoticeVar;
+int32_t CGlueMgr::m_acceptedTerminationWithoutNotice;
+int32_t CGlueMgr::m_rereadTerminationWithoutNotice;
+CVar* g_readScanningVar;
+int32_t CGlueMgr::m_acceptedScanning;
+int32_t CGlueMgr::m_rereadScanning;
+CVar* g_readContestVar;
+int32_t CGlueMgr::m_acceptedContest;
+int32_t CGlueMgr::m_rereadContest;
 namespace {
 std::deque<std::string> warningText;
 CVar* g_accountNameVar;
@@ -107,6 +124,184 @@ static int32_t Script_GetSavedAccountList(lua_State* L) {
     RequireServices(L);
     lua_pushstring(L, g_accountListVar->m_stringValue.m_str);
     return 1;
+}
+
+// Original GetServerName (0x004DD900), bounded to the actual pre-authentication
+// state: a saved realm name is a preference, with no selected live realm.
+// Do not infer PvP/RP/availability or an endpoint from that name.
+static int32_t Script_GetServerName(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_authenticated)
+        return luaL_error(L, "Native selected realm metadata unavailable");
+    auto* name = CVar::LookupRegistered("realmName");
+    if (!name) name = CVar::Register("realmName", "Last realm connected to", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
+    lua_pushstring(L, name->m_stringValue.m_str);
+    lua_pushnil(L); // No selected realm: original PvP/RP flags are unset.
+    lua_pushnil(L);
+    lua_pushnumber(L, 1.0); // Original no-realm 'down' result.
+    return 4;
+}
+// Original IsTrialAccount's no-login fallback (0x004DD4D0). It reads an
+// existing conversion preference, without inventing account entitlements.
+static int32_t Script_IsTrialAccount(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_authenticated)
+        return luaL_error(L, "Native authenticated account metadata unavailable");
+    auto* converted = CVar::Lookup("converted");
+    if (converted && converted->m_intValue==0) lua_pushnumber(L,1.0);
+    else lua_pushnil(L);
+    return 1;
+}
+
+// Original agreement query/explicit acceptance wrappers. Loading never accepts.
+static int32_t Script_TOSAccepted(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_acceptedTOS) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_ShowTOSNotice(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_rereadTOS) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_AcceptTOS(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptTOS();
+    return 0;
+}
+static int32_t Script_EULAAccepted(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_acceptedEULA) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_ShowEULANotice(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_rereadEULA) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_AcceptEULA(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptEULA();
+    return 0;
+}
+static int32_t Script_TerminationWithoutNoticeAccepted(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_acceptedTerminationWithoutNotice) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_ShowTerminationWithoutNoticeNotice(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_rereadTerminationWithoutNotice) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_AcceptTerminationWithoutNotice(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptTerminationWithoutNotice();
+    return 0;
+}
+static int32_t Script_ScanningAccepted(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_acceptedScanning) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_ShowScanningNotice(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_rereadScanning) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_AcceptScanning(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptScanning();
+    return 0;
+}
+static int32_t Script_ContestAccepted(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_acceptedContest) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_ShowContestNotice(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_rereadContest) {
+        lua_pushnumber(L, 1.0);
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+static int32_t Script_AcceptContest(lua_State* L) {
+    RequireServices(L);
+    CGlueMgr::AcceptContest();
+    return 0;
+}
+void InitializeAgreements() {
+    g_readTOSVar = CVar::Register("readTOS", "Status of the TOS", 0, "0", nullptr, CATEGORY_GAME, false, nullptr, false);
+    CGlueMgr::m_acceptedTOS = g_readTOSVar->m_intValue == 1;
+    CGlueMgr::m_rereadTOS = g_readTOSVar->m_intValue < 0;
+    g_readEULAVar = CVar::Register("readEULA", "Status of the EULA", 0, "0", nullptr, CATEGORY_GAME, false, nullptr, false);
+    CGlueMgr::m_acceptedEULA = g_readEULAVar->m_intValue == 1;
+    CGlueMgr::m_rereadEULA = g_readEULAVar->m_intValue < 0;
+    g_readTerminationWithoutNoticeVar = CVar::Register("readTerminationWithoutNotice", "Status of the Termination without Notice notice", 0, "0", nullptr, CATEGORY_GAME, false, nullptr, false);
+    CGlueMgr::m_acceptedTerminationWithoutNotice = g_readTerminationWithoutNoticeVar->m_intValue == 1;
+    CGlueMgr::m_rereadTerminationWithoutNotice = g_readTerminationWithoutNoticeVar->m_intValue < 0;
+    g_readScanningVar = CVar::Register("readScanning", "Status of the Scanning notice", 0, "0", nullptr, CATEGORY_GAME, false, nullptr, false);
+    CGlueMgr::m_acceptedScanning = g_readScanningVar->m_intValue == 1;
+    CGlueMgr::m_rereadScanning = g_readScanningVar->m_intValue < 0;
+    g_readContestVar = CVar::Register("readContest", "Status of the Contest notice", 0, "0", nullptr, CATEGORY_GAME, false, nullptr, false);
+    CGlueMgr::m_acceptedContest = g_readContestVar->m_intValue == 1;
+    CGlueMgr::m_rereadContest = g_readContestVar->m_intValue < 0;
+}
+void CloseAgreements() {
+    g_readTOSVar = nullptr; CGlueMgr::m_acceptedTOS = CGlueMgr::m_rereadTOS = 0;
+    g_readEULAVar = nullptr; CGlueMgr::m_acceptedEULA = CGlueMgr::m_rereadEULA = 0;
+    g_readTerminationWithoutNoticeVar = nullptr; CGlueMgr::m_acceptedTerminationWithoutNotice = CGlueMgr::m_rereadTerminationWithoutNotice = 0;
+    g_readScanningVar = nullptr; CGlueMgr::m_acceptedScanning = CGlueMgr::m_rereadScanning = 0;
+    g_readContestVar = nullptr; CGlueMgr::m_acceptedContest = CGlueMgr::m_rereadContest = 0;
 }
 
 // Original Glue activation wrappers, retaining number/nil and zero-result APIs.
@@ -436,6 +631,23 @@ FrameScript_Method functions[] = {
     { "AcceptChangedOptionWarnings", Script_AcceptChangedOptionWarnings },
     { "IsSystemSupported", Script_IsSystemSupported },
     { "SetCurrentScreen", Script_SetCurrentScreen },
+    { "GetServerName", Script_GetServerName },
+    { "IsTrialAccount", Script_IsTrialAccount },
+    { "TOSAccepted", Script_TOSAccepted },
+    { "ShowTOSNotice", Script_ShowTOSNotice },
+    { "AcceptTOS", Script_AcceptTOS },
+    { "EULAAccepted", Script_EULAAccepted },
+    { "ShowEULANotice", Script_ShowEULANotice },
+    { "AcceptEULA", Script_AcceptEULA },
+    { "TerminationWithoutNoticeAccepted", Script_TerminationWithoutNoticeAccepted },
+    { "ShowTerminationWithoutNoticeNotice", Script_ShowTerminationWithoutNoticeNotice },
+    { "AcceptTerminationWithoutNotice", Script_AcceptTerminationWithoutNotice },
+    { "ScanningAccepted", Script_ScanningAccepted },
+    { "ShowScanningNotice", Script_ShowScanningNotice },
+    { "AcceptScanning", Script_AcceptScanning },
+    { "ContestAccepted", Script_ContestAccepted },
+    { "ShowContestNotice", Script_ShowContestNotice },
+    { "AcceptContest", Script_AcceptContest },
     { "GetCVar", Script_GetCVar },
     { "SetCVar", Script_SetCVar },
     { "GetCVarBool", Script_GetCVarBool },
@@ -456,6 +668,69 @@ FrameScript_Method functions[] = {
     { "QuitGame", Script_QuitGame },
 };
 }
+// Original CGlueMgr agreement transitions. Only explicit callbacks enter these;
+// startup reads saved state and displays prompts without invoking acceptance.
+void CGlueMgr::AcceptTOS() {
+    FrameScript::Native::RequireOwner();
+    if (!registered || !CVar::m_initialized || !g_readTOSVar ||
+        CVar::LookupRegistered("readTOS") != g_readTOSVar)
+        throw std::logic_error("Native agreement owner is closed");
+    int32_t value = g_readTOSVar->m_intValue;
+    CGlueMgr::m_acceptedTOS = 1;
+    CGlueMgr::m_rereadTOS = 0;
+    if (value == -2) {
+        g_readTOSVar->Set("-1", true, false, false, true);
+    } else {
+        g_readTOSVar->Set("1", true, false, false, true);
+    }
+}
+void CGlueMgr::AcceptEULA() {
+    FrameScript::Native::RequireOwner();
+    if (!registered || !CVar::m_initialized || !g_readEULAVar ||
+        CVar::LookupRegistered("readEULA") != g_readEULAVar)
+        throw std::logic_error("Native agreement owner is closed");
+    int32_t value = g_readEULAVar->m_intValue;
+    CGlueMgr::m_acceptedEULA = 1;
+    CGlueMgr::m_rereadEULA = 0;
+    if (value == -2) {
+        g_readEULAVar->Set("-1", true, false, false, true);
+    } else {
+        g_readEULAVar->Set("1", true, false, false, true);
+    }
+}
+void CGlueMgr::AcceptTerminationWithoutNotice() {
+    FrameScript::Native::RequireOwner();
+    if (!registered || !CVar::m_initialized || !g_readTerminationWithoutNoticeVar ||
+        CVar::LookupRegistered("readTerminationWithoutNotice") != g_readTerminationWithoutNoticeVar)
+        throw std::logic_error("Native agreement owner is closed");
+    int32_t value = g_readTerminationWithoutNoticeVar->m_intValue;
+    CGlueMgr::m_acceptedTerminationWithoutNotice = 1;
+    CGlueMgr::m_rereadTerminationWithoutNotice = 0;
+    if (value == -2) {
+        g_readTerminationWithoutNoticeVar->Set("-1", true, false, false, true);
+    } else {
+        g_readTerminationWithoutNoticeVar->Set("1", true, false, false, true);
+    }
+}
+void CGlueMgr::AcceptScanning() {
+    FrameScript::Native::RequireOwner();
+    if (!registered || !CVar::m_initialized || !g_readScanningVar ||
+        CVar::LookupRegistered("readScanning") != g_readScanningVar)
+        throw std::logic_error("Native agreement owner is closed");
+    CGlueMgr::m_acceptedScanning = 1;
+    CGlueMgr::m_rereadScanning = 0;
+    g_readScanningVar->Set("1", true, false, false, true);
+}
+void CGlueMgr::AcceptContest() {
+    FrameScript::Native::RequireOwner();
+    if (!registered || !CVar::m_initialized || !g_readContestVar ||
+        CVar::LookupRegistered("readContest") != g_readContestVar)
+        throw std::logic_error("Native agreement owner is closed");
+    CGlueMgr::m_acceptedContest = 1;
+    CGlueMgr::m_rereadContest = 0;
+    g_readContestVar->Set("1", true, false, false, true);
+}
+
 // Selected original warning/lifecycle operations from CGlueMgr.cpp. Character
 // screens require their real OnHide/Idle services before entering this surface.
 void CGlueMgr::UpdateCurrentScreen(const char* screen) {
@@ -488,6 +763,8 @@ void InitializeScriptServices(uint8_t expansionLevel) {
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
     clientExpansionLevel = expansionLevel;
+    CGlueMgr::m_authenticated = 0;
+    InitializeAgreements();
     CGlueMgr::m_currentScreen[0] = '\0';
     CGlueMgr::AcceptChangedOptionWarnings();
     // Client_CVar.cpp::ClientRegisterConsoleCommands (12340 0x00401B60).
@@ -511,6 +788,8 @@ void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
+    CGlueMgr::m_authenticated = 0;
+    CloseAgreements();
     CGlueMgr::AcceptChangedOptionWarnings();
     CGlueMgr::m_currentScreen[0] = '\0';
     g_accountNameVar = g_accountListVar = g_accountUsesTokenVar = nullptr;
