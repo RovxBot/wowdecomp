@@ -85,7 +85,8 @@ static void AlphaChecks(LegacyDevice& device, CSimpleTop& root, CSimpleFont& fon
               "Inherited alpha did not reach texture/text pixels");
     // Local region alpha remains independent of the Frame alpha factors.
     RegionLua("AlphaText:SetTextColor(1,0,0,.5); AlphaParent:SetAlpha(1); AlphaChild:SetAlpha(1)");
-    Check(text->m_colors[0].a == 127 && texture->m_colorCount == 0,
+    // Frame alpha truncates; FrameScript_GetColor rounds .5 to 128 instead.
+    Check(text->m_colors[0].a == 128 && texture->m_colorCount == 0,
           "Frame alpha restoration lost local region alpha or implicit white");
     RegionLua("AlphaText:SetTextColor(1,0,0,1)");
     Equal(baseline, Draw(device, root));
