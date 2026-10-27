@@ -105,6 +105,29 @@ compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
 authentication and gameplay remain unobserved. Both installations stay read-only,
 all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
+## Native model instance continuation — 2026-10-27
+
+PR #86 selects the existing original CPU skinning path for the qualified
+94-register budget, retaining one texture unit and no animation worker. Native
+instance arrays and emitter storage use checked aligned offsets and an explicit
+base owner. Both particle seed constructors avoid signed overflow; inline-only
+models create no empty sequence table and destructor ownership follows the pointer.
+Read [contracts](docs/m3/INTEGRATED_CLIENT.md#native-model-instance-continuation--2026-10-27)
+and [exact evidence](docs/m3/model-instance-validation.json).
+At `d1ef0d61737346ad2c28871e6ff1946901852f1d`, matching-tree Actions checkout
+`1afc668e76ef3c5ef947868b33ff65b18af00775`, one release/three strict original-data
+runs pass original model initialization, retain the full creation digest, then
+stop at missing `EULAAccepted`, exit 1 and close with zero workers and no sanitizer
+finding. Three implementation workflows/four jobs pass, including full Windows
+compilation. Preserve the earlier M2ModelLight alignment and particle signed-shift
+UBSan findings and the separate 165-byte/three-object LeakSanitizer finding;
+earlier hosted fixture passes did not qualify those original-data paths.
+Post-merge PR #85 checks pass separately. Continue original agreement/account
+activation services, then model/material/FFX paint. No login rendering,
+authentication, agreement acceptance on original data or gameplay is established.
+Signatures, read-only installations, Actions-only compilation and server policy
+remain unchanged.
+
 ## Current handoff and build policy
 
 - All client and dependency compilation must run in GitHub Actions, including
