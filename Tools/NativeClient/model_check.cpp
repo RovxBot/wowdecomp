@@ -452,7 +452,7 @@ void Factory() {
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
         Check(!CShaderEffect::s_enableShaders && !(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
             device.Caps().m_numTmus==1, "Original CPU skinning changed device limits or enabled a worker");
-        CpuRendering(model->m_scene, device);
+        CpuRendering(model->GetScene(), device);
         const auto errors = FrameScript::Native::ScriptErrorCount();
         Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
         model->RunScript(model->m_onUpdateModel, 0, nullptr);
