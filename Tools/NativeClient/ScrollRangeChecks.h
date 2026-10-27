@@ -9,6 +9,8 @@ static void ScrollCheck(bool good, const char* message) { if (!good) throw std::
 static void CheckScrollRangeEdits(CSimpleTop& root) {
     const auto errors = FrameScript::Native::ScriptErrorCount();
     auto lua = [&](const char* source) {
+        if (FrameScript::Native::ScriptErrorCount() != errors)
+            throw std::runtime_error(std::string("Scroll-range protected callback: ") + FrameScript::Native::LastScriptError());
         CStatus status;
         const auto result = FrameScript_ExecuteBuffer(source, std::strlen(source), "authored scroll-range controls", &status, nullptr);
         if (!result || !status.IsEmpty()) {
@@ -92,6 +94,10 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
         Frame::Native::CallbackScope callback;
         rejected([&] { Frame::Native::RequireDestroyable(); });
         rejected([&] { Frame::Native::RequireTreeMutable(); });
+        root.m_moveResizeFrame = slider;
+        rejected([&] { scroll->Hide(); });
+        root.m_moveResizeFrame = nullptr;
+        ScrollCheck(scroll->m_isShown && slider->m_isVisible, "Rejected movement visibility edit mutated the subtree");
         Frame::Native::ResizeScope resize;
         rejected([&] { slider->SetValue(10); });
         rejected([&] { scroll->Hide(); });

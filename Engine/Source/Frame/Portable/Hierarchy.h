@@ -13,6 +13,7 @@ void SetScrollNotify(ScrollNotify);
 bool HasScrollSupport();
 void NotifyScroll(CSimpleFrame*);
 void RequireScriptTextMutation();
+void RequireVisibilityMutation(CSimpleFrame*, bool showing);
 // Only the original scroll-range notification may update qualified existing
 // controls while layer traversal is pinned. No tree/layout/deletion capability.
 struct ScrollRangeEdits final {

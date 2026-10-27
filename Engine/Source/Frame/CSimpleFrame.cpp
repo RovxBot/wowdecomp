@@ -982,7 +982,7 @@ bool CSimpleFrame::SetFrameDepth(float depth, bool force) {
 int32_t CSimpleFrame::Hide() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireVisibilityMutation(this, false);
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -1001,7 +1001,7 @@ int32_t CSimpleFrame::Hide() {
 int32_t CSimpleFrame::Show() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireVisibilityMutation(this, true);
 #endif
     if (!this->ProtectedFunctionsAllowed()) {
         if (this->m_simpleTop->m_actionBlockedCallback) {
@@ -2330,7 +2330,7 @@ bool CSimpleFrame::UpdateDepth(bool force) {
 int32_t CSimpleFrame::HideThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireVisibilityMutation(this, false);
 #endif
     if (!this->m_isVisible) {
         return 1;
@@ -2364,7 +2364,7 @@ int32_t CSimpleFrame::HideThis() {
 int32_t CSimpleFrame::ShowThis() {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireVisibilityMutation(this, true);
 #endif
     if (!this->m_isShown || (this->m_parent && !this->m_parent->m_isVisible)) {
         return 0;

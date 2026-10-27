@@ -73,6 +73,21 @@ ScrollRangeEdits::ScrollRangeEdits() {
     scrollRangeEdits = true;
 }
 ScrollRangeEdits::~ScrollRangeEdits() { scrollRangeEdits = false; }
+void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
+    RequireStateMutation(true);
+    if (!scrollRangeEdits) return;
+    RequireSimpleFrame(target);
+    // Movement unflattening and top-level raising retain their stricter guards.
+    // Preflight the entire subtree before changing any visibility/list state.
+    if (!showing)
+        for (auto* moving = CSimpleTop::s_instance->m_moveResizeFrame; moving; moving = moving->m_parent)
+            if (moving == target) throw std::logic_error("Finish movement before scroll callback visibility edits");
+    if (showing)
+        for (auto* leaf : frames)
+            if (leaf->m_frameFlags & 1)
+                for (auto* parent = leaf; parent; parent = parent->m_parent)
+                    if (parent == target) throw std::logic_error("Top-level raising is unavailable in scroll callbacks");
+}
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();
     if (!frames.count(frame)) throw std::invalid_argument("Frame parent is not live");
