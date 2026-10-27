@@ -12,8 +12,10 @@ factory. The [Glue service continuation](#original-glue-service-continuation--20
 now completes original ordered creation and matches the mandatory post-creation
 digest. The [activation continuation](#glue-activation-continuation--2026-10-26)
 reaches the actual model-read barrier. The [native model continuation](#native-model-instance-continuation--2026-10-27)
-selects original CPU skinning for that budget and now passes model initialization;
-agreement activation and rendering remain open. Its historical
+selects original CPU skinning for that budget and passes model initialization.
+The [login activation continuation](#original-login-activation--2026-10-27) now
+completes original activation; first ModelFFX paint reaches the depth-render-target
+flag boundary. Complete login/model rendering remains open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -129,6 +131,52 @@ backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
+
+## Original login activation — 2026-10-27
+
+[PR #87](https://github.com/RovxBot/wowdecomp/pull/87) connects the five original
+agreement status/notice/explicit-callback groups through the existing Glue/CVar
+owner. Initialization reads saved values; it never invokes acceptance. Number/nil
+return contracts and the original `-2` to `-1` reread transition remain. Authored
+fixtures exercise callback transitions and owner recreation in a VM with no game
+data or agreement files. Retained closures reject calls after unregistration.
+
+The original no-selected-realm `GetServerName` result reads the saved realm-name
+preference and returns no PvP/RP flags plus the original unavailable result. It
+does not infer live realm identity, availability or an endpoint. `IsTrialAccount`
+retains its original no-login conversion-preference fallback. Authenticated
+metadata fails until the real native session owner is connected. Optional void
+`PlaySound`/`StopAllSFX` calls report unavailable audio, creating no sound kit IDs,
+handles, retries or finished events. Playback APIs that would unconditionally
+return success remain unselected.
+
+At implementation `31f52f2439ce657bfb1f0d6d4676940b692206bb`, matching-tree Actions
+checkout `1efa8e1e36ab374641ba930a9266dc467d9c7295`, one release and three untraced
+strict ASan/UBSan/leak original-data runs authenticate 28,948 archive records and
+60 GlueXML visits, match the full creation digest and print
+`startup-stage=glue-activated screen=login`. First ModelFFX painting then stops at
+`Unavailable legacy native texture contract`. All four exit 1 with zero workers
+and no sanitizer finding. Fresh original-data agreement settings remain absent
+or zero, retaining the original unaccepted default. No completed login/model frame,
+physical-input acceptance, authentication or gameplay is established.
+
+Separate release GDB inspection places the request in `CSimpleModelFFX::Render`
+through `FFX::Start`, `FFX::AllocTex` and `FFX::CreateTex`: target 0, 1024×1024,
+depth 0, matching ARGB8888 format 2 and flags `0x381`. The original OpenGL
+`IDeviceSetRenderTargetFBO` interprets bit 8 as an implicit depth attachment for
+the color target. The qualified native target service already owns depth-24
+renderbuffers; the legacy flag admission remains the next blocker. Connect that
+existing contract before continuing model/material/FFX paint, retaining the real
+94-register/one-texture-unit limits.
+
+All three final implementation workflows/four jobs pass: release/strict startup
+contracts, source audit and full signatures-enabled Windows x64 compilation.
+All PR #86 post-merge checks pass separately. Earlier manual builds, cancelled
+checks and intermediate `GetServerName`/`PlaySound` stops remain in the
+[activation validation](login-activation-validation.json), alongside downloaded
+artifact hashes, final reports and separate debugger/source-inspection evidence.
+Inspected original interface bytes stay outside Git. There are no new imports,
+local compilation, original-data agreement acceptance or server-policy changes.
 
 ## Native model instance continuation — 2026-10-27
 

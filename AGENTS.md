@@ -105,6 +105,31 @@ compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
 authentication and gameplay remain unobserved. Both installations stay read-only,
 all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
+## Original login activation — 2026-10-27
+
+PR #87 connects the five original agreement status/notice/explicit callback
+groups, their saved CVar/reread state, pre-login realm/trial queries and optional
+void UI sound calls through existing owners. Startup never invokes acceptance;
+authored transition fixtures have no game data or agreement files. Authenticated
+realm/account metadata remains explicitly unavailable. Saved realm names do not
+establish live realm identity/availability or endpoints. Audio remains unavailable.
+Read [contracts](docs/m3/INTEGRATED_CLIENT.md#original-login-activation--2026-10-27)
+and [exact evidence](docs/m3/login-activation-validation.json).
+At implementation `31f52f2439ce657bfb1f0d6d4676940b692206bb`, matching-tree Actions
+checkout `1efa8e1e36ab374641ba930a9266dc467d9c7295`, one release/three strict
+original-data runs retain the full creation digest and now print
+`startup-stage=glue-activated screen=login`. The first ModelFFX paint stops in
+`FFX::Start` at `FFX::CreateTex`, requesting a 1024-square ARGB8888 2D render target
+with flags `0x381`: original bit 8 requests an implicit depth attachment. The
+qualified native target service already owns depth-24 renderbuffers; legacy flag
+admission is the next blocker. All four runs exit 1 with zero workers and no
+sanitizer finding. Original-data agreement flags remain unaccepted; no completed
+login/model frame, physical input, authentication or gameplay is established.
+Three final implementation workflows/four jobs and all PR #86 post-merge checks
+pass. Keep debugger evidence separate from strict execution. Required signatures,
+94-register/one-texture-unit limits, read-only data, Actions-only compilation and
+server/Warden policy remain unchanged.
+
 ## Native model instance continuation — 2026-10-27
 
 PR #86 selects the existing original CPU skinning path for the qualified

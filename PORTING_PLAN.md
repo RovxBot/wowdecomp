@@ -108,8 +108,10 @@ milestone; full native startup/login/gameplay remain unestablished.
    reaches the actual model-read barrier. [PR #86](https://github.com/RovxBot/wowdecomp/pull/86)
    selects original CPU skinning for the real 94-register budget and corrects
    native instance alignment, seed width and sequence ownership. Original-data
-   release/strict execution now reaches missing `EULAAccepted`; continue the
-   reached agreement/account services, then observe Model2/material/FFX paint.
+   release/strict execution reaches the original agreement/account services.
+   [PR #87](https://github.com/RovxBot/wowdecomp/pull/87) now completes original
+   login activation. First ModelFFX paint stops at the original depth-render-target
+   flag; connect it to the existing native depth owner, then observe paint.
    Audio/movie playback and graphics-option application remain unavailable;
    M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,
