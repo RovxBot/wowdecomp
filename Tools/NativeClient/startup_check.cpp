@@ -138,6 +138,12 @@ void GlueServices() {
         VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
         assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
         assert(IsSystemSupported() == 1);
+        assert(select('#',GetServerName())==4);
+        local realm,pvp,rp,down=GetServerName();
+        assert(realm=='' and pvp==nil and rp==nil and down==1);
+        SetCVar('realmName','authored saved realm');
+        assert(GetServerName()=='authored saved realm');
+        SetCVar('realmName','');
         assert(TOSAccepted()==1 and ShowTOSNotice()==nil);
         assert(EULAAccepted()==nil and ShowEULANotice()==1);
         assert(TerminationWithoutNoticeAccepted()==nil and ShowTerminationWithoutNoticeNotice()==1);
@@ -173,6 +179,9 @@ void GlueServices() {
     )lua", "native Glue services fixture", nullptr);
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue build/CVar contracts failed");
     Check(option->m_intValue == 0 && locked->m_intValue == 1, "Glue scripts bypassed original CVar state");
+    CGlueMgr::m_authenticated=1;
+    FrameScript_Execute("assert(not pcall(GetServerName))", "unavailable authenticated realm metadata", nullptr);
+    CGlueMgr::m_authenticated=0;
     Check(!std::strcmp(CGlueMgr::m_currentScreen,"login"), "Rejected screen transition mutated lifecycle state");
     FrameScript_Execute("NATIVE_WARNING='authored warning'", "option warning fixture", nullptr);
     CGlueMgr::AddChangedOptionWarning("NATIVE_WARNING");

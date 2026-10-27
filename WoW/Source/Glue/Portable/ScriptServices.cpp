@@ -24,6 +24,7 @@
 // Native selection of original CGlueMgr activation state. Warning text is owned
 // until acknowledgement/close, rather than borrowing collectable Lua strings.
 char CGlueMgr::m_currentScreen[64];
+uint8_t CGlueMgr::m_authenticated;
 uint32_t CGlueMgr::m_numChangedOptionWarnings;
 TSGrowableArray<const char*> CGlueMgr::m_changedOptionWarnings;
 // Original client agreement state; external Config.wtf remains the sole saved owner.
@@ -123,6 +124,22 @@ static int32_t Script_GetSavedAccountList(lua_State* L) {
     RequireServices(L);
     lua_pushstring(L, g_accountListVar->m_stringValue.m_str);
     return 1;
+}
+
+// Original GetServerName (0x004DD900), bounded to the actual pre-authentication
+// state: a saved realm name is a preference, with no selected live realm.
+// Do not infer PvP/RP/availability or an endpoint from that name.
+static int32_t Script_GetServerName(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_authenticated)
+        return luaL_error(L, "Native selected realm metadata unavailable");
+    auto* name = CVar::LookupRegistered("realmName");
+    if (!name) name = CVar::Register("realmName", "Last realm connected to", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
+    lua_pushstring(L, name->m_stringValue.m_str);
+    lua_pushnil(L); // No selected realm: original PvP/RP flags are unset.
+    lua_pushnil(L);
+    lua_pushnumber(L, 1.0); // Original no-realm 'down' result.
+    return 4;
 }
 
 // Original agreement query/explicit acceptance wrappers. Loading never accepts.
@@ -603,6 +620,7 @@ FrameScript_Method functions[] = {
     { "AcceptChangedOptionWarnings", Script_AcceptChangedOptionWarnings },
     { "IsSystemSupported", Script_IsSystemSupported },
     { "SetCurrentScreen", Script_SetCurrentScreen },
+    { "GetServerName", Script_GetServerName },
     { "TOSAccepted", Script_TOSAccepted },
     { "ShowTOSNotice", Script_ShowTOSNotice },
     { "AcceptTOS", Script_AcceptTOS },
@@ -733,6 +751,7 @@ void InitializeScriptServices(uint8_t expansionLevel) {
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
     clientExpansionLevel = expansionLevel;
+    CGlueMgr::m_authenticated = 0;
     InitializeAgreements();
     CGlueMgr::m_currentScreen[0] = '\0';
     CGlueMgr::AcceptChangedOptionWarnings();
@@ -757,6 +776,7 @@ void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
+    CGlueMgr::m_authenticated = 0;
     CloseAgreements();
     CGlueMgr::AcceptChangedOptionWarnings();
     CGlueMgr::m_currentScreen[0] = '\0';
