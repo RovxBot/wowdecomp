@@ -17,6 +17,7 @@
 #include "Engine/Source/Gx/Portable/GlContext.h"
 #include "StartupLocale.h"
 #include "HtmlSource.h"
+#include "LoopScriptErrors.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/GlueMgr.h"
 #include "WoW/Source/Glue/CGlueMgr.h"
@@ -49,6 +50,41 @@ void Events() {
     EventUnregister(EVENT_ID_IDLE, Throws);
     EventNative::Dispatch(EVENT_ID_IDLE, nullptr); // marker must have unwound
     EventDestroy();
+}
+void CallbackFailuresBeforePaint() {
+    FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, std::vector<uint8_t>&) { return false; });
+    EventInitialize(1, 0);
+    struct EventsCleanup { ~EventsCleanup() { EventDestroy(); } } cleanup;
+    struct State { uint64_t errors; bool painted = false, fail = false; } state{FrameScript::Native::ScriptErrorCount()};
+    const auto update = +[](const void*, void* raw) {
+        if (static_cast<State*>(raw)->fail)
+            FrameScript_Execute("error('authored update failure')", "native loop fixture", nullptr);
+        return 1;
+    };
+    const auto paint = +[](const void*, void* raw) {
+        auto& state = *static_cast<State*>(raw);
+        CheckLoopScriptErrors(state.errors);
+        state.painted = true;
+        return 1;
+    };
+    EventRegisterEx(EVENT_ID_UPDATE, update, &state, EVENT_PRIORITY_NORMAL);
+    EventRegisterEx(EVENT_ID_PAINT, paint, &state, EVENT_PRIORITY_NORMAL);
+    EventNative::Tick(0, 0);
+    Check(state.painted, "Successful callbacks did not reach paint");
+    state.painted = false; state.fail = true;
+    bool rejected = false;
+    try { EventNative::Tick(0, 1); }
+    catch (const std::runtime_error& error) {
+        rejected = std::string(error.what()).find("authored update failure") != std::string::npos;
+    }
+    Check(rejected && !state.painted && FrameScript::Native::ScriptErrorCount() == state.errors + 1,
+        "Protected Lua failure reached paint or lost its original diagnostic");
+    // The caller may retire the failed session. Recover the authored fixture to
+    // verify Event markers and the original protected handler also unwound.
+    state.errors = FrameScript::Native::ScriptErrorCount(); state.fail = false;
+    EventNative::Tick(0, 2);
+    Check(state.painted, "Failed pre-paint check stranded Event dispatch");
+    std::cout << "native-loop-protected-error-before-paint=passed\n";
 }
 void Settings() {
     const auto directory = std::filesystem::temp_directory_path() /
@@ -260,7 +296,7 @@ int main() {
         StormRtlInitialize();
         InitializeNativeCharacterLocale();
         { Gx::Native::GlContext context("Waystone — original 12340 startup", 320, 240, true); }
-        Events(); Settings(); Ordered(); GlueServices(); HtmlFiles(); CheckNativeModelIO(); CheckNativeModels();
+        Events(); CallbackFailuresBeforePaint(); Settings(); Ordered(); GlueServices(); HtmlFiles(); CheckNativeModelIO(); CheckNativeModels();
         StormRtlDestroy();
         std::cout << "native-startup-contracts=passed\n"; return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

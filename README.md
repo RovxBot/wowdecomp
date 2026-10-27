@@ -27,8 +27,8 @@ validation evidence, and [PORTING_PLAN.md](PORTING_PLAN.md) for strategy.
 | macOS ARM64 | Actual ARM64 core/file/asset/packet/script/XML/layout fixture execution in Actions | Native game renderer, original application/startup, desktop input and gameplay on Apple silicon |
 | Windows x64 | Full client compilation in Actions and operator-reported D3D9 passes | Complete runtime/data/server/capture baseline; retained OpenGL warped-scene and busy-cursor failures |
 
-The immediate Linux path is [CPU dispatch integration #93](https://github.com/RovxBot/wowdecomp/issues/93),
-[original material continuation #94](https://github.com/RovxBot/wowdecomp/issues/94), then
+The immediate Linux path is [original material continuation #94](https://github.com/RovxBot/wowdecomp/issues/94)
+and [protected Lua callbacks #95](https://github.com/RovxBot/wowdecomp/issues/95), then
 [complete login rendering/input #96](https://github.com/RovxBot/wowdecomp/issues/96). Read those issues for
 each source revision's actual observed stop and next step, including work on
 pending branches. Neither authored model pixels nor login activation establishes
