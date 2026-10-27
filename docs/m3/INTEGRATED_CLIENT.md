@@ -70,6 +70,11 @@ lines fail visibly and unwind trees/recursion state. Original InterfaceKey check
 precede creation; the full post-creation digest comparison remains mandatory.
 Protected Lua errors are observed without replacing their handler. There are no
 skipped widgets, modified original Lua/XML, alternate keys or unchecked modes.
+The integrated loop checks protected errors after input and before clearing or
+painting the next frame, as well as after the tick. A renderer failure must not
+mask an earlier callback failure. Callback admission is tracked in
+[#95](https://github.com/RovxBot/wowdecomp/issues/95); this diagnostic ordering does
+not relax mutation or traversal guards.
 SimpleHTML/hyperlink/ScrollFrame/Slider form the first startup-driven source batch.
 Aligned pools retain matching deletion; HTML text closes before private fonts.
 

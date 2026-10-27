@@ -39,6 +39,7 @@
 #include <sys/resource.h>
 #include "StartupLocale.h"
 #include "HtmlSource.h"
+#include "LoopScriptErrors.h"
 using Bytes = std::vector<uint8_t>;
 using namespace Services::Native;
 namespace {
@@ -118,17 +119,24 @@ int Update(const void* raw, void* root) {
 int PollImages(const void*, void* images) {
     static_cast<TextureService*>(images)->Poll(); return 1;
 }
-int Paint(const void*, void* root) {
+struct PaintContext {
+    CSimpleTop& root;
+    uint64_t scriptErrors = FrameScript::Native::ScriptErrorCount();
+};
+int Paint(const void*, void* raw) {
+    auto& paint = *static_cast<PaintContext*>(raw);
+    CheckLoopScriptErrors(paint.scriptErrors);
     GxSceneClear(GxBufferBit_Color, CImVector(0, 0, 0, 255));
-    static_cast<CSimpleTop*>(root)->OnLayerRender(); GxScenePresent(); return 1;
+    paint.root.OnLayerRender(); GxScenePresent(); return 1;
 }
 struct LoopHandlers {
+    PaintContext paint;
     static int PollFiles(const void*, void* files) { static_cast<LegacyFiles*>(files)->Poll(); return 1; }
-    LoopHandlers(CSimpleTop& root, TextureService& images, LegacyFiles& files) {
+    LoopHandlers(CSimpleTop& root, TextureService& images, LegacyFiles& files) : paint{root} {
         EventRegisterEx(EVENT_ID_POLL, PollFiles, &files, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_POLL, PollImages, &images, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);
-        EventRegisterEx(EVENT_ID_PAINT, Paint, &root, EVENT_PRIORITY_NORMAL);
+        EventRegisterEx(EVENT_ID_PAINT, Paint, &paint, EVENT_PRIORITY_NORMAL);
     }
     ~LoopHandlers() {
         EventUnregister(EVENT_ID_POLL, PollFiles);
@@ -185,7 +193,6 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
         LoopHandlers handlers(root, images, modelFiles);
-        const auto scriptErrors = FrameScript::Native::ScriptErrorCount();
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
             context.Window().Pump(); OSEVENT event;
@@ -193,10 +200,10 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
                 if (event.id == OS_INPUT_CLOSE || event.id == OS_INPUT_SHUTDOWN) EventPostClose();
                 else if (!Frame::Native::DispatchWindowEvent(context, event)) Frame::Native::DispatchInputEvent(context, event);
             }
+            CheckLoopScriptErrors(handlers.paint.scriptErrors);
             const auto now = OsGetAsyncTimeMs();
             EventNative::Tick(float(now - previous) * 0.001f, now); previous = now; ++frames;
-            if (FrameScript::Native::ScriptErrorCount() != scriptErrors)
-                throw std::runtime_error("Original Glue loop callback failed: " + FrameScript::Native::LastScriptError());
+            CheckLoopScriptErrors(handlers.paint.scriptErrors);
             SDL_Delay(1);
         }
         std::cout << "startup-frames=" << frames << std::endl;
