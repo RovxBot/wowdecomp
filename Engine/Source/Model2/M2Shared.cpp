@@ -1938,7 +1938,14 @@ int32_t CM2Shared::FinishLoading() {
         }
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // SMem returns an owned allocation even for zero bytes. Inline-only models
+    // need no sequence table; do not create an allocation with zero capacity.
+    this->m_lowPrioritySequenceBuffers = count ? static_cast<uint8_t**>(SMemAlloc(sizeof(uint8_t*) * count, __FILE__, __LINE__, 8)) : nullptr;
+    if (count && !this->m_lowPrioritySequenceBuffers) return 0;
+#else
     this->m_lowPrioritySequenceBuffers = static_cast<uint8_t**>(SMemAlloc(sizeof(uint8_t*) * count, __FILE__, __LINE__, 8));
+#endif
     this->m_lowPrioritySequenceCapacity = count;
     this->m_flags |= 1;
     this->m_lowPrioritySequenceCount = 0;
@@ -2093,7 +2100,11 @@ CM2Shared::~CM2Shared() {
         }
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_lowPrioritySequenceBuffers) {
+#else
     if (this->m_lowPrioritySequenceCapacity) {
+#endif
         for (uint32_t i = 0; i < this->m_lowPrioritySequenceCount; i++) {
 #if defined(WOWDECOMP_ARCH_64)
             OsFreeNear(this->m_lowPrioritySequenceBuffers[i]);
