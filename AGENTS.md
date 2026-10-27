@@ -11,11 +11,89 @@ the Windows client and hosted native targets; the full native game is still gate
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
 
+## GitHub issues and documentation
+
+Use the [repository issue tracker](https://github.com/RovxBot/wowdecomp/issues)
+for the current work queue, open bugs/blockers, acceptance criteria, progress and
+validation evidence. This workflow supersedes the practice of appending task
+handoffs and per-PR execution histories to this file or large Markdown reports.
+The dated summaries below remain historical evidence and contract references;
+their old next-step lists are not the current task queue. Issues do not override
+the user's scope or the standing compatibility, build and data-safety rules.
+
+### Read issues before choosing or continuing work
+
+- Before starting or resuming implementation, search relevant open issues and read
+  their bodies, latest comments, dependencies and linked PRs/evidence. Use explicit
+  repository-scoped issue searches, excluding PRs when finding the issue queue.
+  Search relevant closed issues too when investigating a regression, prior decision
+  or already-completed prerequisite. Do not rely on issue titles alone.
+- Choose the next concrete step from the user's request and the issues' current
+  targets, acceptance criteria and blockers, within the plan's integration direction.
+  Read the relevant source/build files and durable contracts as well. If issue
+  claims conflict, check the underlying commits and execution evidence; a newer
+  comment alone does not establish a newer qualified result.
+- Recheck the working issue before posting a handoff or completion report so that
+  another agent's updates are incorporated. If tracker access is unavailable,
+  report the specific access gap, continue independent authorized work and include
+  a concise pending issue update in the final handoff. Do not claim it was posted
+  or start another Markdown work log as a substitute.
+
+### Keep issues actionable and log evidence there
+
+- Search for an existing issue before creating one. Reuse the relevant issue for
+  a cohesive implementation task, or create one if none covers the authorized work.
+  Create linked follow-up issues for distinct unresolved bugs, blockers or
+  acceptance gaps discovered during that work. Avoid duplicate issues, one issue
+  per routine test run and a single unbounded milestone diary.
+- Keep the issue body concise: problem/target, scope, acceptance checklist,
+  dependencies and current blocker/next step. Add dated comments for meaningful
+  findings, decisions and validation, then refresh the current summary. Link
+  related issues and PRs in both directions; use the repository's existing labels
+  and milestones where applicable.
+- Evidence comments must identify the implementation commit and the tested
+  checkout/artifact source when different, exact Actions run/job/attempt links and
+  artifact identities/hashes where applicable, reproduction commands, relevant
+  platform/data/configuration and observed results. Record failures, cancellations,
+  skipped checks and remaining gaps as well as passes. Retain earlier failed or
+  superseded evidence and explain which later result supersedes it and why.
+- Keep hosted compilation, authored fixtures, debugger inspection, strict
+  sanitizer execution, original-data rendering, operator input and server/gameplay
+  observations distinct. State the integrated executable's actual observed stop
+  and next concrete blocker separately from component-fixture success.
+- Link detailed logs/captures as retained artifacts or attachments and include
+  enough identity/result information in the issue to remain useful after Actions
+  artifacts expire. Keep game data, credentials and sensitive session content out
+  of issues as well as Git. Link existing machine-readable validation manifests
+  instead of duplicating them; add new manifests only for tooling or reproducible
+  evidence needs, not as a parallel status log.
+- Before ending work, update the issue with the outcome, checks, remaining gaps
+  and next action; include its link in the PR and final handoff. Close an issue
+  only when its acceptance criteria are evidenced. A merged PR or passing build
+  alone does not close runtime/input/gameplay requirements; avoid auto-closing
+  references when the PR leaves required validation outstanding.
+
+### Keep repository documentation durable and concise
+
+- Reserve `AGENTS.md` for agent rules, `PORTING_PLAN.md` for strategy/dependencies,
+  `README.md` for user-facing status/usage, and module docs for lasting architecture,
+  contracts and build/run instructions. Update them when those facts change, with
+  short links to the tracking issues for current work and evidence.
+- Do not append per-run results, full SHA/workflow inventories, repeated milestone
+  narratives or new per-PR handoff sections to Markdown. Keep provenance/notices
+  and actual imports in the existing backport ledger; link issue evidence rather
+  than copying execution histories into multiple files.
+- Preserve existing historical reports and exact identities. When moving active
+  work into an issue, link the relevant document/section and summarize only the
+  current target, blocker and acceptance criteria. Do not bulk rewrite or delete
+  historical evidence as part of an unrelated implementation change.
+
 ## Current integration priority — 2026-10-25
 
 Use the [current integration direction](PORTING_PLAN.md#current-integration-direction--2026-10-25)
-to choose new work. It supersedes historical next-caller/widget ordering in the
-handoffs; those reports retain their original evidence and implementation identities.
+as the strategic constraint and the issue workflow above to choose the next
+concrete task. It supersedes historical next-caller/widget ordering in the handoffs;
+those reports retain their original evidence and implementation identities.
 
 - The product uses unchanged clean 3.3.5a/12340 game data with our compiled native
   Linux x86-64 executable or macOS ARM64 application. Reuse the reconstructed
@@ -805,9 +883,11 @@ Fontconfig report reproduces without engine code and is retained, not suppressed
 do not claim a clean Wayland LeakSanitizer run.
 
 For implementation changes, record the commands and checks run, their results and
-any skipped platform checks. Update milestone status only with evidence. Distinguish
-source inspection, compilation, fixture tests, rendered output and observed
-gameplay; preserve honest gaps when hardware, data or a server is unavailable.
+any skipped platform checks in the tracking issue using the workflow above, rather
+than appending another Markdown execution report. Update milestone status only
+with evidence. Distinguish source inspection, compilation, fixture tests, rendered
+output and observed gameplay; preserve honest gaps when hardware, data or a server
+is unavailable.
 
 Use synthetic or small redistributable fixtures in ordinary CI. Keep full game data,
 credentials and environment-specific paths external. Record the tested client/data
