@@ -19,6 +19,8 @@
 #include "Engine/Source/ConsoleBase/ConsoleCommand.h"
 #include "Engine/Source/Model2/M2Shared.h"
 #include "Engine/Source/Model2/M2Cache.h"
+#include "Engine/Source/Model2/M2ModelLight.h"
+#include "Engine/Source/Model2/Portable/InstanceLayout.h"
 #include "Engine/Source/Os/Portable/ModelMemory.h"
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Services/Portable/LegacyFiles.h"
@@ -26,6 +28,7 @@
 #include "Engine/Source/Services/Portable/Texture.h"
 #include "Engine/Source/Services/Camera.h"
 #include "Engine/Source/Services/CameraInt.h"
+#include "Engine/Source/Services/ParticleSystem2.h"
 #include "Engine/Source/Base/Handle.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Base/Status.h"
@@ -75,6 +78,57 @@ struct ModelBytes {
     bool Relocate() { return M2Init(reinterpret_cast<uint8_t*>(data), Size, *data) != 0; }
 };
 void Relocations() {
+    {
+        // Reproduce the former inline-only model ownership: capacity zero can
+        // still carry an owned SMem allocation, which the destructor must free.
+        CM2Shared shared(nullptr);
+        shared.m_lowPrioritySequenceBuffers = static_cast<uint8_t**>(SMemAlloc(0, __FILE__, __LINE__, 8));
+        Check(shared.m_lowPrioritySequenceBuffers && !shared.m_lowPrioritySequenceCapacity,
+            "Authored zero-capacity sequence owner was not created");
+    }
+    {
+        CPlaneParticleEmitter emitter;
+        CPlaneParticleEmitter copy(emitter, 0);
+        Check(emitter.m_emitterType==CParticleEmitter2::PET_PLANE_EMITTER &&
+            copy.m_emitterType==emitter.m_emitterType && !copy.m_childEmitterCount &&
+            !copy.m_model && !copy.m_childModel && !copy.m_texture,
+            "Original particle construction/copy created unexpected resources");
+    }
+    {
+        Model2Native::InstanceLayout layout;
+        const auto word = layout.Reserve<uint32_t>(1);
+        const auto light = layout.Reserve<M2ModelLight>(1);
+        const auto pointer = layout.Reserve<CTexture*>(3);
+        struct Storage {
+            void* bytes;
+            ~Storage() { SMemFree(bytes, __FILE__, __LINE__, 0); }
+        } storage{SMemAlloc(layout.Size(), __FILE__, __LINE__, 0)};
+        auto* bytes = static_cast<uint8_t*>(storage.bytes);
+        Check(word==0 && light >= sizeof(uint32_t) &&
+            reinterpret_cast<uintptr_t>(bytes+light)%alignof(M2ModelLight)==0 &&
+            reinterpret_cast<uintptr_t>(bytes+pointer)%alignof(CTexture*)==0 &&
+            pointer+3*sizeof(CTexture*)==layout.Size(), "Native instance arrays lost alignment or allocation coverage");
+        auto* object = new (bytes+light) M2ModelLight();
+        object->~M2ModelLight();
+        bool rejected=false;
+        try { layout.Reserve<uint64_t>(UINT32_MAX); } catch (const std::length_error&) { rejected=true; }
+        Check(rejected, "Native instance allocation truncated its original byte bound");
+    }
+    {
+        ModelBytes bytes;
+        CM2Shared shared(nullptr);
+        shared.m_data = bytes.data;
+        struct Detach { CM2Shared& shared; ~Detach() { shared.m_data = nullptr; } } detach{shared};
+        // The original lookup must reject the observed 20-bone GPU budget;
+        // admitting a profile here would hide an unsupported device capability.
+        shared.m_data->m_numSkinProfiles = 4;
+        Check(shared.GetSkinProfileIndex(20)==UINT32_MAX && shared.GetSkinProfileIndex(21)==3 &&
+            shared.GetSkinProfileIndex(53)==2 && shared.GetSkinProfileIndex(256)==0,
+            "Original skin-profile register boundaries changed");
+        shared.m_data->m_numSkinProfiles = 1;
+        Check(shared.GetSkinProfileIndex(20)==UINT32_MAX && shared.GetSkinProfileIndex(256)==0,
+            "Original single skin-profile selection changed");
+    }
     {
         ModelBytes bytes;
         std::memcpy(bytes.Array(bytes.data->m_name, 4), "m2\0", 4);
@@ -292,6 +346,8 @@ void Factory() {
         failShader = false;
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
+        Check(!(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
+            device.Caps().m_numTmus==1, "Original CPU skinning changed device limits or enabled a worker");
         const auto errors = FrameScript::Native::ScriptErrorCount();
         Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
         model->RunScript(model->m_onUpdateModel, 0, nullptr);

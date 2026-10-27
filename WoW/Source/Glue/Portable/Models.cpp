@@ -14,6 +14,7 @@
 #include "Engine/Source/FFX/FFX.h"
 #include "Engine/Source/Base/Prop.h"
 #include "Engine/Source/Gx/Gx.h"
+#include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
@@ -52,8 +53,15 @@ void EnsureModels() {
     if (initialized) return;
     PropInitialize();
     // The current single-owner adapter uses no Model2 animation worker.
-    // Keep the real advertised shader constant limits; no inferred capability.
-    M2Initialize(8, 64);
+    // Original CM2Shared::Initialize reserves 32 constants, then three per
+    // bone. Its smallest GPU skin profile needs 21 bones (95 constants).
+    // Reuse original CPU skinning when the real device cannot fit that profile;
+    // UI/FFX shader support alone does not establish GPU skinning support.
+    const auto constants = g_theGxDevicePtr->Caps().m_shaderConstants[GxSh_Vertex];
+    M2SetCacheFlags(0); // Original cache flags survive M2Destroy; this owner does not.
+    M2Initialize(constants >= 95 ? 8 : 0, 64);
+    std::cout << "native-model-skinning=" << ((M2GetCacheFlags() & 8) ? "gpu" : "cpu")
+              << " vertex-constants=" << constants << std::endl;
     initialized = true;
     try {
         CShaderEffect::InitShaderSystem(1, 0);

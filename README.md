@@ -17,7 +17,7 @@ and share what you build.
 
 ## Native port status
 
-**Updated: 2026-10-26. Linux has a tested native rendering and UI foundation.
+**Updated: 2026-10-27. Linux has a tested native rendering and UI foundation.
 A playable native Linux or macOS client is still in development.**
 
 | Platform | What is demonstrated | What still blocks a playable prototype |
@@ -30,9 +30,9 @@ The Actions-built `WowNativeClient` constructs the original **ModelFFX
 AccountLogin** factory and now completes the original ordered GlueXML creation
 with a matching full post-creation digest. Original build/account/CVar services,
 character model bindings, locale HTML and video/audio option queries are connected.
-Activation now reaches the real model-read barrier and stops during Model2
-initialization: the 94-register device budget fits 20 skinned bones, below the
-smallest original profile's 21. Unchanged gamma/terrain preference refreshes,
+The original CPU skinning path now passes that model-initialization barrier with
+native array alignment and clean strict shutdown. Activation currently stops at
+the missing `EULAAccepted` query. Unchanged gamma/terrain preference refreshes,
 warning state, screen tracking and optional unavailable-audio calls are connected.
 Login and
 model/animation/material/FFX rendering remain unfinished;

@@ -105,9 +105,11 @@ milestone; full native startup/login/gameplay remain unestablished.
    model/movie callbacks and actual video/no-audio-backend queries are connected;
    see the [service continuation and exact stop](docs/m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26).
    The [activation continuation](docs/m3/INTEGRATED_CLIENT.md#glue-activation-continuation--2026-10-26)
-   now reaches the actual model-read barrier: 94 constants fit 20 skinned bones,
-   below the smallest original profile's 21. Select the existing original CPU
-   skinning path for that budget, then observe Model2/material/FFX paint.
+   reaches the actual model-read barrier. [PR #86](https://github.com/RovxBot/wowdecomp/pull/86)
+   selects original CPU skinning for the real 94-register budget and corrects
+   native instance alignment, seed width and sequence ownership. Original-data
+   release/strict execution now reaches missing `EULAAccepted`; continue the
+   reached agreement/account services, then observe Model2/material/FFX paint.
    Audio/movie playback and graphics-option application remain unavailable;
    M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,
