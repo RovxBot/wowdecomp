@@ -225,7 +225,7 @@ void CpuRendering(CM2Scene* scene, Gx::Native::LegacyDevice& device) {
         GxXformSetProjection(C44Matrix()); GxXformSetView(C44Matrix());
         GxXformSetViewport(0,1,0,1,0,1);
         device.m_xforms[GxXform_World].Identity();
-        device.SceneClear(GxBufferBit_Color,CImVector(0,0,0,255));
+        device.SceneClear(GxBufferBit_Color | GxBufferBit_Depth,CImVector(0,0,0,255));
         auto* shadow=device.ShaderConstantsLock(GxSh_Vertex);
         const std::vector<float> before(shadow,shadow+256*4);
         render.DrawBatch();
@@ -235,7 +235,8 @@ void CpuRendering(CM2Scene* scene, Gx::Native::LegacyDevice& device) {
         TSGrowableArray<CImVector> pixels;
         device.DeviceReadPixels(rect,pixels);
         Check(pixels.Count()==1 && pixels[0].r>250 && pixels[0].g<3 && pixels[0].b<3,
-            "Original CPU transform/material did not paint the translated triangle");
+            ("Original CPU transform/material translated pixel was " + std::to_string(pixels[0].r) + "," +
+             std::to_string(pixels[0].g) + "," + std::to_string(pixels[0].b)).c_str());
         rect.minX=48; rect.maxX=49;
         device.DeviceReadPixels(rect,pixels);
         Check(pixels[0].r<3 && pixels[0].g<3 && pixels[0].b<3,

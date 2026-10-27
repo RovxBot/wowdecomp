@@ -775,6 +775,14 @@ void LegacyDevice::Sync() {
             [](const GlVertexBinding& a) { return a.attribute == GxVA_Color0; });
         SyncFixed(hasColor);
     } else {
+        // Fixed texgen and lighting/fog do not execute inside arbitrary ARB
+        // programs. Preserve their visible rejection in the shader pipeline.
+        if (m_appRenderStates[GxRs_TexGen0].m_value.m_data.i[0] ||
+            m_appRenderStates[GxRs_TextureShader0].m_value.m_data.i[0])
+            Unavailable("Native ARB fixed texgen unavailable");
+        if ((m_appRenderStates[GxRs_Lighting].m_value.m_data.i[0] && MasterEnable(GxMasterEnable_Lighting)) ||
+            (m_appRenderStates[GxRs_Fog].m_value.m_data.i[0] && MasterEnable(GxMasterEnable_Fog)))
+            Unavailable("Native ARB fixed lighting/fog unavailable");
         s.Disable(GL_LIGHTING);
         s.Disable(GL_FOG);
         s.Disable(GL_COLOR_MATERIAL);
