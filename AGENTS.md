@@ -105,6 +105,32 @@ compilation. All 14 post-merge PR #84 workflows also pass. Login rendering,
 authentication and gameplay remain unobserved. Both installations stay read-only,
 all compilation stays in Actions, and signatures/server policy/sign-in are unchanged.
 
+## Model paint bounds — 2026-10-27
+
+PR #89 admits only cached `GetRect` reads during model paint, with owner-thread,
+installed-runtime and live-frame checks. Layout resolution/mutation/creation/
+destruction guards remain. Its first original-data continuation exposed an ASan
+global-buffer-overflow in the GPU palette writer and a release SIGBUS during
+teardown despite all hosted fixtures passing. Preserve both failed reports.
+Corrected implementation `d79ccf96f886ff2cbe73b44e5749519388c7855d`, matching-tree
+Actions checkout `d42ea17efc20591ac70eb3f44975607f4dab7139`, checks full native
+normal/instanced/shadow palette write spans before exposing storage. Keep the
+94-register/one-texture-unit limits and wide count arithmetic. Read
+[contracts](docs/m3/INTEGRATED_CLIENT.md#model-paint-bounds--2026-10-27) and
+[evidence](docs/m3/model-paint-validation.json).
+One release/three strict original-data runs retain the full creation digest and
+login activation, then reject `Native shader constant write range`, exit 1 with
+zero workers and no sanitizer finding. Separate release GDB observes index 31,
+count 429 (143 bones). CPU model loading is selected, but shader-enabled material
+dispatch still enters the GPU palette path. Connect original CPU rendering/
+materials next; do not raise device limits or discard the preflight. Initial
+diagnostics also retain protected Lua mutation-guard errors for follow-up.
+All five corrected workflows/ten jobs and all PR #88 post-merge checks pass,
+including Windows compilation and actual ARM64 layout. No completed original
+login/model frame, physical input, authentication or gameplay is established.
+Read-only data, Actions-only compilation, signatures, original agreement state,
+interactive sign-in and server/Warden policy remain unchanged.
+
 ## FFX depth-target continuation — 2026-10-27
 
 PR #88 admits original bit 8 only on render targets with retained implicit depth,

@@ -33,6 +33,9 @@ void RequireNoObjects();
 void FrameCreated(CLayoutFrame*);
 void FrameDestroyed(CLayoutFrame*);
 void RequireFrame(CLayoutFrame*);
+// Read only the already-resolved rectangle during an original model draw
+// callback. This admits no layout resolution, mutation or object creation.
+void RequireCachedRect(const CLayoutFrame*);
 void RequirePoint(uint32_t);
 void PointCreated(CFramePoint*);
 void PointDestroyed(CFramePoint*);

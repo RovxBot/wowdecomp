@@ -15,8 +15,10 @@ reaches the actual model-read barrier. The [native model continuation](#native-m
 selects original CPU skinning for that budget and passes model initialization.
 The [login activation continuation](#original-login-activation--2026-10-27) now
 completes original activation. The [FFX target continuation](#ffx-depth-target-continuation--2026-10-27)
-passes its depth flag and reaches the model's cached-rectangle read guard during
-paint. Complete login/model rendering remains open. Its historical
+passes its depth flag. The [model paint continuation](#model-paint-bounds--2026-10-27)
+admits the cached rectangle read and rejects an oversized GPU palette before
+writes. CPU rendering/material dispatch and complete login/model rendering remain
+open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -132,6 +134,50 @@ backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
+
+## Model paint bounds — 2026-10-27
+
+[PR #89](https://github.com/RovxBot/wowdecomp/pull/89) permits `GetRect` to copy
+already-resolved coordinates during original model paint. Its narrow check
+requires the XML owner thread, installed layout and live frame. It performs no
+anchor resolution or geometry mutation. Setters, structure edits, resize,
+creation and destruction retain their render-time guards; unresolved rectangles
+still return failure without changing the output.
+
+The first implementation `979028562977221b7f2f8b290e8084346f781f46` passed all
+five hosted workflows, but original-data execution exposed a global-buffer-overflow
+in `CM2SceneRender::DrawBatch`. It wrote the GPU bone palette before Unlock's
+range check. The release run later received SIGBUS during device teardown; the
+single strict run halted at the overflow. Neither completed cleanup or qualified
+the reached original-data paint path. Their reports and separate debugger traces
+remain in [the evidence record](model-paint-validation.json).
+
+Corrected implementation `d79ccf96f886ff2cbe73b44e5749519388c7855d`, matching-tree
+Actions checkout `d42ea17efc20591ac70eb3f44975607f4dab7139`, adds a native checked
+write-span lock to the existing device. All three normal/instanced/shadow model
+palette writers use it before exposing shadow storage, with wide count arithmetic.
+It enforces both the qualified 94-register ceiling and advertised cap. Original
+signatures, Unlock behavior and Windows paths remain intact.
+
+One release and three untraced strict ASan/UBSan/leak original-data runs retain
+the full ordered creation digest and login activation, then stop visibly at
+`Native shader constant write range`. All exit 1 with zero workers and no
+sanitizer finding. Separate release GDB observes target 0, index 31, count 429
+(143 bones). The cache selects CPU model loading, but shader-enabled material
+dispatch still enters the GPU palette path. Connect the original CPU rendering/
+material path next, retaining the preflight and device limits; loading success
+does not establish CPU rendering. Protected Lua state-mutation errors also occur
+in the separate initial diagnostic trace and remain unqualified follow-up paths.
+
+All five corrected workflows/ten jobs pass, including Linux release/strict startup,
+both GL configurations, actual ARM64 macOS and Windows layout fixtures and full
+Windows x64 compilation. Focused contracts check cached reads and retained
+mutation/thread guards, valid first/last register spans and rejected oversized/
+overflowing palettes without changing storage. All PR #88 post-merge checks pass
+separately. The pinned Apple palette loops were reviewed with no imports.
+No completed original login/model frame, physical input, authentication or
+gameplay is established. Original signatures, unaccepted original agreement
+state, read-only data, Actions-only compilation and server/sign-in policy remain.
 
 ## FFX depth-target continuation — 2026-10-27
 

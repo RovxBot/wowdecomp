@@ -926,6 +926,16 @@ float* CGxDevice::ShaderConstantsLock(EGxShTarget target) {
     return s_shadowConstants[target ? 0 : 1].constants;
 }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+float* CGxDevice::ShaderConstantsLockRange(EGxShTarget target, uint32_t index, uint64_t count) {
+    this->NativeCheckOwner();
+    if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index ||
+        index > m_caps.m_shaderConstants[target] || count > m_caps.m_shaderConstants[target] - index)
+        throw std::out_of_range("Native shader constant write range");
+    return this->ShaderConstantsLock(target) + index * 4;
+}
+#endif
+
 // VERIFY: 636e6d3d manual
 // OFFSET: 0x00683580
 void CGxDevice::ShaderConstantsUnlock(EGxShTarget target, uint32_t index, uint32_t count) {

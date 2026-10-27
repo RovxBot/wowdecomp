@@ -861,6 +861,25 @@ and source inspection are different evidence levels.
   [contracts](m3/INTEGRATED_CLIENT.md#original-glue-service-continuation--2026-10-26)
   and [evidence, failures and observed stop](m3/integrated-glue-services-validation.json).
 
+## NP-028 — Original model paint bounds
+
+- Reference: this checkout's original `CLayoutFrame::GetRect`, Model2 palette
+  writers and Gx shadow storage. The [pinned Apple review](m3/APPLE_STARTUP_REVIEW.md)
+  inspected both reference palette loops; no source/dependency/notice import.
+- Adaptation: owner/runtime/live-frame checks admit only cached rectangle reads
+  during original model draw callbacks. Mutation and lifetime guards remain.
+  Native model palette writers acquire a checked span before writing, including
+  wide instance arithmetic; original Windows paths/signatures remain unchanged.
+- Observed failure: the first original-data paint continuation overran global
+  shadow constants before Unlock checked the range. Retain the strict ASan
+  finding and separate release SIGBUS. Corrected release/strict execution rejects
+  the unsupported write before storage is exposed and closes with zero workers.
+- Limits/evidence: 94 registers and one texture unit remain. CPU model loading
+  still reaches GPU material dispatch; original CPU rendering and completed
+  model/login frames remain unfinished. See [contracts](m3/INTEGRATED_CLIENT.md#model-paint-bounds--2026-10-27)
+  and [exact validation](m3/model-paint-validation.json). No authentication,
+  agreement acceptance or server/Warden policy change follows from this work.
+
 ## BP-001 — Correct CPUID structure initialization
 
 - Status: source-confirmed candidate; not applied or runtime-tested during M0.

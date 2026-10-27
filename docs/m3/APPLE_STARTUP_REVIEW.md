@@ -68,3 +68,12 @@ owner and feedback checks; it does not copy an Apple backend or alter device
 limits. There are no new provenance, notice or dependency selections in this
 batch. This review does not establish original ModelFFX painting or macOS
 graphics execution.
+
+The model-paint bounds follow-up also inspected both pins'
+`Engine/Source/Model2/CM2SceneRender.cpp`, specifically `DrawBatch` and
+`DrawBatchDoodad`. Both retain direct palette writes followed by an Unlock; they
+do not supply a range preflight for this fork's 94-register adapter. Their GPU
+paths therefore cannot be used as evidence that our CPU-loaded model fits those
+registers. No source was imported. The native continuation validates the complete
+write span through the existing device before exposing shadow storage; selecting
+the original CPU rendering/material path remains separate work.

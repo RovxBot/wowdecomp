@@ -112,9 +112,11 @@ milestone; full native startup/login/gameplay remain unestablished.
    [PR #87](https://github.com/RovxBot/wowdecomp/pull/87) now completes original
    login activation. [PR #88](https://github.com/RovxBot/wowdecomp/pull/88) connects
    the original depth-target flag to retained native depth-24 storage. First
-   ModelFFX paint now stops at the model's cached-rectangle access guard; admit
-   that resolved read with owner/lifetime checks while retaining mutation guards,
-   then continue observing actual model/material/FFX paint.
+   ModelFFX paint in [PR #89](https://github.com/RovxBot/wowdecomp/pull/89) now
+   reads its cached rectangle and rejects an oversized GPU palette before writes.
+   CPU loading still reaches shader-enabled GPU material dispatch; connect the
+   original CPU rendering/material path, retaining the new write preflight and
+   truthful device limits. Original login/model painting remains unfinished.
    Audio/movie playback and graphics-option application remain unavailable;
    M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,

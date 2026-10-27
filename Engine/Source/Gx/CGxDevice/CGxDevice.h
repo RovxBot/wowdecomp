@@ -352,6 +352,12 @@ class CGxDevice {
     void SetScissor(const CRect& rect);
     void ShaderConstantsClear();
     float* ShaderConstantsLock(EGxShTarget target);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Validate the entire native write span before exposing shadow storage.
+    // Original callers/signatures remain available; Unlock is too late to
+    // protect a palette that has already written beyond the device budget.
+    float* ShaderConstantsLockRange(EGxShTarget target, uint32_t index, uint64_t count);
+#endif
     void ShaderConstantsUnlock(EGxShTarget target, uint32_t index, uint32_t count);
     int32_t TexCanUpdate(CGxTex* texId);
     int32_t TexIsReadyNow(CGxTex* texId);
