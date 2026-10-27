@@ -1,0 +1,838 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "pr": "https://github.com/RovxBot/wowdecomp/pull/89",
+  "scope": "Owner-checked cached layout reads and model palette write preflight; original model/material/FFX rendering remains unfinished",
+  "local_compilation": false,
+  "source_imports": [],
+  "dependency_imports": [],
+  "implementation_commit": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+  "actions_checkout": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+  "implementation_tree": "fc246c8fb43e87173517d8e734420f5d77d7ef9a",
+  "actions_tree": "fc246c8fb43e87173517d8e734420f5d77d7ef9a",
+  "hosted_runs": [
+    {
+      "id": 40429359548,
+      "name": "M3 original Frame layout",
+      "head_sha": "979028562977221b7f2f8b290e8084346f781f46",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359548",
+      "jobs": [
+        {
+          "id": 121942990584,
+          "name": "layout (ubuntu-24.04, linux-layout-asan, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359548/job/121942990584"
+        },
+        {
+          "id": 121942990787,
+          "name": "layout (macos-14, macos-arm64-layout, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359548/job/121942990787"
+        },
+        {
+          "id": 121942990809,
+          "name": "layout (windows-2022, windows-layout, python)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359548/job/121942990809"
+        },
+        {
+          "id": 121942990868,
+          "name": "layout (ubuntu-24.04, linux-layout, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359548/job/121942990868"
+        }
+      ]
+    },
+    {
+      "id": 40429359466,
+      "name": "M0 source audit",
+      "head_sha": "979028562977221b7f2f8b290e8084346f781f46",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359466",
+      "jobs": [
+        {
+          "id": 121942990407,
+          "name": "source-audit",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359466/job/121942990407"
+        }
+      ]
+    },
+    {
+      "id": 40429359487,
+      "name": "M3 Linux OpenGL context",
+      "head_sha": "979028562977221b7f2f8b290e8084346f781f46",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359487",
+      "jobs": [
+        {
+          "id": 121942990466,
+          "name": "shell (ubuntu-24.04, linux-gl, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359487/job/121942990466"
+        },
+        {
+          "id": 121942990788,
+          "name": "shell (ubuntu-24.04, linux-gl-asan, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359487/job/121942990788"
+        }
+      ]
+    },
+    {
+      "id": 40429359474,
+      "name": "Integrated Linux client",
+      "head_sha": "979028562977221b7f2f8b290e8084346f781f46",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359474",
+      "jobs": [
+        {
+          "id": 121942990617,
+          "name": "startup (linux-client-asan)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359474/job/121942990617"
+        },
+        {
+          "id": 121942990851,
+          "name": "startup (linux-client)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359474/job/121942990851"
+        }
+      ]
+    },
+    {
+      "id": 40429359500,
+      "name": "M0 Windows baseline",
+      "head_sha": "979028562977221b7f2f8b290e8084346f781f46",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359500",
+      "jobs": [
+        {
+          "id": 121942990697,
+          "name": "windows-x64",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359500/job/121942990697"
+        }
+      ]
+    },
+    {
+      "id": 40430086849,
+      "name": "M3 Linux OpenGL context",
+      "head_sha": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086849",
+      "jobs": [
+        {
+          "id": 121945355936,
+          "name": "shell (ubuntu-24.04, linux-gl, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086849/job/121945355936"
+        },
+        {
+          "id": 121945356295,
+          "name": "shell (ubuntu-24.04, linux-gl-asan, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086849/job/121945356295"
+        }
+      ]
+    },
+    {
+      "id": 40430086852,
+      "name": "M0 Windows baseline",
+      "head_sha": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086852",
+      "jobs": [
+        {
+          "id": 121945356027,
+          "name": "windows-x64",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086852/job/121945356027"
+        }
+      ]
+    },
+    {
+      "id": 40430086658,
+      "name": "M0 source audit",
+      "head_sha": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086658",
+      "jobs": [
+        {
+          "id": 121945354881,
+          "name": "source-audit",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086658/job/121945354881"
+        }
+      ]
+    },
+    {
+      "id": 40430086745,
+      "name": "Integrated Linux client",
+      "head_sha": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745",
+      "jobs": [
+        {
+          "id": 121945355438,
+          "name": "startup (linux-client)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745/job/121945355438"
+        },
+        {
+          "id": 121945355767,
+          "name": "startup (linux-client-asan)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745/job/121945355767"
+        }
+      ]
+    },
+    {
+      "id": 40430086913,
+      "name": "M3 original Frame layout",
+      "head_sha": "d79ccf96f886ff2cbe73b44e5749519388c7855d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086913",
+      "jobs": [
+        {
+          "id": 121945356869,
+          "name": "layout (ubuntu-24.04, linux-layout, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086913/job/121945356869"
+        },
+        {
+          "id": 121945357103,
+          "name": "layout (macos-14, macos-arm64-layout, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086913/job/121945357103"
+        },
+        {
+          "id": 121945357162,
+          "name": "layout (ubuntu-24.04, linux-layout-asan, python3)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086913/job/121945357162"
+        },
+        {
+          "id": 121945357236,
+          "name": "layout (windows-2022, windows-layout, python)",
+          "conclusion": "success",
+          "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086913/job/121945357236"
+        }
+      ]
+    }
+  ],
+  "source_tests": {
+    "command": "python3 -m unittest discover -s Tools/Porting -p 'test_*.py' -q",
+    "tests": 61,
+    "skipped": 1,
+    "result": "passed"
+  },
+  "artifacts": [
+    {
+      "artifact_id": 12701671236,
+      "name": "native-linux-client-1cf29ec4de438a53c4cb804721ddcde384ba5104",
+      "zip_sha256": "sha256:172ec9e1632a06260ef6e944edebcf61c4cdab4c850c4255ef74229ebdb3e305",
+      "source_commit": "1cf29ec4de438a53c4cb804721ddcde384ba5104",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "9a4409e088c70cd77f4a66efe41f9a5fdef3183d197979336e57b91c43de87e1",
+        "NativeStartupCheck": "ee341c508b123df0fa6498e523b7ff76c3a4513eb8226f4e13bd66b500903634"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12700464460,
+      "name": "native-linux-client-asan-1cf29ec4de438a53c4cb804721ddcde384ba5104",
+      "zip_sha256": "sha256:c792fff545eba290e985af0e048e1e031c6ce1bbfe0508d8b02f92666653c01a",
+      "source_commit": "1cf29ec4de438a53c4cb804721ddcde384ba5104",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "716e90c1a994f4e462063b80f85da9ca1b50dd21e7ef11eb428ef7dab1d5bed8",
+        "NativeStartupCheck": "d9200dc28db5ec05d5d540bd19b43991a7ec6906493db33a39687e875c9f3d37"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12701228162,
+      "name": "native-linux-client-d42ea17efc20591ac70eb3f44975607f4dab7139",
+      "zip_sha256": "sha256:94f4aadade3ffd7f7b3f3fc68e606d611c00ae36d266b337f58dfcd104264dde",
+      "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "d1606a30ae9ba641f902a7147b98c0b928dbda140b4ab4e03b84a0bfe4d6afe2",
+        "NativeStartupCheck": "781ba9be3d1b6a53dd90d560cd4f243a7b0c9ad87413e9bfefb482311bc73757"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    },
+    {
+      "artifact_id": 12700834749,
+      "name": "native-linux-client-asan-d42ea17efc20591ac70eb3f44975607f4dab7139",
+      "zip_sha256": "sha256:84000067318a09d8a40af9adc0dc0de500e5df6843249394d21479f9336745c3",
+      "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+      "binary_types": "ELF64 little-endian x86-64",
+      "binaries": {
+        "WowNativeClient": "0124963a2c1f3e53398726821968ee2aafbfbbdd0aeb048ff143f4305cded717",
+        "NativeStartupCheck": "b5f8becad00880357681e4c282981838540c74dee4320ff7f7cde5164cc20ce9"
+      },
+      "notices": {
+        "Expat-LICENSE.txt": "3373b5c2ed10ae60e0b2f19e4248537bf07fa922b7cbd4aa8ed818563b946864",
+        "FreeType-LICENSE.txt": "6e04c8845e4009f4814ee871aa9f19c585d21ab13c7b54febe68ee1a7b1bbd84",
+        "FreeType-NATIVE_ADAPTATIONS.md": "aab66fb6bd0dd069593cfa2d64465af475938633962aca0f784b8db04d9ed29a",
+        "LZMA-NOTICE.txt": "77c8900e38da39d45a420783fadadf6f3ce5e0e4d194c951f83325ed47ca5f05",
+        "Lua-LICENSE.txt": "edce81d96d79c0d3e3ca80c22216c96d6ffa9627d502ac7f0322d8c4b9f4754b",
+        "SDL3-LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+        "blast-NOTICE.txt": "2c7529cc3ec059b3d542827b97d7acccaad26ddf6ff4b30a45e5cb8f04a403ba",
+        "bzip2-LICENSE.txt": "802f577465df855ca207973e0f63521535ba646537ce4ab5cb584e83210f62e1",
+        "zlib-NOTICE.txt": "7359aa181c03813391f413c7212d325c6f636408e867537613b3cb41733a7cb2"
+      },
+      "result": "passed"
+    }
+  ],
+  "retained_initial_failures": [
+    {
+      "name": "9790-client-release.json",
+      "sha256": "abb42300d5e0f7b442f3330d6b22150155a35e6a00f1e3cfbfae5f7482312fe6",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "1cf29ec4de438a53c4cb804721ddcde384ba5104",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359474",
+        "preset": "linux-client",
+        "binary_sha256": "9a4409e088c70cd77f4a66efe41f9a5fdef3183d197979336e57b91c43de87e1",
+        "started_at": "2026-10-27T00:57:37.690507+00:00",
+        "completed_at": "2026-10-27T00:57:41.975545+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": -7,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login"
+        ],
+        "stderr": [],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": null,
+          "UBSAN_OPTIONS": null,
+          "ASAN_SYMBOLIZER_PATH": null,
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "9790-client-asan-1.json",
+      "sha256": "dd26cd84cad8dc2b32f1204204d4da04f2f6d25b46a6b6625428a0cc1f7437ed",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "1cf29ec4de438a53c4cb804721ddcde384ba5104",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40429359474",
+        "preset": "linux-client-asan",
+        "binary_sha256": "716e90c1a994f4e462063b80f85da9ca1b50dd21e7ef11eb428ef7dab1d5bed8",
+        "started_at": "2026-10-27T00:59:16.978842+00:00",
+        "completed_at": "2026-10-27T00:59:33.257700+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login"
+        ],
+        "stderr": [
+          "=================================================================",
+          "==40912==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5585a9248f70 at pc 0x5585a6bec3fe bp 0x7ffd8e0f7550 sp 0x7ffd8e0f7548",
+          "WRITE of size 4 at 0x5585a9248f70 thread T0",
+          "    #0 0x5585a6bec3fd in CM2SceneRender::DrawBatch() /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Model2/CM2SceneRender.cpp:436:26",
+          "    #1 0x5585a6bf9c80 in CM2SceneRender::Draw(M2PASS, M2Element*, unsigned int*, unsigned int) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Model2/CM2SceneRender.cpp:992:23",
+          "    #2 0x5585a6bb4d75 in CM2Scene::Draw(M2PASS) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Model2/M2Scene.cpp:2229:12",
+          "    #3 0x5585a6a96875 in CSimpleModel::RenderModel(void*) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Frame/CSimpleModel.cpp:491:34",
+          "    #4 0x5585a6a9b474 in CSimpleModelFFX::Render(void*) /home/runner/work/wowdecomp/wowdecomp/WoW/Source/Glue/CSimpleModelFFX.cpp:122:9",
+          "    #5 0x5585a6e8a36c in CSimpleRender::DrawBatch(CRenderBatch*) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Frame/CSimpleBatchRender.cpp:312:9",
+          "    #6 0x5585a6d7b607 in CFrameStrata::RenderBatches() /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Frame/CSimpleTop.cpp:969:13",
+          "    #7 0x5585a6d8046e in CSimpleTop::OnLayerRender() /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Frame/CSimpleTop.cpp:1236:33",
+          "    #8 0x5585a69f9edf in (anonymous namespace)::Paint(void const*, void*) /home/runner/work/wowdecomp/wowdecomp/Tools/NativeClient/main.cpp:123:37",
+          "    #9 0x5585a6a1fea8 in EventNative::Dispatch(EVENTID, void const*) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Event/Portable/Loop.cpp:47:14",
+          "    #10 0x5585a6a208e1 in EventNative::Tick(float, unsigned int) /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Event/Portable/Loop.cpp:58:28",
+          "    #11 0x5585a69f5152 in Run /home/runner/work/wowdecomp/wowdecomp/Tools/NativeClient/main.cpp:197:13",
+          "    #12 0x5585a69f5152 in main /home/runner/work/wowdecomp/wowdecomp/Tools/NativeClient/main.cpp:229:9",
+          "    #13 0x7fa380027780 in __libc_start_call_main /usr/src/debug/glibc/glibc/csu/../sysdeps/nptl/libc_start_call_main.h:59:16",
+          "    #14 0x7fa3800278b8 in __libc_start_main /usr/src/debug/glibc/glibc/csu/../csu/libc-start.c:372:3",
+          "    #15 0x5585a6917434 in _start (/home/Rov/.cache/wowdecomp-glue-continuation/9790-asan/WowNativeClient+0xa38434) (BuildId: fdaf01bc67c058caefb258bd5fb2fd4d0c4a5b2d)",
+          "",
+          "0x5585a9248f70 is located 0 bytes after global variable 'CGxDevice::s_shadowConstants' defined in '/home/runner/work/wowdecomp/wowdecomp/Engine/Source/Gx/CGxDevice/CGxDevice.cpp' (0x5585a9246f60) of size 8208",
+          "SUMMARY: AddressSanitizer: global-buffer-overflow /home/runner/work/wowdecomp/wowdecomp/Engine/Source/Model2/CM2SceneRender.cpp:436:26 in CM2SceneRender::DrawBatch()",
+          "Shadow bytes around the buggy address:",
+          "  0x5585a9248c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+          "  0x5585a9248d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+          "  0x5585a9248d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+          "  0x5585a9248e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+          "  0x5585a9248e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+          "=>0x5585a9248f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[f9]f9",
+          "  0x5585a9248f80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9",
+          "  0x5585a9249000: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9",
+          "  0x5585a9249080: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9",
+          "  0x5585a9249100: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9",
+          "  0x5585a9249180: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9",
+          "Shadow byte legend (one shadow byte represents 8 application bytes):",
+          "  Addressable:           00",
+          "  Partially addressable: 01 02 03 04 05 06 07 ",
+          "  Heap left redzone:       fa",
+          "  Freed heap region:       fd",
+          "  Stack left redzone:      f1",
+          "  Stack mid redzone:       f2",
+          "  Stack right redzone:     f3",
+          "  Stack after return:      f5",
+          "  Stack use after scope:   f8",
+          "  Global redzone:          f9",
+          "  Global init order:       f6",
+          "  Poisoned by user:        f7",
+          "  Container overflow:      fc",
+          "  Array cookie:            ac",
+          "  Intra object redzone:    bb",
+          "  ASan internal:           fe",
+          "  Left alloca redzone:     ca",
+          "  Right alloca redzone:    cb",
+          "==40912==ABORTING"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    }
+  ],
+  "original_data_runs": [
+    {
+      "name": "d79c-client-release.json",
+      "sha256": "3b4a6d9a5d21e8f5e95e306932e09a3487c198c0cbb3cf57faef68a2a25c9b40",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745",
+        "preset": "linux-client",
+        "binary_sha256": "d1606a30ae9ba641f902a7147b98c0b928dbda140b4ab4e03b84a0bfe4d6afe2",
+        "started_at": "2026-10-27T01:04:39.928094+00:00",
+        "completed_at": "2026-10-27T01:04:43.808536+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Native shader constant write range"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": null,
+          "UBSAN_OPTIONS": null,
+          "ASAN_SYMBOLIZER_PATH": null,
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "d79c-client-asan-1.json",
+      "sha256": "09aecf3b1aee07aee66aadb2465593762e366c8e9d9c9539264ca367f6b88123",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745",
+        "preset": "linux-client-asan",
+        "binary_sha256": "0124963a2c1f3e53398726821968ee2aafbfbbdd0aeb048ff143f4305cded717",
+        "started_at": "2026-10-27T01:06:36.608110+00:00",
+        "completed_at": "2026-10-27T01:06:53.030775+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Native shader constant write range"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "d79c-client-asan-2.json",
+      "sha256": "774b2376a9072644d3ccd34c09903e5ceaf2de5467be78fcda06ebe1ebf45a67",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745",
+        "preset": "linux-client-asan",
+        "binary_sha256": "0124963a2c1f3e53398726821968ee2aafbfbbdd0aeb048ff143f4305cded717",
+        "started_at": "2026-10-27T01:07:15.589753+00:00",
+        "completed_at": "2026-10-27T01:07:32.049432+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Native shader constant write range"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    },
+    {
+      "name": "d79c-client-asan-3.json",
+      "sha256": "d80b773f8d6dc457f1e4d480f92f7388250acfd4fb9bf41f181adcd1c7ed8779",
+      "report": {
+        "schema_version": 1,
+        "source_commit": "d42ea17efc20591ac70eb3f44975607f4dab7139",
+        "workflow_run": "https://github.com/RovxBot/wowdecomp/actions/runs/40430086745",
+        "preset": "linux-client-asan",
+        "binary_sha256": "0124963a2c1f3e53398726821968ee2aafbfbbdd0aeb048ff143f4305cded717",
+        "started_at": "2026-10-27T01:07:32.103704+00:00",
+        "completed_at": "2026-10-27T01:07:48.669426+00:00",
+        "scope": "integrated original Glue startup; completion/rendering must be established from observed stages",
+        "exit_code": 1,
+        "timed_out": false,
+        "stdout": [
+          "startup-stage=archives-authenticated records=28948",
+          "gl-renderer=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 6.18.58-1-lts)",
+          "gl-version=4.6 (Compatibility Profile) Mesa 26.2.5-arch1.1",
+          "native-unavailable=display-gamma,graphics-option-application",
+          "native-unavailable=audio-backend",
+          "startup-stage=original-frame-root",
+          "startup-stage=glue-authenticated visits=60",
+          "native-model-skinning=cpu vertex-constants=94",
+          "enabled",
+          "enabled",
+          "enabled",
+          "startup-stage=glue-created post-creation-digest=matched",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "native-unavailable=ui-sound-playback",
+          "native-unavailable=glue-music-playback",
+          "native-unavailable=glue-ambience-playback",
+          "startup-stage=glue-activated screen=login",
+          "startup-failure-cleanup workers=0"
+        ],
+        "stderr": [
+          "WowNativeClient stopped: Native shader constant write range"
+        ],
+        "environment": {
+          "SDL_VIDEODRIVER": "x11",
+          "EGL_PLATFORM": "x11",
+          "LIBGL_ALWAYS_SOFTWARE": null,
+          "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "ASAN_SYMBOLIZER_PATH": "/usr/bin/llvm-symbolizer",
+          "LSAN_OPTIONS": null,
+          "LD_PRELOAD": null,
+          "LD_AUDIT": null
+        }
+      }
+    }
+  ],
+  "agreement_state": [
+    {
+      "settings_root_name": "d79c-settings-release",
+      "agreement_preferences": {
+        "readTOS": null,
+        "readEULA": null,
+        "readTerminationWithoutNotice": null,
+        "readScanning": null,
+        "readContest": null
+      }
+    },
+    {
+      "settings_root_name": "d79c-settings-asan-1",
+      "agreement_preferences": {
+        "readTOS": null,
+        "readEULA": null,
+        "readTerminationWithoutNotice": null,
+        "readScanning": null,
+        "readContest": null
+      }
+    },
+    {
+      "settings_root_name": "d79c-settings-asan-2",
+      "agreement_preferences": {
+        "readTOS": null,
+        "readEULA": null,
+        "readTerminationWithoutNotice": null,
+        "readScanning": null,
+        "readContest": null
+      }
+    },
+    {
+      "settings_root_name": "d79c-settings-asan-3",
+      "agreement_preferences": {
+        "readTOS": null,
+        "readEULA": null,
+        "readTerminationWithoutNotice": null,
+        "readScanning": null,
+        "readContest": null
+      }
+    }
+  ],
+  "contracts": {
+    "layout": "GetRect reads only already-resolved m_rect when flag 0x100 is set. RequireCachedRect checks XML owner thread, installed layout and live frame without resolving anchors or changing geometry. All mutation/creation/destruction/resize guards remain.",
+    "palette": "Native ShaderConstantsLockRange validates target, full index/count span, qualified 94-register maximum and advertised device cap before returning shadow storage. Count arithmetic is uint64_t. Three original normal/instanced/shadow palette writers use it before writes. Original signatures and Windows code paths are retained.",
+    "regression": "Layout fixtures cover resolved/unresolved reads during drawing, unchanged unresolved output, owner-thread enforcement and rejected size/anchor/destruction/creation/resize operations. Native startup fixtures cover first/last register pointer spans, oversized and uint64-overflowing requests, rejected pixel ranges and unchanged storage.",
+    "remaining": "M2 cache selects original CPU loading, but CShaderEffect::s_enableShaders still drives the GPU palette path in CM2SceneRender. Final execution rejects that unsupported range before writes. CPU rendering/material selection remains open; no device cap was raised or effect silently skipped."
+  },
+  "separate_release_debugger": [
+    {
+      "name": "9790-model-crash-gdb.log",
+      "sha256": "beb5f9c4c9bf4f98db538a6c89408f629c89d9ef32c4d4f8a39aa7850ed7cedd",
+      "qualification": false
+    },
+    {
+      "name": "9790-model-throw-gdb.log",
+      "sha256": "61030161bdba5446d239537502fa69dee9ba9ada4b5c7abebfc79ed84d72bf19",
+      "qualification": false
+    },
+    {
+      "name": "d79c-palette-gdb.log",
+      "sha256": "9efe38358c2b064b659f7399d252b9c95d6a5924bb21169f08371f438b678fa8",
+      "qualification": false
+    }
+  ],
+  "debugger_observations": "Initial release SIGBUS occurs in Window::Size during LegacyDevice teardown after the GPU palette overrun. Separate catch-throw inspection reaches ShaderConstantsUnlock from CM2SceneRender::DrawBatch and protected Lua state-mutation guard errors; the strict untraced report independently establishes the global-buffer-overflow before Unlock. No complete cleanup is claimed for those failed initial runs.",
+  "final_palette_request": {
+    "source": "Separate verified release GDB inspection; not strict qualification",
+    "target": 0,
+    "index": 31,
+    "count": 429,
+    "bones": 143,
+    "qualified_device_registers": 94,
+    "observation": "CPU-loaded model still reaches the GPU material/palette path; the preflight rejects it before any shadow write."
+  },
+  "apple_review": {
+    "document": "docs/m3/APPLE_STARTUP_REVIEW.md",
+    "imports": [],
+    "files": [
+      {
+        "repo": "jerrywossion/wowdecomp",
+        "pin": "7489b5f2df6628a434b2ad9aceed66c0f2e6a431",
+        "path": "Engine/Source/Model2/CM2SceneRender.cpp",
+        "git_blob": "648003e6c4ca9bb935ebba34d1e439055b3d48e8"
+      },
+      {
+        "repo": "fmustafayaman/WoWReMac",
+        "pin": "3c7f82c02fa9d4c8399b8f95d30ef0df575ef069",
+        "path": "Engine/Source/Model2/CM2SceneRender.cpp",
+        "git_blob": "9f17183d03a2a979d6a069083e9e482956b84e81"
+      }
+    ],
+    "disposition": "Inspected normal and instanced palette loops in both pins; neither supplies a preflight for this 94-register native adapter. No source or dependency import."
+  },
+  "post_merge_pr88": [
+    {
+      "conclusion": "success",
+      "databaseId": 40429593887,
+      "headSha": "302aa16e8fdceb26935b994d4621f6bbab570713",
+      "name": "M0 source audit",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429593887"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40429594036,
+      "headSha": "302aa16e8fdceb26935b994d4621f6bbab570713",
+      "name": "Integrated Linux client",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429594036"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40429593873,
+      "headSha": "302aa16e8fdceb26935b994d4621f6bbab570713",
+      "name": "M3 Linux OpenGL context",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429593873"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40429593917,
+      "headSha": "302aa16e8fdceb26935b994d4621f6bbab570713",
+      "name": "M0 Windows baseline",
+      "status": "completed",
+      "url": "https://github.com/RovxBot/wowdecomp/actions/runs/40429593917"
+    }
+  ],
+  "limitations": [
+    "Final one release/three strict executions retain full ordered creation/digest and login activation, then stop visibly at the GPU palette write preflight with zero workers and no sanitizer finding.",
+    "Earlier all-green hosted checks did not establish original-data safety; initial release SIGBUS and strict global-buffer-overflow remain failed evidence. Only one initial strict run was performed after that finding.",
+    "Actual model/material/FFX painting, completed original login frames, physical input, authentication and gameplay remain unobserved. CPU loading is separate from CPU render/material dispatch.",
+    "Required signatures, original agreement state, real 94-register/one-texture-unit limits, read-only installations, Actions-only compilation and interactive sign-in/server/Warden policy remain unchanged."
+  ]
+}
