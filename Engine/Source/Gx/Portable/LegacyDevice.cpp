@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -75,6 +76,24 @@ struct LegacyDevice::State {
     BASE(ReadPixels);
     BASE(PixelStorei);
     BASE(GetBooleanv);
+    BASE(Color4fv);
+    BASE(Materialfv);
+    BASE(Materialf);
+    BASE(ColorMaterial);
+    BASE(Lightfv);
+    BASE(Lightf);
+    BASE(LightModelfv);
+    BASE(LightModeli);
+    BASE(Fogf);
+    BASE(Fogi);
+    BASE(Fogfv);
+    BASE(TexEnvi);
+    BASE(TexEnvf);
+    BASE(TexGeni);
+    BASE(MatrixMode);
+    BASE(LoadMatrixf);
+    PFNGLACTIVETEXTUREARBPROC ActiveTextureARB =
+        reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(context.Proc("glActiveTextureARB"));
     PFNGLBINDBUFFERARBPROC BindBufferARB =
         reinterpret_cast<PFNGLBINDBUFFERARBPROC>(context.Proc("glBindBufferARB"));
 #undef BASE
@@ -549,10 +568,23 @@ void LegacyDevice::IRsSendToHw(EGxRenderState which) {
         s.Enabled(GL_ALPHA_TEST, integer > 0);
         s.AlphaFunc(GL_GEQUAL, integer / 255.0f);
         break;
+    // Fixed material/light/texture state is delivered as a complete snapshot
+    // at submission, including when returning from an ARB UI/FFX pass.
     case GxRs_Lighting:
     case GxRs_Fog:
-        if (integer && MasterEnable(which == GxRs_Lighting ? GxMasterEnable_Lighting : GxMasterEnable_Fog))
-            Unavailable("Native fixed-function lighting/fog unavailable");
+    case GxRs_FogStart:
+    case GxRs_FogEnd:
+    case GxRs_FogColor:
+    case GxRs_MatDiffuse:
+    case GxRs_MatEmissive:
+    case GxRs_MatSpecular:
+    case GxRs_MatSpecularExp:
+    case GxRs_NormalizeNormals:
+    case GxRs_ColorMaterial:
+    case GxRs_ColorOp0:
+    case GxRs_AlphaOp0:
+    case GxRs_TexGen0:
+    case GxRs_TextureShader0:
         break;
     default:
         if (std::memcmp(&value, &s.defaults[which], sizeof(value)))
@@ -574,18 +606,130 @@ void LegacyDevice::NativeSyncTransforms() {
                            m_viewport.m_z.m_h});
     s.transforms.Scissor(m_appRenderStates[GxRs_ScissorTest].m_value.m_data.i[0] != 0,
                          {m_scissorRect.minX, m_scissorRect.maxX, m_scissorRect.minY, m_scissorRect.maxY});
-    s.transforms.Sync();
+    s.transforms.Sync(m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr);
     m_projNative = s.transforms.NativeProjection();
+}
+// Native adaptation of the original OpenGL material/light/combiner submission.
+// Uses the existing device state, retained textures and checked buffer owner.
+void LegacyDevice::SyncFixed(bool hasColor) {
+    auto &s = *state;
+    auto integer = [&](EGxRenderState which) { return m_appRenderStates[which].m_value.m_data.i[0]; };
+    auto scalar = [&](EGxRenderState which) {
+        float value = m_appRenderStates[which].m_value.m_data.f[0];
+        if (!std::isfinite(value)) throw std::invalid_argument("Nonfinite native fixed state");
+        return value;
+    };
+    auto color = [&](EGxRenderState which) {
+        const auto &value = reinterpret_cast<const CImVector &>(m_appRenderStates[which].m_value.m_data.u[0]);
+        return std::array<float, 4>{{value.r / 255.f, value.g / 255.f, value.b / 255.f, value.a / 255.f}};
+    };
+    const bool lit = integer(GxRs_Lighting) && MasterEnable(GxMasterEnable_Lighting);
+    s.Enabled(GL_LIGHTING, lit);
+    s.Enabled(GL_NORMALIZE, integer(GxRs_NormalizeNormals) != 0);
+    auto diffuse = color(GxRs_MatDiffuse), emission = color(GxRs_MatEmissive), specular = color(GxRs_MatSpecular);
+    const auto exponent = scalar(GxRs_MatSpecularExp);
+    if (exponent < 0 || exponent > 128) throw std::out_of_range("Native material specular exponent");
+    s.Disable(GL_COLOR_MATERIAL);
+    s.Materialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffuse.data());
+    s.Materialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse.data());
+    s.Materialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission.data());
+    if (exponent == 0) specular = {{0, 0, 0, 0}};
+    s.Materialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular.data());
+    s.Materialf(GL_FRONT_AND_BACK, GL_SHININESS, exponent);
+    if (hasColor && lit) {
+        const GLenum modes[] = {GL_AMBIENT_AND_DIFFUSE, GL_SPECULAR, GL_EMISSION};
+        auto mode = integer(GxRs_ColorMaterial);
+        if (uint32_t(mode) >= std::size(modes)) throw std::out_of_range("Native color material mode");
+        s.ColorMaterial(GL_FRONT_AND_BACK, modes[mode]);
+        s.Enable(GL_COLOR_MATERIAL);
+    } else if (!hasColor) {
+        // ShaderEffect folds unlit diffuse into emission. Preserve that color
+        // and the diffuse alpha when no vertex color or GL lighting supplies it.
+        if (!lit) for (unsigned i = 0; i < 3; ++i) diffuse[i] = std::min(1.f, diffuse[i] + emission[i]);
+        s.Color4fv(diffuse.data());
+    }
+    const float ambient[4] = {0, 0, 0, 0};
+    s.LightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+    s.LightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
+    s.LightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+    if (lit) {
+        // Lights are in view space before the model's world matrix. Apply the
+        // original handedness conversion, then restore the submitted modelview.
+        GLint mode = 0;
+        s.GetIntegerv(GL_MATRIX_MODE, &mode);
+        auto view = m_xforms[GxXform_View].m_mtx[m_xforms[GxXform_View].m_level];
+        auto modelView = m_xforms[GxXform_World].m_mtx[m_xforms[GxXform_World].m_level] * view;
+        auto convert = [](C44Matrix &m) { m.a2 = -m.a2; m.b2 = -m.b2; m.c2 = -m.c2; m.d2 = -m.d2; };
+        convert(view); convert(modelView);
+        s.MatrixMode(GL_MODELVIEW);
+        s.LoadMatrixf(&view.a0);
+        for (unsigned i = 0; i < 4; ++i) {
+            const auto &light = m_lights[i];
+            s.Enabled(GL_LIGHT0 + i, light.m_enable != 0);
+            if (!light.m_enable) continue;
+            float direction[4] = {light.m_dir.x, light.m_dir.y, light.m_dir.z, light.m_dir.w};
+            if (light.m_dir.w == 0) for (float &v : direction) v = -v;
+            s.Lightfv(GL_LIGHT0 + i, GL_POSITION, direction);
+            auto lightColor = [&](GLenum which, const C3Vector &c) {
+                float rgba[4] = {c.x, c.y, c.z, 0};
+                s.Lightfv(GL_LIGHT0 + i, which, rgba);
+            };
+            lightColor(GL_AMBIENT, light.m_ambColor);
+            lightColor(GL_DIFFUSE, light.m_dirColor);
+            lightColor(GL_SPECULAR, light.m_specColor);
+            s.Lightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, light.m_constantAttenuation);
+            s.Lightf(GL_LIGHT0 + i, GL_LINEAR_ATTENUATION, light.m_linearAttenuation);
+            s.Lightf(GL_LIGHT0 + i, GL_QUADRATIC_ATTENUATION, light.m_quadraticAttenuation);
+        }
+        s.LoadMatrixf(&modelView.a0);
+        s.MatrixMode(static_cast<GLenum>(mode));
+    }
+    s.Enabled(GL_FOG, integer(GxRs_Fog) && MasterEnable(GxMasterEnable_Fog));
+    s.Fogi(GL_FOG_MODE, GL_LINEAR);
+    s.Fogf(GL_FOG_START, scalar(GxRs_FogStart));
+    s.Fogf(GL_FOG_END, scalar(GxRs_FogEnd));
+    const auto fogColor = color(GxRs_FogColor);
+    s.Fogfv(GL_FOG_COLOR, fogColor.data());
+    s.ActiveTextureARB(GL_TEXTURE0_ARB);
+    s.Enabled(GL_TEXTURE_2D, m_appRenderStates[GxRs_Texture0].m_value.m_data.p != nullptr);
+    // Same six original s_texEnvOps entries; color and alpha are independent.
+    const GLenum combine[] = {GL_MODULATE, GL_MODULATE, GL_ADD, GL_REPLACE, GL_INTERPOLATE, GL_INTERPOLATE};
+    s.TexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+    for (bool alpha : {false, true}) {
+        const auto op = integer(alpha ? GxRs_AlphaOp0 : GxRs_ColorOp0);
+        if (uint32_t(op) >= std::size(combine)) throw std::out_of_range("Native texture combiner");
+        s.TexEnvi(GL_TEXTURE_ENV, alpha ? GL_COMBINE_ALPHA : GL_COMBINE_RGB, combine[op]);
+        s.TexEnvf(GL_TEXTURE_ENV, alpha ? GL_ALPHA_SCALE : GL_RGB_SCALE, op == 1 ? 2.f : 1.f);
+        s.TexEnvi(GL_TEXTURE_ENV, alpha ? GL_SOURCE0_ALPHA : GL_SOURCE0_RGB, op == 5 ? GL_TEXTURE : GL_PREVIOUS);
+        s.TexEnvi(GL_TEXTURE_ENV, alpha ? GL_SOURCE1_ALPHA : GL_SOURCE1_RGB, op == 5 ? GL_PREVIOUS : GL_TEXTURE);
+        s.TexEnvi(GL_TEXTURE_ENV, alpha ? GL_SOURCE2_ALPHA : GL_SOURCE2_RGB, op >= 4 ? GL_PREVIOUS : GL_CONSTANT);
+    }
+    const auto texgen = integer(GxRs_TexGen0);
+    if (texgen != GxTexGen_Disabled && texgen != GxTexGen_SphereMap)
+        Unavailable("Native fixed texgen mode unavailable");
+    if (integer(GxRs_TextureShader0) < 0 || integer(GxRs_TextureShader0) > 1)
+        Unavailable("Native projected texture matrix unavailable");
+    s.Enabled(GL_TEXTURE_GEN_S, texgen != 0);
+    s.Enabled(GL_TEXTURE_GEN_T, texgen != 0);
+    s.Disable(GL_TEXTURE_GEN_R);
+    s.Disable(GL_TEXTURE_GEN_Q);
+    if (texgen) {
+        s.TexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+        s.TexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    }
+    s.Error("Native CPU model material submission");
 }
 void LegacyDevice::Sync() {
     Check();
     IRsSync(0);
     NativeSyncTransforms();
     auto &s = *state;
+    const bool fixed = m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr;
+    if (fixed != (m_appRenderStates[GxRs_PixelShader].m_value.m_data.p == nullptr))
+        throw std::logic_error("Native mixed fixed/ARB shader pipeline unavailable");
     for (auto which : {GxRs_VertexShader, GxRs_PixelShader}) {
         auto *shader = static_cast<CGxShader *>(m_appRenderStates[which].m_value.m_data.p);
-        if (!shader)
-            throw std::logic_error("Legacy batch requires explicit UI shaders");
+        if (!shader) continue;
         auto &program = *s.programs.at(shader);
         program.Bind();
         auto &shadow = s_shadowConstants[which == GxRs_VertexShader ? 1 : 0];
@@ -599,8 +743,8 @@ void LegacyDevice::Sync() {
             shadow.dirtyMax = 0;
         }
     }
-    s.Enable(GL_VERTEX_PROGRAM_ARB);
-    s.Enable(GL_FRAGMENT_PROGRAM_ARB);
+    s.Enabled(GL_VERTEX_PROGRAM_ARB, !fixed);
+    s.Enabled(GL_FRAGMENT_PROGRAM_ARB, !fixed);
     auto *tex = static_cast<CGxTex *>(m_appRenderStates[GxRs_Texture0].m_value.m_data.p);
     if (tex)
         ITexMarkAsUpdated(tex);
@@ -626,6 +770,17 @@ void LegacyDevice::Sync() {
                     {submitted(m_primVertexFormatBuf[i]), i, a.m_type, a.m_offset, a.m_bufSize});
             }
     }
+    if (fixed) {
+        const bool hasColor = std::any_of(attributes.begin(), attributes.end(),
+            [](const GlVertexBinding& a) { return a.attribute == GxVA_Color0; });
+        SyncFixed(hasColor);
+    } else {
+        s.Disable(GL_LIGHTING);
+        s.Disable(GL_FOG);
+        s.Disable(GL_COLOR_MATERIAL);
+        s.Disable(GL_TEXTURE_GEN_S);
+        s.Disable(GL_TEXTURE_GEN_T);
+    }
     s.buffers.VertexFormat(attributes.data(), attributes.size());
     s.buffers.IndexBuffer(m_primIndexBuf ? submitted(m_primIndexBuf) : GlBuffer{});
 }
@@ -638,7 +793,8 @@ void LegacyDevice::Draw(CGxBatch *batches, int32_t count) {
     Sync();
     for (int32_t i = 0; i < count; ++i)
         state->buffers.Draw(uint32_t(batches[i].m_primType), batches[i].m_start, batches[i].m_count,
-                            m_primIndexBuf != nullptr);
+                            m_primIndexBuf != nullptr,
+                            m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr);
 }
 void LegacyDevice::SceneClear(uint32_t mask, CImVector color) {
     Check();

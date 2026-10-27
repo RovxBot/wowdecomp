@@ -77,3 +77,20 @@ paths therefore cannot be used as evidence that our CPU-loaded model fits those
 registers. No source was imported. The native continuation validates the complete
 write span through the existing device before exposing shadow storage; selecting
 the original CPU rendering/material path remains separate work.
+
+## CPU model/material continuation — 2026-10-27
+
+Re-read `SetBatchVertices` in both pinned `CM2SceneRender.cpp` files above.
+Both select CPU vertex transforms with `CShaderEffect::s_enableShaders == 0`;
+cache-only CPU selection does not change that dispatch. Also inspected the pinned
+WoWReMac `CGxDeviceMetalNative.mm` fixed-vertex selection (around lines 2725–2785):
+it builds material/light/texture keys when the vertex shader is absent. That
+Metal pipeline requires Objective-C++ and its Metal compiler/resources; it cannot
+serve this Linux OpenGL target. No source or dependency is imported.
+
+The continuation adapts this checkout's original OpenGL `IStateSyncLights`,
+`IStateSyncMaterial`, texture environment operations and CPU `CM2Model` path
+through the existing native device/buffer/transform owners. Qualified limits stay
+at 94 constants and one texture unit; original palette preflights stay enabled.
+Compilation, authored CPU pixels and original-data rendering require separate
+validation. Bundled dependency selections and notices are unchanged.

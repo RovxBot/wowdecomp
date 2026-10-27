@@ -938,6 +938,14 @@ void CM2SceneRender::Draw(M2PASS pass, M2Element* elements, uint32_t* indices, u
     }
 
     g_theGxDevicePtr->RsPush();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Native CPU vertices/materials must not inherit the preceding UI program.
+    // RsPop restores those bindings after the original model pass.
+    if (!CShaderEffect::s_enableShaders) {
+        GxRsSet(GxRs_VertexShader, static_cast<void*>(nullptr));
+        GxRsSet(GxRs_PixelShader, static_cast<void*>(nullptr));
+    }
+#endif
 
     CGxMatrixStack& viewStack = g_theGxDevicePtr->m_xforms[GxXform_View];
     C44Matrix view = viewStack.m_mtx[viewStack.m_level];

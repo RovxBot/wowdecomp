@@ -18,6 +18,10 @@
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 #include "Engine/Source/ConsoleBase/ConsoleCommand.h"
 #include "Engine/Source/Model2/M2Shared.h"
+#include "Engine/Source/Model2/M2Model.h"
+#include "Engine/Source/Model2/M2Scene.h"
+#include "Engine/Source/Model2/CM2SceneRender.h"
+#include "Engine/Source/ShaderEffect/ShaderEffect.h"
 #include "Engine/Source/Model2/M2Cache.h"
 #include "Engine/Source/Model2/M2ModelLight.h"
 #include "Engine/Source/Model2/Portable/InstanceLayout.h"
@@ -162,6 +166,82 @@ void Relocations() {
         Check(!bytes.Relocate(), "Malformed original model array/track was admitted");
     }
     Check(!OsNative::LiveModelAllocations(), "M2 relocation retained an arena");
+}
+// Exercise the original batch/CPU transform/index path with the observed
+// 143-bone palette size. Authored geometry and materials contain no game data.
+void CpuRendering(CM2Scene* scene, Gx::Native::LegacyDevice& device) {
+    Check(!CShaderEffect::s_enableShaders && !(M2GetCacheFlags() & 8), "CPU cache/render selection disagrees");
+    ModelBytes bytes;
+    auto* vertices = bytes.Array(bytes.data->m_vertices, 5);
+    auto* material = bytes.Array(bytes.data->m_materials, 1);
+    material->m_flags = 3; // Original unlit, unfogged material.
+    material->m_blendMode = M2BLEND_OPAQUE;
+    bytes.data->m_vertices.Relocate(reinterpret_cast<uint8_t*>(bytes.data));
+    bytes.data->m_materials.Relocate(reinterpret_cast<uint8_t*>(bytes.data));
+    bytes.data->m_bones.m_count = 143;
+    const C3Vector positions[] = {{-.8f,-.4f,0}, {-.4f,-.4f,0}, {-.8f,.4f,0}};
+    for (unsigned i=0; i<3; ++i) {
+        vertices[i+2].m_position=positions[i]; vertices[i+2].m_normal=C3Vector(0,0,1);
+        vertices[i+2].m_weights.b[0]=128; vertices[i+2].m_weights.b[1]=127;
+        vertices[i+2].m_indices.b[0]=0; vertices[i+2].m_indices.b[1]=142;
+    }
+    M2SkinProfile skin{};
+    uint16_t indices[] = {2,3,4};
+    skin.m_indices.m_count=3; skin.m_indices.Set(indices);
+    skin.m_vertices.m_count=5; skin.m_skinSections.m_count=1;
+    M2SkinSection section{};
+    section.m_vertexStart=2; section.m_vertexCount=3; section.m_indexCount=3;
+    section.m_boneCount=143; section.m_boneInfluences=2;
+    skin.m_skinSections.Set(&section);
+    CM2Shared shared(scene->m_cache);
+    shared.m_data=bytes.data; shared.m_skinData=&skin; shared.m_skinSections=&section;
+    shared.m_instances=1; shared.m_refCount=2;
+    struct BorrowedShared { CM2Shared& s; ~BorrowedShared() { s.m_data=nullptr; s.m_skinData=nullptr; s.m_skinSections=nullptr; } } borrowed{shared};
+    {
+        CM2Model model;
+        model.m_shared=&shared;
+        std::vector<C44Matrix> bones(143);
+        bones[0].d0=.25f; bones[142].d0=.75f;
+        model.m_boneMatrices=bones.data();
+        struct BorrowedBones { CM2Model& m; ~BorrowedBones() { m.m_boneMatrices=nullptr; } } borrowedBones{model};
+        model.m_diffuseColor=C3Vector(1,0,0); model.m_emissiveColor=C3Vector();
+        CShaderEffect effect;
+        effect.InitEffect(nullptr,nullptr);
+        M2Batch batch{};
+        M2Element element{};
+        element.m_model=&model; element.m_batch=&batch; element.m_skinSection=&section;
+        element.m_effect=&effect; element.m_alpha=1;
+        CM2Lighting lighting{};
+        lighting.m_fogScale=0;
+        CM2SceneRender render(scene);
+        render.m_data=bytes.data; render.m_pass=M2PASS_0; render.m_curType=0;
+        render.m_curModel=&model; render.m_curShared=&shared; render.m_curElement=&element;
+        render.m_curLighting=&lighting;
+        device.RsPush();
+        struct Restore { Gx::Native::LegacyDevice& d; ~Restore() { d.RsPop(); } } restore{device};
+        GxRsSet(GxRs_VertexShader,static_cast<void*>(nullptr));
+        GxRsSet(GxRs_PixelShader,static_cast<void*>(nullptr));
+        GxRsSet(GxRs_Culling,0); GxRsSet(GxRs_DepthTest,0); GxRsSet(GxRs_DepthWrite,0);
+        GxXformSetProjection(C44Matrix()); GxXformSetView(C44Matrix());
+        GxXformSetViewport(0,1,0,1,0,1);
+        device.m_xforms[GxXform_World].Identity();
+        device.SceneClear(GxBufferBit_Color,CImVector(0,0,0,255));
+        auto* shadow=device.ShaderConstantsLock(GxSh_Vertex);
+        const std::vector<float> before(shadow,shadow+256*4);
+        render.DrawBatch();
+        Check(device.m_primVertexFormat==GxVBF_PNT && !std::memcmp(before.data(),shadow,before.size()*sizeof(float)),
+            "CPU batch used GPU vertex inputs or wrote a bone palette");
+        CiRect rect; rect.minX=128; rect.maxX=129; rect.minY=120; rect.maxY=121;
+        TSGrowableArray<CImVector> pixels;
+        device.DeviceReadPixels(rect,pixels);
+        Check(pixels.Count()==1 && pixels[0].r>250 && pixels[0].g<3 && pixels[0].b<3,
+            "Original CPU transform/material did not paint the translated triangle");
+        rect.minX=48; rect.maxX=49;
+        device.DeviceReadPixels(rect,pixels);
+        Check(pixels[0].r<3 && pixels[0].g<3 && pixels[0].b<3,
+            "CPU model painted its untransformed position");
+        std::cout<<"native-original-cpu-batch-143-bones-pixels=passed\n";
+    }
 }
 struct Settings {
     std::filesystem::path directory = std::filesystem::temp_directory_path() /
@@ -370,8 +450,9 @@ void Factory() {
         failShader = false;
         auto* model = dynamic_cast<CSimpleModel*>(FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status));
         Check(model != nullptr, "Real original ModelFFX factory unavailable");
-        Check(!(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
+        Check(!CShaderEffect::s_enableShaders && !(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
             device.Caps().m_numTmus==1, "Original CPU skinning changed device limits or enabled a worker");
+        CpuRendering(model->m_scene, device);
         const auto errors = FrameScript::Native::ScriptErrorCount();
         Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
         model->RunScript(model->m_onUpdateModel, 0, nullptr);

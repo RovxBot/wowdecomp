@@ -135,6 +135,25 @@ additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
 
+## CPU model/material continuation — 2026-10-27
+
+Implementation now selects ShaderEffect's original fixed material/CPU vertex
+path consistently with the Model2 cache. Native model passes clear inherited UI
+shader bindings inside their existing render-state scope. The existing native
+buffer owner submits checked PNT/PNT2 position, normal, color and texture0 arrays
+through its private VAO. The device delivers fixed material, four original lights,
+linear fog, six original texture operations and texture0 matrices/sphere mapping.
+Other texture units, projected texgen and mixed fixed/ARB pipelines remain
+explicitly unavailable. UI/FFX ARB shader objects are independent of Model2's
+selection; no advertised limit or palette bounds check changes.
+
+A focused authored regression runs original `CM2SceneRender::DrawBatch`, CPU
+weighted transforms using bone 142, rebased indices and fixed material paint.
+It checks pixels at the translated and original positions and unchanged vertex
+constant storage with a 143-bone section. It is separate from game-data evidence.
+Hosted compilation and original-data execution are pending for this implementation;
+no new original login frame, authentication or gameplay is claimed.
+
 ## Model paint bounds — 2026-10-27
 
 [PR #89](https://github.com/RovxBot/wowdecomp/pull/89) permits `GetRect` to copy

@@ -1,5 +1,6 @@
 #include "GlTransforms.h"
 #include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_opengl_glext.h>
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -60,6 +61,8 @@ struct GlTransforms::State {
     BASE(Enable);
     BASE(Disable);
     BASE(CullFace);
+    using ActiveTextureProc = void (APIENTRY *)(GLenum);
+    ActiveTextureProc ActiveTexture = reinterpret_cast<ActiveTextureProc>(context.Proc("glActiveTextureARB"));
 #undef BASE
     State(GlContext& owner, GlRenderTargets& targetOwner) : context(owner), targets(targetOwner) {}
     CGxMatrixStack& Stack(uint32_t which) {
@@ -158,7 +161,7 @@ void GlTransforms::MasterEnables(uint32_t mask) {
     state->masterEnables = mask;
     state->synced = false;
 }
-void GlTransforms::Sync() {
+void GlTransforms::Sync(bool fixedTexture0) {
     auto& s = *state;
     s.context.CheckCurrent();
     auto target = s.targets.View();
@@ -169,7 +172,7 @@ void GlTransforms::Sync() {
     // their matrices. UI programs here consume vertex texture coordinates.
     const C44Matrix identity;
     for (uint32_t unit = GxXform_Tex0; unit <= GxXform_Tex7; ++unit)
-        if (Get(unit) != identity)
+        if (Get(unit) != identity && !(fixedTexture0 && unit == GxXform_Tex0))
             throw std::logic_error("Native Gx texture-matrix delivery is not integrated");
     s.Check("Before Gx transform synchronization");
     // 12340 IXformSetProjection and IXformGLModelView: row-vector Tempest
@@ -195,6 +198,12 @@ void GlTransforms::Sync() {
     auto p = Values(projection), m = Values(modelView);
     auto viewport = Pixels(s.viewport.rect, target.width, target.height);
     auto scissor = Pixels(s.scissor, target.width, target.height);
+    GLint activeTexture = 0;
+    s.GetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
+    s.ActiveTexture(GL_TEXTURE0);
+    auto texture = Values(Get(GxXform_Tex0));
+    s.MatrixMode(GL_TEXTURE); s.LoadMatrixf(texture.data());
+    s.ActiveTexture(static_cast<GLenum>(activeTexture));
     s.MatrixMode(GL_PROJECTION); s.LoadMatrixf(p.data());
     s.MatrixMode(GL_MODELVIEW); s.LoadMatrixf(m.data());
     s.MatrixMode(static_cast<GLenum>(previousMode));

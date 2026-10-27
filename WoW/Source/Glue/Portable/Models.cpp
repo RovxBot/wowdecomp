@@ -64,7 +64,9 @@ void EnsureModels() {
               << " vertex-constants=" << constants << std::endl;
     initialized = true;
     try {
-        CShaderEffect::InitShaderSystem(1, 0);
+        // ShaderEffect also selects vertex ownership, indices and fixed materials.
+        // Keep it consistent with the original cache, independently of UI/FFX shaders.
+        CShaderEffect::InitShaderSystem((M2GetCacheFlags() & 8) != 0, 0);
         if (!CVar::LookupRegistered("gxMultisample"))
             CVar::Register("gxMultisample", "Native surface sample count", 0, "1", nullptr, 0, false, nullptr, false);
         FFX::Init();
