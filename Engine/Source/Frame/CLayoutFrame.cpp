@@ -413,7 +413,7 @@ int32_t CLayoutFrame::IsResizeDependency(CLayoutFrame* frame) {
 // OFFSET: 0x00489230
 int32_t CLayoutFrame::GetRect(CRect* rect) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireOwner();
+    Frame::Native::RequireCachedRect(this);
 #endif
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;

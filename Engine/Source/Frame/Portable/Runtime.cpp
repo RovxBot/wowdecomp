@@ -95,6 +95,12 @@ void RequireFrame(CLayoutFrame* frame) {
     RequireOwner();
     if (!frame || !frames.count(frame)) throw std::invalid_argument("Layout anchor is not a live frame");
 }
+void RequireCachedRect(const CLayoutFrame* frame) {
+    FrameXML::Native::RequireOwner();
+    if (!installed) throw std::logic_error("Native layout runtime is not installed");
+    if (!frame || !frames.count(const_cast<CLayoutFrame*>(frame)))
+        throw std::invalid_argument("Layout rectangle is not a live frame");
+}
 void RequirePoint(uint32_t point) {
     RequireOwner();
     if (point >= FRAMEPOINT_NUMPOINTS) throw std::invalid_argument("Invalid layout anchor index");
