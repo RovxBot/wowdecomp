@@ -11,8 +11,9 @@ ShaderEffect and FFX sources. Downloaded execution now passes the ModelFFX
 factory. The [Glue service continuation](#original-glue-service-continuation--2026-10-26)
 now completes original ordered creation and matches the mandatory post-creation
 digest. The [activation continuation](#glue-activation-continuation--2026-10-26)
-now reaches the actual model-read barrier, where the original skin-profile
-selection exceeds the qualified register budget; rendering remains open. Its historical
+reaches the actual model-read barrier. The [native model continuation](#native-model-instance-continuation--2026-10-27)
+selects original CPU skinning for that budget and now passes model initialization;
+agreement activation and rendering remain open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -128,6 +129,52 @@ backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
+
+## Native model instance continuation — 2026-10-27
+
+[PR #86](https://github.com/RovxBot/wowdecomp/pull/86) selects the existing original
+CPU skinning path when the real device cannot fit the smallest GPU profile.
+Original GPU selection needs 21 bones; 94 vertex registers leave 20 after the
+32-register reservation. UI/FFX shader support alone does not establish GPU
+skinning. The owner resets retained cache flags on recreation, retains the actual
+94-register/one-texture-unit limits and enables no animation worker.
+
+Real model initialization exposed three native defects beyond component fixtures:
+misaligned `M2ModelLight` construction, signed overflow in the particle seed shift,
+then a 165-byte/three-object empty sequence-table leak. Native instance arrays,
+pointer arrays, ribbon storage and individual polymorphic emitters now reserve
+checked aligned offsets within the original single allocation, retaining original
+32-bit byte bounds. An explicit native base pointer owns storage even if the
+first bone array is empty. Both emitter constructors compose the seed with
+unsigned shifting. Inline-only models allocate no empty sequence table; destructor
+ownership follows the pointer rather than capacity. Windows paths retain their
+original selection and layout.
+
+At implementation `d1ef0d61737346ad2c28871e6ff1946901852f1d`, matching-tree Actions
+checkout `1afc668e76ef3c5ef947868b33ff65b18af00775`, one release and three untraced
+strict ASan/UBSan/leak original-data runs authenticate 28,948 records and 60 GlueXML
+visits, match the full creation digest and pass original model initialization.
+They then stop at `AccountLogin.lua:263` calling missing `EULAAccepted`, exit 1 and
+close with zero workers and no sanitizer finding. Successful activation and
+original model/material/FFX paint are still unobserved.
+
+Three final implementation workflows/four jobs pass: release/strict startup
+contracts, source audit and full signatures-enabled Windows x64 compilation.
+Authored regressions cover the original skin-profile boundaries and actual CPU
+selection, typed placement after an odd-sized array, allocation overflow,
+particle construction/copy and zero-capacity sequence-owner destruction.
+Local source audits pass 61 tests with one skip. All three PR #85 post-merge
+workflows pass separately. Continue the reached original agreement/account
+activation services, then model/material/FFX paint.
+
+The [model-instance validation record](model-instance-validation.json) preserves
+all hosted identities, final artifacts/hashes and original-data reports, the
+earlier leak report and the prior turn's alignment/shift observations. Temporary
+raw files for those first two findings were lost across the session restart;
+the record claims no unavailable raw-report hashes. Earlier hosted fixture passes
+are kept separate from their failing original-data executions. No imports,
+local compilation, original-data agreement acceptance, authentication, server
+policy change or gameplay result is included.
 
 ## Glue activation continuation — 2026-10-26
 
