@@ -58,7 +58,7 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
         end)
     )");
     root.OnLayerUpdate(.016f);
-    lua("assert(RangeCalls==1 and NativeRangeSlider:IsShown() and NativeRangeUp:IsEnabled() and NativeRangeDown:IsEnabled()); "
+    lua("assert(RangeCalls==1 and NativeRangeSlider:IsShown() and NativeRangeUp:IsEnabled()==1 and NativeRangeDown:IsEnabled()==1); "
         // Original Slider LoadXML selects a .001 step, whose float snap can
         // produce 100.000008. Preserve that arithmetic; compare within a step.
         "assert(math.abs(NativeRangeSlider:GetValue()-100)<.001 and RangeTail==1)");
@@ -73,13 +73,14 @@ static void CheckScrollRangeEdits(CSimpleTop& root) {
             tostring(s:IsShown()),tostring(NativeRangeUp:IsEnabled()),tostring(NativeRangeDown:IsEnabled()))
         assert(RangeCalls==2 and RangeValues==1 and s:GetValue()==0 and NativeRange:GetVerticalScroll()==0,state)
         assert(not s:IsShown() and not NativeRangeUp:IsShown() and not NativeRangeDown:IsShown(),state)
-        assert(not NativeRangeUp:IsEnabled() and not NativeRangeDown:IsEnabled() and RangeTail==3,state)
+        -- Original Button IsEnabled pushes numeric 0/1; Lua 0 is truthy.
+        assert(NativeRangeUp:IsEnabled()==0 and NativeRangeDown:IsEnabled()==0 and RangeTail==3,state)
     )");
     lua("NativeRangeContent:SetHeight(260)");
     root.OnLayerUpdate(.016f);
     root.OnLayerUpdate(.016f);
     lua("assert(RangeCalls==3 and NativeRangeSlider:IsVisible() and NativeRangeUp:IsVisible() and NativeRangeDown:IsVisible()); "
-        "assert(NativeRangeUp:IsEnabled() and NativeRangeDown:IsEnabled() and RangeTail==5)");
+        "assert(NativeRangeUp:IsEnabled()==1 and NativeRangeDown:IsEnabled()==1 and RangeTail==5)");
     auto* scroll = static_cast<CSimpleScrollFrame*>(CScriptObject::GetScriptObjectByName("NativeRange", CSimpleScrollFrame::GetObjectType()));
     auto* slider = static_cast<CSimpleSlider*>(CScriptObject::GetScriptObjectByName("NativeRangeSlider", CSimpleSlider::GetObjectType()));
     auto rejected = [](auto action) {
