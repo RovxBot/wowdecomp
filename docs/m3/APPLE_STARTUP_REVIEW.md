@@ -48,3 +48,23 @@ record exact paths/revision, original provenance, notices, dependencies and chec
 Reported Apple world execution does not establish unchanged GrimGuzzler challenge/
 Warden compatibility. Separate Warden/Epoch branches do not qualify these pins.
 No challenge omission, integrity fabrication or server-policy change is imported.
+
+## FFX render-target continuation — 2026-10-27
+
+Before connecting original FFX depth-target flags, the same pinned references
+were inspected for offscreen color/depth ownership:
+
+| Pin and inspected paths | Direction and disposition |
+| --- | --- |
+| jerrywossion `7489b5f2df6628a434b2ad9aceed66c0f2e6a431`: `Engine/Source/Gx/Metal/CGxDeviceMetal.mm`, `ApplyRenderTarget` / `DeviceSetRenderTarget` | An offscreen color target without explicit depth retains size-matched Metal scratch depth (`Depth32Float`). This supports keeping attachment lifetime with the renderer; no source imported. |
+| WoWReMac `3c7f82c02fa9d4c8399b8f95d30ef0df575ef069`: `Engine/Source/Gx/CGxDeviceMetal/CGxDeviceMetalNative.mm`, `ITargetsFromState` / `ITextureDepth` / `DeviceSetRenderTarget` | Target extent selects retained offscreen depth or the window depth. Explicit depth has its own ownership. No source imported. |
+| Same WoWReMac pin: `Engine/Source/Gx/CGxDeviceMetal/MetalResources.mm`, `Texture::Create` / `Texture::CreateTarget` | Private Metal textures retain extent, levels, render-target usage and optional resolve storage. These Objective-C++/Metal dependencies cannot serve Linux. No source or dependency imported. |
+
+Our original OpenGL `IDeviceSetRenderTargetFBO` identifies bit 8 as an implicit
+depth-24 renderbuffer request. The already-qualified Linux `GlRenderTargets`
+owner retains that exact depth format for renderable storage. The continuation
+therefore admits the original flag through `LegacyDevice` with its existing
+owner and feedback checks; it does not copy an Apple backend or alter device
+limits. There are no new provenance, notice or dependency selections in this
+batch. This review does not establish original ModelFFX painting or macOS
+graphics execution.

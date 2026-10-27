@@ -110,8 +110,11 @@ milestone; full native startup/login/gameplay remain unestablished.
    native instance alignment, seed width and sequence ownership. Original-data
    release/strict execution reaches the original agreement/account services.
    [PR #87](https://github.com/RovxBot/wowdecomp/pull/87) now completes original
-   login activation. First ModelFFX paint stops at the original depth-render-target
-   flag; connect it to the existing native depth owner, then observe paint.
+   login activation. [PR #88](https://github.com/RovxBot/wowdecomp/pull/88) connects
+   the original depth-target flag to retained native depth-24 storage. First
+   ModelFFX paint now stops at the model's cached-rectangle access guard; admit
+   that resolved read with owner/lifetime checks while retaining mutation guards,
+   then continue observing actual model/material/FFX paint.
    Audio/movie playback and graphics-option application remain unavailable;
    M3 stays open.
 2. Execute the complete original ordered GlueXML/Include/Script creation path,

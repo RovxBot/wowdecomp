@@ -14,8 +14,9 @@ digest. The [activation continuation](#glue-activation-continuation--2026-10-26)
 reaches the actual model-read barrier. The [native model continuation](#native-model-instance-continuation--2026-10-27)
 selects original CPU skinning for that budget and passes model initialization.
 The [login activation continuation](#original-login-activation--2026-10-27) now
-completes original activation; first ModelFFX paint reaches the depth-render-target
-flag boundary. Complete login/model rendering remains open. Its historical
+completes original activation. The [FFX target continuation](#ffx-depth-target-continuation--2026-10-27)
+passes its depth flag and reaches the model's cached-rectangle read guard during
+paint. Complete login/model rendering remains open. Its historical
 [separate evidence record](integrated-model-render-validation.json) distinguishes
 authored factory/loading checks from actual original-data startup and rendering.
 
@@ -131,6 +132,38 @@ backend cannot directly provide Linux rendering. Full engine/Glue startup and
 additional script/platform services remain to be connected as this path reaches
 them. The following factory continuation selects these real callers together;
 their device/material/rendering requirements remain open.
+
+## FFX depth-target continuation — 2026-10-27
+
+[PR #88](https://github.com/RovxBot/wowdecomp/pull/88) admits original bit 8 on
+render-target creation and requires retained implicit depth when that sampler
+flag is present. Original OpenGL interprets it as a depth-24 attachment; the
+qualified native renderable owner already allocates and retains that storage.
+Sampled textures still reject the flag. Attachment/sampler ownership, feedback,
+callbacks and teardown remain enforced. No backend, shader-register or texture-unit
+capability was added. The [pinned Apple review](APPLE_STARTUP_REVIEW.md#ffx-render-target-continuation--2026-10-27)
+records the inspected ownership paths and no imports.
+
+At implementation `e08c076f3ecaa6778b7e249e2c91b054bdc159c2`, matching-tree Actions
+checkout `ad7215c0358de7f3d4bf60b9b9d64bb3298e1a6f`, one release and three untraced
+strict ASan/UBSan/leak original-data runs retain the full ordered creation digest
+and original login activation. They pass FFX allocation, then stop at
+`Finish Frame rendering before layout/region access`, exit 1 and close with zero
+workers and no sanitizer finding. Separate release GDB inspection identifies
+`CSimpleModel::RenderModel` calling `CLayoutFrame::GetRect` during batch drawing.
+This getter copies cached resolved coordinates; retain layout mutation and
+lifetime guards when connecting that read.
+
+All four implementation workflows/six jobs pass, including full Windows x64
+compilation and both Linux GL configurations. Downloaded GPU release and strict
+fixtures each pass three depth-attachment, invalid-sampler, callback/PCT/index and
+original-font/UI-shader pixel cycles. Those authored draws do not establish a
+completed original login/model frame. Exact identities, hashes, runtime reports,
+debugger scope and all PR #87 post-merge passes are retained in the
+[depth-target evidence](ffx-depth-target-validation.json). Read-only installations,
+Actions-only compilation, required signatures, 94-register/one-texture-unit limits,
+unaccepted original agreement state and interactive sign-in remain unchanged.
+Authentication and gameplay remain unobserved.
 
 ## Original login activation — 2026-10-27
 

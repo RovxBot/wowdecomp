@@ -8,6 +8,8 @@
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_opengl_glext.h>
 #include <algorithm>
 #include <algorithm>
 #include <cfenv>
@@ -205,6 +207,25 @@ void Constants() {
                       matrix.c0, matrix.c1, matrix.c2, matrix.c3, matrix.d0, matrix.d1, matrix.d2, matrix.d3};
     GxShaderConstantsSet(GxSh_Vertex, 0, values, 4);
 }
+void CheckImplicitDepth(GlContext& context, int width, int height) {
+    auto GetAttachment = reinterpret_cast<PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC>(
+        context.Proc("glGetFramebufferAttachmentParameterivEXT"));
+    auto BindRenderbuffer = reinterpret_cast<PFNGLBINDRENDERBUFFEREXTPROC>(context.Proc("glBindRenderbufferEXT"));
+    auto GetRenderbuffer = reinterpret_cast<PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC>(
+        context.Proc("glGetRenderbufferParameterivEXT"));
+    auto GetIntegerv = reinterpret_cast<decltype(&glGetIntegerv)>(context.Proc("glGetIntegerv"));
+    GLint type=0,name=0,previous=0,bits=0,w=0,h=0;
+    GetAttachment(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE_EXT,&type);
+    GetAttachment(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_EXT,&name);
+    Require(type==GL_RENDERBUFFER_EXT && name, "Legacy depth flag did not attach retained depth storage");
+    GetIntegerv(GL_RENDERBUFFER_BINDING_EXT,&previous);
+    BindRenderbuffer(GL_RENDERBUFFER_EXT,GLuint(name));
+    GetRenderbuffer(GL_RENDERBUFFER_EXT,GL_RENDERBUFFER_DEPTH_SIZE_EXT,&bits);
+    GetRenderbuffer(GL_RENDERBUFFER_EXT,GL_RENDERBUFFER_WIDTH_EXT,&w);
+    GetRenderbuffer(GL_RENDERBUFFER_EXT,GL_RENDERBUFFER_HEIGHT_EXT,&h);
+    BindRenderbuffer(GL_RENDERBUFFER_EXT,GLuint(previous));
+    Require(bits>=24 && w==width && h==height, "Legacy depth flag has the wrong depth extent/precision");
+}
 void Cycle(GlContext &context, Assets &assets) {
     int reads = 0;
     LegacyDevice device(context, [&](const std::string &member) {
@@ -245,10 +266,24 @@ void Cycle(GlContext &context, Assets &assets) {
     Source targetSource;
     auto renderFlags = flags;
     renderFlags.m_renderTarget = 1;
+    renderFlags.m_filter = GxTex_Linear;
+    renderFlags.m_bit8 = 1; // Exact original FFX flag combination (0x381).
     Require(GxTexCreate(GxTex_2d, 32, 32, 0, GxTex_Argb8888, GxTex_Argb8888, renderFlags, &targetSource,
                         Source::Callback, "legacy target", target),
             "Legacy target creation failed");
     device.DeviceSetRenderTarget(GxBuffers_Color, target, 0);
+    CheckImplicitDepth(context,32,32);
+    CGxTex* rejectedDepth = nullptr;
+    auto invalidDepth = flags;
+    invalidDepth.m_bit8=1;
+    Reject([&] { GxTexCreate(GxTex_2d,8,8,0,GxTex_Argb4444,GxTex_Argb4444,invalidDepth,
+                            &source,Source::Callback,"invalid sampled depth flag",rejectedDepth); },
+           "A sampled texture admitted the render-target depth flag");
+    Require(!rejectedDepth, "Rejected depth request published a texture");
+    GxTexSetFlags(texture,invalidDepth);
+    Reject([&] { device.ITexMarkAsUpdated(texture); }, "Sampler edits invented an implicit depth attachment");
+    GxTexSetFlags(texture,flags);
+    std::cout << "legacy-gx-original-depth-flag-attachment-and-invalid-sampler=passed\n";
     GxRsSet(GxRs_Texture0, texture);
     source.bad = true;
     Reject([&] { GxTexUpdate(texture, 0, 0, 8, 8, 1); }, "Invalid stride accepted");
