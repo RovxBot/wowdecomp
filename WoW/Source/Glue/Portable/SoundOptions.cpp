@@ -31,6 +31,9 @@ void SI2::StartGlueAmbience(const char*, float) {
 void SI2::StopGlueMusic(float) {}
 void SI2::StopGlueAmbience(float) {}
 void SI2::StopCreditsMusic() {}
+void SI2::StopAllSounds(float) {
+    std::cout << "native-unavailable=audio-backend-stop-all-sfx" << std::endl;
+}
 namespace {
 bool registered = false;
 void RequireSoundQueries(lua_State* L) {
@@ -56,6 +59,13 @@ static int32_t Script_StopGlueMusic(lua_State* L) {
 }
 static int32_t Script_StopGlueAmbience(lua_State* L) {
     RequireSoundQueries(L); SI2::StopGlueAmbience(1.0f); return 0;
+}
+static int32_t Script_StopAllSFX(lua_State* L) {
+    RequireSoundQueries(L);
+    const double fade=lua_tonumber(L,1);
+    if (!std::isfinite(fade) || std::abs(fade)>std::numeric_limits<float>::max())
+        return luaL_error(L,"Sound fade must be a finite float");
+    SI2::StopAllSounds(static_cast<float>(fade)); return 0;
 }
 static int32_t Script_Sound_ChatSystem_GetNumInputDrivers(lua_State* L) {
     RequireSoundQueries(L);
@@ -161,6 +171,7 @@ FrameScript_Method functions[] = {
     { "PlayGlueAmbience", Script_PlayGlueAmbience },
     { "StopGlueMusic", Script_StopGlueMusic },
     { "StopGlueAmbience", Script_StopGlueAmbience },
+    { "StopAllSFX", Script_StopAllSFX },
     { "Sound_ChatSystem_GetNumInputDrivers", Script_Sound_ChatSystem_GetNumInputDrivers },
     { "Sound_ChatSystem_GetInputDriverNameByIndex", Script_Sound_ChatSystem_GetInputDriverNameByIndex },
     { "Sound_ChatSystem_GetNumOutputDrivers", Script_Sound_ChatSystem_GetNumOutputDrivers },

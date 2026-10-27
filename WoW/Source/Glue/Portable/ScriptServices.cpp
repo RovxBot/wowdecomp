@@ -141,6 +141,17 @@ static int32_t Script_GetServerName(lua_State* L) {
     lua_pushnumber(L, 1.0); // Original no-realm 'down' result.
     return 4;
 }
+// Original IsTrialAccount's no-login fallback (0x004DD4D0). It reads an
+// existing conversion preference, without inventing account entitlements.
+static int32_t Script_IsTrialAccount(lua_State* L) {
+    RequireServices(L);
+    if (CGlueMgr::m_authenticated)
+        return luaL_error(L, "Native authenticated account metadata unavailable");
+    auto* converted = CVar::Lookup("converted");
+    if (converted && converted->m_intValue==0) lua_pushnumber(L,1.0);
+    else lua_pushnil(L);
+    return 1;
+}
 
 // Original agreement query/explicit acceptance wrappers. Loading never accepts.
 static int32_t Script_TOSAccepted(lua_State* L) {
@@ -621,6 +632,7 @@ FrameScript_Method functions[] = {
     { "IsSystemSupported", Script_IsSystemSupported },
     { "SetCurrentScreen", Script_SetCurrentScreen },
     { "GetServerName", Script_GetServerName },
+    { "IsTrialAccount", Script_IsTrialAccount },
     { "TOSAccepted", Script_TOSAccepted },
     { "ShowTOSNotice", Script_ShowTOSNotice },
     { "AcceptTOS", Script_AcceptTOS },

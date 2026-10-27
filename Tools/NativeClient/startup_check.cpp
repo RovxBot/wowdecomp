@@ -138,6 +138,7 @@ void GlueServices() {
         VERSION = 'changed label'; assert(GetBuildInfo() == VERSION);
         assert(GetLocale() == 'enUS' and IsLinuxClient() == 1);
         assert(IsSystemSupported() == 1);
+        assert(IsTrialAccount()==nil);
         assert(select('#',GetServerName())==4);
         local realm,pvp,rp,down=GetServerName();
         assert(realm=='' and pvp==nil and rp==nil and down==1);
@@ -180,8 +181,12 @@ void GlueServices() {
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue build/CVar contracts failed");
     Check(option->m_intValue == 0 && locked->m_intValue == 1, "Glue scripts bypassed original CVar state");
     CGlueMgr::m_authenticated=1;
-    FrameScript_Execute("assert(not pcall(GetServerName))", "unavailable authenticated realm metadata", nullptr);
+    FrameScript_Execute("assert(not pcall(GetServerName) and not pcall(IsTrialAccount))", "unavailable authenticated realm metadata", nullptr);
     CGlueMgr::m_authenticated=0;
+    auto* converted=CVar::Register("converted","authored trial preference",0,"0",nullptr,0,false,nullptr,false);
+    FrameScript_Execute("assert(IsTrialAccount()==1)", "original no-login trial preference", nullptr);
+    converted->Set("1",true,false,false,true);
+    FrameScript_Execute("assert(IsTrialAccount()==nil)", "original no-login converted preference", nullptr);
     Check(!std::strcmp(CGlueMgr::m_currentScreen,"login"), "Rejected screen transition mutated lifecycle state");
     FrameScript_Execute("NATIVE_WARNING='authored warning'", "option warning fixture", nullptr);
     CGlueMgr::AddChangedOptionWarning("NATIVE_WARNING");

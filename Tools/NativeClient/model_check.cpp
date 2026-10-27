@@ -243,6 +243,8 @@ void Factory() {
                 assert(select('#',PlayGlueMusic('authored music'))==0)
                 assert(select('#',PlayGlueAmbience('authored ambience',4))==0)
                 assert(select('#',StopGlueMusic())==0 and select('#',StopGlueAmbience())==0)
+                assert(select('#',StopAllSFX(1))==0 and select('#',StopAllSFX())==0)
+                assert(not pcall(StopAllSFX,0/0) and not pcall(StopAllSFX,1e300))
                 assert(not pcall(PlayGlueMusic,{}) and not pcall(PlayGlueAmbience,{}))
                 assert(not pcall(PlayGlueAmbience,'authored ambience',1e300))
                 assert(not pcall(PlayGlueAmbience,'authored ambience',0/0))
