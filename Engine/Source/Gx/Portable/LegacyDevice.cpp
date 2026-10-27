@@ -252,7 +252,7 @@ int32_t LegacyDevice::TexCreate(EGxTexTarget target, uint32_t width, uint32_t he
     // compressed conversion or hidden rectangle reinterpretation.
     if (target != GxTex_2d || depth || !width || !height || width > m_caps.m_texMaxSize[0] ||
         height > m_caps.m_texMaxSize[0] || flags.m_filter > GxTex_LinearMipLinear || flags.m_forceMipTracking ||
-        flags.m_generateMipMaps || flags.m_maxAnisotropy != 1 || flags.m_bit8 || flags.m_bit14 ||
+        flags.m_generateMipMaps || flags.m_maxAnisotropy != 1 || (flags.m_bit8 && !flags.m_renderTarget) || flags.m_bit14 ||
         flags.m_bit15 || flags.m_unk16 || flags.m_bit31 || !callback)
         throw std::invalid_argument("Unavailable legacy native texture contract");
     if (flags.m_renderTarget && flags.m_filter > GxTex_Linear)
@@ -262,6 +262,9 @@ int32_t LegacyDevice::TexCreate(EGxTexTarget target, uint32_t width, uint32_t he
     Format(dataFormat);
     if (format != dataFormat)
         throw std::invalid_argument("Native legacy texture conversion unavailable");
+    // Original bit 8 requests an implicit depth attachment on a color target.
+    // Renderable native storage already retains a depth-24 renderbuffer; reuse
+    // that qualified owner without weakening sampled-texture or feedback rules.
     auto resource = state->targets.Create({uint32_t(target), width, height, Format(format),
                                            bool(flags.m_renderTarget), TextureLevels(width, height, flags.m_filter),
                                            bool(flags.m_renderTarget)});
@@ -286,7 +289,7 @@ void LegacyDevice::ITexMarkAsUpdated(CGxTex *tex) {
         throw std::logic_error("Reentrant legacy texture callback");
     const auto &flags = tex->m_flags;
     if (flags.m_filter > GxTex_LinearMipLinear || flags.m_maxAnisotropy != 1 || flags.m_generateMipMaps ||
-        flags.m_forceMipTracking || flags.m_bit8 || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 ||
+        flags.m_forceMipTracking || (flags.m_bit8 && !item.resource.Spec().implicitDepth) || flags.m_bit14 || flags.m_bit15 || flags.m_unk16 ||
         flags.m_bit31 || bool(flags.m_renderTarget) != item.resource.Spec().renderable)
         throw std::invalid_argument("Unavailable legacy native sampler flags");
     if (TextureLevels(tex->m_width, tex->m_height, flags.m_filter) != item.resource.Spec().mipLevels)
