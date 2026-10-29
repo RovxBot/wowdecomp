@@ -123,7 +123,8 @@ class LegacyDevice final : public CGxDevice {
     std::unique_ptr<State> state;
     GlBuffer &Buffer(CGxBuf *);
     void Sync();
-    void SyncFixed(bool hasColor);
+    void SyncFixed(bool hasColor, uint32_t textureStage = 0);
+    void DrawComposed(CGxBatch *, int32_t);
     void Check() const;
 };
 } // namespace Native

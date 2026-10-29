@@ -58,7 +58,7 @@ struct GlVertexBinding {
 // Formats retain their buffers. A private VAO isolates array state; allocation,
 // upload and draw restore the caller's VAO and array/element bindings. Disabled
 // generic attributes retain caller-supplied constants; provide every shader
-// input. Fixed submission supports position/normal/color/texture0 through the same
+// input. Fixed submission supports position/normal/color and a selected UV set through the same
 // checked storage and private VAO; GPU bone inputs are rejected.
 class GlBuffers {
 public:
@@ -78,8 +78,11 @@ public:
     // bytes and actual indices must have been uploaded and fit every binding.
     // Requires an enabled ARB vertex program unless fixedFunction is explicit.
     // Fixed draws require that program disabled. Zero count is a validated no-op.
+    // Preflight a whole original batch before a sequence of internal passes.
+    void ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed = false,
+                      bool fixedFunction = false) const;
     void Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed = false,
-              bool fixedFunction = false);
+              bool fixedFunction = false, uint32_t fixedTexCoord = GxVA_TexCoord0);
 private:
     struct State;
     std::unique_ptr<State> state;

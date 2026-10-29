@@ -50,8 +50,9 @@ public:
     // This does not establish that the historical warped-scene bug is fixed.
     void MasterEnables(uint32_t mask);
     // Fixed submission may deliver texture0 through its compatibility matrix.
-    // Other nonidentity texture stacks and ARB texture matrices fail visibly.
-    void Sync(bool fixedTexture0 = false);
+    // Composition may also consume texture1 on that same sampler in a later
+    // pass. Other nonidentity texture stacks and ARB matrices fail visibly.
+    void Sync(bool fixedTexture0 = false, bool composedTexture1 = false);
     // Original GxXformViewProjNativeTranspose contract; excludes world, and
     // undoes the native projection's Z row conversion before transposition.
     // Call Sync first, including after a target/projection/view change.
