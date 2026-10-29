@@ -261,7 +261,9 @@ void CheckFramebufferCopy(GlContext& context, LegacyDevice& device) {
     Reject([&] { GxTexCopy(destination, {15, 0}, {0, 0}, {2, 1}, 0, 0); }, "Destination overflow accepted");
     Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 1, 0); }, "Missing mip accepted");
     Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 0, 1); }, "Missing plane accepted");
-    Reject([&] { GxTexCopy(nullptr, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Empty destination accepted");
+    Require(GxTexCopy(nullptr, {0, 0}, {0, 0}, {1, 1}, 0, 0) == 0,
+            "Original null-copy dispatch did not return failure");
+    Reject([&] { device.TexCopy(nullptr, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Empty device destination accepted");
     Reject([&] { GxTexCopy(source, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Attached copy destination accepted");
     std::thread wrong([&] {
         Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Foreign-thread copy accepted");
