@@ -1,5 +1,16 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [FFX filter continuation](https://github.com/RovxBot/wowdecomp/issues/118),
+the same jerrywossion pin's `PostProcessShader.cpp` recognises original Box4,
+Gauss4 and Glow bytecode by metadata/digest before choosing Metal equations.
+The same WoWReMac pin's `MetalFixedFunction.cpp` supplies independent UV varyings
+to its translated fragment pipeline; `CGxDeviceMetalNative.mm` binds its shader
+resources. These require Metal and do not provide a one-sampler Linux fallback.
+Our adaptation retains the original ARB filter instructions and aliases only
+the identical input bindings, with four separately checked UV streams. No source,
+dependency or notice change is imported from either reference. Distinct-input
+glow is not qualified by this aliasing.
+
 Both pinned 12340 references were inspected before equivalent implementation.
 This batch imports **no source or dependency changes from either port**. It adapts
 this fork's original sources and qualified services, with no new donor address/

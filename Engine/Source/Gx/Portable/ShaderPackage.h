@@ -24,5 +24,8 @@ ShaderPackage DecodeShaderPackage(const std::vector<uint8_t>& file, uint32_t per
 // API. This first service retains the original 94-register vertex range; model
 // bone-range expansion and arbvp1_cg12/NV/D3D dialects remain separate work.
 std::string PrepareArbProgram(const ShaderRecord& shader, ShaderStage stage);
+// Preserve every instruction/UV while aliasing literal texture[0..3] operands
+// onto sampler zero. The caller must prove all four logical bindings identical.
+ShaderRecord AliasArbFilterSamplers(const ShaderRecord& shader);
 }}
 #endif

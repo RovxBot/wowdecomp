@@ -1,5 +1,24 @@
 # Native legacy Gx UI dispatch
 
+The [original FFX continuation](https://github.com/RovxBot/wowdecomp/issues/118)
+aliases Box4/Gauss4's four identical logical texture bindings to physical sampler
+zero, preserving the authenticated program's instructions and all four UV streams.
+Fixed vertex processing supplies position/color and four checked UV varyings to
+the fragment-only ARB pipeline. Both RGB and alpha equations remain original.
+The adapter requires identical retained 2D inputs, identity texture matrices and
+unmodified UV selection; unequal inputs, attachment feedback, missing UVs and
+invalid fetches fail before drawing. RECT permutations can load but cannot draw
+through the current 2D-only legacy texture owner. Device caps stay at one sampler
+and 94 registers. Distinct-input glow and complete original login rendering remain
+separate acceptance work in #118/#96.
+
+Original FFX target switches precede the replacement of logical input states.
+The legacy adapter releases the previous draw's physical sampler before attaching
+the next target, restoring it if attachment fails. Logical states remain pending;
+the next draw rebinds and checks its real input against the active attachment.
+This permits Gauss4's horizontal/vertical order without admitting feedback draws.
+The lower target owner's explicit `Bind`/`Sample` feedback guards remain intact.
+
 The fixed pipeline can compose the six original two-stage texture operations without changing
 the advertised one-unit/94-register limits.
 Each original triangle overwrites retained RGBA32F scratch with stage zero, then

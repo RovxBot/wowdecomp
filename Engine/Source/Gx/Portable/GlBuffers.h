@@ -79,10 +79,13 @@ public:
     // Requires an enabled ARB vertex program unless fixedFunction is explicit.
     // Fixed draws require that program disabled. Zero count is a validated no-op.
     // Preflight a whole original batch before a sequence of internal passes.
+    // FFX can deliver up to four independent fixed UV varyings while its
+    // fragment program samples only physical texture unit zero.
     void ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed = false,
-                      bool fixedFunction = false) const;
+                      bool fixedFunction = false, uint32_t fixedTexCoords = 2) const;
     void Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed = false,
-              bool fixedFunction = false, uint32_t fixedTexCoord = GxVA_TexCoord0);
+              bool fixedFunction = false, uint32_t fixedTexCoord = GxVA_TexCoord0,
+              uint32_t fixedTexCoords = 1);
 private:
     struct State;
     std::unique_ptr<State> state;
