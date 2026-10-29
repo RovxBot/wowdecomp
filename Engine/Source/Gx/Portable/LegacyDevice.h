@@ -78,10 +78,7 @@ class LegacyDevice final : public CGxDevice {
         Unavailable("Native depth readback unavailable");
     }
     int32_t TexCopy(CGxTex *, const C2iVector &, const C2iVector &, const C2iVector &, uint32_t,
-                    uint32_t) override {
-        Unavailable("Native texture copy unavailable");
-        return 0;
-    }
+                    uint32_t) override;
     int32_t TexStretch(CGxTex *, const CiRect *, const CiRect *, uint32_t, uint32_t) override {
         Unavailable("Native texture stretch unavailable");
         return 0;

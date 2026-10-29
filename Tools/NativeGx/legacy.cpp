@@ -229,6 +229,59 @@ void CheckImplicitDepth(GlContext& context, int width, int height) {
     Require(bits>=24 && w==width && h==height, "Legacy depth flag has the wrong depth extent/precision");
 }
 #include "CompositionChecks.h"
+void CheckFramebufferCopy(GlContext& context, LegacyDevice& device) {
+    auto ClearColor = reinterpret_cast<decltype(&glClearColor)>(context.Proc("glClearColor"));
+    auto Clear = reinterpret_cast<decltype(&glClear)>(context.Proc("glClear"));
+    auto Enable = reinterpret_cast<decltype(&glEnable)>(context.Proc("glEnable"));
+    auto Disable = reinterpret_cast<decltype(&glDisable)>(context.Proc("glDisable"));
+    auto Scissor = reinterpret_cast<decltype(&glScissor)>(context.Proc("glScissor"));
+    Source notifications;
+    CGxTexFlags flags(GxTex_Linear);
+    flags.m_renderTarget = flags.m_bit8 = 1;
+    CGxTex *source = nullptr, *destination = nullptr;
+    GxTexCreate(GxTex_2d, 8, 8, 0, GxTex_Argb8888, GxTex_Argb8888, flags,
+                &notifications, Source::Callback, "FFX copy source", source);
+    GxTexCreate(GxTex_2d, 16, 16, 0, GxTex_Argb8888, GxTex_Argb8888, flags,
+                &notifications, Source::Callback, "FFX copy destination", destination);
+    device.DeviceSetRenderTarget(GxBuffers_Color, destination, 0);
+    ClearColor(0, 0, 0, 1); Clear(GL_COLOR_BUFFER_BIT);
+    device.DeviceSetRenderTarget(GxBuffers_Color, source, 0);
+    ClearColor(1, 0, 0, 1); Clear(GL_COLOR_BUFFER_BIT);
+    Enable(GL_SCISSOR_TEST); Scissor(0, 4, 8, 4);
+    ClearColor(0, 0, 1, 1); Clear(GL_COLOR_BUFFER_BIT);
+    Disable(GL_SCISSOR_TEST);
+    const auto locks = notifications.locks;
+    Require(GxTexCopy(destination, {2, 3}, {1, 1}, {4, 6}, 0, 0) == 1,
+            "Original FFX-shaped framebuffer copy failed");
+    Require(notifications.locks == locks, "Framebuffer copy invoked a CPU texture callback");
+    Reject([&] { GxTexCopy(destination, {-1, 0}, {0, 0}, {1, 1}, 0, 0); }, "Negative copy accepted");
+    Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {0, 1}, 0, 0); }, "Empty copy accepted");
+    Reject([&] { GxTexCopy(destination, {INT32_MAX, 0}, {0, 0}, {INT32_MAX, 1}, 0, 0); }, "Overflowing copy accepted");
+    Reject([&] { GxTexCopy(destination, {0, 0}, {7, 0}, {2, 1}, 0, 0); }, "Source overflow accepted");
+    Reject([&] { GxTexCopy(destination, {15, 0}, {0, 0}, {2, 1}, 0, 0); }, "Destination overflow accepted");
+    Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 1, 0); }, "Missing mip accepted");
+    Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 0, 1); }, "Missing plane accepted");
+    Reject([&] { GxTexCopy(nullptr, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Empty destination accepted");
+    Reject([&] { GxTexCopy(source, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Attached copy destination accepted");
+    std::thread wrong([&] {
+        Reject([&] { GxTexCopy(destination, {0, 0}, {0, 0}, {1, 1}, 0, 0); }, "Foreign-thread copy accepted");
+    });
+    wrong.join();
+    device.DeviceSetRenderTarget(GxBuffers_Color, destination, 0);
+    auto lower = Pixel(device, 2, 3), upper = Pixel(device, 5, 8), outside = Pixel(device, 1, 3);
+    Require(lower.r == 255 && lower.b == 0 && upper.r == 0 && upper.b == 255 &&
+            outside.r == 0 && outside.b == 0, "Legacy framebuffer copy orientation/offset/bounds mismatch");
+    device.DeviceSetRenderTarget(GxBuffers_Color, nullptr, 0);
+    ClearColor(0, 1, 0, 1); Clear(GL_COLOR_BUFFER_BIT);
+    Require(GxTexCopy(destination, {0, 0}, {0, 0}, {16, 16}, 0, 0) == 1,
+            "Original FFX drawable copy failed");
+    device.DeviceSetRenderTarget(GxBuffers_Color, destination, 0);
+    auto green = Pixel(device, 8, 8);
+    Require(green.r == 0 && green.g == 255 && green.b == 0, "FFX drawable copy pixel mismatch");
+    device.DeviceSetRenderTarget(GxBuffers_Color, nullptr, 0);
+    GxTexDestroy(source); GxTexDestroy(destination);
+    std::cout << "legacy-gx-ffx-framebuffer-copy-offset-orientation-bounds-feedback-recovery=passed\n";
+}
 void Cycle(GlContext &context, Assets &assets) {
     int reads = 0;
     LegacyDevice device(context, [&](const std::string &member) {
@@ -260,6 +313,7 @@ void Cycle(GlContext &context, Assets &assets) {
     GxRsSet(GxRs_PixelShader, fragment);
     CheckMipCallbacks();
     CheckComposition(context,device);
+    CheckFramebufferCopy(context,device);
     Source source;
     CGxTex *texture = nullptr;
     CGxTex *target = nullptr;

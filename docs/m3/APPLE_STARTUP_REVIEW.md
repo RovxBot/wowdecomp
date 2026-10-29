@@ -5,6 +5,18 @@ This batch imports **no source or dependency changes from either port**. It adap
 this fork's original sources and qualified services, with no new donor address/
 verification claim.
 
+The [FFX framebuffer copy](https://github.com/RovxBot/wowdecomp/issues/116)
+additionally reviews `TexCopy` in the same pinned jerrywossion
+`Engine/Source/Gx/Metal/CGxDeviceMetal.mm` and WoWReMac
+`Engine/Source/Gx/CGxDeviceMetal/CGxDeviceMetalNative.mm`. Both use retained Metal
+back/default color storage, explicit destination levels/planes and their Metal
+copy/stretch helpers. These require Metal resources and cannot serve Linux.
+The Linux implementation instead adapts this checkout's original
+`CGxDeviceOpenGl::TexCopy` (12340 `0x0069D750`) through the existing
+`GlRenderTargets` owner, retaining bottom-left coordinates and bounded immutable
+storage. No Apple source bodies, dependencies or new provenance claims are
+imported. Runtime and subsequent FFX shader acceptance remain in #116/#96.
+
 | Pin and inspected paths | Direction and disposition |
 | --- | --- |
 | [jerrywossion `7489b5f2df6628a434b2ad9aceed66c0f2e6a431`](https://github.com/jerrywossion/wowdecomp/tree/7489b5f2df6628a434b2ad9aceed66c0f2e6a431): `CMakeLists.txt`, `cmake/Apple.cmake`, `Tools/AppleBootstrap/ClientHost.mm` | Coherent source groups connect original engine callbacks/Event/Glue to a main-thread host. Follow this direction. Replacing our corrected Foundation/archive/Gx owners would discard existing qualification. No wholesale merge/import. |

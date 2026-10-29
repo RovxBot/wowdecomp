@@ -25,6 +25,7 @@ struct Api {
     BASE(TexParameteri);
     BASE(TexParameterf);
     BASE(TexSubImage2D);
+    BASE(CopyTexSubImage2D);
     BASE(PixelStorei);
     BASE(GetFloatv);
     BASE(DrawBuffer);
@@ -375,6 +376,59 @@ void GlRenderTargets::Upload(const GlTexture& texture, const GlTextureRegion& re
                              format.format, format.type, source);
     }
     a.Check("Upload native texture rectangle");
+}
+
+void GlRenderTargets::Copy(const GlTexture& texture, const GlTextureRegion& destination,
+                           uint32_t sourceX, uint32_t sourceY) {
+    auto& s = *state;
+    auto& a = *s.api;
+    s.Check();
+    if (!texture || texture.storage->api != s.api)
+        throw std::invalid_argument("Copy texture belongs to another owner/context");
+    const auto& t = *texture.storage;
+    if (t.spec.format == GlTargetFormat::Depth24 || Format(t.spec.format).block != 1)
+        throw std::invalid_argument("Native framebuffer copy requires uncompressed color storage");
+    if (texture.storage == s.color.texture.storage || texture.storage == s.depth.texture.storage)
+        throw std::logic_error("Cannot copy into an attached texture");
+    if (destination.level >= t.spec.mipLevels ||
+        destination.plane >= (t.spec.target == GxTex_CubeMap ? 6u : 1u))
+        throw std::out_of_range("Texture copy level/plane exceeds storage");
+    const uint32_t width = std::max(1u, t.spec.width >> destination.level);
+    const uint32_t height = std::max(1u, t.spec.height >> destination.level);
+    if (!destination.width || !destination.height || destination.x > width ||
+        destination.width > width - destination.x || destination.y > height ||
+        destination.height > height - destination.y)
+        throw std::out_of_range("Texture copy rectangle exceeds storage");
+    auto view = s.view;
+    if (!view.offscreen) {
+        int w, h;
+        a.context.Window().Size(w, h, view.width, view.height);
+    }
+    if ((view.offscreen && !s.color.texture) ||
+        a.Get(GL_READ_BUFFER) != (view.offscreen ? GL_COLOR_ATTACHMENT0_EXT : GL_BACK))
+        throw std::logic_error("Native framebuffer copy requires the owner's color read buffer");
+    if (view.width <= 0 || view.height <= 0 || sourceX > uint32_t(view.width) ||
+        destination.width > uint32_t(view.width) - sourceX || sourceY > uint32_t(view.height) ||
+        destination.height > uint32_t(view.height) - sourceY)
+        throw std::out_of_range("Texture copy source rectangle exceeds framebuffer");
+    const auto target = Target(t.spec.target);
+    const auto imageTarget = target == GL_TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + destination.plane : target;
+    // Copy is a synchronous command, not a render using the destination as a
+    // sampler. Existing sampler references remain valid, as with Upload().
+    // Only this active unit's binding changes; framebuffer/viewport, pixel
+    // pack/unpack, programs and render state are never touched.
+    {
+        const auto previous = static_cast<GLuint>(a.Get(Binding(target)));
+        struct Restore {
+            Api& api; GLenum target; GLuint previous;
+            ~Restore() { api.BindTexture(target, previous); }
+        } restore{a, target, previous};
+        a.Check("Before native framebuffer copy");
+        a.BindTexture(target, t.name);
+        a.CopyTexSubImage2D(imageTarget, destination.level, destination.x, destination.y,
+                           sourceX, sourceY, destination.width, destination.height);
+    }
+    a.Check("Copy native framebuffer color rectangle");
 }
 
 void GlRenderTargets::Sampling(const GlTexture& texture, const GlTextureSampling& sampling) {

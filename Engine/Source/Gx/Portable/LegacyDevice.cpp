@@ -422,6 +422,26 @@ void LegacyDevice::TexDestroy(CGxTex *tex) {
     state->textures.erase(tex);
     CGxDevice::TexDestroy(tex);
 }
+int32_t LegacyDevice::TexCopy(CGxTex *dest, const C2iVector &destPos, const C2iVector &sourcePos,
+                              const C2iVector &size, uint32_t level, uint32_t plane) {
+    Check();
+    auto found = state->textures.find(dest);
+    if (found == state->textures.end())
+        throw std::invalid_argument("Native texture copy destination belongs to another device");
+    auto &item = found->second;
+    // Original OpenGL TexCopy writes GPU content without invoking a CPU source
+    // callback. Admit the reached FFX render textures; copying into an ordinary
+    // dirty callback texture needs its own partial-update contract.
+    if (item.callback || !item.resource.Spec().renderable || !dest->m_flags.m_renderTarget)
+        throw std::logic_error("Native texture copy requires an idle render texture");
+    if (destPos.x < 0 || destPos.y < 0 || sourcePos.x < 0 || sourcePos.y < 0 || size.x <= 0 || size.y <= 0)
+        throw std::out_of_range("Native texture copy requires positive bounded rectangles");
+    state->targets.Copy(item.resource, {level, plane, uint32_t(destPos.x), uint32_t(destPos.y),
+                                       uint32_t(size.x), uint32_t(size.y)},
+                        uint32_t(sourcePos.x), uint32_t(sourcePos.y));
+    dest->m_needsCreation = dest->m_needsUpdate = 0;
+    return 1;
+}
 void LegacyDevice::DeviceSetRenderTarget(EGxBuffer buffer, CGxTex *tex, uint32_t plane) {
     Check();
     if (buffer != GxBuffers_Color || plane)

@@ -6,6 +6,20 @@ It does not expose legacy `CGxTex`/`CGxDevice` objects or complete their state,
 projection, resource-cache or async contracts. Original fonts/GlueXML/login,
 networking and an observed GrimGuzzler world session remain required for M3.
 
+The integrated FFX continuation tracked in [#116](https://github.com/RovxBot/wowdecomp/issues/116)
+adds `GlRenderTargets::Copy`: an ordered copy from the current color read buffer
+into existing uncompressed color storage. Source and destination rectangles use
+OpenGL bottom-left coordinates without a Y flip or scaling. Complete extents,
+mip/plane, owner/current-context and attachment feedback are checked before the
+write; texture binding is restored on success and GL failure. Ordinary sampler
+references may remain bound during this transfer, as with `Upload`; no draw uses
+the destination while it is written. Depth/compressed copies remain unavailable.
+The legacy adapter admits the reached idle FFX render textures only; ordinary
+callback-texture copies and `DeviceCopyTex`/stretch remain unavailable. The copy
+uses preallocated storage without invoking a CPU source callback, matching the
+original OpenGL `TexCopy` path. Copy qualification does not qualify subsequent
+multi-input FFX shaders or complete original login rendering in #96.
+
 ## Source and caller audit
 
 The reference is product 12340 at
