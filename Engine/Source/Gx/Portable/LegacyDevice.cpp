@@ -906,8 +906,10 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
             source += "TEX tex, fragment.texcoord[0], texture[0], 2D;\n";
             auto combine = [&](int op, const char *mask) {
                 const std::string output = std::string("color.") + mask;
-                const std::string primary = std::string("fragment.color.primary.") + mask;
-                const std::string texture = std::string("tex.") + mask;
+                // ARB sources permit scalar or four-component swizzles;
+                // xyz is a destination mask, not a valid source swizzle.
+                const std::string primary = std::string("fragment.color.primary") + (mask[0] == 'w' ? ".w" : "");
+                const std::string texture = std::string("tex") + (mask[0] == 'w' ? ".w" : "");
                 switch (op) {
                 case GxTexOp_Mod: return "MUL_SAT " + output + ", " + primary + ", " + texture + ";\n";
                 case GxTexOp_Mod2x: return "MUL " + output + ", " + primary + ", " + texture + ";\nADD_SAT " + output + ", color, color;\n";
