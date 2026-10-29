@@ -2,6 +2,7 @@
 #include "Engine/Source/Gx/Buffer.h"
 #include "Engine/Source/Gx/CGxPool.h"
 #include "Engine/Source/Gx/Gx.h"
+#include "Engine/Source/ShaderEffect/Types.h"
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_opengl_glext.h>
 #include <algorithm>

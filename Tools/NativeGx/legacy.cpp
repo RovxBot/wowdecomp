@@ -2,6 +2,7 @@
 #include "Engine/Source/Gx/CGxPool.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
+#include "Engine/Source/ShaderEffect/Types.h"
 #include "Engine/Source/Gxu/Portable/FontFace.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
