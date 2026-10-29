@@ -382,6 +382,21 @@ struct Checks {
         wrong.join();
         unchanged();
         inspect(destination, 0, 0, 8, 8);
+        // Deliberate storage misuse injects a driver error after validation;
+        // the temporary binding must still be restored before it is reported.
+        auto broken = targets.Create({GxTex_2d, 8, 8});
+        targets.Sample(0, broken); ActiveTextureARB(GL_TEXTURE0);
+        const GLuint brokenName = Get(GL_TEXTURE_BINDING_2D);
+        targets.Sample(0);
+        BindTexture(GL_TEXTURE_2D, brokenName);
+        TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        BindTexture(GL_TEXTURE_2D, 0); ActiveTextureARB(GL_TEXTURE3);
+        Reject<std::runtime_error>([&] { targets.Copy(broken, region, 1, 2); });
+        unchanged();
+        targets.Bind({source});
+        auto cube = targets.Create({GxTex_CubeMap, 8, 8});
+        targets.Bind({cube, 2});
+        Reject<std::logic_error>([&] { targets.Copy(cube, {0, 3, 0, 0, 1, 1}, 0, 0); });
         Disable(GL_SCISSOR_TEST);
         targets.Bind({}, {depth});
         Reject<std::logic_error>([&] { targets.Copy(destination, region, 1, 2); });
