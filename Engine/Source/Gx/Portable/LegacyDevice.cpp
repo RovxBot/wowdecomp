@@ -60,6 +60,8 @@ struct LegacyDevice::State {
     std::map<CGxTex *, Texture> textures;
     std::map<CGxBuf *, BufferState> storage;
     std::map<CGxShader *, std::unique_ptr<GlProgram>> programs;
+    std::map<CGxShader *, uint32_t> filters;
+    bool filterDraw = false;
     // One sampler is used in every pass. Scratch stores a single primitive,
     // never a flattened transparent batch; scene depth/blending happen last.
     GlTexture composition;
@@ -469,6 +471,8 @@ void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char 
     for (auto &key : keys)
         missing |= !list.Ptr(key.c_str());
     std::vector<std::unique_ptr<GlProgram>> programs(count);
+    const bool filter = target == GxSh_Pixel && count == 2 &&
+        (!std::strcmp(name, "FFXBox4") || !std::strcmp(name, "FFXGauss4"));
     ShaderPackage package;
     if (missing) {
         if (!state->shaderBytes)
@@ -476,10 +480,12 @@ void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char 
         package = DecodeShaderPackage(state->shaderBytes(member), count);
         // Decode/compile missing permutations before publishing any cache entry.
         for (uint32_t i = 0; i < count; ++i)
-            if (!list.Ptr(keys[i].c_str()))
+            if (!list.Ptr(keys[i].c_str())) {
+                auto record = filter ? AliasArbFilterSamplers(package.permutations[i]) : package.permutations[i];
                 programs[i] = std::make_unique<GlProgram>(
                     state->context, target == GxSh_Vertex ? ShaderStage::Vertex : ShaderStage::Fragment,
-                    package.permutations[i]);
+                    record);
+            }
     }
     std::vector<CGxShader *> created;
     created.reserve(count);
@@ -499,11 +505,13 @@ void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char 
             shader->unk_0044 = record.unknown2;
             shader->unk_0046 = record.unknown3;
             state->programs.emplace(shader, std::move(programs[i]));
+            if (filter) state->filters.emplace(shader, i);
             shader->m_valid = shader->m_loaded = 1;
         }
     } catch (...) {
         for (auto *shader : created) {
             state->programs.erase(shader);
+            state->filters.erase(shader);
             list.Delete(shader);
         }
         throw;
@@ -541,6 +549,7 @@ void LegacyDevice::ShaderDestroy(CGxShader *&shader) {
                 pushed.m_value.m_data.p = nullptr;
         }
         state->programs.erase(shader);
+        state->filters.erase(shader);
     }
     CGxDevice::ShaderDestroy(shader);
 }
@@ -560,6 +569,8 @@ void LegacyDevice::IRsSendToHw(EGxRenderState which) {
     case GxRs_PixelShader:
     case GxRs_Texture0:
     case GxRs_Texture1:
+    case GxRs_Texture2:
+    case GxRs_Texture3:
     case GxRs_ScissorTest:
         break; // Complete bindings synchronized before each batch.
     case GxRs_DepthTest:
@@ -770,7 +781,27 @@ void LegacyDevice::Sync() {
     NativeSyncTransforms();
     auto &s = *state;
     const bool fixed = m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr;
-    if (fixed != (m_appRenderStates[GxRs_PixelShader].m_value.m_data.p == nullptr))
+    auto *fragment = static_cast<CGxShader *>(m_appRenderStates[GxRs_PixelShader].m_value.m_data.p);
+    s.filterDraw = fragment && s.filters.count(fragment);
+    if (s.filterDraw) {
+        if (!fixed || s.filters.at(fragment) != 0)
+            Unavailable("Native FFX filter requires fixed vertices and 2D storage");
+        auto *input = static_cast<CGxTex *>(m_appRenderStates[GxRs_Texture0].m_value.m_data.p);
+        if (!input || !s.textures.count(input) || s.textures.at(input).resource.Spec().target != GxTex_2d)
+            Unavailable("Native FFX filter requires a retained 2D input");
+        for (uint32_t i = 0; i < 4; ++i) {
+            if (m_appRenderStates[GxRs_Texture0+i].m_value.m_data.p != input)
+                Unavailable("Native FFX filter requires four identical logical inputs");
+            if (m_appRenderStates[GxRs_TexGen0+i].m_value.m_data.i[0] ||
+                m_appRenderStates[GxRs_TextureShader0+i].m_value.m_data.i[0] ||
+                m_xforms[GxXform_Tex0+i].m_mtx[m_xforms[GxXform_Tex0+i].m_level] != C44Matrix())
+                Unavailable("Native FFX filter requires unmodified original UVs");
+        }
+    } else if (m_appRenderStates[GxRs_Texture2].m_value.m_data.p ||
+               m_appRenderStates[GxRs_Texture3].m_value.m_data.p) {
+        Unavailable("Native logical Texture2/3 unavailable outside FFX filters");
+    }
+    if (!s.filterDraw && fixed != (fragment == nullptr))
         throw std::logic_error("Native mixed fixed/ARB shader pipeline unavailable");
     for (auto which : {GxRs_VertexShader, GxRs_PixelShader}) {
         auto *shader = static_cast<CGxShader *>(m_appRenderStates[which].m_value.m_data.p);
@@ -789,7 +820,7 @@ void LegacyDevice::Sync() {
         }
     }
     s.Enabled(GL_VERTEX_PROGRAM_ARB, !fixed);
-    s.Enabled(GL_FRAGMENT_PROGRAM_ARB, !fixed);
+    s.Enabled(GL_FRAGMENT_PROGRAM_ARB, fragment != nullptr);
     auto *tex = static_cast<CGxTex *>(m_appRenderStates[GxRs_Texture0].m_value.m_data.p);
     if (tex)
         ITexMarkAsUpdated(tex);
@@ -815,7 +846,7 @@ void LegacyDevice::Sync() {
                     {submitted(m_primVertexFormatBuf[i]), i, a.m_type, a.m_offset, a.m_bufSize});
             }
     }
-    if (fixed) {
+    if (fixed && !s.filterDraw) {
         s.fixedAttributes = 0;
         for (const auto &attribute : attributes) s.fixedAttributes |= 1u << attribute.attribute;
         const bool hasColor = std::any_of(attributes.begin(), attributes.end(),
@@ -824,7 +855,7 @@ void LegacyDevice::Sync() {
     } else {
         // Fixed texgen and lighting/fog do not execute inside arbitrary ARB
         // programs. Preserve their visible rejection in the shader pipeline.
-        if (m_appRenderStates[GxRs_Texture1].m_value.m_data.p)
+        if (!s.filterDraw && m_appRenderStates[GxRs_Texture1].m_value.m_data.p)
             Unavailable("Native ARB Texture1 unavailable");
         if (m_appRenderStates[GxRs_TexGen0].m_value.m_data.i[0] ||
             m_appRenderStates[GxRs_TextureShader0].m_value.m_data.i[0])
@@ -837,6 +868,25 @@ void LegacyDevice::Sync() {
         s.Disable(GL_COLOR_MATERIAL);
         s.Disable(GL_TEXTURE_GEN_S);
         s.Disable(GL_TEXTURE_GEN_T);
+        if (s.filterDraw) {
+            uint32_t mask = 0;
+            for (const auto &attribute : attributes) mask |= 1u << attribute.attribute;
+            const uint32_t required = (1u << GxVA_Position) | (1u << GxVA_Color0) |
+                (15u << GxVA_TexCoord0);
+            if ((mask & required) != required)
+                Unavailable("Native FFX filter requires all four original UV streams and color");
+            GLint mode = 0;
+            s.GetIntegerv(GL_MATRIX_MODE, &mode);
+            const C44Matrix identity;
+            for (uint32_t unit = 0; unit < 4; ++unit) {
+                s.ActiveTextureARB(GL_TEXTURE0_ARB + unit);
+                for (auto cap : {GL_TEXTURE_GEN_S, GL_TEXTURE_GEN_T, GL_TEXTURE_GEN_R, GL_TEXTURE_GEN_Q})
+                    s.Disable(cap);
+                s.MatrixMode(GL_TEXTURE); s.LoadMatrixf(&identity.a0);
+            }
+            s.ActiveTextureARB(GL_TEXTURE0_ARB);
+            s.MatrixMode(GLenum(mode));
+        }
     }
     s.buffers.VertexFormat(attributes.data(), attributes.size());
     s.buffers.IndexBuffer(m_primIndexBuf ? submitted(m_primIndexBuf) : GlBuffer{});
@@ -848,14 +898,19 @@ void LegacyDevice::Draw(CGxBatch *batches, int32_t count) {
     if (!count)
         return;
     Sync();
-    if (m_appRenderStates[GxRs_Texture1].m_value.m_data.p) {
+    if (!state->filterDraw && m_appRenderStates[GxRs_Texture1].m_value.m_data.p) {
         DrawComposed(batches, count);
         return;
     }
+    const bool fixed = m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr;
+    const uint32_t coordinates = state->filterDraw ? 4 : 1;
+    // Validate the entire submitted list before the first visible write.
+    for (int32_t i = 0; i < count; ++i)
+        state->buffers.ValidateDraw(uint32_t(batches[i].m_primType), batches[i].m_start, batches[i].m_count,
+                                    m_primIndexBuf != nullptr, fixed, coordinates);
     for (int32_t i = 0; i < count; ++i)
         state->buffers.Draw(uint32_t(batches[i].m_primType), batches[i].m_start, batches[i].m_count,
-                            m_primIndexBuf != nullptr,
-                            m_appRenderStates[GxRs_VertexShader].m_value.m_data.p == nullptr);
+                            m_primIndexBuf != nullptr, fixed, GxVA_TexCoord0, coordinates);
 }
 void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
     auto &s = *state;

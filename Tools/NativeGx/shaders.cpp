@@ -74,6 +74,27 @@ int main() {
         shader = valid; shader.code[5] = 'f';
         Check(PrepareArbProgram(shader, ShaderStage::Fragment).find("!!ARBfp1.0") == 0);
         Reject([&] { PrepareArbProgram(shader, static_cast<ShaderStage>(42)); });
+        const std::string filter = "!!ARBfp1.0\n# texture[3] stays in a comment\nTEMP r;\n"
+            "TEX r, fragment.texcoord[3], texture[3], 2D;\n"
+            "TEX r, fragment.texcoord[2], texture[2], 2D;\n"
+            "TEX r, fragment.texcoord[1], texture[1], 2D;\n"
+            "TEX r, fragment.texcoord[0], texture[0], 2D;\nMOV result.color,r;\nEND\n";
+        shader.code.assign(filter.begin(),filter.end()); shader.code.push_back(0);
+        const auto alias = AliasArbFilterSamplers(shader);
+        const std::string aliased(alias.code.begin(),alias.code.end()-1);
+        auto expected = filter;
+        for (auto token : {"texture[1]", "texture[2]", "texture[3]"}) {
+            const auto at = expected.find(token,expected.find("TEMP"));
+            expected[at+8] = '0';
+        }
+        Check(aliased == expected && std::string(shader.code.begin(),shader.code.end()-1) == filter);
+        for (auto operand : {"texture[4]", "texture[12]", "texture[x]"}) {
+            auto malformed = filter; malformed.replace(malformed.find("texture[3]",malformed.find("TEMP")),10,operand);
+            shader.code.assign(malformed.begin(),malformed.end()); shader.code.push_back(0);
+            bool rejected = false;
+            try { AliasArbFilterSamplers(shader); } catch (const std::invalid_argument&) { rejected = true; }
+            Check(rejected);
+        }
         std::cout << "12340 shader metadata/permutations/padding/truncation/version/ARB adaptation passed\n";
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

@@ -247,10 +247,13 @@ void GlBuffers::IndexBuffer(const GlBuffer& buffer) {
     if (buffer) state->Validate(buffer, GxPoolTarget_Index);
     state->index = buffer;
 }
-void GlBuffers::ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction) const {
+void GlBuffers::ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction,
+                             uint32_t fixedTexCoords) const {
     auto& s = *state;
     auto& a = *s.api;
     a.context.CheckCurrent();
+    if (!fixedTexCoords || fixedTexCoords > 4)
+        throw std::invalid_argument("Unsupported native fixed UV count");
     if (primitive >= std::size(primitives) || count > uint32_t(std::numeric_limits<GLsizei>::max()))
         throw std::out_of_range("Invalid Gx primitive/count");
     if (!count) return;
@@ -288,17 +291,20 @@ void GlBuffers::ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count,
         for (const auto& field : s.attributes) {
             const bool vector = (field.attribute == GxVA_Position || field.attribute == GxVA_Normal) && field.type == 4;
             const bool color = field.attribute == GxVA_Color0 && (field.type == 0 || field.type == 2);
-            const bool uv = (field.attribute == GxVA_TexCoord0 || field.attribute == GxVA_TexCoord1) && field.type == 3;
+            const bool uv = field.attribute >= GxVA_TexCoord0 &&
+                field.attribute < GxVA_TexCoord0 + std::max(2u, fixedTexCoords) && field.type == 3;
             if (!vector && !color && !uv)
                 throw std::invalid_argument("Unsupported native fixed vertex input");
         }
     }
 }
 void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction,
-                     uint32_t fixedTexCoord) {
-    ValidateDraw(primitive, start, count, indexed, fixedFunction);
+                     uint32_t fixedTexCoord, uint32_t fixedTexCoords) {
+    ValidateDraw(primitive, start, count, indexed, fixedFunction, fixedTexCoords);
     if (fixedTexCoord != GxVA_TexCoord0 && fixedTexCoord != GxVA_TexCoord1)
         throw std::invalid_argument("Unsupported native fixed texture-coordinate selection");
+    if (fixedTexCoords > 1 && fixedTexCoord != GxVA_TexCoord0)
+        throw std::invalid_argument("Multiple fixed UVs require their original indices");
     if (!count) return;
     auto& s = *state;
     auto& a = *s.api;
@@ -309,6 +315,11 @@ void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool in
         a.ClientActiveTextureARB(GL_TEXTURE0_ARB);
         for (GLenum array : {GL_VERTEX_ARRAY, GL_NORMAL_ARRAY, GL_COLOR_ARRAY, GL_TEXTURE_COORD_ARRAY})
             a.DisableClientState(array);
+        for (uint32_t unit = 1; unit < 4; ++unit) {
+            a.ClientActiveTextureARB(GL_TEXTURE0_ARB + unit);
+            a.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+        a.ClientActiveTextureARB(GL_TEXTURE0_ARB);
         for (const auto& field : s.attributes) {
             const auto& type = types[field.type];
             a.BindBufferARB(GL_ARRAY_BUFFER_ARB, field.buffer.storage->name);
@@ -325,7 +336,11 @@ void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool in
             } else if (field.attribute == GxVA_Color0) {
                 a.ColorPointer(type.count, type.kind, field.stride, offset);
                 a.EnableClientState(GL_COLOR_ARRAY);
-            } else if (field.attribute == fixedTexCoord) {
+            } else if ((fixedTexCoords == 1 && field.attribute == fixedTexCoord) ||
+                       (fixedTexCoords > 1 && field.attribute >= GxVA_TexCoord0 &&
+                        field.attribute < GxVA_TexCoord0 + fixedTexCoords)) {
+                a.ClientActiveTextureARB(GL_TEXTURE0_ARB +
+                    (fixedTexCoords == 1 ? 0 : field.attribute - GxVA_TexCoord0));
                 a.TexCoordPointer(type.count, type.kind, field.stride, offset);
                 a.EnableClientState(GL_TEXTURE_COORD_ARRAY);
             }

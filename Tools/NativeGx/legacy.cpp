@@ -139,9 +139,12 @@ struct Assets {
     size_t signatures = 0;
     bool original = false;
 };
+static Bytes FilterPackage(bool gaussian);
 Assets Load(GlContext &context, const std::string &data, const std::string &settings,
             const std::string &cache) {
     Assets assets;
+    assets.shaders["Shaders\\Pixel\\arbfp1\\FFXBox4.bls"] = FilterPackage(false);
+    assets.shaders["Shaders\\Pixel\\arbfp1\\FFXGauss4.bls"] = FilterPackage(true);
     if (data.empty()) {
         assets.shaders["Shaders\\Vertex\\arbvp1\\UI.bls"] =
             Package("!!ARBvp1.0\nMOV result.position, vertex.position;\nMOV result.color, "
@@ -163,6 +166,7 @@ Assets Load(GlContext &context, const std::string &data, const std::string &sett
             auto packages = Blizzard::Mopaq::Native::Packages::Open12340(paths, "enUS");
             assets.signatures = packages->SignatureCount();
             for (auto member : {"Shaders\\Vertex\\arbvp1\\UI.bls", "Shaders\\Pixel\\arbfp1\\UI.bls",
+                                "Shaders\\Pixel\\arbfp1\\FFXBox4.bls", "Shaders\\Pixel\\arbfp1\\FFXGauss4.bls",
                                 "Fonts\\FRIZQT__.TTF"}) {
                 Require(!cancel.Requested(), "Asset read cancelled");
                 auto file = packages->Read(member, 64 * 1024 * 1024);
@@ -229,6 +233,7 @@ void CheckImplicitDepth(GlContext& context, int width, int height) {
     Require(bits>=24 && w==width && h==height, "Legacy depth flag has the wrong depth extent/precision");
 }
 #include "CompositionChecks.h"
+#include "FfxChecks.h"
 void CheckFramebufferCopy(GlContext& context, LegacyDevice& device) {
     auto ClearColor = reinterpret_cast<decltype(&glClearColor)>(context.Proc("glClearColor"));
     auto Clear = reinterpret_cast<decltype(&glClear)>(context.Proc("glClear"));
@@ -315,6 +320,7 @@ void Cycle(GlContext &context, Assets &assets) {
     GxRsSet(GxRs_PixelShader, fragment);
     CheckMipCallbacks();
     CheckComposition(context,device);
+    CheckFfxFilters(context,device);
     CheckFramebufferCopy(context,device);
     Source source;
     CGxTex *texture = nullptr;

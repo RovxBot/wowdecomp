@@ -1,5 +1,6 @@
 #include "ShaderPackage.h"
 #include <algorithm>
+#include <cctype>
 #include <stdexcept>
 
 namespace Gx { namespace Native {
@@ -80,5 +81,27 @@ std::string PrepareArbProgram(const ShaderRecord& shader, ShaderStage stage) {
         i += 12;
     }
     return source;
+}
+ShaderRecord AliasArbFilterSamplers(const ShaderRecord& shader) {
+    // Validate ASCII, terminator and stage before scanning bounded source.
+    auto source = PrepareArbProgram(shader, ShaderStage::Fragment);
+    bool comment = false;
+    uint32_t mask = 0;
+    for (size_t i = 0; i < source.size(); ++i) {
+        if (source[i] == '\n' || source[i] == '\r') comment = false;
+        if (source[i] == '#') comment = true;
+        if (comment || source.compare(i, 8, "texture[") != 0) continue;
+        if ((i && (std::isalnum(static_cast<unsigned char>(source[i-1])) || source[i-1] == '_')) ||
+            i + 10 > source.size() || source[i+8] < '0' || source[i+8] > '3' || source[i+9] != ']')
+            throw std::invalid_argument("Unsupported FFX filter sampler operand");
+        mask |= 1u << (source[i+8] - '0');
+        source[i+8] = '0';
+        i += 9;
+    }
+    if (mask != 15) throw std::invalid_argument("FFX filter requires four literal samplers");
+    auto result = shader;
+    result.code.assign(source.begin(), source.end());
+    result.code.push_back(0);
+    return result;
 }
 }}
