@@ -636,8 +636,8 @@ void CSimpleButton::CreateScriptMetaTable() {
 // STATIC: 0x00B2D418
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 static FrameScript_Method s_ScriptMethods[] = {
-    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable, true, false, true> },
-    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable, true, false, true> },
+    { "Enable", &Frame::Native::ScriptMethod<&Script_Enable, true, false, true, true> },
+    { "Disable", &Frame::Native::ScriptMethod<&Script_Disable, true, false, true, true> },
     { "IsEnabled", &Frame::Native::ScriptMethod<&Script_IsEnabled, true, false> },
     { "GetButtonState", &Frame::Native::ScriptMethod<&Script_GetButtonState, true, false> },
     { "SetButtonState", &Frame::Native::ScriptMethod<&Script_SetButtonState> },

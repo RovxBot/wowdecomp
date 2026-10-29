@@ -258,6 +258,11 @@ int32_t CSimpleSlider::SetThumbTexture(const char* fileName) {
 // VERIFY: cd12c178 manual
 // OFFSET: 0x0096C090
 void CSimpleSlider::SetValue(float value) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireSimpleFrame(this);
+    Frame::Native::RequireFinite(value);
+#endif
     if (!this->m_rangeSet) {
         return;
     }
@@ -363,6 +368,14 @@ int32_t CSimpleSlider::OnLayerMouseDown(const CMouseEvent& evt, const char* btn)
 // VERIFY: f2e35f6a auto
 // OFFSET: 0x0096C470
 void CSimpleSlider::SetMinMaxValues(float min, float max) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireSimpleFrame(this);
+    Frame::Native::RequireFinite(min);
+    Frame::Native::RequireFinite(max);
+    Frame::Native::RequireFinite(max - min);
+    if (min > max) throw std::invalid_argument("Invalid native Slider range");
+#endif
     float range = max - min;
 
     if (this->m_rangeSet && fabsf(range - this->m_range) < 0.00000023841858f && fabsf(this->m_baseValue - min) < 0.00000023841858f) {

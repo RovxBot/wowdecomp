@@ -44,6 +44,9 @@ void RequireFinite(float);
 void RequireDimension(float);
 void RequireDestroyable();
 void RequireTreeMutable();
+// State-only script admission may allow pinned callbacks; active resize remains
+// forbidden. This does not grant hierarchy, layout-script or destruction access.
+void RequireStateMutable(bool callbacksAllowed);
 struct CallbackScope final {
     CallbackScope();
     ~CallbackScope();

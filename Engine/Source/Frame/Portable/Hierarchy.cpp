@@ -18,6 +18,7 @@ namespace {
 std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
+bool scrollRangeEdits = false;
 ScrollNotify scrollNotify = nullptr;
 constexpr size_t MaxDepth = 64;
 }
@@ -60,9 +61,32 @@ void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
 }
-void RequireStateMutation() {
+void RequireStateMutation(bool scrollCallback) {
+    RequireRegions();
+    const bool admitted = scrollCallback && scrollRangeEdits;
+    RequireStateMutable(admitted);
+    if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
+}
+ScrollRangeEdits::ScrollRangeEdits() {
     RequireRegions(); RequireTreeMutable();
-    if (updating || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
+    if (collecting || scrollRangeEdits) throw std::logic_error("Nested or collecting scroll-range notification");
+    scrollRangeEdits = true;
+}
+ScrollRangeEdits::~ScrollRangeEdits() { scrollRangeEdits = false; }
+void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
+    RequireStateMutation(true);
+    if (!scrollRangeEdits) return;
+    RequireSimpleFrame(target);
+    // Movement unflattening and top-level raising retain their stricter guards.
+    // Preflight the entire subtree before changing any visibility/list state.
+    if (!showing)
+        for (auto* moving = CSimpleTop::s_instance->m_moveResizeFrame; moving; moving = moving->m_parent)
+            if (moving == target) throw std::logic_error("Finish movement before scroll callback visibility edits");
+    if (showing)
+        for (auto* leaf : frames)
+            if (leaf->m_frameFlags & 1)
+                for (auto* parent = leaf; parent; parent = parent->m_parent)
+                    if (parent == target) throw std::logic_error("Top-level raising is unavailable in scroll callbacks");
 }
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();

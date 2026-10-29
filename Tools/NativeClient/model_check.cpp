@@ -49,6 +49,7 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include "ScrollRangeChecks.h"
 using Bytes = std::vector<uint8_t>;
 namespace {
 void Check(bool condition, const char* message) { if (!condition) throw std::runtime_error(message); }
@@ -321,6 +322,7 @@ void Factory() {
     struct VideoScripts { ~VideoScripts() { CGVideoOptions::UnregisterScriptFunctions(); } } videoScripts;
     {
         CSimpleTop root;
+        CheckScrollRangeEdits(root);
         {
             const auto errors = FrameScript::Native::ScriptErrorCount();
             FrameScript_Execute(R"(
