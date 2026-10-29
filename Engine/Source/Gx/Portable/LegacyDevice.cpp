@@ -63,7 +63,8 @@ struct LegacyDevice::State {
     // One sampler is used in every pass. Scratch stores a single primitive,
     // never a flattened transparent batch; scene depth/blending happen last.
     GlTexture composition;
-    std::unique_ptr<GlProgram> compositionTexture, compositionResult;
+    std::unique_ptr<GlProgram> compositionTexture;
+    std::map<uint32_t, std::unique_ptr<GlProgram>> compositionFirst, compositionResult;
     uint32_t fixedAttributes = 0;
     std::array<CGxStateBom, GxRenderStates_Last> defaults;
 #define BASE(name) decltype(&gl##name) name = reinterpret_cast<decltype(name)>(context.Proc("gl" #name))
@@ -839,11 +840,17 @@ void LegacyDevice::Draw(CGxBatch *batches, int32_t count) {
 void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
     auto &s = *state;
     auto integer = [&](EGxRenderState which) { return m_appRenderStates[which].m_value.m_data.i[0]; };
-    // Initially qualify the reached original unlit/unfogged Mod/Mod2x family.
-    // Specular/fog and other equations need their own post-combiner delivery.
-    if ((integer(GxRs_Lighting) && MasterEnable(GxMasterEnable_Lighting)) ||
-        (integer(GxRs_Fog) && MasterEnable(GxMasterEnable_Fog)))
-        Unavailable("Native composed lighting/fog unavailable");
+    const bool lit = integer(GxRs_Lighting) && MasterEnable(GxMasterEnable_Lighting);
+    const bool fog = integer(GxRs_Fog) && MasterEnable(GxMasterEnable_Fog);
+    float fogParameters[4]{};
+    if (fog) {
+        const float start = m_appRenderStates[GxRs_FogStart].m_value.m_data.f[0];
+        const float end = m_appRenderStates[GxRs_FogEnd].m_value.m_data.f[0];
+        const double scale = 1.0 / (double(end) - start);
+        if (!(end > start) || !std::isfinite(scale) || scale > std::numeric_limits<float>::max())
+            Unavailable("Native composed fog interval unavailable");
+        fogParameters[0] = end; fogParameters[1] = float(scale);
+    }
     const auto rgb = integer(GxRs_ColorOp1), alpha = integer(GxRs_AlphaOp1);
     if (rgb < GxTexOp_Mod || rgb > GxTexOp_Mod2x || alpha < GxTexOp_Mod || alpha > GxTexOp_Mod2x)
         Unavailable("Native composed texture operation unavailable");
@@ -880,27 +887,64 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
         s.targets.Sampling(scratch, {GxTex_Nearest, GxTex_Clamp, GxTex_Clamp, 1});
         s.composition = std::move(scratch);
     }
-    if (!s.compositionTexture) {
-        auto program = [&](const char *source) {
+    auto program = [&](const std::string &source) {
             ShaderRecord record;
-            record.code.assign(source, source + std::strlen(source) + 1);
+            record.code.assign(source.begin(), source.end()); record.code.push_back(0);
             return std::make_unique<GlProgram>(s.context, ShaderStage::Fragment, record);
-        };
-        auto textureProgram = program("!!ARBfp1.0\nTEX result.color, fragment.texcoord[0], texture[0], 2D;\nEND\n");
-        auto resultProgram = program("!!ARBfp1.0\nTEMP uv, color;\n"
+    };
+    if (!s.compositionTexture)
+        s.compositionTexture = program("!!ARBfp1.0\nTEX result.color, fragment.texcoord[0], texture[0], 2D;\nEND\n");
+    const auto firstRgb = integer(GxRs_ColorOp0), firstAlpha = integer(GxRs_AlphaOp0);
+    const uint32_t firstKey = firstRgb + firstAlpha * GxTexOps_Last + (tex0 ? GxTexOps_Last * GxTexOps_Last : 0);
+    if (!s.compositionFirst.count(firstKey)) {
+        // Fixed vertex processing still supplies original lighting and texgen.
+        // An explicit fragment combiner keeps secondary specular and fog out
+        // of scratch; both belong after the LAST texture stage.
+        std::string source = "!!ARBfp1.0\nTEMP tex, color;\n";
+        if (tex0) {
+            source += "TEX tex, fragment.texcoord[0], texture[0], 2D;\n";
+            auto combine = [&](int op, const char *mask) {
+                const std::string output = std::string("color.") + mask;
+                const std::string primary = std::string("fragment.color.primary.") + mask;
+                const std::string texture = std::string("tex.") + mask;
+                switch (op) {
+                case GxTexOp_Mod: return "MUL_SAT " + output + ", " + primary + ", " + texture + ";\n";
+                case GxTexOp_Mod2x: return "MUL " + output + ", " + primary + ", " + texture + ";\nADD_SAT " + output + ", color, color;\n";
+                case GxTexOp_Add: return "ADD_SAT " + output + ", " + primary + ", " + texture + ";\n";
+                case GxTexOp_PassThru: return "MOV_SAT " + output + ", " + primary + ";\n";
+                case GxTexOp_Decal: return "LRP_SAT " + output + ", fragment.color.primary.a, " + primary + ", " + texture + ";\n";
+                case GxTexOp_Fade: return "LRP_SAT " + output + ", fragment.color.primary.a, " + texture + ", " + primary + ";\n";
+                default: throw std::out_of_range("Native first-stage combiner");
+                }
+            };
+            source += combine(firstRgb, "xyz") + combine(firstAlpha, "w");
+            source += "MOV result.color, color;\nEND\n";
+        } else source += "MOV_SAT result.color, fragment.color.primary;\nEND\n";
+        s.compositionFirst.emplace(firstKey, program(source));
+    }
+    const uint32_t resultKey = uint32_t(lit) | (uint32_t(fog) << 1);
+    if (!s.compositionResult.count(resultKey)) {
+        std::string source = "!!ARBfp1.0\nTEMP uv, color, factor;\n"
             "MUL uv, fragment.position, program.env[0];\n"
-            "TEX color, uv, texture[0], 2D;\nMOV_SAT result.color, color;\nEND\n");
-        s.compositionTexture = std::move(textureProgram);
-        s.compositionResult = std::move(resultProgram);
+            "TEX color, uv, texture[0], 2D;\nMOV_SAT color, color;\n";
+        if (lit) source += "ADD_SAT color.xyz, color, fragment.color.secondary;\n";
+        if (fog) source += "SUB factor.x, program.env[1].x, fragment.fogcoord.x;\n"
+            "MUL_SAT factor.x, factor.x, program.env[1].y;\n"
+            "LRP color.xyz, factor.x, color, program.env[2];\n";
+        source += "MOV result.color, color;\nEND\n";
+        s.compositionResult.emplace(resultKey, program(source));
     }
     const auto &target = m_textureTarget[GxBuffers_Color];
     const GlAttachment scene = target.m_texture ? GlAttachment{s.textures.at(target.m_texture).resource, target.m_plane} : GlAttachment{};
     GLint viewport[4]{}, fragmentProgram = 0;
-    float constant[4]{};
+    float constants[3][4]{};
     s.GetIntegerv(GL_VIEWPORT, viewport);
     s.GetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_BINDING_ARB, &fragmentProgram);
-    s.GetProgramEnvParameterfvARB(GL_FRAGMENT_PROGRAM_ARB, 0, constant);
+    for (unsigned i = 0; i < 3; ++i)
+        s.GetProgramEnvParameterfvARB(GL_FRAGMENT_PROGRAM_ARB, i, constants[i]);
     const float inverseExtent[4] = {1.f / view.width, 1.f / view.height, 0, 0};
+    const auto &fogColor = reinterpret_cast<const CImVector &>(m_appRenderStates[GxRs_FogColor].m_value.m_data.u[0]);
+    const float fogRgba[4] = {fogColor.r / 255.f, fogColor.g / 255.f, fogColor.b / 255.f, fogColor.a / 255.f};
     auto restoreScene = [&] {
         s.targets.Sample(0);
         s.targets.Bind(scene);
@@ -911,7 +955,8 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
         s.targets.Sample(0, texture0);
         s.Disable(GL_FRAGMENT_PROGRAM_ARB);
         s.BindProgramARB(GL_FRAGMENT_PROGRAM_ARB, GLuint(fragmentProgram));
-        s.ProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, 0, constant);
+        for (unsigned i = 0; i < 3; ++i)
+            s.ProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, i, constants[i]);
         NativeSyncTransforms();
         // Restore the complete fixed material, texgen and color snapshot.
         SyncFixed(hasColor);
@@ -940,13 +985,14 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
                 s.MatrixMode(GL_TEXTURE);
                 s.LoadMatrixf(&m_xforms[GxXform_Tex0].m_mtx[m_xforms[GxXform_Tex0].m_level].a0);
                 s.MatrixMode(GLenum(matrixMode));
+                s.compositionFirst.at(firstKey)->Bind(); s.Enable(GL_FRAGMENT_PROGRAM_ARB);
                 s.buffers.Draw(GxPrim_Triangles, start, 3, indexed, true);
                 // Stage one samples its own UVs/matrix on the same physical
                 // sampler. Multiplication and doubling affect RGB AND alpha.
                 // Float scratch prevents an extra RGBA8 quantization; the
                 // final fragment program supplies the original stage clamp.
                 s.targets.Sample(0, texture1);
-                SyncFixed(false, 1);
+                SyncFixed(hasColor, 1);
                 s.MatrixMode(GL_TEXTURE);
                 s.LoadMatrixf(&m_xforms[GxXform_Tex1].m_mtx[m_xforms[GxXform_Tex1].m_level].a0);
                 s.MatrixMode(GLenum(matrixMode));
@@ -957,7 +1003,9 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
                 s.buffers.Draw(GxPrim_Triangles, start, 3, indexed, true, GxVA_TexCoord1);
                 restoreScene();
                 s.targets.Sample(0, s.composition);
-                s.compositionResult->Bind(); s.compositionResult->Constant(0, inverseExtent);
+                auto &resultProgram = *s.compositionResult.at(resultKey);
+                resultProgram.Bind(); resultProgram.Constant(0, inverseExtent);
+                if (fog) { resultProgram.Constant(1, fogParameters); resultProgram.Constant(2, fogRgba); }
                 s.Enable(GL_FRAGMENT_PROGRAM_ARB);
                 for (auto which : {GxRs_BlendingMode, GxRs_AlphaRef, GxRs_DepthTest, GxRs_DepthWrite, GxRs_ColorWrite})
                     IRsSendToHw(which);

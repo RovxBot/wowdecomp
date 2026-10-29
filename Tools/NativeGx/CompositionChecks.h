@@ -55,7 +55,7 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
     const uint16_t indices[]={0,1,2,3,4,5};
     GxPrimIndexPtr(6,indices);
     CGxBatch batch{GxPrim_Triangles,0,3,0,5};
-    const CImVector background(24,48,80,192);
+    const CImVector background(80,48,24,192); // Constructor/storage are BGRA.
     auto GetInteger=reinterpret_cast<decltype(&glGetIntegerv)>(context.Proc("glGetIntegerv"));
     auto GetEnv=reinterpret_cast<PFNGLGETPROGRAMENVPARAMETERFVARBPROC>(context.Proc("glGetProgramEnvParameterfvARB"));
     auto SetEnv=reinterpret_cast<PFNGLPROGRAMENVPARAMETER4FVARBPROC>(context.Proc("glProgramEnvParameter4fvARB"));
@@ -98,6 +98,9 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
                     std::to_string(channels[c])+" expected "+std::to_string(want[c]));
     };
     for (bool offscreen:{true,false}) {
+        for (unsigned row=0;row<8;++row)
+            for (unsigned col=0;col<8;++col) second.pixels[row*8+col]=col<4?0x4E62:0xAB47;
+        GxTexUpdate(textures[1],0,0,8,8,1);
         device.DeviceSetRenderTarget(GxBuffers_Color,offscreen?textures[2]:nullptr,0);
         CRect size; device.CapsWindowSize(size);
         const int x=offscreen?32:int(size.maxX/2), y=offscreen?16:int(size.maxY/2);
@@ -147,10 +150,40 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         Reject([&]{GxDraw(&batch,1);},"Composition silently substituted an unsupported combiner");
         checkPixel(x,y,{{24,48,80,192}});
         GxRsSet(GxRs_ColorOp1,GxTexOp_Mod2x);
-        GxRsSet(GxRs_Lighting,1);
-        Reject([&]{GxDraw(&batch,1);},"Composition silently discarded lighting");
-        GxRsSet(GxRs_Lighting,0);
         GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,2));
+        // White stage1/Mod is an identity. Compare the real single-stage
+        // fixed GPU pipeline with composed lighting, secondary specular and fog.
+        std::fill(second.pixels.begin(),second.pixels.end(),0xFFFF);
+        GxTexUpdate(textures[1],0,0,8,8,1);
+        const std::vector<CGxApiLight> lights(device.m_lights,device.m_lights+4);
+        for (auto &light:device.m_lights) light.m_enable=0;
+        auto &light=device.m_lights[0];
+        light.m_enable=1; light.m_dir=C4Vector(0,0,-1,0);
+        light.m_ambColor=C3Vector(.15f,.2f,.1f); light.m_dirColor=C3Vector(.5f,.4f,.3f);
+        light.m_specColor=C3Vector(.7f,.6f,.5f); light.m_constantAttenuation=1;
+        GxRsSet(GxRs_MatSpecular,int32_t(0xFFA07850));
+        GxRsSet(GxRs_MatSpecularExp,8.f);
+        GxRsSet(GxRs_MatEmissive,int32_t(0x00100C08));
+        GxRsSet(GxRs_FogStart,0.f); GxRsSet(GxRs_FogEnd,1.f);
+        GxRsSet(GxRs_FogColor,int32_t(0xFF1E6EB4));
+        C44Matrix view; view.d2=-.5f; GxXformSetView(view);
+        GxRsSet(GxRs_ColorOp1,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp1,GxTexOp_Mod);
+        batch.m_count=3;
+        for (int lighting:{0,1}) for (int fog:{0,1}) for (int op=0;op<GxTexOps_Last;++op) {
+            GxRsSet(GxRs_Lighting,lighting); GxRsSet(GxRs_Fog,fog);
+            GxRsSet(GxRs_ColorOp0,op); GxRsSet(GxRs_AlphaOp0,GxTexOps_Last-1-op);
+            GxRsSet(GxRs_Texture1,static_cast<void*>(nullptr));
+            device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background); GxDraw(&batch,1);
+            const auto reference=Pixel(device,x,y);
+            GxRsSet(GxRs_Texture1,textures[1]);
+            device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background); GxDraw(&batch,1);
+            checkPixel(x,y,{{double(reference.r),double(reference.g),double(reference.b),double(reference.a)}});
+            checkState();
+        }
+        std::copy(lights.begin(),lights.end(),device.m_lights);
+        GxRsSet(GxRs_Fog,0); GxRsSet(GxRs_Lighting,0);
+        GxRsSet(GxRs_ColorOp0,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod);
+        GxXformSetView(C44Matrix());
     }
     Require(device.m_caps.m_numTmus==1 && device.m_caps.m_shaderConstants[GxSh_Vertex]==94,
             "Composition changed qualified device limits");
