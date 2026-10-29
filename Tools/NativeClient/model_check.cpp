@@ -281,6 +281,16 @@ void Factory() {
         const bool vertex = path.find("Vertex") != std::string::npos;
         const auto count = path.find("FFXGlowWave") != std::string::npos ? 4u :
             path.find("FFX") != std::string::npos || (vertex && path.find("UI.bls") != std::string::npos) ? 2u : 1u;
+        if (path.find("FFXBox4") != std::string::npos || path.find("FFXGauss4") != std::string::npos) {
+            // Factory/lifetime fixture only. Supply four real literal fetches
+            // for the filter contract; pixel equations are tested by LegacyGxCheck.
+            std::string source = "!!ARBfp1.0\nTEMP sample, sum;\nMOV sum, {0,0,0,0};\n";
+            for (unsigned i = 0; i < 4; ++i)
+                source += "TEX sample, fragment.texcoord[" + std::to_string(i) + "], texture[" +
+                    std::to_string(i) + "], 2D;\nMAD sum, sample, 0.25, sum;\n";
+            source += "MOV result.color, sum;\nEND\n";
+            return Program(source.c_str(),count);
+        }
         return Program(vertex ? "!!ARBvp1.0\nMOV result.position, vertex.position;\nEND\n" :
             "!!ARBfp1.0\nMOV result.color, fragment.color;\nEND\n", count);
     });

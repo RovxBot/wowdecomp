@@ -3,6 +3,7 @@
 #include "Engine/Source/Gx/CGxPool.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/ShaderEffect/Types.h"
+#include "Engine/Source/Storm/H/storm.h"
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_opengl_glext.h>
 #include <algorithm>
@@ -472,7 +473,7 @@ void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char 
         missing |= !list.Ptr(key.c_str());
     std::vector<std::unique_ptr<GlProgram>> programs(count);
     const bool filter = target == GxSh_Pixel && count == 2 &&
-        (!std::strcmp(name, "FFXBox4") || !std::strcmp(name, "FFXGauss4"));
+        (!SStrCmpI(name, "FFXBox4", SIZE_MAX) || !SStrCmpI(name, "FFXGauss4", SIZE_MAX));
     ShaderPackage package;
     if (missing) {
         if (!state->shaderBytes)
