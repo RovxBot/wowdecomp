@@ -98,7 +98,14 @@ static void CheckFfxFilters(GlContext &context, LegacyDevice &device) {
         device.PrimVertexMask(0x1D1);
         Reject([&] { device.Draw(&batch,1); }, "FFX missing fourth UV accepted"); unchanged();
         geometry();
+        // Original Gauss4 attaches its next output BEFORE replacing the old
+        // logical input. A stale physical binding must not block that change;
+        // a subsequent draw that actually samples the attachment must fail.
+        device.DeviceSetRenderTarget(GxBuffers_Color,nullptr,0);
         for (unsigned i = 0; i < 4; ++i) GxRsSet(EGxRenderState(GxRs_Texture0+i),output);
+        device.Draw(&batch,1);
+        device.DeviceSetRenderTarget(GxBuffers_Color,output,0);
+        device.SceneClear(GxBufferBit_Color,background);
         Reject([&] { device.Draw(&batch,1); }, "FFX attached input accepted"); unchanged();
         for (unsigned i = 0; i < 4; ++i) GxRsSet(EGxRenderState(GxRs_Texture0+i),input);
         device.Draw(&batch,1);

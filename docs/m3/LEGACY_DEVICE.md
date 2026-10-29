@@ -12,6 +12,13 @@ through the current 2D-only legacy texture owner. Device caps stay at one sample
 and 94 registers. Distinct-input glow and complete original login rendering remain
 separate acceptance work in #118/#96.
 
+Original FFX target switches precede the replacement of logical input states.
+The legacy adapter releases the previous draw's physical sampler before attaching
+the next target, restoring it if attachment fails. Logical states remain pending;
+the next draw rebinds and checks its real input against the active attachment.
+This permits Gauss4's horizontal/vertical order without admitting feedback draws.
+The lower target owner's explicit `Bind`/`Sample` feedback guards remain intact.
+
 The fixed pipeline can compose the six original two-stage texture operations without changing
 the advertised one-unit/94-register limits.
 Each original triangle overwrites retained RGBA32F scratch with stage zero, then

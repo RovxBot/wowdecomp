@@ -453,7 +453,17 @@ void LegacyDevice::DeviceSetRenderTarget(EGxBuffer buffer, CGxTex *tex, uint32_t
         throw std::invalid_argument("Legacy texture is not renderable");
     if (tex)
         ITexMarkAsUpdated(tex);
-    state->targets.Bind(tex ? GlAttachment{state->textures.at(tex).resource, 0} : GlAttachment{});
+    // Legacy bindings are lazy: Gauss4 attaches its vertical output before
+    // replacing the horizontal input. Release the previous draw's physical
+    // sampler, retaining logical Rs state for Sync's feedback preflight.
+    const auto sampled = state->targets.Sampled(0);
+    state->targets.Sample(0);
+    try {
+        state->targets.Bind(tex ? GlAttachment{state->textures.at(tex).resource, 0} : GlAttachment{});
+    } catch (...) {
+        state->targets.Sample(0, sampled);
+        throw;
+    }
     CGxDevice::DeviceSetRenderTarget(buffer, tex, plane);
 }
 void LegacyDevice::ShaderCreate(CGxShader **out, EGxShTarget target, const char *path, const char *name,

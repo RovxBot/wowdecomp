@@ -572,6 +572,12 @@ void GlRenderTargets::Sample(uint32_t unit, const GlTarget &texture) {
     a.Check("Bind native render-target sampler");
     s.samplers[unit] = std::move(retained);
 }
+GlTexture GlRenderTargets::Sampled(uint32_t unit) const {
+    state->Check();
+    if (unit >= state->samplers.size())
+        throw std::out_of_range("Render-target sampler unit exceeds device limit");
+    return state->samplers[unit];
+}
 GlTargetView GlRenderTargets::View() const {
     state->Check();
     return state->view;

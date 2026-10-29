@@ -83,6 +83,8 @@ class GlRenderTargets {
     // Empty texture unbinds this owner's previous sampler at the selected unit.
     // Reading an attached texture, including another cube face, is rejected.
     void Sample(uint32_t unit, const GlTarget &texture = {});
+    // Retained binding snapshot for an adapter's transactional target change.
+    GlTexture Sampled(uint32_t unit) const;
     GlTargetView View() const;
 
   private:
