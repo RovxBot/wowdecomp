@@ -11,9 +11,10 @@
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_opengl_glext.h>
 #include <algorithm>
-#include <algorithm>
+#include <array>
 #include <cfenv>
 #include <chrono>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -226,6 +227,7 @@ void CheckImplicitDepth(GlContext& context, int width, int height) {
     BindRenderbuffer(GL_RENDERBUFFER_EXT,GLuint(previous));
     Require(bits>=24 && w==width && h==height, "Legacy depth flag has the wrong depth extent/precision");
 }
+#include "CompositionChecks.h"
 void Cycle(GlContext &context, Assets &assets) {
     int reads = 0;
     LegacyDevice device(context, [&](const std::string &member) {
@@ -256,6 +258,7 @@ void Cycle(GlContext &context, Assets &assets) {
     GxRsSet(GxRs_VertexShader, vertex[0]);
     GxRsSet(GxRs_PixelShader, fragment);
     CheckMipCallbacks();
+    CheckComposition(context,device);
     Source source;
     CGxTex *texture = nullptr;
     CGxTex *target = nullptr;

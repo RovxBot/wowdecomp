@@ -8,7 +8,7 @@
 
 namespace Gx {
 namespace Native {
-enum class GlTargetFormat { Rgba8, Depth24, Rgba4, Rgb5A1, Rgb565, Dxt1, Dxt3, Dxt5 };
+enum class GlTargetFormat { Rgba8, Depth24, Rgba4, Rgb5A1, Rgb565, Dxt1, Dxt3, Dxt5, Rgba32f };
 struct GlTargetSpec {
     uint32_t target = GxTex_2d;
     uint32_t width = 0, height = 0;

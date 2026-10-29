@@ -247,7 +247,7 @@ void GlBuffers::IndexBuffer(const GlBuffer& buffer) {
     if (buffer) state->Validate(buffer, GxPoolTarget_Index);
     state->index = buffer;
 }
-void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction) {
+void GlBuffers::ValidateDraw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction) const {
     auto& s = *state;
     auto& a = *s.api;
     a.context.CheckCurrent();
@@ -293,6 +293,15 @@ void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool in
                 throw std::invalid_argument("Unsupported native fixed vertex input");
         }
     }
+}
+void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool indexed, bool fixedFunction,
+                     uint32_t fixedTexCoord) {
+    ValidateDraw(primitive, start, count, indexed, fixedFunction);
+    if (fixedTexCoord != GxVA_TexCoord0 && fixedTexCoord != GxVA_TexCoord1)
+        throw std::invalid_argument("Unsupported native fixed texture-coordinate selection");
+    if (!count) return;
+    auto& s = *state;
+    auto& a = *s.api;
     {
         Bindings restore(a);
         a.BindVertexArray(s.vao);
@@ -316,11 +325,11 @@ void GlBuffers::Draw(uint32_t primitive, uint32_t start, uint32_t count, bool in
             } else if (field.attribute == GxVA_Color0) {
                 a.ColorPointer(type.count, type.kind, field.stride, offset);
                 a.EnableClientState(GL_COLOR_ARRAY);
-            } else if (field.attribute == GxVA_TexCoord0) {
+            } else if (field.attribute == fixedTexCoord) {
                 a.TexCoordPointer(type.count, type.kind, field.stride, offset);
                 a.EnableClientState(GL_TEXTURE_COORD_ARRAY);
             }
-            // PNT2 retains both UV sets; this device exposes only texture unit 0.
+            // Composition selects either original UV set on the same unit zero.
         }
         if (indexed) {
             a.BindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, s.index.storage->name);

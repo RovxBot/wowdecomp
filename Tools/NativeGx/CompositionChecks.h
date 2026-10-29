@@ -1,0 +1,126 @@
+// Authored transparent material pixels, independent of original login evidence.
+static void CheckComposition(GlContext &context, LegacyDevice &device) {
+    struct PCT2 { float x,y,z; uint8_t color[4]; float u,v,s,t; };
+    static_assert(sizeof(PCT2) == 32, "Original PCT2 stride");
+    Source first, second, unused;
+    std::fill(first.pixels.begin(), first.pixels.end(), 0x869D);
+    for (unsigned y=0; y<8; ++y)
+        for (unsigned x=0; x<8; ++x) second.pixels[y*8+x] = x<4 ? 0x4E62 : 0xAB47;
+    CGxTex *textures[3]{};
+    CGxTexFlags flags(GxTex_Nearest);
+    for (unsigned i=0; i<2; ++i)
+        Require(GxTexCreate(GxTex_2d,8,8,0,GxTex_Argb4444,GxTex_Argb4444,flags,
+                            i ? &second : &first,Source::Callback,"authored composed stage",textures[i]),
+                "Composition source creation failed");
+    flags.m_renderTarget=1; flags.m_bit8=1;
+    Require(GxTexCreate(GxTex_2d,64,48,0,GxTex_Argb8888,GxTex_Argb8888,flags,
+                        &unused,Source::Callback,"authored composition scene",textures[2]),
+            "Composition scene creation failed");
+    struct Cleanup { CGxTex **textures; ~Cleanup() { for (unsigned i=0;i<3;++i) GxTexDestroy(textures[i]); } } cleanup{textures};
+    const auto projection=device.m_projection;
+    const auto viewport=device.m_viewport;
+    const std::vector<CGxMatrixStack> matrices(device.m_xforms,device.m_xforms+GxXforms_Last);
+    device.RsPush();
+    struct Restore {
+        LegacyDevice &d; C44Matrix projection; CBoundingBox viewport; const std::vector<CGxMatrixStack> &matrices;
+        ~Restore() {
+            d.DeviceSetRenderTarget(GxBuffers_Color,nullptr,0);
+            std::copy(matrices.begin(),matrices.end(),d.m_xforms);
+            d.m_projection=projection; d.m_viewport=viewport; d.RsPop();
+        }
+    } restore{device,projection,viewport,matrices};
+    GxRsSet(GxRs_VertexShader,static_cast<void*>(nullptr));
+    GxRsSet(GxRs_PixelShader,static_cast<void*>(nullptr));
+    GxRsSet(GxRs_Texture0,textures[0]); GxRsSet(GxRs_Texture1,textures[1]);
+    GxRsSet(GxRs_ColorOp0,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod);
+    GxRsSet(GxRs_TexGen0,GxTexGen_Disabled); GxRsSet(GxRs_TexGen1,GxTexGen_Disabled);
+    GxRsSet(GxRs_TextureShader0,0); GxRsSet(GxRs_TextureShader1,1);
+    GxRsSet(GxRs_AlphaRef,0); GxRsSet(GxRs_ColorWrite,15);
+    GxRsSet(GxRs_BlendingMode,GxBlend_Alpha);
+    GxRsSet(GxRs_Lighting,0); GxRsSet(GxRs_Fog,0); GxRsSet(GxRs_Culling,0);
+    GxRsSet(GxRs_DepthTest,0); GxRsSet(GxRs_DepthWrite,0);
+    for (auto &matrix:device.m_xforms) matrix.Identity();
+    GxXformSetProjection(C44Matrix()); GxXformSetViewport(.125f,.875f,.125f,.875f,0,1);
+    const PCT2 vertices[] = {
+        {-1,-1,0,{160,96,240,128},.25f,.25f,.75f,.25f},
+        { 3,-1,0,{160,96,240,128},.25f,.25f,.75f,.25f},
+        {-1, 3,0,{160,96,240,128},.25f,.25f,.75f,.25f},
+        {-1,-1,.5f,{160,96,240,128},.25f,.25f,.75f,.25f},
+        { 3,-1,.5f,{160,96,240,128},.25f,.25f,.75f,.25f},
+        {-1, 3,.5f,{160,96,240,128},.25f,.25f,.75f,.25f}
+    };
+    auto *buffer=GxBufStream(GxPoolTarget_Vertex,sizeof(PCT2),6);
+    auto *bytes=GxBufLock(buffer); std::memcpy(bytes,vertices,sizeof(vertices)); GxBufUnlock(buffer,0);
+    GxPrimVertexPtr(buffer,GxVBF_PCT2);
+    const uint16_t indices[]={0,1,2,3,4,5};
+    GxPrimIndexPtr(6,indices);
+    CGxBatch batch{GxPrim_Triangles,0,3,0,5};
+    const CImVector background(24,48,80,192);
+    auto expected = [&](uint16_t texel, int rgbScale, int alphaScale, int layers, int firstScale=1) {
+        std::array<double,4> value{{160./255,96./255,240./255,128./255}};
+        const uint16_t a=0x869D,b=texel;
+        for (unsigned c=0;c<4;++c) {
+            const unsigned shift=c==3 ? 12 : 8-c*4;
+            value[c]=std::min(1.,value[c]*((a>>shift)&15)/15.*firstScale);
+            value[c]=std::min(1.,value[c]*((b>>shift)&15)/15.*(c==3?alphaScale:rgbScale));
+        }
+        std::array<double,4> result{{24,48,80,192}};
+        for (int layer=0;layer<layers;++layer)
+            for (unsigned c=0;c<4;++c) result[c]=value[c]*255*value[3]+result[c]*(1-value[3]);
+        return result;
+    };
+    auto checkPixel = [&](int x,int y,const std::array<double,4> &want) {
+        auto got=Pixel(device,x,y);
+        const uint8_t channels[]={got.r,got.g,got.b,got.a};
+        for (unsigned c=0;c<4;++c)
+            if (std::fabs(channels[c]-want[c])>2.0)
+                throw std::runtime_error("Composed pixel channel "+std::to_string(c)+" got "+
+                    std::to_string(channels[c])+" expected "+std::to_string(want[c]));
+    };
+    for (bool offscreen:{true,false}) {
+        device.DeviceSetRenderTarget(GxBuffers_Color,offscreen?textures[2]:nullptr,0);
+        CRect size; device.CapsWindowSize(size);
+        const int x=offscreen?32:int(size.maxX/2), y=offscreen?24:int(size.maxY/2);
+        for (int rgb:{1,2}) for (int alpha:{1,2}) for (int layers:{1,2}) {
+            GxRsSet(GxRs_ColorOp1,rgb==2?GxTexOp_Mod2x:GxTexOp_Mod);
+            GxRsSet(GxRs_AlphaOp1,alpha==2?GxTexOp_Mod2x:GxTexOp_Mod);
+            batch.m_count=layers*3;
+            device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+            GxDraw(&batch,1);
+            checkPixel(x,y,expected(0xAB47,rgb,alpha,layers));
+        }
+        // Separate UV1 and its translation select different halves of texture1.
+        device.m_xforms[GxXform_Tex1].m_mtx[0].d0=-.5f;
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        batch.m_count=3; GxDraw(&batch,1); checkPixel(x,y,expected(0x4E62,2,2,1));
+        device.m_xforms[GxXform_Tex1].Identity();
+        // Clamp stage0 before Mod2x; clamp stage1 before scene blending too.
+        GxRsSet(GxRs_ColorOp0,GxTexOp_Mod2x); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod2x);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1,2));
+        GxRsSet(GxRs_ColorOp0,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod);
+        // Near primitive updates real depth only on composition. Far overlap fails.
+        GxRsSet(GxRs_DepthTest,1); GxRsSet(GxRs_DepthWrite,1); GxRsSet(GxRs_DepthFunc,0);
+        batch.m_count=6;
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1));
+        GxRsSet(GxRs_DepthTest,0); GxRsSet(GxRs_DepthWrite,0);
+        // A bad later primitive must reject before publishing an earlier one.
+        const uint16_t bad[]={0,1,2,3,4,99}; GxPrimIndexPtr(6,bad);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        Reject([&]{GxDraw(&batch,1);},"Composition accepted an invalid later index");
+        checkPixel(x,y,{{24,48,80,192}});
+        GxPrimIndexPtr(6,indices);
+        GxRsSet(GxRs_ColorOp1,GxTexOp_Add);
+        Reject([&]{GxDraw(&batch,1);},"Composition silently substituted an unsupported combiner");
+        checkPixel(x,y,{{24,48,80,192}});
+        GxRsSet(GxRs_ColorOp1,GxTexOp_Mod2x);
+        GxRsSet(GxRs_Lighting,1);
+        Reject([&]{GxDraw(&batch,1);},"Composition silently discarded lighting");
+        GxRsSet(GxRs_Lighting,0);
+        GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,2));
+    }
+    Require(device.m_caps.m_numTmus==1 && device.m_caps.m_shaderConstants[GxSh_Vertex]==94,
+            "Composition changed qualified device limits");
+    std::cout<<"legacy-gx-transparent-composition-rgb-alpha-uv-transform-overlap-depth-clamp-recovery=passed\n";
+}

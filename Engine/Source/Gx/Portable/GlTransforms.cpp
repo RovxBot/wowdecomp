@@ -161,7 +161,7 @@ void GlTransforms::MasterEnables(uint32_t mask) {
     state->masterEnables = mask;
     state->synced = false;
 }
-void GlTransforms::Sync(bool fixedTexture0) {
+void GlTransforms::Sync(bool fixedTexture0, bool composedTexture1) {
     auto& s = *state;
     s.context.CheckCurrent();
     auto target = s.targets.View();
@@ -172,7 +172,8 @@ void GlTransforms::Sync(bool fixedTexture0) {
     // their matrices. UI programs here consume vertex texture coordinates.
     const C44Matrix identity;
     for (uint32_t unit = GxXform_Tex0; unit <= GxXform_Tex7; ++unit)
-        if (Get(unit) != identity && !(fixedTexture0 && unit == GxXform_Tex0))
+        if (Get(unit) != identity && !(fixedTexture0 &&
+            (unit == GxXform_Tex0 || (composedTexture1 && unit == GxXform_Tex1))))
             throw std::logic_error("Native Gx texture-matrix delivery is not integrated");
     s.Check("Before Gx transform synchronization");
     // 12340 IXformSetProjection and IXformGLModelView: row-vector Tempest

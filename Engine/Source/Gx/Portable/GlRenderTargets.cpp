@@ -88,6 +88,7 @@ struct TextureFormat { GLenum internal, format, type; uint32_t bytes, block; };
 TextureFormat Format(GlTargetFormat format) {
     switch (format) {
     case GlTargetFormat::Rgba8: return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 1};
+    case GlTargetFormat::Rgba32f: return {GL_RGBA32F, GL_RGBA, GL_FLOAT, 16, 1};
     case GlTargetFormat::Depth24: return {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 4, 1};
     case GlTargetFormat::Rgba4: return {GL_RGBA4, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, 2, 1};
     case GlTargetFormat::Rgb5A1: return {GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, 2, 1};
