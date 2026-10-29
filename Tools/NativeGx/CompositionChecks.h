@@ -113,6 +113,23 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
             checkPixel(x,y,expected(0xAB47,rgb,alpha,layers));
             checkState();
         }
+        for (int rgb=0;rgb<GxTexOps_Last;++rgb) for (int alpha=0;alpha<GxTexOps_Last;++alpha) {
+            // Scalar oracle for independent RGB/alpha second-stage equations.
+            const double previous[]={160./255*6/15,96./255*9/15,240./255*13/15,128./255*8/15};
+            const double texel[]={11./15,4./15,7./15,10./15};
+            std::array<double,4> value{}, want{{24,48,80,192}};
+            for (unsigned channel=0;channel<4;++channel) {
+                const auto p=previous[channel],t=texel[channel],a=previous[3];
+                const double equations[]={p*t,2*p*t,p+t,p,p*a+t*(1-a),t*a+p*(1-a)};
+                value[channel]=std::clamp(equations[channel==3?alpha:rgb],0.,1.);
+            }
+            for (unsigned channel=0;channel<4;++channel)
+                want[channel]=value[channel]*255*value[3]+want[channel]*(1-value[3]);
+            GxRsSet(GxRs_ColorOp1,rgb); GxRsSet(GxRs_AlphaOp1,alpha);
+            batch.m_count=3; device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+            GxDraw(&batch,1); checkPixel(x,y,want); checkState();
+        }
+        GxRsSet(GxRs_ColorOp1,GxTexOp_Mod2x); GxRsSet(GxRs_AlphaOp1,GxTexOp_Mod2x);
         // Separate UV1 and its translation select different halves of texture1.
         device.m_xforms[GxXform_Tex1].m_mtx[0].d0=-.5f;
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
@@ -146,7 +163,7 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         Reject([&]{GxDraw(&batch,1);},"Composition accepted an invalid later index");
         checkPixel(x,y,{{24,48,80,192}});
         GxPrimIndexPtr(6,indices);
-        GxRsSet(GxRs_ColorOp1,GxTexOp_Add);
+        GxRsSet(GxRs_ColorOp1,GxTexOps_Last);
         Reject([&]{GxDraw(&batch,1);},"Composition silently substituted an unsupported combiner");
         checkPixel(x,y,{{24,48,80,192}});
         GxRsSet(GxRs_ColorOp1,GxTexOp_Mod2x);

@@ -846,13 +846,14 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
     if (fog) {
         const float start = m_appRenderStates[GxRs_FogStart].m_value.m_data.f[0];
         const float end = m_appRenderStates[GxRs_FogEnd].m_value.m_data.f[0];
+        if (!(end > start)) Unavailable("Native composed fog interval unavailable");
         const double scale = 1.0 / (double(end) - start);
-        if (!(end > start) || !std::isfinite(scale) || scale > std::numeric_limits<float>::max())
+        if (!std::isfinite(scale) || scale > std::numeric_limits<float>::max())
             Unavailable("Native composed fog interval unavailable");
         fogParameters[0] = end; fogParameters[1] = float(scale);
     }
     const auto rgb = integer(GxRs_ColorOp1), alpha = integer(GxRs_AlphaOp1);
-    if (rgb < GxTexOp_Mod || rgb > GxTexOp_Mod2x || alpha < GxTexOp_Mod || alpha > GxTexOp_Mod2x)
+    if (uint32_t(rgb) >= GxTexOps_Last || uint32_t(alpha) >= GxTexOps_Last)
         Unavailable("Native composed texture operation unavailable");
     const auto texgen = integer(GxRs_TexGen1);
     if (texgen != GxTexGen_Disabled && texgen != GxTexGen_SphereMap)
@@ -998,8 +999,15 @@ void LegacyDevice::DrawComposed(CGxBatch *batches, int32_t count) {
                 s.MatrixMode(GLenum(matrixMode));
                 s.compositionTexture->Bind(); s.Enable(GL_FRAGMENT_PROGRAM_ARB);
                 s.Enable(GL_BLEND);
-                s.BlendFuncSeparate(GL_DST_COLOR, rgb == GxTexOp_Mod2x ? GL_SRC_COLOR : GL_ZERO,
-                                    GL_DST_ALPHA, alpha == GxTexOp_Mod2x ? GL_SRC_ALPHA : GL_ZERO);
+                // Original six operations, with PREVIOUS alpha retained as
+                // the interpolation factor for Decal/Fade in both channels.
+                const GLenum source[] = {GL_DST_COLOR, GL_DST_COLOR, GL_ONE, GL_ZERO,
+                    GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA};
+                const GLenum destination[] = {GL_ZERO, GL_SRC_COLOR, GL_ONE, GL_ONE,
+                    GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA};
+                const auto alphaSource = alpha < 2 ? GL_DST_ALPHA : source[alpha];
+                const auto alphaDestination = alpha == GxTexOp_Mod2x ? GL_SRC_ALPHA : destination[alpha];
+                s.BlendFuncSeparate(source[rgb], destination[rgb], alphaSource, alphaDestination);
                 s.buffers.Draw(GxPrim_Triangles, start, 3, indexed, true, GxVA_TexCoord1);
                 restoreScene();
                 s.targets.Sample(0, s.composition);

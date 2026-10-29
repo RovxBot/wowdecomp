@@ -1,10 +1,10 @@
 # Native legacy Gx UI dispatch
 
-The fixed pipeline can compose two-stage Mod/Mod2x materials without changing
+The fixed pipeline can compose the six original two-stage texture operations without changing
 the advertised one-unit/94-register limits.
 Each original triangle overwrites retained RGBA32F scratch with stage zero, then
 multiplies stage one through that same sampler using its own UVs, matrix or sphere
-mapping. RGB and alpha independently retain Mod/Mod2x scaling. A bounded internal
+mapping. RGB and alpha independently retain their original equations and scaling. A bounded internal
 ARB fragment program clamps the result, then applies secondary specular and
 linear fog before the original scene alpha test, blending, color mask and depth
 test/write. Fixed vertex processing supplies original primary lighting, secondary
@@ -18,8 +18,8 @@ Scratch and internal programs belong to the existing context/target/program
 owners. Whole-batch buffer fetches and scene feedback are checked before drawing;
 target, sampler, matrix, material, render states and fragment environment/binding
 are restored on success or exceptions. Floating storage retains the existing
-256 MiB per-allocation bound. Other second-stage equations, degenerate fog
-intervals, projected texgen and non-triangle composition fail explicitly pending qualification.
+256 MiB per-allocation bound. Degenerate fog intervals, projected texgen and
+non-triangle composition fail explicitly pending qualification.
 The authored legacy-device fixture covers both drawable and offscreen scenes;
 original-data results and remaining acceptance are tracked in
 [#94](https://github.com/RovxBot/wowdecomp/issues/94), complete login/input in
