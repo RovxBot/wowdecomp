@@ -3,7 +3,8 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
     struct PCT2 { float x,y,z; uint8_t color[4]; float u,v,s,t; };
     static_assert(sizeof(PCT2) == 32, "Original PCT2 stride");
     Source first, second, unused;
-    std::fill(first.pixels.begin(), first.pixels.end(), 0x869D);
+    for (unsigned row=0;row<8;++row)
+        for (unsigned col=0;col<8;++col) first.pixels[row*8+col]=col<4?0x869D:0x4A51;
     for (unsigned y=0; y<8; ++y)
         for (unsigned x=0; x<8; ++x) second.pixels[y*8+x] = x<4 ? 0x4E62 : 0xAB47;
     CGxTex *textures[3]{};
@@ -76,9 +77,9 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
                 device.m_appRenderStates[GxRs_Texture1].m_value.m_data.p==textures[1],
                 "Composition changed original texture state");
     };
-    auto expected = [&](uint16_t texel, int rgbScale, int alphaScale, int layers, int firstScale=1) {
+    auto expected = [&](uint16_t texel, int rgbScale, int alphaScale, int layers, int firstScale=1, uint16_t firstTexel=0x869D) {
         std::array<double,4> value{{160./255,96./255,240./255,128./255}};
-        const uint16_t a=0x869D,b=texel;
+        const uint16_t a=firstTexel,b=texel;
         for (unsigned c=0;c<4;++c) {
             const unsigned shift=c==3 ? 12 : 8-c*4;
             value[c]=std::min(1.,value[c]*((a>>shift)&15)/15.*firstScale);
@@ -98,6 +99,9 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
                     std::to_string(channels[c])+" expected "+std::to_string(want[c]));
     };
     for (bool offscreen:{true,false}) {
+        for (unsigned row=0;row<8;++row)
+            for (unsigned col=0;col<8;++col) first.pixels[row*8+col]=col<4?0x869D:0x4A51;
+        GxTexUpdate(textures[0],0,0,8,8,1);
         for (unsigned row=0;row<8;++row)
             for (unsigned col=0;col<8;++col) second.pixels[row*8+col]=col<4?0x4E62:0xAB47;
         GxTexUpdate(textures[1],0,0,8,8,1);
@@ -135,6 +139,10 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
         batch.m_count=3; GxDraw(&batch,1); checkPixel(x,y,expected(0x4E62,2,2,1));
         device.m_xforms[GxXform_Tex1].Identity();
+        device.m_xforms[GxXform_Tex0].m_mtx[0].d0=.5f;
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1,1,0x4A51));
+        device.m_xforms[GxXform_Tex0].Identity();
         // Clamp stage0 before Mod2x; clamp stage1 before scene blending too.
         GxRsSet(GxRs_ColorOp0,GxTexOp_Mod2x); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod2x);
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
@@ -175,7 +183,8 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         const std::vector<CGxApiLight> lights(device.m_lights,device.m_lights+4);
         for (auto &light:device.m_lights) light.m_enable=0;
         auto &light=device.m_lights[0];
-        light.m_enable=1; light.m_dir=C4Vector(0,0,-1,0);
+        light.m_enable=1;
+        light.m_dir.x=light.m_dir.y=light.m_dir.w=0; light.m_dir.z=-1;
         light.m_ambColor=C3Vector(.15f,.2f,.1f); light.m_dirColor=C3Vector(.5f,.4f,.3f);
         light.m_specColor=C3Vector(.7f,.6f,.5f); light.m_constantAttenuation=1;
         GxRsSet(GxRs_MatSpecular,int32_t(0xFFA07850));
@@ -200,6 +209,22 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         std::copy(lights.begin(),lights.end(),device.m_lights);
         GxRsSet(GxRs_Fog,0); GxRsSet(GxRs_Lighting,0);
         GxRsSet(GxRs_ColorOp0,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod);
+        // Reference the already selected fixed sphere-map path, then remap
+        // the same varying texture/texgen to stage1 on the same sampler.
+        GxRsSet(GxRs_Texture0,textures[1]); GxRsSet(GxRs_Texture1,static_cast<void*>(nullptr));
+        GxRsSet(GxRs_TexGen0,GxTexGen_SphereMap);
+        for (unsigned row=0;row<8;++row)
+            for (unsigned col=0;col<8;++col) second.pixels[row*8+col]=col<4?0x4E62:0xAB47;
+        GxTexUpdate(textures[1],0,0,8,8,1);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background); GxDraw(&batch,1);
+        const auto sphere=Pixel(device,x,y);
+        std::fill(first.pixels.begin(),first.pixels.end(),0xFFFF);
+        GxTexUpdate(textures[0],0,0,8,8,1);
+        GxRsSet(GxRs_Texture0,textures[0]); GxRsSet(GxRs_Texture1,textures[1]);
+        GxRsSet(GxRs_TexGen0,GxTexGen_Disabled); GxRsSet(GxRs_TexGen1,GxTexGen_SphereMap);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background); GxDraw(&batch,1);
+        checkPixel(x,y,{{double(sphere.r),double(sphere.g),double(sphere.b),double(sphere.a)}});
+        GxRsSet(GxRs_TexGen1,GxTexGen_Disabled);
         GxXformSetView(C44Matrix());
     }
     Require(device.m_caps.m_numTmus==1 && device.m_caps.m_shaderConstants[GxSh_Vertex]==94,
