@@ -135,14 +135,14 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         }
         GxRsSet(GxRs_ColorOp1,GxTexOp_Mod2x); GxRsSet(GxRs_AlphaOp1,GxTexOp_Mod2x);
         // Separate UV1 and its translation select different halves of texture1.
-        device.m_xforms[GxXform_Tex1].m_mtx[0].d0=-.5f;
+        C44Matrix shifted; shifted.d0=-.5f; GxXformSet(GxXform_Tex1,shifted);
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
         batch.m_count=3; GxDraw(&batch,1); checkPixel(x,y,expected(0x4E62,2,2,1));
-        device.m_xforms[GxXform_Tex1].Identity();
-        device.m_xforms[GxXform_Tex0].m_mtx[0].d0=.5f;
+        GxXformSet(GxXform_Tex1,C44Matrix());
+        shifted.d0=.5f; GxXformSet(GxXform_Tex0,shifted);
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
         GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1,1,0x4A51));
-        device.m_xforms[GxXform_Tex0].Identity();
+        GxXformSet(GxXform_Tex0,C44Matrix());
         // Clamp stage0 before Mod2x; clamp stage1 before scene blending too.
         GxRsSet(GxRs_ColorOp0,GxTexOp_Mod2x); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod2x);
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
