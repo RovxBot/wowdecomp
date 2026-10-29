@@ -13,7 +13,7 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
                             i ? &second : &first,Source::Callback,"authored composed stage",textures[i]),
                 "Composition source creation failed");
     flags.m_renderTarget=1; flags.m_bit8=1;
-    Require(GxTexCreate(GxTex_2d,64,48,0,GxTex_Argb8888,GxTex_Argb8888,flags,
+    Require(GxTexCreate(GxTex_2d,64,32,0,GxTex_Argb8888,GxTex_Argb8888,flags,
                         &unused,Source::Callback,"authored composition scene",textures[2]),
             "Composition scene creation failed");
     struct Cleanup { CGxTex **textures; ~Cleanup() { for (unsigned i=0;i<3;++i) GxTexDestroy(textures[i]); } } cleanup{textures};
@@ -56,6 +56,26 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
     GxPrimIndexPtr(6,indices);
     CGxBatch batch{GxPrim_Triangles,0,3,0,5};
     const CImVector background(24,48,80,192);
+    auto GetInteger=reinterpret_cast<decltype(&glGetIntegerv)>(context.Proc("glGetIntegerv"));
+    auto GetEnv=reinterpret_cast<PFNGLGETPROGRAMENVPARAMETERFVARBPROC>(context.Proc("glGetProgramEnvParameterfvARB"));
+    auto SetEnv=reinterpret_cast<PFNGLPROGRAMENVPARAMETER4FVARBPROC>(context.Proc("glProgramEnvParameter4fvARB"));
+    auto GetProgram=reinterpret_cast<PFNGLGETPROGRAMIVARBPROC>(context.Proc("glGetProgramivARB"));
+    const float sentinel[]={.125f,.25f,.5f,1};
+    SetEnv(GL_FRAGMENT_PROGRAM_ARB,0,sentinel);
+    GLint originalProgram=0;
+    GetProgram(GL_FRAGMENT_PROGRAM_ARB,GL_PROGRAM_BINDING_ARB,&originalProgram);
+    auto checkState = [&] {
+        float env[4]{}; GLint binding=0,blendSrc=0,blendDst=0;
+        GetEnv(GL_FRAGMENT_PROGRAM_ARB,0,env);
+        GetProgram(GL_FRAGMENT_PROGRAM_ARB,GL_PROGRAM_BINDING_ARB,&binding);
+        GetInteger(GL_BLEND_SRC_RGB,&blendSrc); GetInteger(GL_BLEND_DST_RGB,&blendDst);
+        Require(!std::memcmp(env,sentinel,sizeof(env)) && binding==originalProgram &&
+                blendSrc==GL_SRC_ALPHA && blendDst==GL_ONE_MINUS_SRC_ALPHA,
+                "Composition failed to restore fragment constants/binding or scene blending");
+        Require(device.m_appRenderStates[GxRs_Texture0].m_value.m_data.p==textures[0] &&
+                device.m_appRenderStates[GxRs_Texture1].m_value.m_data.p==textures[1],
+                "Composition changed original texture state");
+    };
     auto expected = [&](uint16_t texel, int rgbScale, int alphaScale, int layers, int firstScale=1) {
         std::array<double,4> value{{160./255,96./255,240./255,128./255}};
         const uint16_t a=0x869D,b=texel;
@@ -80,7 +100,7 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
     for (bool offscreen:{true,false}) {
         device.DeviceSetRenderTarget(GxBuffers_Color,offscreen?textures[2]:nullptr,0);
         CRect size; device.CapsWindowSize(size);
-        const int x=offscreen?32:int(size.maxX/2), y=offscreen?24:int(size.maxY/2);
+        const int x=offscreen?32:int(size.maxX/2), y=offscreen?16:int(size.maxY/2);
         for (int rgb:{1,2}) for (int alpha:{1,2}) for (int layers:{1,2}) {
             GxRsSet(GxRs_ColorOp1,rgb==2?GxTexOp_Mod2x:GxTexOp_Mod);
             GxRsSet(GxRs_AlphaOp1,alpha==2?GxTexOp_Mod2x:GxTexOp_Mod);
@@ -88,6 +108,7 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
             device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
             GxDraw(&batch,1);
             checkPixel(x,y,expected(0xAB47,rgb,alpha,layers));
+            checkState();
         }
         // Separate UV1 and its translation select different halves of texture1.
         device.m_xforms[GxXform_Tex1].m_mtx[0].d0=-.5f;
@@ -99,6 +120,17 @@ static void CheckComposition(GlContext &context, LegacyDevice &device) {
         device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
         GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1,2));
         GxRsSet(GxRs_ColorOp0,GxTexOp_Mod); GxRsSet(GxRs_AlphaOp0,GxTexOp_Mod);
+        // Alpha test and color masks belong to the final scene operation.
+        GxRsSet(GxRs_AlphaRef,96);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        GxDraw(&batch,1); checkPixel(x,y,{{24,48,80,192}});
+        GxRsSet(GxRs_AlphaRef,64);
+        GxDraw(&batch,1); checkPixel(x,y,expected(0xAB47,2,2,1));
+        GxRsSet(GxRs_AlphaRef,0); GxRsSet(GxRs_ColorWrite,5);
+        device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,background);
+        GxDraw(&batch,1);
+        auto masked=expected(0xAB47,2,2,1); masked[1]=48; masked[3]=192;
+        checkPixel(x,y,masked); checkState(); GxRsSet(GxRs_ColorWrite,15);
         // Near primitive updates real depth only on composition. Far overlap fails.
         GxRsSet(GxRs_DepthTest,1); GxRsSet(GxRs_DepthWrite,1); GxRsSet(GxRs_DepthFunc,0);
         batch.m_count=6;
