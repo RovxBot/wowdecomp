@@ -547,6 +547,12 @@ void CSimpleFrame::PropagateProtectFlagToParent(uint32_t flag) {
 // OFFSET: 0x0048EA10
 void CSimpleFrame::SetFrameAlpha(uint8_t alpha) {
     FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Like script text, scalar alpha may change in OnUpdate before collection.
+    // It changes colors/dirty layers without editing hierarchy or visibility.
+    Frame::Native::RequireScriptTextMutation();
+    Frame::Native::RequireSimpleFrame(this);
+#endif
     if (alpha != this->m_alpha) {
         this->m_alpha = alpha;
         this->UpdateAlpha();
@@ -2272,6 +2278,9 @@ bool CSimpleFrame::UpdateScale(bool force) {
 // OFFSET: 0x00491680
 void CSimpleFrame::UpdateAlpha() {
     FRAME_TREE_CHECK();
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireScriptTextMutation();
+#endif
     for (CSimpleRegion* region = this->m_regions.Head(); region; region = this->m_regions.Next(region)) {
         region->OnColorChanged(false);
     }

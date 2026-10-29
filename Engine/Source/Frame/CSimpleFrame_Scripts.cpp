@@ -945,7 +945,6 @@ static int32_t Script_SetScale(lua_State* L) {
 
 // VERIFY: 64ebae78 manual
 // OFFSET: 0x0049F900
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetEffectiveAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -953,22 +952,18 @@ static int32_t Script_GetEffectiveAlpha(lua_State* L) {
     lua_pushnumber(L, alpha / 255.0);
     return 1;
 }
-#endif
 
 // VERIFY: a54be776 manual
 // OFFSET: 0x0049F980
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_GetAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
     lua_pushnumber(L, frame->m_alpha / 255.0);
     return 1;
 }
-#endif
 
 // VERIFY: 01f637f0 manual
 // OFFSET: 0x0049F9E0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_SetAlpha(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -989,7 +984,6 @@ static int32_t Script_SetAlpha(lua_State* L) {
     frame->SetFrameAlpha(static_cast<uint8_t>(alpha * 255.0f));
     return 0;
 }
-#endif
 
 // VERIFY: 0dd1fea4 manual
 // OFFSET: 0x0049FAB0
@@ -2170,9 +2164,9 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetEffectiveScale", &Frame::Native::UnavailableScriptMethod },
     { "GetScale", &Frame::Native::UnavailableScriptMethod },
     { "SetScale", &Frame::Native::UnavailableScriptMethod },
-    { "GetEffectiveAlpha", &Frame::Native::UnavailableScriptMethod },
-    { "GetAlpha", &Frame::Native::UnavailableScriptMethod },
-    { "SetAlpha", &Frame::Native::UnavailableScriptMethod },
+    { "GetEffectiveAlpha", &Frame::Native::ScriptMethod<&Script_GetEffectiveAlpha, true, false> },
+    { "GetAlpha", &Frame::Native::ScriptMethod<&Script_GetAlpha, true, false> },
+    { "SetAlpha", &Frame::Native::ScriptMethod<&Script_SetAlpha, true, false> },
     { "GetID", &Frame::Native::ScriptMethod<&Script_GetID, true, false> },
     { "SetID", &Frame::Native::ScriptMethod<&Script_SetID, true, false, true> },
     { "SetToplevel", &Frame::Native::UnavailableScriptMethod },

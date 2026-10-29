@@ -280,6 +280,12 @@ void CSimpleRegion::OnColorChanged(bool changed) {
 
         for (uint32_t i = this->m_colorCount; i; ) {
             i--;
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            // Native mesh batches copy colors. Every effective-alpha change
+            // must retire that snapshot, including consecutive nonopaque fades.
+            const auto alpha = this->m_alphas[i] * (uint8_t)(this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255) / 255;
+            if (this->m_colors[i].a != alpha) changed = true;
+#endif
             this->m_colors[i].a = this->m_alphas[i] * (uint8_t)(this->m_parent->m_alpha * this->m_parent->m_parentAlpha / 255) / 255;
         }
     }

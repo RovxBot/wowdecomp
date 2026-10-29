@@ -254,6 +254,7 @@ static void WindowEvents(GlContext& context,LegacyDevice& device,CSimpleTop& roo
 #include "ScriptChecks.h"
 #include "XMLChecks.h"
 #include "TextureChecks.h"
+#include "AlphaChecks.h"
 #include "HandlerChecks.h"
 #include "ButtonChecks.h"
 #include "CheckboxChecks.h"
@@ -269,6 +270,7 @@ static void Hierarchy(GlContext& context,LegacyDevice& device, CSimpleFont& font
     ScriptChecks(device,root,font);
     XMLChecks(device,root,font);
     TextureChecks(device,root,original);
+    AlphaChecks(device,root,font);
     HandlerChecks(context,device,root,font);
     ButtonChecks(context,device,root,font,original,snapshot);
     CheckboxChecks(context,device,root,original,snapshot);
