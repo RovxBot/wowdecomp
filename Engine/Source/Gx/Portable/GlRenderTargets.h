@@ -69,6 +69,12 @@ class GlRenderTargets {
     // updated. This does not invoke or substitute a legacy GxTexUserFunc.
     void Upload(const GlTexture& texture, const GlTextureRegion& region, uint32_t dataFormat,
                 const void* data, size_t bytes, uint32_t rowStride = 0);
+    // Copy the current color read buffer into existing uncompressed color
+    // storage. Both origins use OpenGL's bottom-left convention; no scaling or
+    // Y inversion. Attached destinations (including other faces) are rejected.
+    // Sampler bindings are restored; no draw or CPU texture callback occurs.
+    void Copy(const GlTexture& texture, const GlTextureRegion& destination,
+              uint32_t sourceX, uint32_t sourceY);
     void Sampling(const GlTexture& texture, const GlTextureSampling& sampling);
     // Empty pair restores the drawable and refreshes its pixel-sized viewport.
     // Explicit depth overrides color's optional implicit depth renderbuffer.
