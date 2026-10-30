@@ -119,10 +119,10 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
         "assert(NativeWheelSlider:GetValue()==50 and NativeWheel:GetVerticalScroll()==50); "
         "assert(NativeWheelUp:IsEnabled()==1 and NativeWheelDown:IsEnabled()==1)");
     for (int i=0;i<5;++i) deliver(-120);
-    lua("assert(NativeWheelSlider:GetValue()==200 and NativeWheel:GetVerticalScroll()==200); "
+    lua("assert(#WheelOrder==20 and NativeWheelSlider:GetValue()==200 and NativeWheel:GetVerticalScroll()==200); "
         "assert(NativeWheelDown:IsEnabled()==0 and NativeWheelUp:IsEnabled()==1)");
     for (int i=0;i<5;++i) deliver(120);
-    lua("assert(NativeWheelSlider:GetValue()==0 and NativeWheel:GetVerticalScroll()==0); "
+    lua("assert(#WheelOrder==38 and NativeWheelSlider:GetValue()==0 and NativeWheel:GetVerticalScroll()==0); "
         "assert(NativeWheelUp:IsEnabled()==0 and NativeWheelDown:IsEnabled()==1)");
     probe->fail = true;
     bool failed = false; try { deliver(-120); } catch (const std::runtime_error&) { failed = true; }
@@ -135,7 +135,7 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
         FrameScript::Native::LastScriptError().find("authored protected wheel failure") != std::string::npos,
         "Expected protected wheel error was not retained");
     ++errors;
-    lua("NativeWheel:SetScript('OnMouseWheel',nil); NativeWheelSlider:SetValue(0)");
+    lua("NativeWheel:SetScript('OnMouseWheel',nil)");
     { Frame::Native::CallbackScope callback; Reject([&] { slider->SetValue(10); }); }
     { Frame::Native::CollectScope collect; Reject([&] { deliver(-120); }); }
     { Frame::Native::ResizeScope resize; Reject([&] { deliver(-120); }); }
