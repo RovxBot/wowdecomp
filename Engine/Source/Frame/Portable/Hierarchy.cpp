@@ -19,6 +19,7 @@ std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
+bool mouseWheelEdits = false;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
 ScrollRenderScope* scrollRender = nullptr;
@@ -65,7 +66,7 @@ void RequireTreeMutation() {
 }
 void RequireStateMutation(bool scrollCallback) {
     RequireRegions();
-    const bool admitted = scrollCallback && scrollRangeEdits;
+    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits);
     RequireStateMutable(admitted);
     if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
@@ -75,20 +76,30 @@ ScrollRangeEdits::ScrollRangeEdits() {
     scrollRangeEdits = true;
 }
 ScrollRangeEdits::~ScrollRangeEdits() { scrollRangeEdits = false; }
+MouseWheelEdits::MouseWheelEdits() {
+    RequireRegions();
+    // Direct script dispatch retains its previous ordinary callback admission.
+    if (!IsMouseWheelInput()) return;
+    RequireStateMutable(true);
+    if (updating || collecting || scrollRangeEdits || mouseWheelEdits)
+        throw std::logic_error("Nested or traversing mouse-wheel callback");
+    mouseWheelEdits = active = true;
+}
+MouseWheelEdits::~MouseWheelEdits() { if (active) mouseWheelEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits) return;
     RequireSimpleFrame(target);
     // Movement unflattening and top-level raising retain their stricter guards.
     // Preflight the entire subtree before changing any visibility/list state.
     if (!showing)
         for (auto* moving = CSimpleTop::s_instance->m_moveResizeFrame; moving; moving = moving->m_parent)
-            if (moving == target) throw std::logic_error("Finish movement before scroll callback visibility edits");
+            if (moving == target) throw std::logic_error("Finish movement before control callback visibility edits");
     if (showing)
         for (auto* leaf : frames)
             if (leaf->m_frameFlags & 1)
                 for (auto* parent = leaf; parent; parent = parent->m_parent)
-                    if (parent == target) throw std::logic_error("Top-level raising is unavailable in scroll callbacks");
+                    if (parent == target) throw std::logic_error("Top-level raising is unavailable in control callbacks");
 }
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();

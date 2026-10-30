@@ -23,6 +23,19 @@ struct ScrollRangeEdits final {
     ScrollRangeEdits(const ScrollRangeEdits&) = delete;
     ScrollRangeEdits& operator=(const ScrollRangeEdits&) = delete;
 };
+// Enter only around the original leaf wheel script during guarded dispatch.
+// Nested Slider/scroll/visibility/Button callbacks share the bounded state
+// admission; hierarchy, layout, input reentry and deletion stay pinned.
+class MouseWheelEdits final {
+public:
+    ~MouseWheelEdits();
+    MouseWheelEdits(const MouseWheelEdits&) = delete;
+    MouseWheelEdits& operator=(const MouseWheelEdits&) = delete;
+private:
+    friend class ::CSimpleFrame;
+    MouseWheelEdits();
+    bool active = false;
+};
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);

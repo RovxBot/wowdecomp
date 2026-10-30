@@ -782,12 +782,16 @@ void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
 
 }
 
+// Original Windows verification; native leaf wheel callbacks pin existing controls.
 // VERIFY: ab9ac4fe auto
 // OFFSET: 0x0048F170
 void CSimpleFrame::RunOnMouseWheelScript(int32_t delta) {
     FRAME_TREE_CHECK();
 
     if (this->m_onMouseWheel.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::MouseWheelEdits edits;
+#endif
         lua_State* L = FrameScript_GetContext();
         lua_pushnumber(L, delta);
         this->RunScript(this->m_onMouseWheel, 1, nullptr);

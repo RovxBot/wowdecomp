@@ -95,6 +95,16 @@ collection, rendering and foreign-thread access still reject these operations.
 The notification completes synchronously in original callback order; capability
 cleanup follows protected errors and native exceptions. Qualification and remaining
 integration stops live in [#95](https://github.com/RovxBot/wowdecomp/issues/95).
+Mouse-wheel dispatch separately pins layout, hierarchy and object lifetimes while
+the original leaf wheel script admits the same qualified existing-control edits.
+Nested Slider value/vertical-scroll synchronization and arrow-button state run
+synchronously; clamped unchanged values retain the original no-callback behavior.
+The capability ends on protected errors and native unwinding. Arbitrary virtual
+input consumers, other input kinds and direct script calls retain ordinary state
+admission. Reentry, resize, rendering/collection, movement and top-level visibility
+guards remain enabled. Current qualification and input evidence live in
+[#126](https://github.com/RovxBot/wowdecomp/issues/126); broad operator acceptance
+remains [#96](https://github.com/RovxBot/wowdecomp/issues/96).
 SimpleHTML/hyperlink/ScrollFrame/Slider form the first startup-driven source batch.
 Aligned pools retain matching deletion; HTML text closes before private fonts.
 

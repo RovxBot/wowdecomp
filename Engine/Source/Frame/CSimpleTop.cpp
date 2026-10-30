@@ -749,13 +749,14 @@ int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
 
 }
 
+// Original Windows verification; native wheel input admits bounded leaf state edits.
 // VERIFY: bb1ac078 manual
 // OFFSET: 0x00494890
 int32_t CSimpleTop::OnMouseWheel(const void* data, void* param) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     CheckMouseInput(data, param);
-    Frame::Native::ResizeScope inputGuard;
+    Frame::Native::MouseWheelInput inputGuard;
 #endif
 
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);

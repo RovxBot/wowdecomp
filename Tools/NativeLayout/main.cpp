@@ -216,6 +216,31 @@ static void CachedRectangleDuringRender() {
     root.SetSize(.3f,.2f);
     std::cout<<"layout-cached-draw-rectangle-owner-and-mutation-guards=passed\n";
 }
+static void WheelInputGuards() {
+    Check(!IsMouseWheelInput(),"wheel input active before dispatch");
+    {
+        MouseWheelInput input;
+        Check(IsMouseWheelInput(),"wheel input pin missing");
+        RequireStateMutable(true);
+        Reject([] { RequireTreeMutable(); });
+        Reject([] { RequireDestroyable(); });
+        Reject([] { RequireNoObjects(); });
+        Reject([] { MouseWheelInput nested; });
+        { CallbackScope callback; RequireStateMutable(true); Reject([] { RequireStateMutable(false); }); }
+        Reject([] { LoadScriptEdits edits; });
+        { ResizeScope resize; Reject([] { RequireStateMutable(true); }); }
+    }
+    Check(!IsMouseWheelInput(),"wheel input pin retained");
+    try { MouseWheelInput input; throw std::runtime_error("authored wheel failure"); }
+    catch (const std::runtime_error&) {}
+    RequireTreeMutable(); RequireDestroyable();
+    { CallbackScope callback; Reject([] { MouseWheelInput input; }); }
+    { ResizeScope resize; Reject([] { MouseWheelInput input; }); }
+    bool foreign=false;
+    std::thread thread([&] { try { MouseWheelInput input; } catch (const std::logic_error&) { foreign=true; } });
+    thread.join(); Check(foreign,"foreign wheel dispatch admitted");
+    std::cout<<"layout-wheel-input-state-lifetime-reentry-resize-guards=passed\n";
+}
 int main() {
     try {
         for(int cycle=0;cycle<3;++cycle) {
@@ -226,7 +251,7 @@ int main() {
             { Frame::Native::Runtime integrated(512); Check(MaximumFrameLevel()==512,"explicit Frame level budget lost"); }
             { Frame::Native::Runtime layout;
               Check(MaximumFrameLevel()==128,"default Frame level budget changed after owner recreation");
-              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();CLayoutFrame::ResizePending();RequireNoObjects(); }
+              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();WheelInputGuards();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");
             std::cout<<"Original layout/anchor/XML cycle "<<cycle+1<<" passed\n";

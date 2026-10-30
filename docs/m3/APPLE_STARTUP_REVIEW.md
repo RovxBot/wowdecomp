@@ -1,5 +1,11 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [wheel callback admission](https://github.com/RovxBot/wowdecomp/issues/126),
+the pinned jerrywossion `CSimpleTop::OnMouseWheel` and
+`CSimpleFrame::RunOnMouseWheelScript` retain the original hit queue and synchronous
+leaf script. Our bounded callback admission stays with the existing native layout
+and Frame owners; no Apple source body or dependency is imported.
+
 For [particle startup](https://github.com/RovxBot/wowdecomp/issues/124), the pinned
 jerrywossion `ShaderEffectManager.cpp` retains SFile close, bounds effect files at
 1 MiB, checks complete reads and handles absent shader passes. Its World caller
