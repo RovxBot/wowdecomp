@@ -58,6 +58,8 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
         b:SetAllPoints(p)
         local n=CreateFrame('Frame','NativeClickNext'); n:Hide()
         local other=CreateFrame('Button','NativeClickOther',n)
+        local notice=n:CreateFontString('NativeClickNotice')
+        local header=n:CreateTexture('NativeClickHeader')
         ClickOrder={}
         p:SetScript('OnHide',function() table.insert(ClickOrder,'panel-hide') end)
         b:SetScript('OnHide',function() table.insert(ClickOrder,'button-hide') end)
@@ -66,6 +68,7 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
             assert(not pcall(n.Show,n)) -- Cursor retirement keeps its resize guard.
             assert(not pcall(other.Disable,other))
             assert(not pcall(other.Click,other))
+            assert(not pcall(notice.Hide,notice) and not pcall(header.Hide,header))
         end)
         b:SetScript('OnMouseDown',function(self)
             assert(not pcall(p.Hide,p)); assert(not pcall(self.Click,self))
@@ -86,12 +89,19 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
             assert(not pcall(self.SetFrameLevel,self,5))
             assert(not pcall(CreateFrame,'Frame','RejectedClickFactory'))
             assert(not pcall(p.Hide,{[0]=p[0]}))
-            p:Hide(); self:Disable(); n:Show()
+            assert(not pcall(header.SetWidth,header,20))
+            assert(not pcall(notice.Hide,{[0]=notice[0]}))
+            assert(not pcall(header.Show,{[0]=header[0]}))
+            p:Hide(); notice:Hide(); header:Hide(); self:Disable()
+            assert(not notice:IsShown() and not header:IsShown())
+            n:Show()
             table.insert(ClickOrder,'tail')
         end)
         b:SetScript('PostClick',function() table.insert(ClickOrder,'post') end)
         n:SetScript('OnShow',function()
-            other:Disable(); other:Enable(); table.insert(ClickOrder,'next-show')
+            other:Disable(); other:Enable(); notice:Show(); header:Show()
+            assert(notice:IsShown() and header:IsShown())
+            table.insert(ClickOrder,'next-show')
         end)
     )");
     auto* panel = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("NativeClickPanel", CSimpleFrame::GetObjectType()));
@@ -125,7 +135,8 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
     }
     // Direct Click keeps ordinary admission, including after the input scope ends.
     lua("NativeClick:SetScript('PreClick',nil); NativeClick:SetScript('PostClick',nil); NativeClick:Enable(); "
-        "NativeClick:SetScript('OnClick',function(self) assert(not pcall(self.Hide,self)) end); NativeClick:Click()");
+        "NativeClick:SetScript('OnClick',function(self) assert(not pcall(self.Hide,self)); "
+        "assert(not pcall(NativeClickNotice.Hide,NativeClickNotice) and not pcall(NativeClickHeader.Hide,NativeClickHeader)) end); NativeClick:Click()");
     // A protected error still restores the click identity and dispatch pin.
     lua("NativeClickPanel:Show(); NativeClick:RegisterForClicks('LeftButtonUp'); "
         "NativeClick:SetScript('OnClick',function() error('authored protected button failure') end)");

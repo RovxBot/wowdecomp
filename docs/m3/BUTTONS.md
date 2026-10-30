@@ -25,7 +25,7 @@ images, renderer, Fonts/Gxu/layout/XML/VM/device/context/queue owners. The Fonts
 owner releases registered pool blocks only after every slot is returned.
 
 Native mouse-button delivery pins the selected consumer independently of resize.
-Only its original `OnClick` admits existing-control visibility and the already
+Only its original `OnClick` admits existing Frame/FontString/Texture visibility and the already
 qualified Slider/scroll/Button state setters across PreClick/OnClick/PostClick.
 Hide retires captures and cursor focus before descendant/parent OnHide; the
 selected consumer remains alive through PostClick. Nested cursor scripts keep
