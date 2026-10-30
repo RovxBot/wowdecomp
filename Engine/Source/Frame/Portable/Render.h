@@ -4,7 +4,27 @@
 class CRenderBatch;
 class CSimpleFontString;
 class CSimpleTexture;
+class CSimpleRender;
+struct RENDERCALLBACKNODE;
 namespace Frame { namespace Native {
+class ScrollRenderScope;
+// Each callback identity is scoped to its consuming batch. Child submissions
+// consume their one-shot permit before invoking any further callbacks.
+class RenderCallbackScope final {
+public:
+    ~RenderCallbackScope();
+    RenderCallbackScope(const RenderCallbackScope&) = delete;
+    RenderCallbackScope& operator=(const RenderCallbackScope&) = delete;
+private:
+    friend class ::CSimpleRender;
+    explicit RenderCallbackScope(const RENDERCALLBACKNODE*);
+    const RENDERCALLBACKNODE* previous;
+};
+bool IsRenderCallback(void (*)(void*), void*);
+class ChildBatchDraw final {
+    friend class ScrollRenderScope;
+    static void Draw(CRenderBatch*);
+};
 // Owns original UI vertex shaders inside Gxu/device/context ownership. Close
 // every batch first. Mesh submissions snapshot their arrays and retain resources;
 // callback parameters and public legacy fields remain borrowed owner-thread state.

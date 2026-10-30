@@ -1,5 +1,14 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [scroll-child rendering](https://github.com/RovxBot/wowdecomp/issues/122),
+the pinned jerrywossion `Engine/Source/Frame/CSimpleScrollFrame.cpp` retains the
+original clipped projection/viewport and no-argument child draw. It provides no
+native retained-batch lifetime admission for our guarded Linux renderer. The
+same file at the pinned WoWReMac repository returned 404 during this review;
+earlier inspected references remain historical. This continuation adapts our
+original traversal through existing root/batch owners, with precollection and
+exception restoration. No Apple source, dependency or notice changes are imported.
+
 For [FFX filter continuation](https://github.com/RovxBot/wowdecomp/issues/118),
 the same jerrywossion pin's `PostProcessShader.cpp` recognises original Box4,
 Gauss4 and Glow bytecode by metadata/digest before choosing Metal equations.

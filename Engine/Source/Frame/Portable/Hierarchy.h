@@ -4,6 +4,7 @@
 class CSimpleTop;
 class CSimpleTitleRegion;
 class CSimpleTexture;
+class CSimpleScrollFrame;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
@@ -36,6 +37,25 @@ void RequireRaise(CSimpleFrame*);
 void DestroyLater(CSimpleFrame*);
 void DrainDestroyQueue();
 void ClearDirtyBatches(CSimpleTop&);
+void PrepareScrollBatches();
+void DrawScrollChild(CSimpleFrame*);
+// Only the original ScrollFrame callback may enter this traversal. All layout,
+// tree, batch mutation and general nested draw guards remain active inside it.
+class ScrollRenderScope final {
+public:
+    ~ScrollRenderScope();
+    ScrollRenderScope(const ScrollRenderScope&) = delete;
+    ScrollRenderScope& operator=(const ScrollRenderScope&) = delete;
+private:
+    friend class ::CSimpleScrollFrame;
+    friend void DrawScrollChild(CSimpleFrame*);
+    ScrollRenderScope(CSimpleFrame*, CSimpleFrame*, void (*)(void*));
+    void Draw(CSimpleFrame*, size_t depth);
+    ScrollRenderScope* previous;
+    CSimpleFrame* parent;
+    CSimpleFrame* child;
+    void (*callback)(void*);
+};
 void SetRootProjection(CSimpleTop&);
 class CollectScope final {
 public:

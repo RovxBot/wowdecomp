@@ -20,6 +20,8 @@ std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 ScrollNotify scrollNotify = nullptr;
+std::unordered_set<CSimpleFrame*> preparedScrollFrames;
+ScrollRenderScope* scrollRender = nullptr;
 constexpr size_t MaxDepth = 64;
 }
 void SetScrollNotify(ScrollNotify function) { RequireTreeMutation(); scrollNotify = function; }
@@ -208,7 +210,7 @@ void DrainDestroyQueue() {
 CollectScope::CollectScope() {
     RequireTreeMutation(); collecting = true;
 }
-CollectScope::~CollectScope() { collecting = false; }
+CollectScope::~CollectScope() { preparedScrollFrames.clear(); collecting = false; }
 UpdateScope::UpdateScope() {
     RequireTreeMutation(); updating = true;
 }
@@ -218,12 +220,75 @@ void ClearDirtyBatches(CSimpleTop& root) {
     // moving it to an earlier level/strata/layer, irrespective of rebuild order.
     // Compression can lower m_topLevel while retired source batches above it
     // still own the same intrusive links. Visit every allocated level.
+    // Retire former scroll batches too, before a text string returns to strata.
+    for (auto* frame : frames)
+        for (uint32_t layer = 0; layer < 5; ++layer)
+            if (frame->m_renderBatch[layer] &&
+                (!(frame->m_frameFlags & 0x2000) || (frame->m_batchDirty & (1 << layer))))
+                frame->m_renderBatch[layer]->Clear();
     for (auto* strata : root.m_strata)
         for (uint32_t level = 0; level < strata->m_levels.Count(); ++level) {
             auto* node = strata->m_levels[level];
             for (uint32_t layer = 0; layer < 5; ++layer)
                 if (node->m_batchDirty & (1 << layer)) node->m_batches[layer].Clear();
         }
+}
+void PrepareScrollBatches() {
+    RequireRoot();
+    if (!collecting) throw std::logic_error("Scroll batches require root collection");
+    try {
+        for (auto* frame : frames) {
+            if (!frame->m_isVisible || !(frame->m_frameFlags & 0x2000)) continue;
+            const uint32_t dirty = frame->m_batchDirty;
+            frame->m_batchDirty = 0;
+            for (uint32_t layer = 0; layer < 5; ++layer) {
+                if (!frame->m_renderBatch[layer]) frame->m_renderBatch[layer] = new CRenderBatch;
+                auto* batch = frame->m_renderBatch[layer];
+                if (frame->m_renderList.IsLinked(batch)) frame->m_renderList.UnlinkNode(batch);
+                if (dirty & (1 << layer)) {
+                    batch->Clear();
+                    frame->OnFrameRender(batch, layer);
+                    batch->Finish();
+                }
+                if (batch->m_count) frame->m_renderList.LinkToTail(batch);
+            }
+            if (frame->m_batchDirty & 0x20) frame->m_batchDirty |= 0x1F;
+            preparedScrollFrames.insert(frame);
+        }
+    } catch (...) {
+        // Retrying must retire partial text links and rebuild consumed dirties.
+        for (auto* frame : frames)
+            if (frame->m_frameFlags & 0x2000) frame->m_batchDirty |= 0x1F;
+        throw;
+    }
+}
+ScrollRenderScope::ScrollRenderScope(CSimpleFrame* owner, CSimpleFrame* content, void (*function)(void*))
+    : previous(scrollRender), parent(owner), child(content), callback(function) {
+    RequireCachedRect(parent);
+    if (!collecting || !frames.count(parent) || !IsRenderCallback(callback, parent))
+        throw std::logic_error("Scroll drawing requires its collected render callback");
+    if (child && (!frames.count(child) || child->m_parent != parent || !(child->m_frameFlags & 0x4000) ||
+        (child->m_isVisible && !preparedScrollFrames.count(child))))
+        throw std::logic_error("Scroll child is not prepared for rendering");
+    scrollRender = this;
+}
+ScrollRenderScope::~ScrollRenderScope() { scrollRender = previous; }
+void ScrollRenderScope::Draw(CSimpleFrame* frame, size_t depth) {
+    if (depth > MaxDepth || !preparedScrollFrames.count(frame))
+        throw std::logic_error("Unprepared or excessive scroll child traversal");
+    // Preserve original layer order, followed by visible non-scroll-root children.
+    for (auto* batch : frame->m_renderBatch)
+        if (batch && batch->m_count) ChildBatchDraw::Draw(batch);
+    for (auto* node = frame->m_children.Head(); node; node = frame->m_children.Next(node))
+        if (node->m_frame->m_isVisible && !(node->m_frame->m_frameFlags & 0x4000))
+            Draw(node->m_frame, depth + 1);
+}
+void DrawScrollChild(CSimpleFrame* frame) {
+    RequireCachedRect(frame);
+    if (!scrollRender || scrollRender->child != frame ||
+        !IsRenderCallback(scrollRender->callback, scrollRender->parent))
+        throw std::logic_error("Unchecked scroll child rendering");
+    scrollRender->Draw(frame, 1);
 }
 void SetRootProjection(CSimpleTop& root) {
     C2Vector offset;

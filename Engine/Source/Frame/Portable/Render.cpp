@@ -11,6 +11,7 @@
 #include "Engine/Source/Services/TextBlock.h"
 #include "Engine/Source/Services/Texture.h"
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
@@ -19,6 +20,9 @@ namespace {
 Frame::Native::Renderer* renderer = nullptr;
 size_t batches = 0;
 bool drawing = false;
+std::vector<CRenderBatch*> drawStack;
+CRenderBatch* childPermit = nullptr;
+const RENDERCALLBACKNODE* renderCallback = nullptr;
 Frame::Native::RegionTextQueue regionTextQueue = nullptr;
 Frame::Native::RegionTextureQueue regionTextureQueue = nullptr;
 struct Handle {
@@ -88,6 +92,24 @@ RenderScope::RenderScope(CRenderBatch* value) : batch(value) {
     batch->NativeBeginDraw();
 }
 RenderScope::~RenderScope() { batch->NativeEndDraw(); }
+RenderCallbackScope::RenderCallbackScope(const RENDERCALLBACKNODE* node) : previous(renderCallback) {
+    RequireRenderer();
+    if (!drawing || !node) throw std::logic_error("Frame callback requires an active batch");
+    renderCallback = node;
+}
+RenderCallbackScope::~RenderCallbackScope() { renderCallback = previous; }
+bool IsRenderCallback(void (*function)(void*), void* param) {
+    RequireRenderer();
+    return drawing && renderCallback && renderCallback->m_callback == function && renderCallback->m_param == param;
+}
+void ChildBatchDraw::Draw(CRenderBatch* batch) {
+    RequireRenderer();
+    if (!drawing || childPermit) throw std::logic_error("Invalid Frame child submission");
+    childPermit = batch;
+    try { CSimpleRender::DrawBatch(batch); }
+    catch (...) { childPermit = nullptr; throw; }
+    childPermit = nullptr;
+}
 }}
 struct CRenderBatch::NativeState {
     std::vector<std::unique_ptr<Mesh>> meshes;
@@ -106,8 +128,20 @@ void CRenderBatch::NativeCheck(bool mutation) const {
 }
 void CRenderBatch::NativeDestroy() { NativeCheck(); delete m_native; m_native = nullptr; --batches; }
 void CRenderBatch::NativeRelease() { m_native->meshes.clear(); m_native->texts.clear(); }
-void CRenderBatch::NativeBeginDraw() { NativeCheck(); drawing = true; Frame::Native::SetLayoutRenderActive(true); }
-void CRenderBatch::NativeEndDraw() { Frame::Native::SetLayoutRenderActive(false); drawing = false; }
+void CRenderBatch::NativeBeginDraw() {
+    NativeCheck(false);
+    if ((drawing && childPermit != this) || std::find(drawStack.begin(), drawStack.end(), this) != drawStack.end())
+        throw std::logic_error("Unchecked or cyclic Frame batch reentry");
+    drawStack.push_back(this);
+    childPermit = nullptr;
+    drawing = true;
+    Frame::Native::SetLayoutRenderActive(true);
+}
+void CRenderBatch::NativeEndDraw() {
+    drawStack.pop_back();
+    drawing = !drawStack.empty();
+    Frame::Native::SetLayoutRenderActive(drawing);
+}
 void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCount,
     const C3Vector* positions, const C2Vector* coords, int32_t colorCount, const CImVector* colors,
     int32_t idxCount, const uint16_t* indices, CGxShader* shader) {

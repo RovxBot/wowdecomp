@@ -195,6 +195,10 @@ CSimpleScrollFrame::CSimpleScrollFrame(CSimpleFrame* parent) : CSimpleFrame(pare
 // VERIFY: 5e5e99a4 auto
 // OFFSET: 0x0096B3A0
 void CSimpleScrollFrame::SetScrollChild(CSimpleFrame* child) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+    if (child) Frame::Native::RequireParent(child, this);
+#endif
     if (this->m_scrollChild) {
         this->m_scrollChild->SetBeingScrolled(0, 0);
         this->m_scrollChild->SetParent(nullptr);
@@ -214,6 +218,10 @@ void CSimpleScrollFrame::SetScrollChild(CSimpleFrame* child) {
 // VERIFY: 502c3b17 auto
 // OFFSET: 0x0096B440
 void CSimpleScrollFrame::SetHorizontalScroll(float offset) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireFinite(offset);
+#endif
     if (fabsf(offset - this->m_scrollOffset.x) >= 0.00000095367432f) {
         this->m_scrollOffset.x = offset;
         this->UpdateScrollChild();
@@ -224,6 +232,10 @@ void CSimpleScrollFrame::SetHorizontalScroll(float offset) {
 // VERIFY: 698f3f61 auto
 // OFFSET: 0x0096B480
 void CSimpleScrollFrame::SetVerticalScroll(float offset) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireFinite(offset);
+#endif
     if (fabsf(offset - this->m_scrollOffset.y) >= 0.00000095367432f) {
         this->m_scrollOffset.y = offset;
         this->UpdateScrollChild();
@@ -279,6 +291,10 @@ void CSimpleScrollFrame::OnLayerUpdate(float elapsedSec) {
 // OFFSET: 0x0096B610
 void CSimpleScrollFrame::RenderScrollChild(void* param) {
     CSimpleScrollFrame* scrollFrame = static_cast<CSimpleScrollFrame*>(param);
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireCachedRect(scrollFrame);
+    Frame::Native::ScrollRenderScope rendering(scrollFrame, scrollFrame->m_scrollChild, &RenderScrollChild);
+#endif
     CRect rect = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (!scrollFrame->GetHitRect(rect) || !scrollFrame->m_scrollChild || !scrollFrame->m_scrollChild->m_isVisible) {
@@ -322,10 +338,22 @@ void CSimpleScrollFrame::RenderScrollChild(void* param) {
         rect.maxY = top;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (rect.minX >= rect.maxX || rect.minY >= rect.maxY) {
+#else
     if (rect.minX == rect.maxX || rect.minY == rect.maxY) {
+#endif
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    auto restore = [&] {
+        GxXformSetProjection(projection);
+        GxXformSetView(view);
+        GxXformSetViewport(minX, maxX, minY, maxY, minZ, maxZ);
+    };
+    try {
+#endif
     C2Vector offset;
     offset.x = 0.0f;
     offset.y = 0.0f;
@@ -359,9 +387,14 @@ void CSimpleScrollFrame::RenderScrollChild(void* param) {
         scrollFrame->m_scrollChild->OnFrameRender();
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    } catch (...) { restore(); throw; }
+    restore();
+#else
     GxXformSetProjection(projection);
     GxXformSetView(view);
     GxXformSetViewport(minX, maxX, minY, maxY, minZ, maxZ);
+#endif
 }
 
 // VERIFY: be2d653f manual
