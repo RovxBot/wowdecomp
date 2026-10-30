@@ -275,6 +275,10 @@ void Factory() {
             auto text=name=="SHADERS\\EFFECTS\\MODEL2.WFX" ? ParticleChecks::Models() : ParticleChecks::Particles();
             if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==1) text+="Effect(Broken){";
             if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==2) text.resize(1024*1024+1,' ');
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==3) text=ParticleChecks::Definition("Particle");
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==4) text.clear();
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==5)
+                text="Effect(Particle){Shader(){Pass(){VertexShader(A);PixelShader(B);}}}";
             result.file.bytes.assign(text.begin(),text.end()); return result;
         }
         Check(name == "NATIVE\\EMPTY.M2", "Unexpected authored model member");
@@ -479,7 +483,7 @@ void Factory() {
         std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
         Check(bool(tree), "Authored model XML failed to parse");
         CStatus status;
-        for (effectMode=0;effectMode<3;++effectMode) {
+        for (effectMode=0;effectMode<6;++effectMode) {
             bool failed=false;
             try { delete FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()),nullptr,&status); }
             catch (const std::runtime_error&) { failed=true; }

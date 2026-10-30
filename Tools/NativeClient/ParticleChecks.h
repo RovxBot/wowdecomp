@@ -23,6 +23,9 @@ inline void Parsing() {
     unsigned calls=0;
     parse("// heading\n/* bounded comment */"+valid,calls);
     Check(calls==1,"Authored WFX did not parse");
+    parse("Effect(FixedOnly){FixedFunc(){Pass(1){}}}",calls);
+    parse("Effect(ShaderOnly){Shader(){Pass(){VertexShader(A);PixelShader(B);}}}",calls);
+    Check(calls==3,"WFX with an absent fixed/shader section did not parse");
     for (size_t length=0;length<valid.size();++length) {
         calls=0; bool rejected=false;
         try { parse(valid.substr(0,length),calls); } catch (const std::runtime_error&) { rejected=true; }
@@ -87,6 +90,7 @@ inline void Rendering(CM2Scene* scene,Gx::Native::LegacyDevice& device) {
         for (unsigned repeat=0;repeat<3;++repeat) {
             device.SceneClear(GxBufferBit_Color|GxBufferBit_Depth,CImVector(255,0,0,255));
             CM2SceneRender render(scene);
+            render.m_pass=M2PASS_0;
             render.m_curType=4; render.m_curElement=&element; render.m_curModel=&model;
             render.m_curShared=&shared; render.m_curLighting=&lighting;
             render.DrawParticle(0,&element,&index,1);
