@@ -5,6 +5,18 @@ The opt-in `WOWDECOMP_BUILD_NATIVE_CLIENT` target `WowNativeClient` and
 retained reads, SDL/Gx/Gxu, original FrameScript/XML/layout/Frame and images.
 All compilation runs in Actions; Windows remains a separate regression target.
 
+Native model startup loads unchanged `Model2.wfx` and `Particle.wfx` through the
+authenticated retained SFile adapter before constructing a scene. Files are
+bounded at 1 MiB; parsing bounds names, scopes, arguments, effects and the original
+single fixed/shader pass storage. Fixed passes retain up to two texture operations;
+this does not advertise a second physical sampler. Missing files, short reads,
+malformed/duplicate definitions and missing required effects fail startup and
+retire partial model/effect ownership. CPU mode retains the original fixed
+definitions. [Particle qualification](https://github.com/RovxBot/wowdecomp/issues/124)
+tracks actual geometry, pixels, lifetimes and repeated clean-data frames;
+[complete login rendering/input](https://github.com/RovxBot/wowdecomp/issues/96)
+remains a separate requirement.
+
 **Login rendering is incomplete.** The [original model factory continuation](#original-model-factory-continuation--2026-10-26)
 selects actual Model/ModelFFX, Model2 scene/cache/shared loading, Camera,
 ShaderEffect and FFX sources. Downloaded execution now passes the ModelFFX

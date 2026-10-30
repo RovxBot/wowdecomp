@@ -55,6 +55,9 @@
 using Bytes = std::vector<uint8_t>;
 namespace {
 void Check(bool condition, const char* message) { if (!condition) throw std::runtime_error(message); }
+}
+#include "ParticleChecks.h"
+namespace {
 Bytes Program(const char* code, uint32_t count) {
     Bytes result;
     auto word = [&](uint32_t n) { for (unsigned i = 0; i < 4; ++i) result.push_back(uint8_t(n >> (i * 8))); };
@@ -262,7 +265,22 @@ void Factory() {
     // and retain their arena through owner-side cleanup. This is deliberately
     // an authored invalid skin-profile declaration, not a rendering fixture.
     unsigned modelReads = 0;
+    unsigned effectMode = 0;
     LegacyFiles modelFiles(queue, [&](const std::string& name, const Cancellation&) {
+        if (name=="SHADERS\\EFFECTS\\MODEL2.WFX" || name=="SHADERS\\EFFECTS\\PARTICLE.WFX") {
+            ReadResult result;
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==0) {
+                result.status=ReadStatus::Failed; result.error="Injected missing particle effects"; return result;
+            }
+            auto text=name=="SHADERS\\EFFECTS\\MODEL2.WFX" ? ParticleChecks::Models() : ParticleChecks::Particles();
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==1) text+="Effect(Broken){";
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==2) text.resize(1024*1024+1,' ');
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==3) text=ParticleChecks::Definition("Particle");
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==4) text.clear();
+            if (name=="SHADERS\\EFFECTS\\PARTICLE.WFX" && effectMode==5)
+                text="Effect(Particle){Shader(){Pass(){VertexShader(A);PixelShader(B);}}}";
+            result.file.bytes.assign(text.begin(),text.end()); return result;
+        }
         Check(name == "NATIVE\\EMPTY.M2", "Unexpected authored model member");
         ++modelReads;
         ReadResult result; result.file.bytes.resize(sizeof(M2Data), 0);
@@ -301,6 +319,7 @@ void Factory() {
         return Program(vertex ? "!!ARBvp1.0\nMOV result.position, vertex.position;\nEND\n" :
             "!!ARBfp1.0\nMOV result.color, fragment.color;\nEND\n", count);
     });
+    ParticleChecks::Parsing();
     auto* stream = device.BufStream(GxPoolTarget_Vertex, 24, 4);
     Check(device.BufStream(GxPoolTarget_Vertex, 0, 0) == stream && stream->m_itemCount == 4,
         "Original stream identity query changed the active allocation");
@@ -464,6 +483,15 @@ void Factory() {
         std::unique_ptr<XMLTree, decltype(&XMLTree_Free)> tree(XMLTree_Load(document, std::strlen(document)), XMLTree_Free);
         Check(bool(tree), "Authored model XML failed to parse");
         CStatus status;
+        for (effectMode=0;effectMode<6;++effectMode) {
+            bool failed=false;
+            try { delete FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()),nullptr,&status); }
+            catch (const std::runtime_error&) { failed=true; }
+            Check(failed && !g_modelPool && !CShaderEffectManager::m_ShaderList.m_fulllist.Head() &&
+                !CShaderEffect::s_curEffect && !OsNative::LiveModelAllocations(),
+                "Missing/invalid/oversized WFX did not roll back model startup");
+            modelFiles.CheckCanClose();
+        }
         bool rejected = false;
         try { delete FrameXML_CreateFrame(XMLTree_GetRoot(tree.get()), nullptr, &status); }
         catch (const std::runtime_error&) { rejected = true; }
@@ -474,6 +502,14 @@ void Factory() {
         Check(!CShaderEffect::s_enableShaders && !(M2GetCacheFlags() & (8 | 4)) && device.Caps().m_shaderConstants[GxSh_Vertex]==94 &&
             device.Caps().m_numTmus==1, "Original CPU skinning changed device limits or enabled a worker");
         CpuRendering(model->GetScene(), device);
+        ParticleChecks::Rendering(model->GetScene(),device);
+        auto* particleEffect=CShaderEffectManager::GetEffect("Particle");
+        bool duplicateRejected=false;
+        try { CShaderEffectManager::AddEffectFile("Particle.wfx"); }
+        catch (const std::runtime_error&) { duplicateRejected=true; }
+        Check(duplicateRejected && CShaderEffectManager::GetEffect("Particle")==particleEffect,
+            "Duplicate WFX replaced a live effect");
+        modelFiles.CheckCanClose();
         const auto errors = FrameScript::Native::ScriptErrorCount();
         Check(model->m_onUpdateModel.m_luaRef && model->m_onAnimFinished.m_luaRef, "Original model XML callbacks were not retained");
         model->RunScript(model->m_onUpdateModel, 0, nullptr);
