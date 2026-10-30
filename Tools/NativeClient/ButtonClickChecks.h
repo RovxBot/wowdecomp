@@ -155,6 +155,7 @@ static void Run(CSimpleTop& root, Gx::Native::GlContext& context) {
     bool foreign=false;
     std::thread thread([&] { try { deliver(OS_INPUT_MOUSE_UP,MOUSE_BUTTON_LEFT); } catch (const std::logic_error&) { foreign=true; } });
     thread.join(); Check(foreign,"Foreign Button input admitted");
+    lua("NativeClick:SetScript('OnLeave',nil)");
     root.CancelMouseInput(); delete panel; delete next;
     // Native virtual failure unwinds the input pin; a subsequent ordinary input works.
     {
