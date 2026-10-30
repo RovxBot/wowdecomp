@@ -47,6 +47,15 @@ void RequireTreeMutable();
 // State-only script admission may allow pinned callbacks; active resize remains
 // forbidden. This does not grant hierarchy, layout-script or destruction access.
 void RequireStateMutable(bool callbacksAllowed);
+// Wheel dispatch pins layout/lifetimes like other input. Only the qualified
+// existing-control callback capability may change state inside this scope.
+bool IsMouseWheelInput();
+struct MouseWheelInput final {
+    MouseWheelInput();
+    ~MouseWheelInput();
+    MouseWheelInput(const MouseWheelInput&) = delete;
+    MouseWheelInput& operator=(const MouseWheelInput&) = delete;
+};
 struct CallbackScope final {
     CallbackScope();
     ~CallbackScope();

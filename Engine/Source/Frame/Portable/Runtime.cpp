@@ -13,6 +13,7 @@ namespace {
 bool installed = false;
 uint32_t frameLevelLimit = 128;
 bool renderActive = false;
+bool mouseWheelInput = false;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
 size_t callbacks = 0, loadScriptEdits = 0;
@@ -69,7 +70,7 @@ void SetLayoutRenderActive(bool value) { renderActive = value; }
 uint32_t MaximumFrameLevel() { RequireOwner(); return frameLevelLimit; }
 void RequireNoObjects() {
     RequireOwner();
-    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || mouseWheelInput || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
@@ -122,7 +123,7 @@ void RequireDimension(float value) {
 }
 void RequireDestroyable() {
     RequireOwner();
-    if (resizing || (callbacks && callbacks != factoryCallbackDepth))
+    if (resizing || mouseWheelInput || (callbacks && callbacks != factoryCallbackDepth))
         throw std::logic_error("Finish callbacks before destroying layout objects");
 }
 void RequireTreeMutable() {
@@ -130,9 +131,12 @@ void RequireTreeMutable() {
 }
 void RequireStateMutable(bool callbacksAllowed) {
     RequireOwner();
-    if (resizing || (callbacks && !loadScriptEdits && !callbacksAllowed))
+    if (resizing || (mouseWheelInput && !callbacksAllowed) || (callbacks && !loadScriptEdits && !callbacksAllowed))
         throw std::logic_error("Defer Frame structure edits until callbacks finish");
 }
+bool IsMouseWheelInput() { RequireOwner(); return mouseWheelInput; }
+MouseWheelInput::MouseWheelInput() { RequireTreeMutable(); mouseWheelInput = true; }
+MouseWheelInput::~MouseWheelInput() { mouseWheelInput = false; }
 CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }
 CallbackScope::~CallbackScope() { --callbacks; }
 LoadScriptEdits::LoadScriptEdits() { RequireTreeMutable(); ++loadScriptEdits; }
