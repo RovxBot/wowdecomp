@@ -756,12 +756,16 @@ void CSimpleFrame::RunOnSizeChangedScript(float width, float height) {
     }
 }
 
+// Original Windows verification; native nested cursor scripts retain strict admission.
 // VERIFY: f5dfec34 auto
 // OFFSET: 0x0048F0F0
 void CSimpleFrame::RunOnEnterScript(int32_t motion) {
     FRAME_TREE_CHECK();
 
     if (this->m_onCursorEnter.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::ResizeScope cursorGuard;
+#endif
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, motion);
         this->RunScript(this->m_onCursorEnter, 1, nullptr);
@@ -769,12 +773,16 @@ void CSimpleFrame::RunOnEnterScript(int32_t motion) {
 
 }
 
+// Original Windows verification; native nested cursor scripts retain strict admission.
 // VERIFY: f2d2ba21 auto
 // OFFSET: 0x0048F130
 void CSimpleFrame::RunOnLeaveScript(int32_t motion) {
     FRAME_TREE_CHECK();
 
     if (this->m_onCursorExit.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::ResizeScope cursorGuard;
+#endif
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, motion);
         this->RunScript(this->m_onCursorExit, 1, nullptr);

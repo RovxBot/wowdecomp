@@ -24,6 +24,18 @@ and callback state restores on C++ unwinding. Close Buttons before Scripts,
 images, renderer, Fonts/Gxu/layout/XML/VM/device/context/queue owners. The Fonts
 owner releases registered pool blocks only after every slot is returned.
 
+Native mouse-button delivery pins the selected consumer independently of resize.
+Only its original `OnClick` admits existing-control visibility and the already
+qualified Slider/scroll/Button state setters across PreClick/OnClick/PostClick.
+Hide retires captures and cursor focus before descendant/parent OnHide; the
+selected consumer remains alive through PostClick. Nested cursor scripts keep
+strict admission, including those called by Enable/Disable. Direct Lua Click,
+arbitrary mouse handlers, other-button clicks and double-click callbacks retain
+ordinary guards. Movement/top-level visibility is preflighted before edits;
+layout, hierarchy, deletion, input reentry, resize, collection/render and owner
+guards remain active. [Agreement continuation #128](https://github.com/RovxBot/wowdecomp/issues/128)
+tracks hosted and original-data acceptance separately from authored transitions.
+
 The hierarchy fixture checks 101 pooled Buttons, canonical/stale Lua tables,
 XML inheritance and aliases, original click handlers, right-up mask retention,
 normal/hover/pushed/disabled pixels, pressed/released/outside/locked/cancel states,

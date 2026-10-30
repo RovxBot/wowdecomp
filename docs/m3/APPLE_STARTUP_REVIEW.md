@@ -1,5 +1,14 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [agreement Button callbacks](https://github.com/RovxBot/wowdecomp/issues/128),
+the pinned jerrywossion `CSimpleButton.cpp::OnClick` retains synchronous
+PreClick/OnClick/PostClick and borrowed button-name restoration. It supplies no
+admission for this fork's native callback/lifetime guards. We retain that order
+through the existing layout and Frame owners, with a selected-consumer pin and
+strict nested cursor scripts. No source body, dependency or notice is imported.
+A fresh WoWReMac read of the same path at its pin returns HTTP 404; its earlier
+review remains historical and establishes no new execution result.
+
 For [wheel callback admission](https://github.com/RovxBot/wowdecomp/issues/126),
 the pinned jerrywossion `CSimpleTop::OnMouseWheel` and
 `CSimpleFrame::RunOnMouseWheelScript` retain the original hit queue and synchronous
