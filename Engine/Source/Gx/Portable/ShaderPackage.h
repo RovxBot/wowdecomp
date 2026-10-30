@@ -27,5 +27,9 @@ std::string PrepareArbProgram(const ShaderRecord& shader, ShaderStage stage);
 // Preserve every instruction/UV while aliasing literal texture[0..3] operands
 // onto sampler zero. The caller must prove all four logical bindings identical.
 ShaderRecord AliasArbFilterSamplers(const ShaderRecord& shader);
+// Admit only the inspected original Glow equations (2D/RECT) or the authored
+// equivalent used by fixtures before selecting the one-sampler composition.
+// This fingerprint is semantic dispatch, not archive/signature authentication.
+void ValidateArbGlow(const ShaderRecord& shader, uint32_t permutation);
 }}
 #endif

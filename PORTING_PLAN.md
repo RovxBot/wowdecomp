@@ -121,7 +121,7 @@ on our hardware/data/server or import their code into this fork.
 | Role | Pinned reference |
 | --- | --- |
 | Historical M0 product source | `RovxBot/wowdecomp` at `cd29da38b9162419ee0fa29c6b16e07e10f6c4f0`; preserve the original tutorial bounds correction |
-| 4.3.4 reference/donor | [SatyPardus/wowdecomp15595, w15595 at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/SatyPardus/wowdecomp15595/tree/959b0b85c5f55c565328d7c3ca33027a65e41327) |
+| 4.3.4 reference/donor | SatyPardus/wowdecomp15595, [RovxBot mirror at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/RovxBot/wowdecomp15595/tree/959b0b85c5f55c565328d7c3ca33027a65e41327) |
 | Later upstream/native imports | [Backport ledger](docs/BACKPORTS.md), [2026-10-18 review](docs/upstream/2026-10-18.md), [2026-10-24 review](docs/upstream/2026-10-24.md) |
 
 Keep reference checkouts outside the product tree and cite exact revisions.

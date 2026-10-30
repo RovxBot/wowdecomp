@@ -9,7 +9,14 @@ resources. These require Metal and do not provide a one-sampler Linux fallback.
 Our adaptation retains the original ARB filter instructions and aliases only
 the identical input bindings, with four separately checked UV streams. No source,
 dependency or notice change is imported from either reference. Distinct-input
-glow is not qualified by this aliasing.
+glow is not qualified by this aliasing. The default Glow continuation reuses this
+fork's retained floating-point composition owner. It follows the reference's
+bounded fingerprint dispatch approach, independently fingerprinting inspected
+12340 ARB programs rather than using the reference's ps_2_0 digests. The original
+RGB equation and alpha one are retained across single-sampler passes. No source
+body or dependency is imported. The pinned WoWReMac repository could not be
+re-read during this continuation (GitHub returned 404); its earlier review above
+remains historical evidence, with no new Apple execution claim.
 
 Both pinned 12340 references were inspected before equivalent implementation.
 This batch imports **no source or dependency changes from either port**. It adapts

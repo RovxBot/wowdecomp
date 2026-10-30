@@ -194,7 +194,8 @@ callback, traversal and shutdown guards; admit only qualified operations.
 ## How to use the two repositories
 
 The product baseline is this checkout. The initial donor is
-[`SatyPardus/wowdecomp15595` at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/SatyPardus/wowdecomp15595/tree/959b0b85c5f55c565328d7c3ca33027a65e41327).
+`SatyPardus/wowdecomp15595`, available from the
+[`RovxBot/wowdecomp15595` mirror at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/RovxBot/wowdecomp15595/tree/959b0b85c5f55c565328d7c3ca33027a65e41327).
 The audited local baseline and source findings are in the plan. Keep reference
 checkouts outside the product tree; reference commits explicitly.
 

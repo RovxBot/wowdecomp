@@ -908,7 +908,7 @@ and source inspection are different evidence levels.
   therefore does not initialize the output structure. `sizeof(info)` is also the
   pointer size, not the structure size. This conclusion follows from the call's
   arguments; it is not a demonstrated gameplay failure.
-- Donor: [wowdecomp15595 at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/SatyPardus/wowdecomp15595/blob/959b0b85c5f55c565328d7c3ca33027a65e41327/Engine/Source/BlizzardCore/Source/System/Hardware/Win64/Hardware.cpp),
+- Donor: SatyPardus/wowdecomp15595, [pinned mirror at `959b0b85c5f55c565328d7c3ca33027a65e41327`](https://github.com/RovxBot/wowdecomp15595/blob/959b0b85c5f55c565328d7c3ca33027a65e41327/Engine/Source/BlizzardCore/Source/System/Hardware/Win64/Hardware.cpp),
   same function, tagged 15595 addresses `0x007AD1B0` (x86) / `0x1404A2EB0` (x64).
 - Relevant donor behavior: `memset(info, 0, sizeof(CPUIDInfo))`. The rest of its CPU
   detection algorithm and dependencies differ and should not be imported wholesale.

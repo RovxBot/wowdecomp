@@ -1,4 +1,5 @@
 #include "Engine/Source/BlizzardCore/Portable/Assets.h"
+#include "GlowFixture.h"
 #include "Engine/Source/Gx/CGxPool.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
@@ -143,6 +144,7 @@ static Bytes FilterPackage(bool gaussian);
 Assets Load(GlContext &context, const std::string &data, const std::string &settings,
             const std::string &cache) {
     Assets assets;
+    assets.shaders["Shaders\\Pixel\\arbfp1\\FFXGlow.bls"] = Package(AuthoredGlow,2);
     assets.shaders["Shaders\\Pixel\\arbfp1\\FFXBox4.bls"] = FilterPackage(false);
     assets.shaders["Shaders\\Pixel\\arbfp1\\FFXGauss4.bls"] = FilterPackage(true);
     if (data.empty()) {
@@ -167,6 +169,7 @@ Assets Load(GlContext &context, const std::string &data, const std::string &sett
             assets.signatures = packages->SignatureCount();
             for (auto member : {"Shaders\\Vertex\\arbvp1\\UI.bls", "Shaders\\Pixel\\arbfp1\\UI.bls",
                                 "Shaders\\Pixel\\arbfp1\\FFXBox4.bls", "Shaders\\Pixel\\arbfp1\\FFXGauss4.bls",
+                                "Shaders\\Pixel\\arbfp1\\FFXGlow.bls",
                                 "Fonts\\FRIZQT__.TTF"}) {
                 Require(!cancel.Requested(), "Asset read cancelled");
                 auto file = packages->Read(member, 64 * 1024 * 1024);
@@ -234,6 +237,7 @@ void CheckImplicitDepth(GlContext& context, int width, int height) {
 }
 #include "CompositionChecks.h"
 #include "FfxChecks.h"
+#include "GlowChecks.h"
 void CheckFramebufferCopy(GlContext& context, LegacyDevice& device) {
     auto ClearColor = reinterpret_cast<decltype(&glClearColor)>(context.Proc("glClearColor"));
     auto Clear = reinterpret_cast<decltype(&glClear)>(context.Proc("glClear"));
@@ -321,6 +325,7 @@ void Cycle(GlContext &context, Assets &assets) {
     CheckMipCallbacks();
     CheckComposition(context,device);
     CheckFfxFilters(context,device);
+    CheckGlow(context,device);
     CheckFramebufferCopy(context,device);
     Source source;
     CGxTex *texture = nullptr;
