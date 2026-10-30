@@ -1,3 +1,4 @@
+#include "Tools/NativeGx/GlowFixture.h"
 // Authored regression cases for the original model factory and relocation path.
 #include "Engine/Source/Frame/Portable/LoginWidgets.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
@@ -291,6 +292,7 @@ void Factory() {
             source += "MOV result.color, sum;\nEND\n";
             return Program(source.c_str(),count);
         }
+        if (path.find("FFXGlow.bls") != std::string::npos) return Program(AuthoredGlow,2);
         return Program(vertex ? "!!ARBvp1.0\nMOV result.position, vertex.position;\nEND\n" :
             "!!ARBfp1.0\nMOV result.color, fragment.color;\nEND\n", count);
     });

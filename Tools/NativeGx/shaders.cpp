@@ -1,5 +1,6 @@
 #include "Engine/Source/Gx/Portable/ShaderPackage.h"
 #include <functional>
+#include "GlowFixture.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -95,6 +96,20 @@ int main() {
             try { AliasArbFilterSamplers(shader); } catch (const std::invalid_argument&) { rejected = true; }
             Check(rejected);
         }
+        const std::string glow = AuthoredGlow;
+        shader.code.assign(glow.begin(),glow.end()); shader.code.push_back(0);
+        ValidateArbGlow(shader,0); ValidateArbGlow(shader,1);
+        Reject([&] { ValidateArbGlow(shader,2); });
+        const auto originalGlow = shader.code;
+        // A changed equation with the same family/name must not dispatch.
+        for (const char* token : {"LRP", "MUL", "primary.z", "primary.w", "texcoord[1]", "color.w, 1"}) {
+            shader.code = originalGlow;
+            const auto at = glow.find(token); Check(at != std::string::npos);
+            shader.code[at] = 'X';
+            Reject([&] { ValidateArbGlow(shader,0); });
+        }
+        shader.code = originalGlow; shader.code.pop_back();
+        Reject([&] { ValidateArbGlow(shader,0); });
         std::cout << "12340 shader metadata/permutations/padding/truncation/version/ARB adaptation passed\n";
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

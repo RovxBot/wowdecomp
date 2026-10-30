@@ -9,8 +9,21 @@ The adapter requires identical retained 2D inputs, identity texture matrices and
 unmodified UV selection; unequal inputs, attachment feedback, missing UVs and
 invalid fetches fail before drawing. RECT permutations can load but cannot draw
 through the current 2D-only legacy texture owner. Device caps stay at one sampler
-and 94 registers. Distinct-input glow and complete original login rendering remain
-separate acceptance work in #118/#96.
+and 94 registers.
+
+Default Glow composes distinct full/blur inputs through the same RGBA32F scratch
+owner, selected only for audited original ARB code fingerprints or the authored
+equivalent fixture. Each triangle stores `(1-b)*full`, adds `b*blur+a*blur*blur`
+with its own UVs on physical sampler zero, then clamps once before scene blending,
+with alpha one. Here `b` and `a` are original primary blue and alpha. Input alpha
+is not a Glow term. Triangle strips retain winding parity across internal draws.
+Both UVs/color, all fetches and actual attachment feedback are checked before
+scene writes. Temporary programs, environment, targets, sampler, raster state and
+winding restore through the existing owners. RECT and perturbed GlowWave drawing
+remain unavailable. This is semantic dispatch, separate from unchanged archive
+and interface authentication. Runtime qualification and complete login/input stay
+in [#118](https://github.com/RovxBot/wowdecomp/issues/118) and
+[#96](https://github.com/RovxBot/wowdecomp/issues/96).
 
 Original FFX target switches precede the replacement of logical input states.
 The legacy adapter releases the previous draw's physical sampler before attaching

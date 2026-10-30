@@ -1,4 +1,6 @@
 #include "ShaderPackage.h"
+#include "Engine/Source/Storm/Source/MD5.h"
+#include <cstring>
 #include <algorithm>
 #include <cctype>
 #include <stdexcept>
@@ -104,4 +106,24 @@ ShaderRecord AliasArbFilterSamplers(const ShaderRecord& shader) {
     result.code.push_back(0);
     return result;
 }
+void ValidateArbGlow(const ShaderRecord& shader, uint32_t permutation) {
+    PrepareArbProgram(shader, ShaderStage::Fragment);
+    Require(permutation < 2, "Unsupported Glow permutation");
+    // Audited 12340 arbfp1 FFXGlow code including its terminator, not the
+    // ps_2_0 fingerprints used by the pinned Metal reference. Preserve bytes
+    // in the legacy shader; never select an equation from its name alone.
+    const uint8_t original[2][16] = {
+        {0x10,0x05,0x92,0xbe,0xa5,0x9d,0xbd,0xaf,0x0f,0x9e,0x89,0xcd,0x5e,0x23,0xad,0x1a},
+        {0xdb,0xc5,0xae,0xc3,0x7f,0x78,0xf2,0xa4,0x1d,0x91,0xaf,0xc8,0x5c,0x9f,0x9b,0x4c}
+    };
+    const uint8_t authored[16] = {0x9a,0x86,0x25,0xff,0x43,0xef,0x56,0x91,0x9d,0x04,0xb3,0xe2,0x2f,0xd5,0xd2,0x06};
+    MD5_CTX context;
+    MD5Init(&context);
+    MD5Update(&context, shader.code.data(), uint32_t(shader.code.size()));
+    uint8_t digest[16]; MD5Final(digest, &context);
+    Require(!std::memcmp(digest, original[permutation], sizeof(digest)) ||
+            !std::memcmp(digest, authored, sizeof(digest)),
+            "FFXGlow code has no qualified native composition");
+}
+
 }}
