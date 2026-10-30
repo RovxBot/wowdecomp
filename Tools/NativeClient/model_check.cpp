@@ -51,6 +51,7 @@
 #include <memory>
 #include <stdexcept>
 #include "ScrollRangeChecks.h"
+#include "ScrollRenderChecks.h"
 using Bytes = std::vector<uint8_t>;
 namespace {
 void Check(bool condition, const char* message) { if (!condition) throw std::runtime_error(message); }
@@ -282,6 +283,10 @@ void Factory() {
         const bool vertex = path.find("Vertex") != std::string::npos;
         const auto count = path.find("FFXGlowWave") != std::string::npos ? 4u :
             path.find("FFX") != std::string::npos || (vertex && path.find("UI.bls") != std::string::npos) ? 2u : 1u;
+        if (path.find("UI.bls") != std::string::npos)
+            return Program(vertex ?
+                "!!ARBvp1.0\nDP4 result.position.x, program.env[0], vertex.position;\nDP4 result.position.y, program.env[1], vertex.position;\nDP4 result.position.z, program.env[2], vertex.position;\nDP4 result.position.w, program.env[3], vertex.position;\nMOV result.color, vertex.attrib[4];\nMOV result.texcoord[0], vertex.attrib[6];\nEND\n" :
+                "!!ARBfp1.0\nTEMP tex;\nTEX tex, fragment.texcoord[0], texture[0], 2D;\nMUL result.color,tex,fragment.color;\nEND\n", count);
         if (path.find("FFXBox4") != std::string::npos || path.find("FFXGauss4") != std::string::npos) {
             // Factory/lifetime fixture only. Supply four real literal fetches
             // for the filter contract; pixel equations are tested by LegacyGxCheck.
@@ -335,6 +340,7 @@ void Factory() {
     {
         CSimpleTop root;
         CheckScrollRangeEdits(root);
+        ScrollRenderChecks::Run(root, device);
         {
             const auto errors = FrameScript::Native::ScriptErrorCount();
             FrameScript_Execute(R"(

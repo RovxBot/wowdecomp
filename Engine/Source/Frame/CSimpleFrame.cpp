@@ -1126,7 +1126,11 @@ void CSimpleFrame::SetHitRectInsets(float left, float right, float top, float bo
 // VERIFY: 8c2d9ec9 manual
 // OFFSET: 0x0048F890
 int32_t CSimpleFrame::GetHitRect(CRect& rect) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireCachedRect(this);
+#else
     FRAME_TREE_CHECK();
+#endif
     if (!(this->m_layoutFlags & 0x100)) {
         return 0;
     }
@@ -2536,10 +2540,10 @@ void CSimpleFrame::AddAnimScale(FRAMEPOINT origin, const C2Vector& offset, const
 // VERIFY: 1582c675 manual
 // OFFSET: 0x00491E00
 void CSimpleFrame::OnFrameRender() {
-    FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::UnavailableFrameFeature();
+    Frame::Native::DrawScrollChild(this);
 #else
+    FRAME_TREE_CHECK();
 
     uint32_t dirty = this->m_batchDirty;
     this->m_batchDirty = 0;

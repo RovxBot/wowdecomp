@@ -309,6 +309,9 @@ void CSimpleRender::DrawBatch(CRenderBatch* batch) {
     }
 
     for (RENDERCALLBACKNODE* node = batch->m_callbacks.Head(); !TSList<RENDERCALLBACKNODE, TSGetLink<RENDERCALLBACKNODE> >::IsEnd(node); node = node->RawNext()) {
+#if defined(WOWDECOMP_PORTABLE_RUNTIME)
+        Frame::Native::RenderCallbackScope callbackScope(node);
+#endif
         node->m_callback(node->m_param);
     }
 }

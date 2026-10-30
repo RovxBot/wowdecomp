@@ -17,6 +17,18 @@ alive until clear. Callback parameters remain borrowed; keep their owners alive
 through consumption. Public legacy fields remain owner-thread implementation
 state, not an alternate unvalidated submission API.
 
+The integrated root precollects visible scrolled Frames into their existing
+per-layer retained batches before any batch consumption. Dirty and former scroll
+batches retire before strata rebuilds, preserving the single text-batch link.
+The original ScrollFrame callback may submit only its prepared child subtree,
+in original layer/child order. A private one-use batch permit is consumed before
+callbacks run; active-batch cycles and arbitrary nested draws still fail. Nested
+scroll clipping keeps the layout/render guard active until the outer draw ends.
+Cached hit-rectangle reads use the existing live-layout/thread check and do not
+resolve layout. Projection, view and viewport restore on child exceptions.
+Collection failures dirty the subtree for retry. Tracking and runtime acceptance:
+[#122](https://github.com/RovxBot/wowdecomp/issues/122).
+
 The initial native mesh surface admits four positions, six bounded triangle
 indices, a live pixel shader, supported blend modes and one/four vertex colors.
 It limits each batch to 32,768 entries. Sorting compares full-width texture and
@@ -36,7 +48,10 @@ work; retained lower-level resources alone do not qualify it.
 `NativeFrameRenderCheck` exercises three complete cycles of stack-array expiry,
 last-caller texture/shader/font/block close, full-width sorting, repeated pixel
 readback, original merge boundaries, nonzero authored atlas cells, thread guards,
-callback mutation/reentry and exception recovery. Optional original-data mode
+callback mutation/reentry and exception recovery. The integrated startup fixture
+additionally covers nested scroll pixels/clipping, original layer/child order,
+retained reuse, visibility, disjoint clips, guarded mutation/reentry and failed
+collection/draw recovery. Optional original-data mode
 uses unchanged Friz Quadrata, UI shaders and loading-bar BLP in an authored
 composition; it is not original Frame objects or a login screen. All compilation
 and CTest execution run in [M3 GL Actions](../../.github/workflows/m3-gl.yml),
