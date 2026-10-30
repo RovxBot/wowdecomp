@@ -93,6 +93,9 @@ void CSimpleScrollFrame::RunOnScrollRangeChangedScript() {
 // VERIFY: 19e0f389 auto
 // OFFSET: 0x0096B060
 void CSimpleScrollFrame::UnparentFrame(CSimpleFrame* child) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireTreeMutation();
+#endif
     if (child == this->m_scrollChild) {
         this->m_scrollChild = nullptr;
     }
@@ -197,7 +200,10 @@ CSimpleScrollFrame::CSimpleScrollFrame(CSimpleFrame* parent) : CSimpleFrame(pare
 void CSimpleScrollFrame::SetScrollChild(CSimpleFrame* child) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireTreeMutation();
-    if (child) Frame::Native::RequireParent(child, this);
+    if (child) {
+        Frame::Native::RequireSimpleFrame(child);
+        Frame::Native::RequireParent(child, this);
+    }
 #endif
     if (this->m_scrollChild) {
         this->m_scrollChild->SetBeingScrolled(0, 0);

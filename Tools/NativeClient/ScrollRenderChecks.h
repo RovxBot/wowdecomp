@@ -31,6 +31,9 @@ struct Probe final : CSimpleFrame {
             Reject([&] { self.CSimpleFrame::OnFrameRender(); });
             Reject([&] { CSimpleScrollFrame::RenderScrollChild(self.scroll); });
             Reject([&] { self.scroll->SetScrollChild(nullptr); });
+            auto* scrollChild = self.scroll->m_scrollChild;
+            Reject([&] { self.scroll->UnparentFrame(scrollChild); });
+            Check(self.scroll->m_scrollChild == scrollChild, "Rejected unparent changed the scroll child");
             const auto offset = self.scroll->m_scrollOffset;
             Reject([&] { self.scroll->SetVerticalScroll(.1f); });
             Check(self.scroll->m_scrollOffset.y == offset.y, "Rejected scroll mutation changed its offset");
