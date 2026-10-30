@@ -65,6 +65,9 @@ static void Color(const std::vector<CImVector>& pixels, float x, float y, int r,
             " was " + std::to_string(p.r) + "," + std::to_string(p.g) + "," + std::to_string(p.b));
 }
 static void Run(CSimpleTop& root, Gx::Native::LegacyDevice& device) {
+    device.RsPush();
+    struct RestoreStates { Gx::Native::LegacyDevice& device; ~RestoreStates() { device.RsPop(); } } states{device};
+    GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_Culling, 0);
     std::vector<unsigned> order;
     auto scroll = std::make_unique<CSimpleScrollFrame>(nullptr);
     scroll->SetSize(.4f, .3f);
