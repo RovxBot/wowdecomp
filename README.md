@@ -8,7 +8,7 @@ identifying reconstructed functions' original binary addresses for comparison.
 This fork is building native clients for **Linux x86-64** and **macOS ARM64
 (Apple silicon)** while retaining **Windows x64** as the regression reference.
 The goal is to preserve unchanged 3.3.5a data, protocol, gameplay, Lua APIs and addon
-compatibility. The [4.3.4 decompilation](https://github.com/SatyPardus/wowdecomp15595)
+compatibility. The [4.3.4 decompilation](https://github.com/RovxBot/wowdecomp15595)
 is a reference for selected improvements; it does not change the 12340 baseline.
 No game data is included in this repository.
 
@@ -155,8 +155,8 @@ client rebuild.
 
 - [SatyPardus/wowdecomp](https://github.com/SatyPardus/wowdecomp) and its contributors,
   for the original 3.3.5a reconstruction on which this fork is based.
-- [SatyPardus/wowdecomp15595](https://github.com/SatyPardus/wowdecomp15595), for the
-  4.3.4 reference and selected improvement candidates.
+- SatyPardus and the [wowdecomp15595](https://github.com/RovxBot/wowdecomp15595)
+  contributors, for the 4.3.4 reference and selected improvement candidates.
 - [arlyon/wowdecomp](https://github.com/arlyon/wowdecomp) and
   [RosemyneH/wowdecomp](https://github.com/RosemyneH/wowdecomp), for native-port
   references reviewed in [the reference audit](docs/m2/REFERENCE_REVIEW.md).

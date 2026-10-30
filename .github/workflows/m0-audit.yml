@@ -42,7 +42,7 @@ jobs:
       - name: Check out the pinned 4.3.4 reference separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: SatyPardus/wowdecomp15595
+          repository: RovxBot/wowdecomp15595
           ref: 959b0b85c5f55c565328d7c3ca33027a65e41327
           path: reference-15595
           persist-credentials: false
