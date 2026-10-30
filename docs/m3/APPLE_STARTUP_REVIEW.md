@@ -1,5 +1,14 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [particle startup](https://github.com/RovxBot/wowdecomp/issues/124), the pinned
+jerrywossion `ShaderEffectManager.cpp` retains SFile close, bounds effect files at
+1 MiB, checks complete reads and handles absent shader passes. Its World caller
+loads Model2/Particle before scenes. Our native adaptation uses the existing
+authenticated SFile owner, validates the complete bounded WFX grammar before
+publication, and rolls back installed effects on failure. The original two-stage
+effect storage stays separate from the one-sampler device limit. No Apple source
+body, dependency or notice is imported; no Apple execution is established.
+
 For [scroll-child rendering](https://github.com/RovxBot/wowdecomp/issues/122),
 the pinned jerrywossion `Engine/Source/Frame/CSimpleScrollFrame.cpp` retains the
 original clipped projection/viewport and no-argument child draw. It provides no

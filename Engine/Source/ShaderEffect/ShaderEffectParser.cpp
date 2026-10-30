@@ -4,6 +4,9 @@
 #include <cstring>
 #include "Engine/Source/ShaderEffect/ShaderEffectParser.h"
 #include "Engine/Source/Storm/H/storm.h"
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+#include "PortableParser.h"
+#endif
 
 // STATIC: 0x00A4D678
 const EGxTexOp CShaderEffectParser::s_gxTexOpValues[GxTexOps_Last] = {
@@ -220,9 +223,15 @@ void CShaderEffectParser::ParseEffect(char* data, uint32_t size, uint32_t& pos, 
     }
 }
 
+// Original Windows verification; native uses bounded, transactional syntax parsing.
 // VERIFY: e3f85c73 auto
 // OFFSET: 0x00877360
 void CShaderEffectParser::ParseEffectFile(char* data, uint32_t size, void (*callback)(const ParsedEffect&, void*), void* param) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (!callback) throw std::invalid_argument("Missing original effect callback");
+    const auto effects=NativeEffectParser(data,size).Parse();
+    for (const auto& effect:effects) callback(effect,param);
+#else
     char args[16][64];
     ParsedEffect effect;
     uint32_t argCount;
@@ -233,4 +242,5 @@ void CShaderEffectParser::ParseEffectFile(char* data, uint32_t size, void (*call
             callback(effect, param);
         }
     }
+#endif
 }

@@ -67,6 +67,14 @@ void EnsureModels() {
         // ShaderEffect also selects vertex ownership, indices and fixed materials.
         // Keep it consistent with the original cache, independently of UI/FFX shaders.
         CShaderEffect::InitShaderSystem((M2GetCacheFlags() & 8) != 0, 0);
+        // Original World initialization loads these before any model scene.
+        // The retained SFile adapter supplies authenticated, unchanged bytes.
+        CShaderEffectManager::AddEffectFile("Model2.wfx");
+        CShaderEffectManager::AddEffectFile("Particle.wfx");
+        for (const auto* name : {"Particle", "Particle_Unlit", "Projected_ModMod", "Projected_ModAdd",
+            "Projected_ModMod_Unlit", "Projected_ModAdd_Unlit"})
+            if (!CShaderEffectManager::GetEffect(name))
+                throw std::runtime_error(std::string("Missing required original model effect: ")+name);
         if (!CVar::LookupRegistered("gxMultisample"))
             CVar::Register("gxMultisample", "Native surface sample count", 0, "1", nullptr, 0, false, nullptr, false);
         FFX::Init();
