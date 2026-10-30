@@ -59,7 +59,7 @@ static void ButtonChecks(GlContext& context, LegacyDevice& device, CSimpleTop& r
         b:SetScript('OnClick',function(self,key,down)
             assert(self==NativeButton and self==this and arg1==key and not down)
             assert(not pcall(CreateFrame,'Frame','RejectedButtonCallback'))
-            assert(not pcall(self.Hide,self))
+            assert(not pcall(self.SetWidth,self,200))
             self:SetText('V'); self:Click(key) -- reentry must not click again
             ButtonLog[#ButtonLog+1]='click:'..key
         end)

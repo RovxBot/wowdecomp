@@ -14,6 +14,8 @@ bool installed = false;
 uint32_t frameLevelLimit = 128;
 bool renderActive = false;
 bool mouseWheelInput = false;
+bool mouseButtonInput = false;
+const CLayoutFrame* mouseButtonTarget = nullptr;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
 size_t callbacks = 0, loadScriptEdits = 0;
@@ -70,7 +72,7 @@ void SetLayoutRenderActive(bool value) { renderActive = value; }
 uint32_t MaximumFrameLevel() { RequireOwner(); return frameLevelLimit; }
 void RequireNoObjects() {
     RequireOwner();
-    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || mouseWheelInput || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || mouseWheelInput || mouseButtonInput || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
@@ -123,7 +125,7 @@ void RequireDimension(float value) {
 }
 void RequireDestroyable() {
     RequireOwner();
-    if (resizing || mouseWheelInput || (callbacks && callbacks != factoryCallbackDepth))
+    if (resizing || mouseWheelInput || mouseButtonInput || (callbacks && callbacks != factoryCallbackDepth))
         throw std::logic_error("Finish callbacks before destroying layout objects");
 }
 void RequireTreeMutable() {
@@ -131,12 +133,24 @@ void RequireTreeMutable() {
 }
 void RequireStateMutable(bool callbacksAllowed) {
     RequireOwner();
-    if (resizing || (mouseWheelInput && !callbacksAllowed) || (callbacks && !loadScriptEdits && !callbacksAllowed))
+    if (resizing || ((mouseWheelInput || mouseButtonInput) && !callbacksAllowed) || (callbacks && !loadScriptEdits && !callbacksAllowed))
         throw std::logic_error("Defer Frame structure edits until callbacks finish");
 }
 bool IsMouseWheelInput() { RequireOwner(); return mouseWheelInput; }
 MouseWheelInput::MouseWheelInput() { RequireTreeMutable(); mouseWheelInput = true; }
 MouseWheelInput::~MouseWheelInput() { mouseWheelInput = false; }
+bool IsMouseButtonInput() { RequireOwner(); return mouseButtonInput; }
+bool IsMouseButtonClick(const CLayoutFrame* frame) {
+    RequireOwner();
+    return mouseButtonInput && frame == mouseButtonTarget && !callbacks && !resizing;
+}
+MouseButtonInput::MouseButtonInput(CLayoutFrame* frame) {
+    RequireTreeMutable();
+    if (frame) RequireFrame(frame);
+    mouseButtonTarget = frame;
+    mouseButtonInput = true;
+}
+MouseButtonInput::~MouseButtonInput() { mouseButtonInput = false; mouseButtonTarget = nullptr; }
 CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }
 CallbackScope::~CallbackScope() { --callbacks; }
 LoadScriptEdits::LoadScriptEdits() { RequireTreeMutable(); ++loadScriptEdits; }

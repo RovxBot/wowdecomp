@@ -5,6 +5,7 @@ class CSimpleTop;
 class CSimpleTitleRegion;
 class CSimpleTexture;
 class CSimpleScrollFrame;
+class CSimpleButton;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
@@ -34,6 +35,18 @@ public:
 private:
     friend class ::CSimpleFrame;
     MouseWheelEdits();
+    bool active = false;
+};
+// Original selected Button PreClick/OnClick/PostClick may change qualified
+// existing controls. Other consumers, nested clicks and cursor-exit stay guarded.
+class ButtonClickEdits final {
+public:
+    ~ButtonClickEdits();
+    ButtonClickEdits(const ButtonClickEdits&) = delete;
+    ButtonClickEdits& operator=(const ButtonClickEdits&) = delete;
+private:
+    friend class ::CSimpleButton;
+    explicit ButtonClickEdits(CSimpleFrame*);
     bool active = false;
 };
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);

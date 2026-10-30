@@ -52,6 +52,7 @@
 #include <stdexcept>
 #include "ScrollRangeChecks.h"
 #include "MouseWheelChecks.h"
+#include "ButtonClickChecks.h"
 #include "ScrollRenderChecks.h"
 using Bytes = std::vector<uint8_t>;
 namespace {
@@ -361,6 +362,7 @@ void Factory() {
         CSimpleTop root;
         CheckScrollRangeEdits(root);
         MouseWheelChecks::Run(root, context);
+        ButtonClickChecks::Run(root, context);
         ScrollRenderChecks::Run(root, device);
         {
             const auto errors = FrameScript::Native::ScriptErrorCount();

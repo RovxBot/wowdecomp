@@ -56,6 +56,16 @@ struct MouseWheelInput final {
     MouseWheelInput(const MouseWheelInput&) = delete;
     MouseWheelInput& operator=(const MouseWheelInput&) = delete;
 };
+// Button delivery pins the selected consumer, even if Hide retires its capture.
+// Only its original OnClick, outside another script callback, can admit state.
+bool IsMouseButtonInput();
+bool IsMouseButtonClick(const CLayoutFrame*);
+struct MouseButtonInput final {
+    explicit MouseButtonInput(CLayoutFrame*);
+    ~MouseButtonInput();
+    MouseButtonInput(const MouseButtonInput&) = delete;
+    MouseButtonInput& operator=(const MouseButtonInput&) = delete;
+};
 struct CallbackScope final {
     CallbackScope();
     ~CallbackScope();

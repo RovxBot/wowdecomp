@@ -241,6 +241,35 @@ static void WheelInputGuards() {
     thread.join(); Check(foreign,"foreign wheel dispatch admitted");
     std::cout<<"layout-wheel-input-state-lifetime-reentry-resize-guards=passed\n";
 }
+static void ButtonInputGuards() {
+    CLayoutFrame target, other;
+    Check(!IsMouseButtonInput(),"button input active before dispatch");
+    {
+        MouseButtonInput input(&target);
+        Check(IsMouseButtonInput() && IsMouseButtonClick(&target) && !IsMouseButtonClick(&other),"button input selected wrong target");
+        RequireStateMutable(true);
+        Reject([] { RequireTreeMutable(); });
+        Reject([] { RequireDestroyable(); });
+        Reject([] { RequireNoObjects(); });
+        Reject([&] { MouseButtonInput nested(&target); });
+        Reject([] { MouseWheelInput nested; });
+        { CallbackScope callback; Check(!IsMouseButtonClick(&target),"script callback obtained button admission"); }
+        { ResizeScope resize; Reject([] { RequireStateMutable(true); });
+          Check(!IsMouseButtonClick(&target),"resize callback obtained button admission"); }
+        Reject([] { LoadScriptEdits edits; });
+    }
+    Check(!IsMouseButtonInput(),"button input pin retained");
+    try { MouseButtonInput input(&target); throw std::runtime_error("authored button failure"); }
+    catch (const std::runtime_error&) {}
+    RequireTreeMutable(); RequireDestroyable();
+    { CallbackScope callback; Reject([&] { MouseButtonInput input(&target); }); }
+    { ResizeScope resize; Reject([&] { MouseButtonInput input(&target); }); }
+    { MouseWheelInput wheel; Reject([&] { MouseButtonInput input(&target); }); }
+    bool foreign=false;
+    std::thread thread([&] { try { MouseButtonInput input(&target); } catch (const std::logic_error&) { foreign=true; } });
+    thread.join(); Check(foreign,"foreign button dispatch admitted");
+    std::cout<<"layout-button-input-selected-state-lifetime-reentry-resize-guards=passed\n";
+}
 int main() {
     try {
         for(int cycle=0;cycle<3;++cycle) {
@@ -251,7 +280,7 @@ int main() {
             { Frame::Native::Runtime integrated(512); Check(MaximumFrameLevel()==512,"explicit Frame level budget lost"); }
             { Frame::Native::Runtime layout;
               Check(MaximumFrameLevel()==128,"default Frame level budget changed after owner recreation");
-              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();WheelInputGuards();CLayoutFrame::ResizePending();RequireNoObjects(); }
+              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();WheelInputGuards();ButtonInputGuards();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");
             std::cout<<"Original layout/anchor/XML cycle "<<cycle+1<<" passed\n";

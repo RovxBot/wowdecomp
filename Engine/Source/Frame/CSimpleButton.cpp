@@ -5,6 +5,7 @@
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include <cstring>
 #include <memory>
+#include <optional>
 #define BUTTON_CHECK() Frame::Native::RequireScriptTextMutation()
 namespace {
 struct ClickFlag final {
@@ -910,6 +911,7 @@ void CSimpleButton::OnLayerCursorExit(int32_t motion, int32_t a3) {
     }
 }
 
+// Original Windows verification; native selected input admits bounded control state.
 // VERIFY: cddc7e35 auto
 // OFFSET: 0x0096FD70
 void CSimpleButton::OnClick(const char* btn, int32_t down) {
@@ -926,7 +928,9 @@ void CSimpleButton::OnClick(const char* btn, int32_t down) {
         const char* name;
         ~Restore() { button->m_inClick = 0; button->m_simpleTop->m_mouseButtonName = name; }
     } restore{this, savedButtonName};
-    Frame::Native::ResizeScope callbackGuard;
+    std::optional<Frame::Native::ResizeScope> callbackGuard;
+    if (!Frame::Native::IsMouseButtonInput()) callbackGuard.emplace();
+    Frame::Native::ButtonClickEdits edits(this);
 #endif
     this->m_inClick = 1;
     this->RunOnClickScript(btn, down);

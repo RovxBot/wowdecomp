@@ -700,6 +700,7 @@ int32_t CSimpleTop::OnMouseMoveRelative(const void* data, void* param) {
 
 }
 
+// Original Windows verification; native button dispatch pins the selected consumer.
 // VERIFY: f7cc11f1 manual
 // OFFSET: 0x004947A0
 int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
@@ -712,7 +713,7 @@ int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
         nativeTop->StopMoveOrResizeFrame();
         return 0;
     }
-    Frame::Native::ResizeScope inputGuard;
+    Frame::Native::MouseButtonInput inputGuard(nativeTop->m_mouseCapture);
 #endif
 
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
@@ -731,9 +732,16 @@ int32_t CSimpleTop::OnMouseUp(const void* data, void* param) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (callback && !top->m_mouseCapture) {
+        Frame::Native::ResizeScope callbackGuard;
+        if (callback(&evt)) return 0;
+    }
+#else
     if (callback && !top->m_mouseCapture && callback(&evt)) {
         return 0;
     }
+#endif
 
     if (capture) {
         capture->OnLayerMouseUp(evt, nullptr);
@@ -1239,6 +1247,7 @@ void CSimpleTop::OnLayerRender() {
     }
 }
 
+// Original Windows verification; native button dispatch pins the selected consumer.
 // VERIFY: 6721d10a manual
 // OFFSET: 0x00495470
 int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
@@ -1272,7 +1281,7 @@ int32_t CSimpleTop::OnMouseDown(const void* data, void* param) {
             return 0;
         }
     }
-    Frame::Native::ResizeScope inputGuard;
+    Frame::Native::MouseButtonInput inputGuard(frame);
     top->m_mouseCapture = frame;
     frame->OnLayerMouseDown(evt, nullptr);
     return 0;

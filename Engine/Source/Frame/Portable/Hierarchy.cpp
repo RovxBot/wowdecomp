@@ -20,6 +20,7 @@ std::vector<CSimpleFrame*> deferred;
 bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 bool mouseWheelEdits = false;
+bool buttonClickEdits = false;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
 ScrollRenderScope* scrollRender = nullptr;
@@ -66,7 +67,7 @@ void RequireTreeMutation() {
 }
 void RequireStateMutation(bool scrollCallback) {
     RequireRegions();
-    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits);
+    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits);
     RequireStateMutable(admitted);
     if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
@@ -81,14 +82,23 @@ MouseWheelEdits::MouseWheelEdits() {
     // Direct script dispatch retains its previous ordinary callback admission.
     if (!IsMouseWheelInput()) return;
     RequireStateMutable(true);
-    if (updating || collecting || scrollRangeEdits || mouseWheelEdits)
+    if (updating || collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits)
         throw std::logic_error("Nested or traversing mouse-wheel callback");
     mouseWheelEdits = active = true;
 }
 MouseWheelEdits::~MouseWheelEdits() { if (active) mouseWheelEdits = false; }
+ButtonClickEdits::ButtonClickEdits(CSimpleFrame* frame) {
+    RequireRegions();
+    if (!IsMouseButtonInput()) return;
+    RequireStateMutable(true);
+    if (!IsMouseButtonClick(frame) || updating || collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits)
+        throw std::logic_error("Nested or unselected Button click callback");
+    buttonClickEdits = active = true;
+}
+ButtonClickEdits::~ButtonClickEdits() { if (active) buttonClickEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits && !mouseWheelEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits) return;
     RequireSimpleFrame(target);
     // Movement unflattening and top-level raising retain their stricter guards.
     // Preflight the entire subtree before changing any visibility/list state.
