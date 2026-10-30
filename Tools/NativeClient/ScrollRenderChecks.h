@@ -91,6 +91,7 @@ static void Run(CSimpleTop& root, Gx::Native::LegacyDevice& device) {
     sibling->SetPoint(FRAMEPOINT_TOPLEFT, content, FRAMEPOINT_TOPLEFT, .05f, -.05f, 1);
     Solid(sibling, 0, CImVector(0,0,255,255));
     Solid(sibling, 4, CImVector(0,255,255,255));
+    sibling->EnableDrawLayer(4);
     auto paint = [&] {
         root.OnLayerUpdate(.016f);
         GxXformSetViewport(0,1,0,1,.2f,.8f);
