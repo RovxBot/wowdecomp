@@ -85,12 +85,12 @@ static void Run(CSimpleTop& root, Gx::Native::LegacyDevice& device) {
     auto* inner = new Probe(nested, nested, order, 2);
     inner->SetSize(.3f, .3f);
     nested->SetScrollChild(inner);
-    Solid(inner, 0, CImVector(0,0,255,255));
+    Solid(inner, 0, CImVector(255,0,0,255));
     auto* sibling = new Probe(content, scroll.get(), order, 3);
     sibling->SetSize(.1f, .1f);
     sibling->SetPoint(FRAMEPOINT_TOPLEFT, content, FRAMEPOINT_TOPLEFT, .05f, -.05f, 1);
-    Solid(sibling, 0, CImVector(255,0,0,255));
-    Solid(sibling, 4, CImVector(255,255,0,255));
+    Solid(sibling, 0, CImVector(0,0,255,255));
+    Solid(sibling, 4, CImVector(0,255,255,255));
     auto paint = [&] {
         root.OnLayerUpdate(.016f);
         GxXformSetViewport(0,1,0,1,.2f,.8f);
@@ -119,13 +119,17 @@ static void Run(CSimpleTop& root, Gx::Native::LegacyDevice& device) {
         "Nested scroll failure did not restore projection/view/viewport");
     Frame::Native::RequireTreeMutation(); // Outer render guard must also unwind.
     inner->fail = false;
-    Check(paint().size() == pixels.size(), "Scroll draw recovery failed");
+    auto recovered = paint();
+    Check(recovered.size() == pixels.size() && !std::memcmp(pixels.data(),recovered.data(),pixels.size()*sizeof(CImVector)),
+        "Scroll draw recovery changed pixels");
     inner->collectFail = true; inner->NotifyDrawLayerChanged(0);
     failed = false;
     try { root.OnLayerRender(); } catch (const std::runtime_error& e) { failed = std::string(e.what()) == "Injected scroll collection failure"; }
     Check(failed, "Scroll collection failure did not propagate");
     inner->collectFail = false;
-    paint();
+    recovered = paint();
+    Check(recovered.size() == pixels.size() && !std::memcmp(pixels.data(),recovered.data(),pixels.size()*sizeof(CImVector)),
+        "Scroll collection recovery changed pixels");
     nested->Hide(); pixels = paint(); Color(pixels,.45f,.25f,0,255,0);
     nested->Show(); pixels = paint(); Color(pixels,.45f,.25f,0,0,255);
     // Move the nested viewport entirely beyond its parent's clipping rectangle.
