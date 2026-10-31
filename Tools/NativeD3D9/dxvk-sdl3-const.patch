@@ -1,0 +1,13 @@
+--- a/src/wsi/sdl3/wsi_platform_sdl3_funcs.h
++++ b/src/wsi/sdl3/wsi_platform_sdl3_funcs.h
+@@ -2,8 +2,8 @@
+ SDL_PROC(SDL_DisplayID*, SDL_GetDisplays, (int*))
+ SDL_PROC(bool, SDL_GetDisplayBounds, (SDL_DisplayID, SDL_Rect*))
+ SDL_PROC(bool, SDL_GetDisplayUsableBounds, (SDL_DisplayID, SDL_Rect*))
+-SDL_PROC(SDL_DisplayMode*, SDL_GetCurrentDisplayMode, (SDL_DisplayID))
+-SDL_PROC(SDL_DisplayMode*, SDL_GetDesktopDisplayMode, (SDL_DisplayID))
++SDL_PROC(const SDL_DisplayMode*, SDL_GetCurrentDisplayMode, (SDL_DisplayID))
++SDL_PROC(const SDL_DisplayMode*, SDL_GetDesktopDisplayMode, (SDL_DisplayID))
+ SDL_PROC(SDL_DisplayMode**, SDL_GetFullscreenDisplayModes, (SDL_DisplayID, int*))
+ SDL_PROC(bool, SDL_GetClosestFullscreenDisplayMode, (SDL_DisplayID, int, int, float, bool, SDL_DisplayMode*))
+ SDL_PROC(SDL_DisplayID, SDL_GetDisplayForWindow, (SDL_Window*))

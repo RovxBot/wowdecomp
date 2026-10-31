@@ -1,0 +1,8 @@
+{
+  "name": "mesa-lavapipe-ci-only",
+  "version": "26.2.5",
+  "repository": "https://gitlab.freedesktop.org/mesa/mesa",
+  "commit": "ddaf85e353442d9d7f192fdcf1823e652e3f2ee3",
+  "url": "https://archive.mesa3d.org/mesa-26.2.5.tar.xz",
+  "sha256": "794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5"
+}

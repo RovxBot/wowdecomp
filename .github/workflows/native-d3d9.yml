@@ -1,0 +1,54 @@
+name: Native D3D9 DXVK prototype
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'Tools/NativeD3D9/**'
+      - '.github/workflows/native-d3d9.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Tools/NativeD3D9/**'
+      - '.github/workflows/native-d3d9.yml'
+
+permissions:
+  contents: read
+concurrency:
+  group: native-d3d9-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  prototype:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizers: [false, true]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install native Vulkan and display toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang ninja-build meson glslang-tools pkg-config patch libvulkan-dev mesa-vulkan-drivers vulkan-tools libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libegl-dev libgbm-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev xvfb xauth
+          sudo apt-get install -y llvm-20-dev python3-venv python3-mako python3-yaml libelf-dev libdrm-dev libzstd-dev libx11-xcb-dev libxcb-dri3-dev libxcb-present-dev libxcb-randr0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev libxshmfence-dev
+          /usr/bin/python3 -m venv --system-site-packages "$RUNNER_TEMP/d3d9-build-tools"
+          "$RUNNER_TEMP/d3d9-build-tools/bin/pip" install meson==1.9.1
+          echo "$RUNNER_TEMP/d3d9-build-tools/bin" >> "$GITHUB_PATH"
+      - name: Build pinned dependencies and execute authored D3D9 contracts
+        env:
+          PROTOTYPE_SANITIZERS: ${{ matrix.sanitizers }}
+        run: |
+          args=(--software-driver)
+          if [ "$PROTOTYPE_SANITIZERS" = true ]; then args+=(--sanitizers); fi
+          xvfb-run -a -s "-screen 0 1280x1024x24" python3 Tools/NativeD3D9/build.py "${args[@]}"
+      - name: Preserve exact-source binaries, libraries, notices, pixels and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: native-d3d9-sanitizers-${{ matrix.sanitizers }}-${{ github.sha }}
+          path: artifacts/linux-d3d9*/
+          if-no-files-found: error
+          retention-days: 14

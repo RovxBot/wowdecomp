@@ -4,6 +4,47 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-026 — Linux native D3D9 ABI/WSI prototype
+
+- References: original 12340 `CGxDeviceD3d`/`CGxDeviceD3d9Ex`; Arlyon's
+  `Tools/DxvkSmoke`, `cmake/FindDXVKNative.cmake` and `docs/MacOSBringup.md` at
+  `24778cd77a6a217bbfdffccb88d9556a06b8b21d`. Its SDL2 draw/readback sequence
+  informs the new SDL3 fixture; no reference implementation body, original
+  address or verification claim is imported.
+- Actual dependencies: upstream DXVK v2.7.1 at
+  `c3dd74be6baec53786d4e064a572185b70347a17`, its four exact submodules, and
+  existing SDL 3.2.28. The [lock](../Tools/NativeD3D9/dependencies.json) records
+  repositories, commits and SHA256s. One marked patch returns before pointer
+  arithmetic for empty DXVK SHA1 updates; digest vectors retain empty, abc and
+  split-block semantics under strict sanitizers. Patch/adapted-source hashes are
+  packaged. A second two-line patch restores SDL3 display-mode return qualifiers;
+  all WSI imports are checked against SDL declarations at compile time. Other
+  dependency sources are unmodified; packaged notices
+  retain DXVK's zlib licence, SDL, MinGW, Vulkan/SPIRV, OpenVR and libdisplay-info
+  attribution. Compiler/glslang and host display/Vulkan dependencies are recorded
+  separately in Actions logs.
+- CI software driver: Mesa 26.2.5, official release SHA256
+  `794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5`,
+  commit `ddaf85e353442d9d7f192fdcf1823e652e3f2ee3`. The separate
+  [CI lock](../Tools/NativeD3D9/ci-driver.json) selects only lavapipe/llvmpipe
+  with OpenGL/GLX/EGL/GLES disabled. It retains upstream vertex-buffer cleanup
+  missing in Ubuntu's 25.2.8 driver, plus a marked patch releasing the retained
+  whole-buffer reference before replacing it with a bounded wrapper. The strict
+  draw/resize/three-lifetime reproducer covers the actual leaked resource;
+  patch/adapted-source hashes and original notices are packaged. This is not a product
+  renderer/driver import or distributed runtime dependency. Distribution LLVM
+  and this external CI driver are uninstrumented; strict SDL/DXVK/fixture
+  instrumentation remains. Driver/leak qualification stays explicit in #146.
+- Destination: opt-in standalone `Tools/NativeD3D9`, hosted build/package and
+  hash-verifying runtime launchers. SDL3 shared WSI replaces Windows HWND semantics
+  only inside DXVK's existing native ABI. No Windows or frozen GL implementation
+  is changed. No game assets, optional effects, network/schema/signature changes
+  or server policy changes. The fixture does not register an integrated Gx device.
+- [Contract and limits](m3/DXVK_NATIVE.md); implementation/runtime evidence belongs
+  in [#133](https://github.com/RovxBot/wowdecomp/issues/133). Authored pixels do not
+  establish original-client rendering. macOS requires separate DXVK/MoltenVK
+  feasibility and actual ARM64 execution; no Apple dependency is imported.
+
 ## NP-025 — Integrated startup and pinned Apple platform review
 
 - [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) adds an opt-in Linux

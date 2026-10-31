@@ -71,6 +71,7 @@ requires Windows and MSVC; native startup success does not establish gameplay.
 | Native SDL3 shell | [M2 shell](.github/workflows/m2-shell.yml) |
 | Linux graphics, images, fonts and Frame probes | [M3 OpenGL](.github/workflows/m3-gl.yml) |
 | Opt-in integrated Linux startup | [Integrated Linux client](.github/workflows/native-client.yml) |
+| Standalone SDL3/DXVK Native D3D9 prototype | [Native D3D9](.github/workflows/native-d3d9.yml), [scope and execution](docs/m3/DXVK_NATIVE.md) |
 | Portable packet/script/XML/layout components | [Packets](.github/workflows/m3-packets.yml), [Lua](.github/workflows/m3-lua.yml), [FrameScript](.github/workflows/m3-framescript.yml), [XML](.github/workflows/m3-xml.yml), [layout](.github/workflows/m3-layout.yml) |
 
 The [shell guide](docs/m2/SHELL.md#build-and-execution) covers artifact verification
