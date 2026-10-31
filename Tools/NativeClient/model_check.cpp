@@ -51,6 +51,7 @@
 #include <memory>
 #include <stdexcept>
 #include "ScrollRangeChecks.h"
+#include "SliderNumericChecks.h"
 #include "MouseWheelChecks.h"
 #include "ButtonClickChecks.h"
 #include "ScrollRenderChecks.h"
@@ -360,6 +361,7 @@ void Factory() {
     struct VideoScripts { ~VideoScripts() { CGVideoOptions::UnregisterScriptFunctions(); } } videoScripts;
     {
         CSimpleTop root;
+        SliderNumericChecks::Run();
         CheckScrollRangeEdits(root);
         MouseWheelChecks::Run(root, context);
         ButtonClickChecks::Run(root, context);
