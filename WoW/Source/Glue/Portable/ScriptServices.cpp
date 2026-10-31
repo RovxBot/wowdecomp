@@ -18,6 +18,7 @@
 #include "Engine/Source/Os/Processor.h"
 #include "Engine/Source/Services/AsyncFile.h"
 #include "GameVersion.h"
+#include <cstdio>
 #include <deque>
 #include <string>
 #include <stdexcept>
@@ -50,13 +51,45 @@ CVar* g_accountListVar;
 CVar* g_accountUsesTokenVar;
 bool registered = false;
 uint8_t clientExpansionLevel = 0;
+// ScanDLLGlue.cpp's Windows DLL download/signature/ordinal-call pipeline is
+// unavailable on native Linux. Keep failure distinct from scan approval. In
+// particular, original AccountLogin's SCANDLL_ERROR handler automatically calls
+// ContinueAnyway; that must never turn this unsupported capability into success.
+enum class ScanState { NotStarted, ErrorPending, Unavailable };
+ScanState scanState = ScanState::NotStarted;
+bool scanDispatching = false;
+constexpr const char* scanUnavailable = "Native Windows Scan.dll verification/execution unavailable; scan approval was not granted";
+bool ServicesOpen() {
+    return registered && CVar::m_initialized &&
+        CVar::LookupRegistered("accountName") == g_accountNameVar &&
+        CVar::LookupRegistered("accountList") == g_accountListVar &&
+        CVar::LookupRegistered("g_accountUsesToken") == g_accountUsesTokenVar;
+}
 void RequireServices(lua_State* L) {
     FrameScript::Native::RequireOwner();
-    if (!registered || !CVar::m_initialized ||
-        CVar::LookupRegistered("accountName") != g_accountNameVar ||
-        CVar::LookupRegistered("accountList") != g_accountListVar ||
-        CVar::LookupRegistered("g_accountUsesToken") != g_accountUsesTokenVar)
+    if (!ServicesOpen())
         luaL_error(L, "Native Glue script services are closed");
+}
+// Native failure-only adaptations of original 12340 wrappers 0x004DCCF0,
+// 0x004DCDF0 and 0x004DCE00. No verified Windows implementation is selected.
+static int32_t Script_ScanDLLStart(lua_State* L) {
+    RequireServices(L);
+    if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
+        return luaL_error(L, "Usage: ScanDLLStart(\"VersionURL\", \"DLLURL\")");
+    if (scanState == ScanState::NotStarted) scanState = ScanState::ErrorPending;
+    // Neither URL is retained or fetched; an empty non-Windows DLL URL is also
+    // unsupported. Do not create files, load a library or start a scan worker.
+    return 0;
+}
+static int32_t Script_ScanDLLContinueAnyway(lua_State* L) {
+    RequireServices(L);
+    if (scanState == ScanState::Unavailable) return luaL_error(L, "%s", scanUnavailable);
+    return 0; // Original pre-completion call does not approve login either.
+}
+static int32_t Script_IsScanDLLFinished(lua_State* L) {
+    RequireServices(L);
+    lua_pushnil(L); // No successful native scan or approved continuation exists.
+    return 1;
 }
 // OFFSET: 0x004DBE60
 static int32_t Script_GetBuildInfo(lua_State* L) {
@@ -618,6 +651,9 @@ int32_t Script_GetClientExpansionLevel(lua_State* L) {
     lua_pushnumber(L, clientExpansionLevel + 1); return 1;
 }
 FrameScript_Method functions[] = {
+    { "ScanDLLStart", Script_ScanDLLStart },
+    { "ScanDLLContinueAnyway", Script_ScanDLLContinueAnyway },
+    { "IsScanDLLFinished", Script_IsScanDLLFinished },
     { "GetBuildInfo", Script_GetBuildInfo },
     { "GetClientExpansionLevel", Script_GetClientExpansionLevel },
     { "SetSavedAccountName", Script_SetSavedAccountName },
@@ -763,6 +799,7 @@ void InitializeScriptServices(uint8_t expansionLevel) {
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
     clientExpansionLevel = expansionLevel;
+    scanState = ScanState::NotStarted;
     CGlueMgr::m_authenticated = 0;
     InitializeAgreements();
     CGlueMgr::m_currentScreen[0] = '\0';
@@ -776,6 +813,21 @@ void InitializeScriptServices(uint8_t expansionLevel) {
     if (static_cast<uint32_t>(showToolsUI->m_intValue) >= 2)
         showToolsUI->Set("1", true, false, false, true);
 }
+void PollScriptServices() {
+    FrameScript::Native::RequireOwner();
+    if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before polling Glue services");
+    if (!ServicesOpen()) throw std::logic_error("Native Glue script services are closed");
+    if (scanState != ScanState::ErrorPending) return;
+    // Publish the terminal state before dispatch. Repeated starts/polls cannot
+    // duplicate the event, including when its protected Lua callback fails.
+    scanState = ScanState::Unavailable;
+    std::printf("native-unavailable=scandll reason=%s\n", scanUnavailable);
+    struct Dispatch {
+        Dispatch() { scanDispatching = true; }
+        ~Dispatch() { scanDispatching = false; }
+    } dispatch;
+    FrameScript_SignalEvent(GLUE_EVENT_SCANDLL_ERROR, "%s", scanUnavailable);
+}
 }
 void GlueScriptEventsRegisterFunctions() {
     FrameScript::Native::RequireOwner();
@@ -786,8 +838,10 @@ void GlueScriptEventsRegisterFunctions() {
 }
 void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
+    if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before closing Glue services");
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
+    scanState = ScanState::NotStarted;
     CGlueMgr::m_authenticated = 0;
     CloseAgreements();
     CGlueMgr::AcceptChangedOptionWarnings();

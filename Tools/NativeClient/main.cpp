@@ -132,16 +132,19 @@ int Paint(const void*, void* raw) {
 struct LoopHandlers {
     PaintContext paint;
     static int PollFiles(const void*, void* files) { static_cast<LegacyFiles*>(files)->Poll(); return 1; }
+    static int IdleServices(const void*, void*) { GlueNative::PollScriptServices(); return 1; }
     LoopHandlers(CSimpleTop& root, TextureService& images, LegacyFiles& files) : paint{root} {
         EventRegisterEx(EVENT_ID_POLL, PollFiles, &files, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_POLL, PollImages, &images, EVENT_PRIORITY_NORMAL);
         EventRegisterEx(EVENT_ID_UPDATE, Update, &root, EVENT_PRIORITY_NORMAL);
+        EventRegister(EVENT_ID_IDLE, IdleServices);
         EventRegisterEx(EVENT_ID_PAINT, Paint, &paint, EVENT_PRIORITY_NORMAL);
     }
     ~LoopHandlers() {
         EventUnregister(EVENT_ID_POLL, PollFiles);
         EventUnregister(EVENT_ID_POLL, PollImages);
         EventUnregister(EVENT_ID_UPDATE, Update);
+        EventUnregister(EVENT_ID_IDLE, IdleServices);
         EventUnregister(EVENT_ID_PAINT, Paint);
     }
 };

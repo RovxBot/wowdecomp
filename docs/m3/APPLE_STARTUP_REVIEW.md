@@ -1,5 +1,16 @@
 # Pinned Apple startup/platform review — 2026-10-25
 
+For [post-agreement ScanDLL](https://github.com/RovxBot/wowdecomp/issues/131),
+`WoW/Source/Glue/ScanDLLGlue.cpp` at the jerrywossion pin below makes the Apple
+query return true and skips the Windows scan start. That disposition cannot
+establish native Linux scan approval and is not imported. Our original Windows
+path verifies a signed executable before loading scan DLL ordinals, and its Glue
+idle callback reports completion/error. Native Linux instead exposes a deferred
+unavailable error through the existing Glue owner and rejects the original Lua
+error handler's automatic continuation. No successful integrity result, source
+body, dependency or notice is imported. The same path at the WoWReMac pin returns
+HTTP 404; its earlier review remains historical.
+
 For [agreement Button callbacks](https://github.com/RovxBot/wowdecomp/issues/128),
 the pinned jerrywossion `CSimpleButton.cpp::OnClick` retains synchronous
 PreClick/OnClick/PostClick and borrowed button-name restoration. It supplies no

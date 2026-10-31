@@ -26,6 +26,7 @@
 #include "GameVersion.h"
 #include "Engine/Source/Frame/Portable/Runtime.h"
 #include <stdexcept>
+#include <thread>
 #include <vector>
 void CheckNativeModelIO();
 void CheckNativeModels();
@@ -142,6 +143,92 @@ void Ordered() {
     Check(cycle, "Include cycle accepted");
     Check(FrameXML_ProcessFile("Interface\\Test\\Root.xml", nullptr, nullptr, &status), "Failed traversal did not release trees/recursion state");
 }
+void ScanServices() {
+    GlueScriptEventsInitialize();
+    FrameScript_CreateEvents(g_glueScriptEvents, NUM_GLUE_SCRIPT_EVENTS);
+    const int meta = FrameScript_Object::CreateScriptMetaTable(s_context, +[](lua_State*) {});
+    struct Meta { int ref; ~Meta() { luaL_unref(s_context, LUA_REGISTRYINDEX, ref); } } release{meta};
+    struct Listener final : FrameScript_Object {
+        int meta;
+        explicit Listener(int value) : meta(value) { RegisterScriptObject("ScanListener"); }
+        const char* GetName() override { return "ScanListener"; }
+        int32_t GetScriptMetaTable() override { return meta; }
+        bool IsA(int32_t) override { return false; }
+    } listener(meta);
+    listener.m_onEvent.m_luaRef = FrameScript_CompileFunction("*OnEvent", "return function(self,event,...) %s end", R"(
+        assert(self==ScanListener and event=='SCANDLL_ERROR');
+        assert(select('#',...)==1 and string.find((...), 'unavailable'));
+        scanEvents=scanEvents+1;
+        assert(IsScanDLLFinished()==nil);
+        ScanDLLStart('https://fixture.invalid/version',''); -- cannot schedule another failure
+        assert(scanPollRejected() and scanCloseRejected());
+        if scanUnhandled then ScanDLLContinueAnyway() end;
+        local ok,reason=pcall(ScanDLLContinueAnyway);
+        assert(not ok and string.find(reason,'scan approval was not granted'));
+        assert(IsScanDLLFinished()==nil);
+    )", nullptr);
+    Check(listener.m_onEvent.m_luaRef > 0 && listener.RegisterScriptEvent("SCANDLL_ERROR") &&
+        listener.RegisterScriptEvent("SCANDLL_DOWNLOADING") && listener.RegisterScriptEvent("SCANDLL_FINISHED"),
+        "Scan event listener creation failed");
+    FrameScript_RegisterFunction("scanPollRejected", +[](lua_State* L) -> int {
+        bool rejected=false;
+        try { GlueNative::PollScriptServices(); } catch (const std::logic_error&) { rejected=true; }
+        lua_pushboolean(L,rejected); return 1;
+    });
+    FrameScript_RegisterFunction("scanCloseRejected", +[](lua_State* L) -> int {
+        bool rejected=false;
+        try { GlueScriptEventsUnregisterFunctions(); } catch (const std::logic_error&) { rejected=true; }
+        lua_pushboolean(L,rejected); return 1;
+    });
+    const auto execute = [](const char* source) { FrameScript_Execute(source, "authored ScanDLL failure lifecycle", nullptr); };
+    auto errors = FrameScript::Native::ScriptErrorCount();
+    execute(R"(
+        scanEvents=0; scanUnhandled=false;
+        assert(select('#',IsScanDLLFinished())==1 and IsScanDLLFinished()==nil);
+        assert(select('#',ScanDLLContinueAnyway())==0 and IsScanDLLFinished()==nil);
+        assert(not pcall(ScanDLLStart) and not pcall(ScanDLLStart,{},''));
+        assert(not pcall(ScanDLLStart,'version',{}));
+    )");
+    GlueNative::PollScriptServices(); // invalid starts have no pending event
+    execute("assert(scanEvents==0); ScanDLLStart('https://fixture.invalid/version',''); assert(scanEvents==0); ScanDLLStart('another','Scan.dll'); assert(IsScanDLLFinished()==nil); ScanDLLContinueAnyway()");
+    bool foreign=false;
+    std::thread thread([&] { try { GlueNative::PollScriptServices(); } catch (const std::logic_error&) { foreign=true; } });
+    thread.join(); Check(foreign,"Foreign ScanDLL polling was admitted");
+    GlueNative::PollScriptServices();
+    GlueNative::PollScriptServices();
+    execute("assert(scanEvents==1 and IsScanDLLFinished()==nil)");
+    Check(FrameScript::Native::ScriptErrorCount()==errors,"ScanDLL error order/result/reentry contracts failed");
+    execute("retainedScanStart=ScanDLLStart; retainedScanContinue=ScanDLLContinueAnyway; retainedScanQuery=IsScanDLLFinished");
+    GlueScriptEventsUnregisterFunctions();
+    bool closed=false;
+    try { GlueNative::PollScriptServices(); } catch (const std::logic_error&) { closed=true; }
+    Check(closed,"ScanDLL polling outlived Glue services");
+    execute(R"(
+        assert(ScanDLLStart==nil and ScanDLLContinueAnyway==nil and IsScanDLLFinished==nil);
+        assert(not pcall(retainedScanStart,'version','') and not pcall(retainedScanContinue) and not pcall(retainedScanQuery));
+    )");
+    GlueNative::InitializeScriptServices(2); GlueScriptEventsRegisterFunctions();
+    GlueNative::PollScriptServices();
+    execute("assert(scanEvents==1 and IsScanDLLFinished()==nil); ScanDLLStart('version',''); scanUnhandled=true");
+    GlueNative::PollScriptServices(); // original AccountLogin's automatic Continue must fail closed
+    Check(FrameScript::Native::ScriptErrorCount()==errors+1 &&
+        FrameScript::Native::LastScriptError().find("scan approval was not granted")!=std::string::npos,
+        "Automatic ScanDLL continuation granted approval or lost its failure");
+    errors=FrameScript::Native::ScriptErrorCount();
+    GlueNative::PollScriptServices();
+    execute("assert(scanEvents==2 and IsScanDLLFinished()==nil); scanUnhandled=false");
+    // Closing with a pending failure cancels delivery; recreation starts clean.
+    GlueScriptEventsUnregisterFunctions();
+    GlueNative::InitializeScriptServices(2); GlueScriptEventsRegisterFunctions();
+    execute("ScanDLLStart('version','Scan.dll')");
+    GlueScriptEventsUnregisterFunctions();
+    GlueNative::InitializeScriptServices(2); GlueScriptEventsRegisterFunctions();
+    GlueNative::PollScriptServices();
+    execute("assert(scanEvents==2 and IsScanDLLFinished()==nil)");
+    Check(FrameScript::Native::ScriptErrorCount()==errors,"ScanDLL cancellation/recreation retained a failure callback");
+    FrameScript_UnregisterFunction("scanPollRejected"); FrameScript_UnregisterFunction("scanCloseRejected");
+    std::cout << "native-scandll-unavailable-deferred-error-no-approval-order-owner-close-recovery=passed\n";
+}
 void GlueServices() {
     Services::Native::FileQueue queue;
     Services::Native::LegacyFiles files(queue, [](const std::string&, const Services::Native::Cancellation&) -> Services::Native::ReadResult {
@@ -234,6 +321,8 @@ void GlueServices() {
         assert(ShowChangedOptionWarnings()==nil and select('#',GetChangedOptionWarnings())==0);
     )", "owned option warning fixture", nullptr);
     Check(FrameScript::Native::ScriptErrorCount() == errors, "Original Glue warning ownership/acknowledgement failed");
+    ScanServices();
+    const auto scanErrors = FrameScript::Native::ScriptErrorCount();
     EventInitialize(1, 0);
     FrameScript_Execute("QuitGame()", "native Glue close fixture", nullptr);
     Check(EventNative::Closing(), "Glue QuitGame did not close the native Event owner");
@@ -242,7 +331,7 @@ void GlueServices() {
     GlueScriptEventsUnregisterFunctions();
     FrameScript_Execute("assert(GetSavedAccountName == nil and not pcall(retainedGlueQuery) and not pcall(retainedScreenSetter,'login')); assert(EULAAccepted==nil and not pcall(retainedAgreement) and not pcall(retainedAgreementQuery))", "closed Glue closure", nullptr);
     Check(!*CGlueMgr::m_currentScreen && CGlueMgr::m_numChangedOptionWarnings==0, "Glue activation state survived close");
-    Check(FrameScript::Native::ScriptErrorCount() == errors, "Retained Glue closure used a closed CVar owner");
+    Check(FrameScript::Native::ScriptErrorCount() == scanErrors, "Retained Glue closure used a closed CVar owner");
     for (uint8_t expansion : {0, 1, 2}) {
         GlueNative::InitializeScriptServices(expansion);
         GlueScriptEventsRegisterFunctions();
@@ -261,7 +350,7 @@ void GlueServices() {
         Check(lua_tonumber(s_context, -1) == expansion + 1, "Installed expansion query changed"); lua_pop(s_context, 1);
         GlueScriptEventsUnregisterFunctions();
     }
-    Check(FrameScript::Native::ScriptErrorCount()==errors, "Original agreement reread/durable state changed");
+    Check(FrameScript::Native::ScriptErrorCount()==scanErrors, "Original agreement reread/durable state changed");
 }
 void HtmlFiles() {
     const auto directory = std::filesystem::temp_directory_path() /
