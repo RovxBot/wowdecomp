@@ -1,0 +1,13 @@
+--- a/src/util/sha1/sha1.c
++++ b/src/util/sha1/sha1.c
+@@ -121,6 +121,10 @@ SHA1Update(SHA1_CTX *context, const uint8_t *data, size_t len)
+ {
+ 	size_t i, j;
+ 
++	/* wowdecomp adaptation: an empty chunk may have a null data pointer. */
++	if (len == 0)
++		return;
++
+ 	j = (size_t)((context->count >> 3) & 63);
+ 	context->count += (len << 3);
+ 	if ((j + len) > 63) {

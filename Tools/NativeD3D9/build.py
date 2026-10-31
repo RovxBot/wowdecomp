@@ -73,6 +73,11 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(entries[0], destination)
             unpack.rmdir()
+        patch = root / 'Tools/NativeD3D9/dxvk-sha1-empty.patch'
+        manifest['dependency_patches'] = {patch.name: digest(patch)}
+        run('dxvk-patch', ['patch', '--dry-run', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
+        run('dxvk-patch-apply', ['patch', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
+        manifest['adapted_sha1_sha256'] = digest(sources / 'dxvk/src/util/sha1/sha1.c')
         if args.sanitizers:
             # SDL's shared target requires resolved symbols. Link all three
             # consumers to one Clang sanitizer runtime, also shipped in the ZIP.
@@ -104,9 +109,11 @@ def main():
         run('dxvk-install', ['meson', 'install', '-C', str(work / 'dxvk')])
         run('probe-configure', ['cmake', '-S', str(root / 'Tools/NativeD3D9'), '-B', str(work / 'probe'),
             '-G', 'Ninja', '-DCMAKE_CXX_COMPILER=clang++', '-DCMAKE_BUILD_TYPE=Release',
+            '-DDXVK_SOURCE_DIR=' + str(sources / 'dxvk'),
             '-DPROTOTYPE_SANITIZERS=' + ('ON' if args.sanitizers else 'OFF')])
         run('probe-compile', ['cmake', '--build', str(work / 'probe'), '--parallel', '4'])
         shutil.copy2(work / 'probe/NativeD3D9Check', output / 'NativeD3D9Check')
+        shutil.copy2(work / 'probe/DxvkSha1Check', output / 'DxvkSha1Check')
         (output / 'lib').mkdir(exist_ok=True)
         for pattern in ['libSDL3.so*', 'libdxvk_d3d9.so*', 'libclang_rt.asan-*.so']:
             for path in (prefix / 'lib').glob(pattern):
@@ -132,7 +139,10 @@ def main():
             shutil.copy2(path, notices / ('directx-' + path.name))
         shutil.copy2(sources / 'sdl3/src/video/yuv2rgb/LICENSE', notices / 'SDL-yuv2rgb-LICENSE')
         shutil.copy2(sources / 'dxvk/include/openvr/LICENSE', notices / 'openvr-LICENSE')
+        shutil.copy2(sources / 'dxvk/src/util/sha1/sha1.c', notices / 'DXVK-SHA1-adapted.c')
+        shutil.copy2(patch, notices / patch.name)
         environment['LD_LIBRARY_PATH'] = str(output / 'lib')
+        run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])
         manifest['status'] = 'build-and-contracts-passed'

@@ -14,7 +14,10 @@ and source inspection are different evidence levels.
 - Actual dependencies: upstream DXVK v2.7.1 at
   `c3dd74be6baec53786d4e064a572185b70347a17`, its four exact submodules, and
   existing SDL 3.2.28. The [lock](../Tools/NativeD3D9/dependencies.json) records
-  repositories, commits and SHA256s. All sources are unmodified; packaged notices
+  repositories, commits and SHA256s. One marked patch returns before pointer
+  arithmetic for empty DXVK SHA1 updates; digest vectors retain empty, abc and
+  split-block semantics under strict sanitizers. Patch/adapted-source hashes are
+  packaged. Other dependency sources are unmodified; packaged notices
   retain DXVK's zlib licence, SDL, MinGW, Vulkan/SPIRV, OpenVR and libdisplay-info
   attribution. Compiler/glslang and host display/Vulkan dependencies are recorded
   separately in Actions logs.
