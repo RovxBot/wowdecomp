@@ -20,11 +20,14 @@ its distribution copyright notice; all consumers use that one runtime.
 
 The [dependency lock](../../Tools/NativeD3D9/dependencies.json) records exact
 commits and archive SHA256s for upstream DXVK v2.7.1, its four submodules, and
-the existing SDL 3.2.28 pin. The sole source adaptation guards empty updates in
+the existing SDL 3.2.28 pin. One source adaptation guards empty updates in
 DXVK's public-domain SHA1 utility, preserving null/zero-length input semantics
 without null-pointer arithmetic. A digest-vector fixture covers empty/abc and
 split 63/64/65/130-byte inputs with interspersed empty chunks. Its patch, adapted
-source and hashes are packaged; no sanitizer check is suppressed. Meson enables only D3D9
+source and hashes are packaged. A second patch corrects const return qualifiers
+in DXVK's two SDL3 display-mode imports. Compile-time assertions compare every
+WSI import with SDL's actual declarations, preserving the indirect-call detector.
+No sanitizer check is suppressed. Meson enables only D3D9
 and SDL3 WSI. A shared SDL library gives DXVK and the fixture the same SDL/window
 state. SDL links its display dependencies normally, retaining their process
 lifetime. Notices, toolchain logs, executable/shared-library hashes, workflow

@@ -73,11 +73,13 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(entries[0], destination)
             unpack.rmdir()
-        patch = root / 'Tools/NativeD3D9/dxvk-sha1-empty.patch'
-        manifest['dependency_patches'] = {patch.name: digest(patch)}
-        run('dxvk-patch', ['patch', '--dry-run', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
-        run('dxvk-patch-apply', ['patch', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
+        patches = sorted((root / 'Tools/NativeD3D9').glob('dxvk-*.patch'))
+        manifest['dependency_patches'] = {patch.name: digest(patch) for patch in patches}
+        for patch in patches:
+            run(patch.stem + '-check', ['patch', '--dry-run', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
+            run(patch.stem + '-apply', ['patch', '--batch', '--fuzz=0', '-p1', '-i', str(patch)], cwd=sources / 'dxvk')
         manifest['adapted_sha1_sha256'] = digest(sources / 'dxvk/src/util/sha1/sha1.c')
+        manifest['adapted_sdl3_imports_sha256'] = digest(sources / 'dxvk/src/wsi/sdl3/wsi_platform_sdl3_funcs.h')
         if args.sanitizers:
             # SDL's shared target requires resolved symbols. Link all three
             # consumers to one Clang sanitizer runtime, also shipped in the ZIP.
@@ -140,7 +142,9 @@ def main():
         shutil.copy2(sources / 'sdl3/src/video/yuv2rgb/LICENSE', notices / 'SDL-yuv2rgb-LICENSE')
         shutil.copy2(sources / 'dxvk/include/openvr/LICENSE', notices / 'openvr-LICENSE')
         shutil.copy2(sources / 'dxvk/src/util/sha1/sha1.c', notices / 'DXVK-SHA1-adapted.c')
-        shutil.copy2(patch, notices / patch.name)
+        shutil.copy2(sources / 'dxvk/src/wsi/sdl3/wsi_platform_sdl3_funcs.h', notices / 'DXVK-SDL3-adapted.h')
+        for patch in patches:
+            shutil.copy2(patch, notices / patch.name)
         environment['LD_LIBRARY_PATH'] = str(output / 'lib')
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)

@@ -17,7 +17,9 @@ and source inspection are different evidence levels.
   repositories, commits and SHA256s. One marked patch returns before pointer
   arithmetic for empty DXVK SHA1 updates; digest vectors retain empty, abc and
   split-block semantics under strict sanitizers. Patch/adapted-source hashes are
-  packaged. Other dependency sources are unmodified; packaged notices
+  packaged. A second two-line patch restores SDL3 display-mode return qualifiers;
+  all WSI imports are checked against SDL declarations at compile time. Other
+  dependency sources are unmodified; packaged notices
   retain DXVK's zlib licence, SDL, MinGW, Vulkan/SPIRV, OpenVR and libdisplay-info
   attribution. Compiler/glslang and host display/Vulkan dependencies are recorded
   separately in Actions logs.
