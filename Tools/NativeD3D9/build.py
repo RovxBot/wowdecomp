@@ -118,6 +118,10 @@ def main():
                 shutil.copy2(path, output / 'lib' / path.name)
         notices = output / 'notices'
         notices.mkdir(exist_ok=True)
+        if args.sanitizers:
+            clang_major = subprocess.check_output(['clang', '-dumpversion'], text=True).strip().split('.')[0]
+            shutil.copy2(Path('/usr/share/doc') / ('libclang-rt-' + clang_major + '-dev') / 'copyright',
+                         notices / 'Clang-compiler-rt-copyright')
         for directory, name in [('sdl3', 'LICENSE.txt'), ('dxvk', 'LICENSE'),
                                 ('dxvk/include/native/directx', 'COPYING.MinGW-w64.txt'),
                                 ('dxvk/include/vulkan', 'LICENSE.md'), ('dxvk/include/spirv', 'LICENSE'),

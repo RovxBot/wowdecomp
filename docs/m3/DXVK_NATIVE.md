@@ -15,6 +15,8 @@ native D3D9 explicitly. No Wine, Windows DLL, GL context or backend fallback is
 used. Release and ASan/UBSan configurations build **both dependencies and the
 fixture**; leak detection and halt-on-error remain enabled. Hosted execution uses
 Xvfb and Mesa's Vulkan driver, so it does not qualify physical GPU performance.
+Strict artifacts also include the matching shared Clang sanitizer runtime and
+its distribution copyright notice; all consumers use that one runtime.
 
 The [dependency lock](../../Tools/NativeD3D9/dependencies.json) records exact
 commits and archive SHA256s for upstream DXVK v2.7.1, its four submodules, and
