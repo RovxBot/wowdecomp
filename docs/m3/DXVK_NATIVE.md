@@ -106,7 +106,8 @@ python3 Tools/NativeD3D9/vulkan_control.py run \
 Use `--stage loader`, `instance` or `device` for the other controls. Device mode
 accepts `--device 1002:744c` to require a unique vendor/device match; otherwise it
 uses the first enumerated device. `VK_DRIVER_FILES` may select an explicit system
-ICD and is recorded with layer-selection variables. Use a fresh output stem for
+ICD and is recorded with layer-selection and Mesa/RADV configuration variables.
+Driver caches go beside each report. Use a fresh output stem for
 each run. The launcher verifies all package hashes and ELF architecture, fixes
 strict detector settings, removes preload/audit/suppression overrides and writes
 reports outside both read-only installations. Before/after-destroy maps and
