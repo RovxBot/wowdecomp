@@ -80,6 +80,42 @@ signatures, agreements, protocol or server/Warden state. Complete login remains
 service stop is native ScanDLL disposition
 [#131](https://github.com/RovxBot/wowdecomp/issues/131).
 
+## Vulkan-only shutdown control
+
+[#147](https://github.com/RovxBot/wowdecomp/issues/147) tracks the separate strict
+RADV exit leak. `VulkanControl` links only the system Vulkan loader and C++ runtime;
+it creates no SDL, DXVK, engine, surface, swapchain or graphics resources. The same
+workflow builds release/strict control packages and runs headless loader,
+instance-only, physical-device enumeration and logical-device creation/idle/destroy
+stages. One and three complete instance lifetimes distinguish initialization from
+per-lifetime growth. A missing-device case checks exception cleanup. The hosted
+control explicitly selects the distribution lavapipe ICD and records its packages,
+loaded ELF hashes/build IDs and process maps. Those results do not qualify RADV.
+
+To qualify only this independent control, dispatch `native-d3d9.yml` with
+`control_only=true`; unchanged D3D9 production inputs may retain their separately
+identified evidence under the [build scheduling policy](../CI_BUILD_POLICY.md).
+After verifying the downloaded control ZIP against its Actions API digest:
+
+```sh
+python3 Tools/NativeD3D9/vulkan_control.py run \
+  --artifact /path/to/vulkan-control-asan --sanitizers \
+  --stage enumerate --cycles 3 --output /tmp/vulkan-enumerate.json
+```
+
+Use `--stage loader`, `instance` or `device` for the other controls. Device mode
+accepts `--device 1002:744c` to require a unique vendor/device match; otherwise it
+uses the first enumerated device. `VK_DRIVER_FILES` may select an explicit system
+ICD and is recorded with layer-selection and Mesa/RADV configuration variables.
+Driver caches go beside each report. Use a fresh output stem for
+each run. The launcher verifies all package hashes and ELF architecture, fixes
+strict detector settings, removes preload/audit/suppression overrides and writes
+reports outside both read-only installations. Before/after-destroy maps and
+loaded-library identities attribute unloaded driver frames without keeping a
+driver reference or changing unload. An assertion marker followed by a nonzero
+exit remains a failed control. No driver cleanup, suppression or ownership fix
+is applied by this diagnostic.
+
 ## Reference audit and next boundary
 
 Original `CGxDeviceD3d`/`CGxDeviceD3d9Ex` directly own HWND/class/message state,

@@ -2,6 +2,11 @@ name: Native D3D9 DXVK prototype
 
 on:
   workflow_dispatch:
+    inputs:
+      control_only:
+        description: 'Build only the Vulkan lifetime control (unchanged D3D9 inputs)'
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'Tools/NativeD3D9/**'
@@ -19,6 +24,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   prototype:
+    if: ${{ !inputs.control_only }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -50,5 +56,35 @@ jobs:
         with:
           name: native-d3d9-sanitizers-${{ matrix.sanitizers }}-${{ github.sha }}
           path: artifacts/linux-d3d9*/
+          if-no-files-found: error
+          retention-days: 14
+  vulkan-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizers: [false, true]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install headless Vulkan toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build libvulkan-dev mesa-vulkan-drivers
+      - name: Build and execute independent Vulkan lifetimes
+        env:
+          CONTROL_SANITIZERS: ${{ matrix.sanitizers }}
+        run: |
+          args=()
+          if [ "$CONTROL_SANITIZERS" = true ]; then args+=(--sanitizers); fi
+          python3 Tools/NativeD3D9/vulkan_control.py build "${args[@]}"
+      - name: Preserve exact-source control and driver identities, maps and exit reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vulkan-control-sanitizers-${{ matrix.sanitizers }}-${{ github.sha }}
+          path: artifacts/vulkan-control*/
           if-no-files-found: error
           retention-days: 14
