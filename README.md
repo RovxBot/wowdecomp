@@ -15,6 +15,19 @@ No game data is included in this repository.
 [Join the community Discord](https://discord.gg/DsZMGUD8aT) to discuss other clients
 and share what you build.
 
+## Rendering direction (2026-10-31)
+
+The original Linux OpenGL adapter is **frozen as a historical compatibility
+baseline**; its existing tests and recorded captures remain valid evidence, but
+it is **not** the production graphics development path. New renderer work
+targets the native D3D9/DXVK Vulkan comparison ([#133](https://github.com/RovxBot/wowdecomp/issues/133))
+and a modern Gx implementation starting with SDL3 GPU Vulkan/Metal
+([#134](https://github.com/RovxBot/wowdecomp/issues/134)), selected with evidence
+under [#101](https://github.com/RovxBot/wowdecomp/issues/101).
+Classic is a visual preset, not an OpenGL backend. Optional enhancements
+include weather, storms, lighting, water and HD asset packs (#135–#140).
+No new OpenGL development or GL-specific bug-fix work is planned.
+
 ## Native port status
 
 A playable native Linux or macOS client is still in development. Use the
@@ -23,16 +36,17 @@ validation evidence, and [PORTING_PLAN.md](PORTING_PLAN.md) for strategy.
 
 | Platform | Demonstrated scope | Remaining acceptance |
 | --- | --- | --- |
-| Linux x86-64 | Native assets/SDL/OpenGL/UI foundation; original ordered GlueXML creation with full post-creation digest and login activation | Complete original login/model/FFX frames and input, transport/authentication, character selection and world entry |
+| Linux x86-64 | Native assets/SDL/frozen OpenGL diagnostic/UI foundation; original ordered GlueXML creation with full post-creation digest and login activation | Original login/world entry and new Vulkan-backed reference/modern renderer prototypes (#133/#134) |
 | macOS ARM64 | Actual ARM64 core/file/asset/packet/script/XML/layout fixture execution in Actions | Native game renderer, original application/startup, desktop input and gameplay on Apple silicon |
 | Windows x64 | Full client compilation in Actions and operator-reported D3D9 passes | Complete runtime/data/server/capture baseline; retained OpenGL warped-scene and busy-cursor failures |
 
-The immediate Linux path is [original material continuation #94](https://github.com/RovxBot/wowdecomp/issues/94)
-and [protected Lua callbacks #95](https://github.com/RovxBot/wowdecomp/issues/95), then
-[complete login rendering/input #96](https://github.com/RovxBot/wowdecomp/issues/96). Read those issues for
-each source revision's actual observed stop and next step, including work on
-pending branches. Neither authored model pixels nor login activation establishes
-a complete original login frame. Sign-in stays interactive when ready.
+The immediate Linux **integrated client** work is tracked in
+[original login/input #96](https://github.com/RovxBot/wowdecomp/issues/96),
+followed by transport/authentication/world-entry #97–#100. New rendering gaps
+are tracked in #133/#134, **not** as continuations of the historical OpenGL
+material work (#93/#94). Consult active issue bodies for actual next blockers.
+Neither authored model pixels nor login activation establishes a complete original
+login frame. Sign-in stays interactive when ready.
 
 Durable references: [runtime foundations](docs/m1/RUNTIME_DESIGN.md),
 [assets and shell](docs/m2/HANDOFF.md), [graphics/UI contracts](docs/m3/HANDOFF.md)
@@ -60,8 +74,9 @@ requires Windows and MSVC; native startup success does not establish gameplay.
 | Portable packet/script/XML/layout components | [Packets](.github/workflows/m3-packets.yml), [Lua](.github/workflows/m3-lua.yml), [FrameScript](.github/workflows/m3-framescript.yml), [XML](.github/workflows/m3-xml.yml), [layout](.github/workflows/m3-layout.yml) |
 
 The [shell guide](docs/m2/SHELL.md#build-and-execution) covers artifact verification
-and native shell execution. For the current Linux Frame/pointer probe, extract a
-verified `linux-gl` artifact and run from this checkout:
+and native shell execution. For historical reproduction of the **frozen** Linux Frame/pointer diagnostic,
+extract a verified `linux-gl` artifact and run from this checkout. This is not
+an instruction to extend, debug or optimise the OpenGL renderer:
 
 ```sh
 python3 Tools/Porting/run_native_gl.py \

@@ -11,6 +11,33 @@ the Windows client and hosted native targets; the full native game is still gate
 Follow the user's current scope and instructions. The plan guides implementation;
 it does not turn a documentation request into authorization to start the whole port.
 
+## Renderer direction — 2026-10-31 (binding for active work)
+
+**Do not develop the OpenGL renderer.** The existing Linux SDL3/OpenGL path
+and its prior Gx/ARB/FFX test results are **frozen historical evidence**,
+not a backlog or implementation prerequisite. Do not add OpenGL features,
+shader permutations, FFX emulation, state/capability support, performance
+optimisations, driver workarounds, test expansion or visual-defect fixes.
+Do not port the OpenGL backend to macOS or use it as a fallback for new work.
+Leave the archived code and existing validation artifacts intact; incidental
+safety/build changes need explicit user scope rather than proactive GL tasks.
+
+For any new rendering or GPU blocker discovered during login/world integration,
+record the reproducer and route work to [#133](https://github.com/RovxBot/wowdecomp/issues/133)
+(D3D9 via DXVK Native → Vulkan) or [#134](https://github.com/RovxBot/wowdecomp/issues/134)
+(modern Gx renderer; SDL3 GPU Vulkan/Metal first prototype against bgfx).
+The renderer selection/evidence gate lives in [#101](https://github.com/RovxBot/wowdecomp/issues/101);
+reference captures are Windows D3D9 [#107](https://github.com/RovxBot/wowdecomp/issues/107).
+Classic is a *visual/material preset*, not an OpenGL backend choice.
+Optional enhanced weather/lighting/water/HD assets are tracked in #135–#140.
+
+This policy supersedes any older OpenGL-first language in historical handoffs,
+old issue comments, previous milestones or archived qualification instructions.
+Prior OpenGL evidence and workflow names remain correct historical records.
+Keep original signatures, client/data/server behaviour and integrated
+login/world-entry priorities unchanged. Follow the latest active issue body
+for current acceptance criteria.
+
 ## GitHub issues and documentation
 
 Use the [repository issue tracker](https://github.com/RovxBot/wowdecomp/issues)
@@ -246,9 +273,11 @@ checkouts outside the product tree; reference commits explicitly.
   precedence and account for case sensitivity and writable settings/cache paths.
 - Start ARM64 CPU work with correct scalar implementations. Add acceleration based
   on profiling, with scalar parity checks and explicit architecture guards.
-- Keep SDL3 behind the engine-facing interfaces. Review the pinned Metal ports
-  and candidate Linux/macOS graphics paths before selecting a maintained backend;
-  require representative scene/shader evidence before a full migration.
+- Keep SDL3 behind the engine-facing interfaces. Prototype D3D9/DXVK Native
+  (#133) and SDL3 GPU Vulkan/Metal vs bgfx (#134) under the evidence gate (#101).
+  Do not extend OpenGL while doing login/world integration; use Windows D3D9
+  and existing frozen OpenGL captures as historical comparison evidence.
+  Require representative scene/shader evidence before a full migration.
 - Keep audio mixing/spatial behavior behind `SE2`. A working device API alone is
   not a complete replacement for FMOD. Native targets cannot link Windows `.lib`
   or depend on Windows DLL loading.

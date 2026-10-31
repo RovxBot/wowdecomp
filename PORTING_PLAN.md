@@ -22,6 +22,38 @@ settings and shut down cleanly. Compilation, a login screen, running through Win
 or an x86-64 executable translated on Apple silicon are distinct intermediate
 results and do not establish that outcome.
 
+## Current renderer policy — 2026-10-31
+
+**OpenGL is a frozen, historical Linux compatibility/reference implementation,
+not the intended future renderer.** Retain its code and existing CI evidence, but
+do not implement further GL rendering features, ARB shader/FFX permutations,
+texture-stage emulation, performance optimisations, bug fixes or new GL-specific
+tests. Never route original login, model, world or graphics-option blockers to
+OpenGL development. Maintain truthful unsupported results until the selected
+non-GL path is implemented and qualified. No new macOS OpenGL port.
+
+A staged native renderer direction is now active:
+1. **Faithful reference:** evaluate the original 3.3.5a D3D9 Gx renderer via
+   **DXVK Native → Vulkan** for Linux, and separately assess macOS ARM64
+   DXVK/MoltenVK compatibility (#133). Keep original Windows D3D9 as the
+   rendering oracle (#107); do not assume reported third-party runtime passes
+   establish results in this fork.
+2. **Modern production renderer:** prototype **SDL3 GPU** (Linux Vulkan and
+   macOS Metal, optional Windows D3D12) against bgfx/reviewed Metal/Vulkan
+   alternatives (#134). Select only after original UI, terrain, M2, material,
+   FFX, compressed texture, depth and render-target scene comparison (#101).
+3. **Optional modern presentation:** Classic/Balanced/Enhanced/Custom options
+   (#139), GPU precipitation (#135), lighting/shadows/fog (#136), water (#137),
+   storm lighting/thunder/wetness/shelter (#138), and HD asset packs (#140).
+   Preserve original clean 12340 data, signature validation, weather authority,
+   gameplay, Lua API, addons and server/Warden policy. Classic is a visual
+   preset, **not** the OpenGL renderer.
+
+This newer renderer policy supersedes the older initial-OpenGL roadmap and
+historical module handoffs without erasing their evidence. Integrated original
+startup/login/world entry (#96–#100) remain high priority; when a new GPU
+capability blocks them, track it under #133/#134 instead of extending OpenGL.
+
 ## Current integration direction — 2026-10-25
 
 The user confirmed the deployment model: unchanged clean 3.3.5a/12340 game data
@@ -45,7 +77,8 @@ milestone; full native startup/login/gameplay remain unestablished.
   Frame/FrameXML/FrameScript and Glue callers through the existing native services
   and engine-facing interfaces. Select broader coherent source groups where
   practical. Continue the opt-in integrated native client target through Actions and
-  resolve concrete compile/link/startup failures along its actual call path.
+  resolve concrete compile/link/startup failures along its actual call path,
+  **except** new graphics/GL implementation gaps, which belong to #133/#134.
 - Implement missing widgets, model/animation consumers and other reachable
   dependencies as needed by original login startup, in reviewable batches.
   Complete standalone coverage of every widget/style/language is not a gate to
@@ -83,9 +116,6 @@ the next step; pending branch results do not establish main behavior.
 
 | Work | Tracking issue |
 | --- | --- |
-| Original CPU vertex/material dispatch | [#93](https://github.com/RovxBot/wowdecomp/issues/93) |
-| Original Texture1 material/multipass continuation | [#94](https://github.com/RovxBot/wowdecomp/issues/94) |
-| Protected Lua mutation-guard diagnostic triage | [#95](https://github.com/RovxBot/wowdecomp/issues/95) |
 | Complete original login rendering and operator input | [#96](https://github.com/RovxBot/wowdecomp/issues/96) |
 | Native DNS/socket dispatch | [#97](https://github.com/RovxBot/wowdecomp/issues/97) |
 | Original authentication, live realms and Warden compatibility | [#98](https://github.com/RovxBot/wowdecomp/issues/98) |
@@ -96,8 +126,16 @@ the next step; pending branch results do not establish main behavior.
 | Native audio / movie playback | [#103](https://github.com/RovxBot/wowdecomp/issues/103), [#104](https://github.com/RovxBot/wowdecomp/issues/104) |
 | Applied graphics/gamma/terrain preferences | [#105](https://github.com/RovxBot/wowdecomp/issues/105) |
 | Physical EditBox/IME qualification | [#106](https://github.com/RovxBot/wowdecomp/issues/106) |
-| Windows runtime baseline and retained OpenGL failures | [#107](https://github.com/RovxBot/wowdecomp/issues/107) |
+| Windows D3D9 visual reference (prior GL failures historical) | [#107](https://github.com/RovxBot/wowdecomp/issues/107) |
 | Wayland Fontconfig qualification | [#108](https://github.com/RovxBot/wowdecomp/issues/108) |
+| Native D3D9/DXVK Vulkan compatibility prototype | [#133](https://github.com/RovxBot/wowdecomp/issues/133) |
+| Modern SDL3 GPU / bgfx renderer comparison | [#134](https://github.com/RovxBot/wowdecomp/issues/134) |
+| GPU precipitation and weather bridge | [#135](https://github.com/RovxBot/wowdecomp/issues/135) |
+| Enhanced lighting, shadows and fog | [#136](https://github.com/RovxBot/wowdecomp/issues/136) |
+| Enhanced water | [#137](https://github.com/RovxBot/wowdecomp/issues/137) |
+| Thunderstorms, wetness and shelter | [#138](https://github.com/RovxBot/wowdecomp/issues/138) |
+| Graphics presets and applied options | [#139](https://github.com/RovxBot/wowdecomp/issues/139) |
+| Optional HD-asset pipeline | [#140](https://github.com/RovxBot/wowdecomp/issues/140) |
 
 Progress must name the integrated target, actual execution reached and next
 concrete blocker. Preserve original signatures, 12340 behavior, read-only data,
@@ -147,23 +185,26 @@ dependencies or interfaces already exist.
 | Windowing and input | SDL3 behind existing engine-facing interfaces | Events, text input/IME, relative mouse, focus, fullscreen, DPI and clipboard work on target hardware |
 | Core services | Standard C++ and POSIX implementations behind `Os`, Storm and BlizzardCore interfaces; bounded source compatibility helpers may retain shared callers | File, synchronization, timer and callback semantics match existing callers; preserve native widths and ownership |
 | Networking | POSIX sockets with a portable event-loop implementation first | Partial I/O, cancellation, ordering, reconnect and shutdown pass controlled tests; select epoll/kqueue or a maintained library only as needed |
-| Initial Linux graphics | Adapt the existing OpenGL compatibility path | Validate required ARB extensions and matching 3.3.5a shader assets on representative drivers |
-| Maintained graphics | Compare reviewed existing Metal Gx implementations/shader strategies with a bgfx Vulkan/Metal adapter and other bounded alternatives; retain Linux graphics support | A representative UI, terrain, skinned-model and render-target/shader prototype passes before committing to a full migration; assess reusable native-port code first |
+| Historical Linux graphics | Freeze the pre-existing SDL3/OpenGL adapter; no new GL rendering work or OpenGL qualification | Preserve existing diagnostics/captures as history only; no GL issues or fixes gate new features |
+| Faithful native reference graphics | Original D3D9 Gx through DXVK Native/Vulkan (#133); separately evaluate macOS MoltenVK and keep Windows D3D9 baseline | Reproducible source/asset identity, UI/terrain/model/FFX frame captures, timings and explicit supported/unsupported scope |
+| Maintained modern graphics | Prototype SDL3 GPU Vulkan/Metal first (#134), compare bgfx and reviewed direct Metal/Vulkan options; preserve Gx boundary | Representative UI, terrain, skinned-model, multi-texture shader/FFX and render-target scenes and hardware evidence on Linux/Apple silicon before choosing a renderer |
 | Audio | Preserve `SE2` behavior; investigate a portable FMOD output path first | Source/dependency availability, codec support, 3D mixing, streaming and device recovery; replace behind `SE2` if necessary |
 | Movies | Build a portable decoder dependency or adapt another decoder behind the existing interface | Existing movie playback, audio sync and skip behavior; no Windows import library in native targets |
 | CPU | Portable scalar reference functions, then architecture-specific acceleration where measured | SSE replacements preserve texture, animation and numerical behavior on ARM64 |
 
-[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) supports Windows, Linux and macOS.
-[bgfx](https://bkaradzic.github.io/bgfx/overview.html) supports Vulkan and Metal;
-its integration and shader conversion are still project work. If the graphics
-prototype fails, record the specific gap and compare a direct Vulkan/Metal adapter
-or SDL GPU before selecting an alternative. Avoid maintaining multiple new full
-renderers during the initial port.
+[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) supports Windows, Linux and macOS;
+SDL3 GPU is the **first modern renderer prototype**, with Vulkan on Linux and
+direct Metal on macOS. [bgfx](https://bkaradzic.github.io/bgfx/overview.html)
+and reviewed direct Metal/Vulkan implementations are comparison candidates.
+If the first prototype fails, record the specific gap and measure the alternatives
+rather than returning to OpenGL. Shader translation and original fixed-function
+behaviour still require substantial work. Avoid maintaining multiple new full
+renderers before an evidence-based choice.
 
-The inspected Apple ports above make direct Metal and their shader strategies
-concrete reuse candidates. bgfx remains a candidate, not a prerequisite to original
-client startup or early macOS integration. Keep implementation selection explicit
-and supported by representative behaviour on both target platforms.
+The inspected Apple ports provide valuable Metal and DXVK Native references,
+not automatically portable drop-ins. Preserve Gx semantics and choose a supported
+backend from representative real-hardware behaviour; keep modernisation features
+optional and original 12340 gameplay/data compatibility intact.
 
 Preserve the engine-facing Gx abstraction where practical. Introduce explicit
 shader/material translation and resource ownership at its boundary. The modern
