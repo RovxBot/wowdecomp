@@ -5,6 +5,20 @@ The opt-in `WOWDECOMP_BUILD_NATIVE_CLIENT` target `WowNativeClient` and
 retained reads, SDL/Gx/Gxu, original FrameScript/XML/layout/Frame and images.
 All compilation runs in Actions; Windows remains a separate regression target.
 
+The native ScanDLL Lua bindings use the existing Glue script-service owner.
+`ScanDLLStart` validates the original two-string API and queues one unavailable
+`SCANDLL_ERROR` for the outer Event idle phase; repeated starts cannot duplicate
+delivery. Shutdown cancels pending delivery before script/CVar teardown. No URL
+is fetched, file written, Windows DLL loaded or scan worker created. Neither
+`SCANDLL_DOWNLOADING` nor a successful `SCANDLL_FINISHED` result is fabricated.
+`IsScanDLLFinished` remains nil. The original AccountLogin error handler calls
+`ScanDLLContinueAnyway` automatically; native continuation therefore raises an
+explicit unavailable error and grants no approval. Reentrant polling/closure
+during event delivery is rejected. This is a failure-only capability boundary,
+not an implemented native scanner or completed login lifecycle. The original
+Windows download/signature/scan implementation remains separate; resolving the
+native platform/integrity requirement is tracked in [#131](https://github.com/RovxBot/wowdecomp/issues/131).
+
 Native model startup loads unchanged `Model2.wfx` and `Particle.wfx` through the
 authenticated retained SFile adapter before constructing a scene. Files are
 bounded at 1 MiB; parsing bounds names, scopes, arguments, effects and the original
