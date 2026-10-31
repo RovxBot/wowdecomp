@@ -73,7 +73,7 @@ class VulkanControlTests(unittest.TestCase):
             artifact, manifest = self.artifact(directory, strict=True)
             CONTROL.verify(artifact, True)
             (artifact / 'lib/libclang_rt.asan-x86_64.so').unlink()
-            del manifest['files']['lib/libclang_rt.asan-x86_64.so']
+            del manifest['files'][str(Path('lib/libclang_rt.asan-x86_64.so'))]
             (artifact / 'manifest.json').write_text(json.dumps(manifest))
             with self.assertRaises(ValueError):
                 CONTROL.verify(artifact, True)
@@ -88,7 +88,7 @@ class VulkanControlTests(unittest.TestCase):
         self.assertEqual(environment['ASAN_OPTIONS'], 'detect_leaks=1:halt_on_error=1')
         self.assertEqual(environment['UBSAN_OPTIONS'], 'halt_on_error=1:print_stacktrace=1')
         self.assertEqual(environment['VK_DRIVER_FILES'], '/selected/icd.json')
-        self.assertEqual(environment['LD_LIBRARY_PATH'], '/verified/lib')
+        self.assertEqual(environment['LD_LIBRARY_PATH'], str(Path('/verified/lib')))
 
     def test_available_host_symbolizer_replaces_stale_build_host_path(self):
         with patch.dict(os.environ, {'ASAN_SYMBOLIZER_PATH': '/absent/build-host/path'}), \
