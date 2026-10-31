@@ -73,7 +73,14 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(entries[0], destination)
             unpack.rmdir()
-        flags = '-fsanitize=address,undefined -fno-omit-frame-pointer -g1' if args.sanitizers else ''
+        if args.sanitizers:
+            # SDL's shared target requires resolved symbols. Link all three
+            # consumers to one Clang sanitizer runtime, also shipped in the ZIP.
+            runtime = Path(subprocess.check_output(
+                ['clang', '-print-file-name=libclang_rt.asan-x86_64.so'], text=True).strip())
+            (prefix / 'lib').mkdir(parents=True, exist_ok=True)
+            shutil.copy2(runtime, prefix / 'lib' / runtime.name)
+        flags = '-fsanitize=address,undefined -shared-libasan -fno-omit-frame-pointer -g1' if args.sanitizers else ''
         run('sdl-configure', ['cmake', '-S', str(sources / 'sdl3'), '-B', str(work / 'sdl'), '-G', 'Ninja',
             '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_INSTALL_PREFIX=' + str(prefix), '-DCMAKE_INSTALL_LIBDIR=lib',
             '-DCMAKE_C_COMPILER=clang', '-DCMAKE_CXX_COMPILER=clang++', '-DCMAKE_C_FLAGS=' + flags,
@@ -91,7 +98,8 @@ def main():
             '-Denable_d3d10=false', '-Denable_d3d11=false', '-Denable_dxgi=false',
             '-Dnative_sdl3=enabled', '-Dnative_sdl2=disabled', '-Dnative_glfw=disabled',
             '-Db_sanitize=' + ('address,undefined' if args.sanitizers else 'none'),
-            '-Db_lundef=false' if args.sanitizers else '-Db_lundef=true'])
+            '-Dc_link_args=' + ('-shared-libasan' if args.sanitizers else ''),
+            '-Dcpp_link_args=' + ('-shared-libasan' if args.sanitizers else '')])
         run('dxvk-compile', ['meson', 'compile', '-C', str(work / 'dxvk'), '-j', '4'])
         run('dxvk-install', ['meson', 'install', '-C', str(work / 'dxvk')])
         run('probe-configure', ['cmake', '-S', str(root / 'Tools/NativeD3D9'), '-B', str(work / 'probe'),
@@ -100,7 +108,7 @@ def main():
         run('probe-compile', ['cmake', '--build', str(work / 'probe'), '--parallel', '4'])
         shutil.copy2(work / 'probe/NativeD3D9Check', output / 'NativeD3D9Check')
         (output / 'lib').mkdir(exist_ok=True)
-        for pattern in ['libSDL3.so*', 'libdxvk_d3d9.so*']:
+        for pattern in ['libSDL3.so*', 'libdxvk_d3d9.so*', 'libclang_rt.asan-*.so']:
             for path in (prefix / 'lib').glob(pattern):
                 if not path.is_symlink():
                     shutil.copy2(path, output / 'lib' / path.name)

@@ -1,5 +1,6 @@
 // Authored native ABI/WSI fixture for #133; no original-client or asset claim.
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 #include <d3d9.h>
 #include <wsi/native_sdl3.h>
 #include <array>

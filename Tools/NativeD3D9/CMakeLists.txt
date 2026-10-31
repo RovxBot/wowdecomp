@@ -17,7 +17,7 @@ target_compile_definitions(NativeD3D9Check PRIVATE SDL_MAIN_HANDLED=1)
 target_compile_options(NativeD3D9Check PRIVATE -Wall -Wextra -Werror)
 if(PROTOTYPE_SANITIZERS)
     target_compile_options(NativeD3D9Check PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer -g1)
-    target_link_options(NativeD3D9Check PRIVATE -fsanitize=address,undefined)
+    target_link_options(NativeD3D9Check PRIVATE -fsanitize=address,undefined -shared-libasan)
 endif()
 # SDL and DXVK share one SDL instance; the package is relocatable as a unit.
 set_target_properties(NativeD3D9Check PROPERTIES BUILD_WITH_INSTALL_RPATH ON INSTALL_RPATH "$ORIGIN/lib")
