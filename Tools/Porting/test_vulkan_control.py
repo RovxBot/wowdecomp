@@ -90,6 +90,12 @@ class VulkanControlTests(unittest.TestCase):
         self.assertEqual(environment['VK_DRIVER_FILES'], '/selected/icd.json')
         self.assertEqual(environment['LD_LIBRARY_PATH'], '/verified/lib')
 
+    def test_available_host_symbolizer_replaces_stale_build_host_path(self):
+        with patch.dict(os.environ, {'ASAN_SYMBOLIZER_PATH': '/absent/build-host/path'}), \
+                patch.object(CONTROL.shutil, 'which', return_value='/usr/bin/llvm-symbolizer'):
+            environment = CONTROL.clean_environment(Path('/verified/lib'))
+        self.assertEqual(environment['ASAN_SYMBOLIZER_PATH'], '/usr/bin/llvm-symbolizer')
+
 
 if __name__ == '__main__':
     unittest.main()

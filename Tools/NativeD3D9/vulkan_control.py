@@ -25,6 +25,10 @@ def clean_environment(library_path):
     for name in ['LD_PRELOAD', 'LD_AUDIT', 'LSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
         environment.pop(name, None)
     environment.update(LD_LIBRARY_PATH=str(library_path), **STRICT)
+    # The Actions-built runtime can embed a symbolizer path absent on the host.
+    symbolizer = shutil.which('llvm-symbolizer')
+    if symbolizer:
+        environment['ASAN_SYMBOLIZER_PATH'] = symbolizer
     return environment
 
 
@@ -104,7 +108,7 @@ def execute(artifact, runtime, stage, cycles, device=None):
                 completed_at=datetime.now(timezone.utc).isoformat(), system=platform.platform(),
                 exit_code=process.returncode, timed_out=timed_out,
                 stdout=process.stdout.splitlines(), stderr=process.stderr.splitlines(),
-                environment={k: environment.get(k) for k in sorted({*STRICT, 'LSAN_OPTIONS', 'LD_PRELOAD',
+                environment={k: environment.get(k) for k in sorted({*STRICT, 'ASAN_SYMBOLIZER_PATH', 'LSAN_OPTIONS', 'LD_PRELOAD',
                     'LD_AUDIT', 'LD_LIBRARY_PATH', 'XDG_CACHE_HOME', 'VK_DRIVER_FILES', 'VK_ICD_FILENAMES',
                     'VK_INSTANCE_LAYERS', 'VK_LOADER_LAYERS_DISABLE', 'VK_LOADER_LAYERS_ENABLE',
                     *(k for k in environment if k.startswith(('VK_', 'MESA_', 'RADV_', 'GALLIUM_', 'AMD_')))} )},
