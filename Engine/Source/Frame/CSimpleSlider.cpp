@@ -25,6 +25,36 @@
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+namespace {
+// Native safety adaptation of 12340 0x0096BC10. Keep the original float
+// arithmetic; a float representation of INT32_MAX rounds up to 2^31, so
+// compare the quotient in double before the integer conversion.
+float NativeSnapValue(float value, float base, float step) {
+    Frame::Native::RequireFinite(value);
+    Frame::Native::RequireFinite(base);
+    Frame::Native::RequireFinite(step);
+    if (step == 0.0f) return value;
+    if (step < 0.0f) throw std::invalid_argument("Invalid native Slider step");
+    const float offset = value - base;
+    const float half = step * 0.5f;
+    const float quotient = (offset > 0.0f ? offset + half : offset - half) / step;
+    if (!std::isfinite(quotient) || double(quotient) < -2147483648.0 || double(quotient) >= 2147483648.0)
+        throw std::invalid_argument("Native Slider snap quotient exceeds int32 range");
+    const float snapped = static_cast<float>(static_cast<int32_t>(quotient)) * step + base;
+    Frame::Native::RequireFinite(snapped);
+    return snapped;
+}
+void NativePreflightRange(float base, float range, float step) {
+    // Prove every clamped value can snap, even before the first SetValue.
+    // Positive offsets are monotonic; check both endpoints before publishing
+    // a new range/step or running its callbacks. No temporary live-state edits.
+    NativeSnapValue(base, base, step);
+    NativeSnapValue(base + range, base, step);
+}
+}
+#endif
+
 // STATIC: 0x00B2CE88
 int32_t CSimpleSlider::s_metatable = LUA_NOREF;
 
@@ -71,6 +101,10 @@ void CSimpleSlider::RunOnMinMaxChangedScript() {
 // VERIFY: e424afb5 manual
 // OFFSET: 0x0096BC10
 float CSimpleSlider::SnapValueToStep(float value) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireSimpleFrame(this);
+    return NativeSnapValue(value, this->m_baseValue, this->m_valueStep);
+#else
     if (0.0f == this->m_valueStep) {
         return value;
     }
@@ -83,6 +117,7 @@ float CSimpleSlider::SnapValueToStep(float value) {
     }
 
     return static_cast<float>(static_cast<int32_t>((offset - half) / this->m_valueStep)) * this->m_valueStep + this->m_baseValue;
+#endif
 }
 
 // VERIFY: c521bada auto
@@ -291,12 +326,20 @@ void CSimpleSlider::SetValue(float value) {
 // VERIFY: 3106fae6 auto
 // OFFSET: 0x0096C1B0
 void CSimpleSlider::SetValueStep(float step) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireStateMutation(true);
+    Frame::Native::RequireSimpleFrame(this);
+    Frame::Native::RequireFinite(step);
+#endif
     step = std::max(step, FLT_EPSILON);
 
     if (fabsf(step - this->m_valueStep) < 0.00000023841858f) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (this->m_rangeSet) NativePreflightRange(this->m_baseValue, this->m_range, step);
+#endif
     this->m_valueStep = step;
 
     if (this->m_valueSet) {
@@ -382,6 +425,9 @@ void CSimpleSlider::SetMinMaxValues(float min, float max) {
         return;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    NativePreflightRange(min, range, this->m_valueStep);
+#endif
     this->m_baseValue = min;
     this->m_changed = 1;
     this->m_rangeSet = 1;

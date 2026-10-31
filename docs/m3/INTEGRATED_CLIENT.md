@@ -119,6 +119,13 @@ admission. Reentry, resize, rendering/collection, movement and top-level visibil
 guards remain enabled. Current qualification and input evidence live in
 [#126](https://github.com/RovxBot/wowdecomp/issues/126); broad operator acceptance
 remains [#96](https://github.com/RovxBot/wowdecomp/issues/96).
+Native Slider snapping keeps the original float arithmetic and checks the signed
+32-bit quotient before conversion. Range and step changes preflight their entire
+clamped span before publishing state or running callbacks, including controls
+whose value is not yet set. Invalid operations preserve state and notification
+order; ordinary callback, resize and owner guards still apply. Numeric safety is
+tracked in [#113](https://github.com/RovxBot/wowdecomp/issues/113), separately from
+[press/drag admission #130](https://github.com/RovxBot/wowdecomp/issues/130).
 SimpleHTML/hyperlink/ScrollFrame/Slider form the first startup-driven source batch.
 Aligned pools retain matching deletion; HTML text closes before private fonts.
 
