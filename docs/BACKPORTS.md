@@ -4,6 +4,30 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-026 — Linux native D3D9 ABI/WSI prototype
+
+- References: original 12340 `CGxDeviceD3d`/`CGxDeviceD3d9Ex`; Arlyon's
+  `Tools/DxvkSmoke`, `cmake/FindDXVKNative.cmake` and `docs/MacOSBringup.md` at
+  `24778cd77a6a217bbfdffccb88d9556a06b8b21d`. Its SDL2 draw/readback sequence
+  informs the new SDL3 fixture; no reference implementation body, original
+  address or verification claim is imported.
+- Actual dependencies: upstream DXVK v2.7.1 at
+  `c3dd74be6baec53786d4e064a572185b70347a17`, its four exact submodules, and
+  existing SDL 3.2.28. The [lock](../Tools/NativeD3D9/dependencies.json) records
+  repositories, commits and SHA256s. All sources are unmodified; packaged notices
+  retain DXVK's zlib licence, SDL, MinGW, Vulkan/SPIRV, OpenVR and libdisplay-info
+  attribution. Compiler/glslang and host display/Vulkan dependencies are recorded
+  separately in Actions logs.
+- Destination: opt-in standalone `Tools/NativeD3D9`, hosted build/package and
+  hash-verifying runtime launchers. SDL3 shared WSI replaces Windows HWND semantics
+  only inside DXVK's existing native ABI. No Windows or frozen GL implementation
+  is changed. No game assets, optional effects, network/schema/signature changes
+  or server policy changes. The fixture does not register an integrated Gx device.
+- [Contract and limits](m3/DXVK_NATIVE.md); implementation/runtime evidence belongs
+  in [#133](https://github.com/RovxBot/wowdecomp/issues/133). Authored pixels do not
+  establish original-client rendering. macOS requires separate DXVK/MoltenVK
+  feasibility and actual ARM64 execution; no Apple dependency is imported.
+
 ## NP-025 — Integrated startup and pinned Apple platform review
 
 - [PR #84](https://github.com/RovxBot/wowdecomp/pull/84) adds an opt-in Linux

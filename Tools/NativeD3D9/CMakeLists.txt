@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.21)
+project(WowNativeD3D9Prototype LANGUAGES CXX)
+
+# Deliberately separate from the frozen GL target and the integrated client.
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+    message(FATAL_ERROR "This DXVK prototype is qualified only for Linux x86-64")
+endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL3 REQUIRED IMPORTED_TARGET sdl3=3.2.28)
+pkg_check_modules(DXVK REQUIRED IMPORTED_TARGET dxvk-d3d9)
+option(PROTOTYPE_SANITIZERS "Instrument the prototype with ASan/UBSan" OFF)
+add_executable(NativeD3D9Check main.cpp)
+target_link_libraries(NativeD3D9Check PRIVATE PkgConfig::SDL3 PkgConfig::DXVK)
+target_compile_definitions(NativeD3D9Check PRIVATE SDL_MAIN_HANDLED=1)
+target_compile_options(NativeD3D9Check PRIVATE -Wall -Wextra -Werror)
+if(PROTOTYPE_SANITIZERS)
+    target_compile_options(NativeD3D9Check PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer -g1)
+    target_link_options(NativeD3D9Check PRIVATE -fsanitize=address,undefined)
+endif()
+# SDL and DXVK share one SDL instance; the package is relocatable as a unit.
+set_target_properties(NativeD3D9Check PROPERTIES BUILD_WITH_INSTALL_RPATH ON INSTALL_RPATH "$ORIGIN/lib")
