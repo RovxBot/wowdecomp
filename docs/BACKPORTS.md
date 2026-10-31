@@ -23,6 +23,15 @@ and source inspection are different evidence levels.
   retain DXVK's zlib licence, SDL, MinGW, Vulkan/SPIRV, OpenVR and libdisplay-info
   attribution. Compiler/glslang and host display/Vulkan dependencies are recorded
   separately in Actions logs.
+- CI software driver: unmodified Mesa 26.2.5, official release SHA256
+  `794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5`,
+  commit `ddaf85e353442d9d7f192fdcf1823e652e3f2ee3`. The separate
+  [CI lock](../Tools/NativeD3D9/ci-driver.json) selects only lavapipe/llvmpipe
+  with OpenGL/GLX/EGL/GLES disabled. This retains the upstream vertex-buffer
+  ownership correction missing in Ubuntu's 25.2.8 driver; it is not a product
+  renderer/driver import or distributed runtime dependency. Distribution LLVM
+  and this external CI driver are uninstrumented; strict SDL/DXVK/fixture
+  instrumentation remains. Driver/leak qualification stays explicit in #146.
 - Destination: opt-in standalone `Tools/NativeD3D9`, hosted build/package and
   hash-verifying runtime launchers. SDL3 shared WSI replaces Windows HWND semantics
   only inside DXVK's existing native ABI. No Windows or frozen GL implementation

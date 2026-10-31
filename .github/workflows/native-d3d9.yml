@@ -20,7 +20,7 @@ concurrency:
 jobs:
   prototype:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -33,11 +33,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang ninja-build meson glslang-tools pkg-config patch libvulkan-dev mesa-vulkan-drivers vulkan-tools libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libegl-dev libgbm-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev xvfb xauth
+          sudo apt-get install -y llvm-20-dev python3-venv python3-mako python3-yaml libelf-dev libdrm-dev libzstd-dev libx11-xcb-dev libxcb-dri3-dev libxcb-present-dev libxcb-randr0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev libxshmfence-dev
+          /usr/bin/python3 -m venv --system-site-packages "$RUNNER_TEMP/d3d9-build-tools"
+          "$RUNNER_TEMP/d3d9-build-tools/bin/pip" install meson==1.9.1
+          echo "$RUNNER_TEMP/d3d9-build-tools/bin" >> "$GITHUB_PATH"
       - name: Build pinned dependencies and execute authored D3D9 contracts
         env:
           PROTOTYPE_SANITIZERS: ${{ matrix.sanitizers }}
         run: |
-          args=()
+          args=(--software-driver)
           if [ "$PROTOTYPE_SANITIZERS" = true ]; then args+=(--sanitizers); fi
           xvfb-run -a -s "-screen 0 1280x1024x24" python3 Tools/NativeD3D9/build.py "${args[@]}"
       - name: Preserve exact-source binaries, libraries, notices, pixels and logs

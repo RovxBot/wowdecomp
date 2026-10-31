@@ -18,6 +18,7 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sanitizers', action='store_true')
+    parser.add_argument('--software-driver', action='store_true', help='Build the pinned CI-only lavapipe driver')
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('All client/dependency compilation must run in GitHub Actions.')
@@ -147,6 +148,43 @@ def main():
             shutil.copy2(patch, notices / patch.name)
         environment['LD_LIBRARY_PATH'] = str(output / 'lib')
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
+        if args.software_driver:
+            # CI's Mesa 25.2.8 leaks bounded vertex-buffer resources. Use a
+            # reviewed unmodified release with the ownership correction, not a
+            # suppression or a change to the fixture's Vulkan behaviour.
+            driver = json.loads((root / 'Tools/NativeD3D9/ci-driver.json').read_text())
+            with urlopen(driver['url'], timeout=120) as response:
+                data = response.read()
+            if hashlib.sha256(data).hexdigest() != driver['sha256']:
+                raise ValueError('CI driver archive hash mismatch')
+            mesa_root = work / 'mesa-source'
+            mesa_root.mkdir()
+            with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+                archive.extractall(mesa_root, filter='data')
+            mesa_source = mesa_root / ('mesa-' + driver['version'])
+            mesa_prefix = work / 'mesa-prefix'
+            # LLVM is a distribution build-tool dependency, recorded in logs.
+            environment['LLVM_CONFIG'] = '/usr/bin/llvm-config-20'
+            run('mesa-configure', ['meson', 'setup', str(work / 'mesa'), str(mesa_source),
+                '--prefix=' + str(mesa_prefix), '--libdir=lib', '--buildtype=release', '--wrap-mode=nofallback',
+                '-Dplatforms=x11', '-Dgallium-drivers=llvmpipe', '-Dvulkan-drivers=swrast',
+                '-Dopengl=false', '-Dgles1=disabled', '-Dgles2=disabled', '-Dglx=disabled',
+                '-Degl=disabled', '-Dgbm=disabled', '-Dglvnd=disabled', '-Dgallium-va=disabled',
+                '-Dllvm=enabled', '-Dshared-llvm=enabled', '-Dvideo-codecs=', '-Dbuild-tests=false'])
+            run('mesa-compile', ['meson', 'compile', '-C', str(work / 'mesa'), '-j', '4'])
+            run('mesa-install', ['meson', 'install', '-C', str(work / 'mesa')])
+            icds = list((mesa_prefix / 'share/vulkan/icd.d').glob('*lvp*.json'))
+            if len(icds) != 1:
+                raise ValueError('Expected one explicitly selected CI lavapipe ICD')
+            environment['VK_DRIVER_FILES'] = str(icds[0])
+            environment.pop('VK_ICD_FILENAMES', None)
+            driver['icd_json'] = json.loads(icds[0].read_text())
+            driver['libraries'] = {str(p.relative_to(mesa_prefix)): digest(p)
+                                   for p in mesa_prefix.rglob('*.so*') if p.is_file() and not p.is_symlink()}
+            driver['instrumentation'] = 'distribution LLVM and uninstrumented CI-only Mesa; SDL/DXVK/fixture instrumentation unchanged'
+            manifest['ci_driver'] = driver
+            shutil.copy2(mesa_source / 'docs/license.rst', notices / 'Mesa-CI-driver-license.rst')
+        run('vulkan-driver', ['vulkaninfo', '--summary'])
         run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])
         manifest['status'] = 'build-and-contracts-passed'
