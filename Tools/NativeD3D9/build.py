@@ -150,8 +150,8 @@ def main():
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         if args.software_driver:
             # CI's Mesa 25.2.8 leaks bounded vertex-buffer resources. Use a
-            # reviewed unmodified release with the ownership correction, not a
-            # suppression or a change to the fixture's Vulkan behaviour.
+            # reviewed release plus a bounded reference-replacement correction,
+            # not a suppression or a change to the fixture's Vulkan behaviour.
             driver = json.loads((root / 'Tools/NativeD3D9/ci-driver.json').read_text())
             with urlopen(driver['url'], timeout=120) as response:
                 data = response.read()
@@ -162,6 +162,11 @@ def main():
             with tarfile.open(fileobj=io.BytesIO(data)) as archive:
                 archive.extractall(mesa_root, filter='data')
             mesa_source = mesa_root / ('mesa-' + driver['version'])
+            driver_patch = root / 'Tools/NativeD3D9/mesa-lvp-bound-buffer.patch'
+            run('mesa-patch-check', ['patch', '--dry-run', '--batch', '--fuzz=0', '-p1', '-i', str(driver_patch)], cwd=mesa_source)
+            run('mesa-patch-apply', ['patch', '--batch', '--fuzz=0', '-p1', '-i', str(driver_patch)], cwd=mesa_source)
+            driver['patches'] = {driver_patch.name: digest(driver_patch)}
+            driver['adapted_execute_sha256'] = digest(mesa_source / 'src/gallium/frontends/lavapipe/lvp_execute.c')
             mesa_prefix = work / 'mesa-prefix'
             # LLVM is a distribution build-tool dependency, recorded in logs.
             environment['LLVM_CONFIG'] = '/usr/bin/llvm-config-20'
@@ -184,6 +189,8 @@ def main():
             driver['instrumentation'] = 'distribution LLVM and uninstrumented CI-only Mesa; SDL/DXVK/fixture instrumentation unchanged'
             manifest['ci_driver'] = driver
             shutil.copy2(mesa_source / 'docs/license.rst', notices / 'Mesa-CI-driver-license.rst')
+            shutil.copy2(driver_patch, notices / driver_patch.name)
+            shutil.copy2(mesa_source / 'src/gallium/frontends/lavapipe/lvp_execute.c', notices / 'Mesa-CI-lvp-execute-adapted.c')
         run('vulkan-driver', ['vulkaninfo', '--summary'])
         run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])

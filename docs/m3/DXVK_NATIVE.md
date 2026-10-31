@@ -15,13 +15,15 @@ native D3D9 explicitly. No Wine, Windows DLL, GL context or backend fallback is
 used. Release and ASan/UBSan configurations build **both dependencies and the
 fixture**; leak detection and halt-on-error remain enabled. Hosted execution uses
 Xvfb and the [pinned CI-only Mesa lavapipe](../../Tools/NativeD3D9/ci-driver.json)
-26.2.5 driver, so it does not qualify physical GPU performance. This unmodified
+26.2.5 driver, so it does not qualify physical GPU performance. This
 software driver is Actions-built with OpenGL/GLX/EGL/GLES disabled and selected
 explicitly by its ICD JSON. It is not shipped in the runtime package or imposed
 on the user's machine. Its source/library hashes and compiler/LLVM configuration
 are retained in the manifest/logs; Mesa and distribution LLVM are uninstrumented
 external drivers, while SDL, DXVK and the fixture remain instrumented in strict
-mode. Earlier distro-driver leak failures remain tracked in
+mode. A marked CI driver patch releases the retained whole-buffer reference
+before replacing it with a bounded vertex-buffer wrapper; the patch, adapted
+source and hashes are retained. Earlier distro and unmodified-driver leak failures remain tracked in
 [#146](https://github.com/RovxBot/wowdecomp/issues/146), separately from fixture
 success and real-hardware qualification.
 Strict artifacts also include the matching shared Clang sanitizer runtime and

@@ -1,0 +1,14 @@
+--- a/src/gallium/frontends/lavapipe/lvp_execute.c
++++ b/src/gallium/frontends/lavapipe/lvp_execute.c
+@@ -1301,7 +1301,10 @@ static void handle_vertex_buffers2(struct vk_cmd_queue_entry *cmd,
+             struct pipe_transfer *xfer;
+             uint8_t *mem = pipe_buffer_map(state->pctx, state->vb[idx].buffer.resource, 0, &xfer);
+             state->pctx->buffer_unmap(state->pctx, xfer);
+-            state->vb[idx].buffer.resource = get_buffer_resource(state->pctx, mem);
++            /* wowdecomp CI Vulkan fix: replace the retained whole-buffer reference. */
++            struct pipe_resource *bounded = get_buffer_resource(state->pctx, mem);
++            pipe_resource_reference(&state->vb[idx].buffer.resource, NULL);
++            state->vb[idx].buffer.resource = bounded;
+             state->vb[idx].buffer.resource->width0 = MIN2(vcb->offsets[i] + vcb->sizes[i], state->vb[idx].buffer.resource->width0);
+             state->vb_sizes[idx] = vcb->sizes[i];
+          }
