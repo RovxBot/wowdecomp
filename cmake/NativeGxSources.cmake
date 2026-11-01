@@ -1,0 +1,23 @@
+# Common 12340 Gx dispatch and native ABI sources; backend selected by caller.
+set(WOWDECOMP_NATIVE_GX_SOURCES
+    ../Gx/Gx.cpp
+    ../Gx/Buffer.cpp
+    ../Gx/CGxDevice/CGxDevice.cpp
+    ../Gx/CGxDevice/CGxShader.cpp
+    ../Gx/CGxDevice/EmergencyMem.cpp
+    ../Gx/CGxTex.cpp
+    ../Gx/CGxTexFlags.cpp
+    ../Gx/CGxPool.cpp
+    ../Gx/CGxBuf.cpp
+    ../Gx/CGxFormat.cpp
+    ../Gx/CGxGammaRamp.cpp
+    ../Gx/CGxLight.cpp
+    ../Tempest/C2Vector.cpp
+    ../Tempest/C4Plane.cpp
+    ../Tempest/CiRect.cpp
+    ../Tempest/CRect.cpp
+    ../Gx/Portable/ShaderPackage.cpp
+    ../Gx/CGxMatrixStack.cpp
+    ../Tempest/C44Matrix.cpp
+    ../Tempest/C33Matrix.cpp
+)

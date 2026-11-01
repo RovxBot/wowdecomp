@@ -9,8 +9,10 @@ add_library(WowNativeFrameFonts STATIC
     ../Frame/CSimpleFontStringAttributes.cpp
     ../Frame/ScriptColor.cpp
     ../Frame/Portable/Fonts.cpp
-    ../FrameXML/FontXML.cpp
-    ../Tempest/CImVector.cpp)
+    ../FrameXML/FontXML.cpp)
+if(NOT WOWDECOMP_BUILD_NATIVE_D3D9)
+    target_sources(WowNativeFrameFonts PRIVATE ../Tempest/CImVector.cpp)
+endif()
 target_link_libraries(WowNativeFrameFonts PUBLIC WowNativeLayout WowNativeGxu)
 
 # Original render batching is a prerequisite for actual region/root consumers.
@@ -61,6 +63,7 @@ add_library(WowNativeFrameRegions STATIC
     ../Event/CMouseEvent.cpp
     ../Services/ScreenProjection.cpp)
 target_link_libraries(WowNativeFrameRegions PUBLIC WowNativeFrameRender)
+if(NOT WOWDECOMP_BUILD_NATIVE_D3D9)
 add_executable(NativeFrameHierarchyCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameHierarchy/main.cpp)
 target_link_libraries(NativeFrameHierarchyCheck PRIVATE WowNativeFrameRegions)
 add_executable(NativeFrameRegionsCheck ${PROJECT_SOURCE_DIR}/Tools/NativeFrameRegions/main.cpp)
@@ -111,4 +114,6 @@ if(BUILD_TESTING)
         --font ${PROJECT_SOURCE_DIR}/Tools/NativeGx/fonts/moves.ttf)
     set_tests_properties(native-frame-font-factories PROPERTIES TIMEOUT 120
         ENVIRONMENT "SDL_VIDEODRIVER=x11;EGL_PLATFORM=x11")
+endif()
+
 endif()

@@ -35,11 +35,17 @@ and source inspection are different evidence levels.
   renderer/driver import or distributed runtime dependency. Distribution LLVM
   and this external CI driver are uninstrumented; strict SDL/DXVK/fixture
   instrumentation remains. Driver/leak qualification stays explicit in #146.
-- Destination: opt-in standalone `Tools/NativeD3D9`, hosted build/package and
+- Destination: opt-in standalone `Tools/NativeD3D9`, and an opt-in original
+  `CGxDeviceD3d` integration in `Tools/NativeClient` using the same pinned
+  dependencies and authenticated shader provider. Native platform leaves are
+  newly authored against the product 12340 implementation; no further donor
+  body/address/verification claim is imported. Windows implementations remain
+  separately selected. Hosted build/package and
   hash-verifying runtime launchers. SDL3 shared WSI replaces Windows HWND semantics
   only inside DXVK's existing native ABI. No Windows or frozen GL implementation
-  is changed. No game assets, optional effects, network/schema/signature changes
-  or server policy changes. The fixture does not register an integrated Gx device.
+  semantics are changed. No game assets, optional effects, network/schema/signature
+  changes or server policy changes. The standalone fixture does not register a Gx
+  device; the separate D3D9 client selects the original device explicitly.
 - [Contract and limits](m3/DXVK_NATIVE.md); implementation/runtime evidence belongs
   in [#133](https://github.com/RovxBot/wowdecomp/issues/133). Authored pixels do not
   establish original-client rendering. macOS requires separate DXVK/MoltenVK

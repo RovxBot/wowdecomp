@@ -21,13 +21,30 @@ def validate_paths(data, settings, cache, output):
             raise ValueError('Data/settings/cache must be separate roots')
 
 
-def verify_artifact(artifact, sanitizers):
+def verify_artifact(artifact, sanitizers, renderer="opengl"):
     manifest = json.loads((artifact / 'manifest.json').read_text())
-    preset = 'linux-client-asan' if sanitizers else 'linux-client'
+    preset = ('linux-client-d3d9' if renderer == 'dxvk' else 'linux-client') + ('-asan' if sanitizers else '')
     if (manifest.get('status') != 'build-and-contracts-passed' or manifest.get('preset') != preset or
             manifest.get('target_os') != 'LINUX' or manifest.get('target_cpu') != 'X86_64' or
             manifest.get('signatures') != 'required'):
         raise ValueError('Expected a passing matching Linux client Actions artifact with required signatures')
+    if renderer == 'dxvk':
+        if manifest.get('backend') != 'DXVK_NATIVE_SDL3':
+            raise ValueError('Expected explicitly selected DXVK Native backend')
+        for name, digest in manifest['files'].items():
+            path = (artifact / name).resolve()
+            if not path.is_relative_to(artifact.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                raise ValueError('DXVK client package path/hash mismatch: ' + name)
+        for path in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*'))]:
+            if str(path.relative_to(artifact)) not in manifest['files']:
+                raise ValueError('Unrecorded client executable/library')
+            contents = path.read_bytes()
+            if len(contents) < 20 or contents[:6] != b'\x7fELF\x02\x01' or contents[18:20] != b'\x3e\x00':
+                raise ValueError('Expected Linux x86-64 ELF')
+        if not list((artifact / 'lib').glob('libSDL3.so*')) or not list((artifact / 'lib').glob('libdxvk_d3d9.so*')):
+            raise ValueError('Missing client SDL3/DXVK runtime')
+        manifest['binaries'] = {'WowNativeClient': manifest['files']['WowNativeClient']}
+        return manifest, artifact / 'WowNativeClient'
     binary = artifact / 'WowNativeClient'
     contents = binary.read_bytes()
     if (len(contents) < 20 or contents[:6] != b'\x7fELF\x02\x01' or contents[18:20] != b'\x3e\x00' or
@@ -46,6 +63,7 @@ def main():
     parser.add_argument('--frames', type=int, default=0, help='0 waits for window close')
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--hidden', action='store_true')
+    parser.add_argument('--renderer', choices=['opengl', 'dxvk'], default='opengl')
     parser.add_argument('--sanitizers', action='store_true')
     args = parser.parse_args()
     if platform.system() != 'Linux' or platform.machine() != 'x86_64':
@@ -53,18 +71,29 @@ def main():
     if not 0 <= args.frames <= 10000000 or args.timeout < 1:
         parser.error('Invalid frame limit/timeout')
     validate_paths(args.data, args.settings, args.cache, args.output)
-    manifest, binary = verify_artifact(args.artifact.resolve(), args.sanitizers)
+    manifest, binary = verify_artifact(args.artifact.resolve(), args.sanitizers, args.renderer)
+    if args.output.resolve().is_relative_to(args.artifact.resolve()):
+        parser.error('Write reports outside the verified artifact')
     binary.chmod(0o755)
     environment = os.environ.copy()
     environment.update(SDL_VIDEODRIVER='x11', EGL_PLATFORM='x11')
     for name in ['LSAN_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT']:
         environment.pop(name, None)
+    if args.renderer == 'dxvk':
+        runtime = args.output.resolve().parent / (args.output.stem + '-runtime')
+        runtime.mkdir(parents=True, exist_ok=True)
+        for name in ['DXVK_CONFIG', 'DXVK_CONFIG_FILE', 'DXVK_FILTER_DEVICE_NAME', 'DXVK_FILTER_DEVICE_UUID']:
+            environment.pop(name, None)
+        environment.update(LD_LIBRARY_PATH=str(args.artifact.resolve() / 'lib'), DXVK_WSI_DRIVER='SDL3',
+                           DXVK_LOG_PATH=str(runtime), XDG_CACHE_HOME=str(args.cache.resolve()))
     if args.sanitizers:
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
         if shutil.which('llvm-symbolizer'):
             environment['ASAN_SYMBOLIZER_PATH'] = shutil.which('llvm-symbolizer')
     command = [str(binary), '--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
                '--cache', str(args.cache.resolve()), '--frames', str(args.frames)]
+    if args.renderer == 'dxvk':
+        command += ['--renderer', 'dxvk', '--snapshot', str(runtime / 'first-frame.ppm')]
     if args.hidden:
         command.append('--hidden')
     started = datetime.now(timezone.utc).isoformat()
@@ -82,7 +111,8 @@ def main():
                   scope='integrated original Glue startup; completion/rendering must be established from observed stages',
                   exit_code=process.returncode, timed_out=timed_out, stdout=process.stdout.splitlines(), stderr=process.stderr.splitlines(),
                   environment={name: environment.get(name) for name in ['SDL_VIDEODRIVER', 'EGL_PLATFORM', 'LIBGL_ALWAYS_SOFTWARE',
-                               'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'ASAN_SYMBOLIZER_PATH', 'LSAN_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT']})
+                               'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'ASAN_SYMBOLIZER_PATH', 'LSAN_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT',
+                               'LD_LIBRARY_PATH', 'DXVK_WSI_DRIVER', 'DXVK_LOG_PATH', 'VK_DRIVER_FILES', 'VK_ICD_FILENAMES']})
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n')
     print(process.stdout, end='')

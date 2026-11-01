@@ -1,7 +1,14 @@
+// WOWDECOMP_NATIVE_D3D9 branches are native adaptations. Existing VERIFY/OFFSET
+// annotations describe only the original Windows-selected implementations.
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <malloc.h>
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include <alloca.h>
+#include <stdexcept>
+#define _alloca alloca
+#endif
 #include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
 #include "Engine/Source/Gx/Blit.h"
 #include "Engine/Source/Gx/CGxBuf.h"
@@ -11,7 +18,9 @@
 #include "Engine/Source/Os/Error.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 #include "ThirdParty/nvapi/nvapi.h"
+#endif
 #include "Engine/Source/ShaderEffect/Types.h"
 #include "GameVersion.h"
 
@@ -125,6 +134,13 @@ void CGxDeviceD3d::IBufUnlock(CGxBuf* buf) {
 // VERIFY: 32fdd761 auto
 // OFFSET: 0x0068FAE0
 int32_t CGxDeviceD3d::BufUnlock(CGxBuf* buf, uint32_t size) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!buf || !buf->m_pool || size > buf->m_size || m_bufLocked[buf->m_pool->m_target] != buf)
+        throw std::logic_error("Invalid D3D9 buffer Unlock extent/owner");
+#endif
     CGxDevice::BufUnlock(buf, size);
     this->IBufUnlock(buf);
 
@@ -137,7 +153,11 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
     CGxPool* pool = buf->m_pool;
 
     if (!this->m_context) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        throw std::runtime_error("D3D9 buffer Lock requires a live device");
+#else
         return static_cast<char*>(this->m_emergencyMem[pool->m_target].Lock(buf->m_size));
+#endif
     }
 
     DWORD flags = 0;
@@ -166,7 +186,11 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
     }
 
     if (!pool->m_apiSpecific) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        throw std::runtime_error("DXVK buffer allocation failed");
+#else
         return static_cast<char*>(this->m_emergencyMem[pool->m_target].Lock(buf->m_size));
+#endif
     }
 
     HRESULT result = S_OK;
@@ -184,6 +208,11 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
             break;
     }
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    // A successful native COM Lock owns a mapped span. Do not emulate SEH or
+    // mask a failed mapping with a staging buffer that cannot reach this device.
+    if (FAILED(result) || (!data && buf->m_size)) throw std::runtime_error("DXVK buffer Lock failed");
+#else
     if (SUCCEEDED(result) && buf->m_size) {
         __try {
             volatile char* probe = data;
@@ -203,20 +232,39 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
         return static_cast<char*>(this->m_emergencyMem[pool->m_target].Lock(buf->m_size));
     }
 
+#endif
     return data;
 }
 
 // VERIFY: 14c57719 auto
 // OFFSET: 0x0068FCE0
 char* CGxDeviceD3d::BufLock(CGxBuf* buf) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!buf || !buf->m_pool || !buf->m_size || m_bufLocked[buf->m_pool->m_target])
+        throw std::logic_error("Invalid or overlapping D3D9 buffer Lock");
+    char* mapped = this->IBufLock(buf);
+    CGxDevice::BufLock(buf);
+    return mapped;
+#else
     CGxDevice::BufLock(buf);
 
     return this->IBufLock(buf);
+#endif
 }
 
 // VERIFY: aa2288d7 auto
 // OFFSET: 0x0068FD00
 void CGxDeviceD3d::BufData(CGxBuf* buf, const void* data, uint32_t size, uint32_t offset) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!buf || !buf->m_pool || !data || offset > buf->m_size || size > buf->m_size - offset || m_bufLocked[buf->m_pool->m_target])
+        throw std::invalid_argument("Invalid D3D9 buffer update span/owner");
+#endif
     CGxDevice::BufData(buf, data, size, offset);
 
     char* dst = this->IBufLock(buf);
@@ -226,6 +274,7 @@ void CGxDeviceD3d::BufData(CGxBuf* buf, const void* data, uint32_t size, uint32_
 
 // VERIFY: c3d9f239 auto
 // OFFSET: 0x0068FD50
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 CGxDeviceD3d::CGxDeviceD3d() : m_desktopDisplayMode() {
     this->m_d3dStereoConvergence = 1.0f;
     this->m_d3dStereoSeparation = 25.0f;
@@ -257,9 +306,11 @@ CGxDeviceD3d::CGxDeviceD3d() : m_desktopDisplayMode() {
     this->DeviceCreatePools();
     this->DeviceCreateStreamBufs();
 }
+#endif
 
 // VERIFY: 57303b58 auto
 // OFFSET: 0x0068E140
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::IUnloadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d) {
     if (d3d) {
         d3d->Release();
@@ -271,6 +322,7 @@ void CGxDeviceD3d::IUnloadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d) {
         d3dLib = nullptr;
     }
 }
+#endif
 
 // VERIFY: 211a94b3 manual
 // OFFSET: 0x0068E180
@@ -332,6 +384,7 @@ void CGxDeviceD3d::DeviceEvictResources() {
 
 // VERIFY: a0f60ba9 auto
 // OFFSET: 0x0068E4C0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceSetGamma(float gamma) {
     CGxDevice::DeviceSetGamma(gamma);
 
@@ -339,10 +392,14 @@ void CGxDeviceD3d::DeviceSetGamma(float gamma) {
         this->m_d3dDevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, reinterpret_cast<const D3DGAMMARAMP*>(&this->m_gammaRamp));
     }
 }
+#endif
 
 // VERIFY: e62cb4c1 auto
 // OFFSET: 0x0068E720
 void CGxDeviceD3d::PoolDestroy(CGxPool* pool) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (pool) {
         this->IReleaseD3dPool(pool);
         CGxDevice::PoolDestroy(pool);
@@ -351,6 +408,7 @@ void CGxDeviceD3d::PoolDestroy(CGxPool* pool) {
 
 // VERIFY: b07d4055 auto
 // OFFSET: 0x0068E750
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::CursorSetVisible(int32_t visible) {
     CGxDevice::CursorSetVisible(visible);
 
@@ -367,6 +425,7 @@ void CGxDeviceD3d::CursorSetVisible(int32_t visible) {
         }
     }
 }
+#endif
 
 // VERIFY: 9a0772fe auto
 // OFFSET: 0x0068E7E0
@@ -439,6 +498,9 @@ void CGxDeviceD3d::StereoSetSeparation(float separation) {
 // VERIFY: 296eb823 auto
 // OFFSET: 0x0068E9C0
 void CGxDeviceD3d::QueryCreate(CGxQuery*& query, EGxQueryType type) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     CGxDevice::QueryCreate(query, type);
 
     CGxQuery* gxQuery = query;
@@ -452,6 +514,9 @@ void CGxDeviceD3d::QueryCreate(CGxQuery*& query, EGxQueryType type) {
 // VERIFY: 04d8fee3 auto
 // OFFSET: 0x0068EA10
 bool CGxDeviceD3d::QueryBegin(CGxQuery* query) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return false;
     }
@@ -480,6 +545,9 @@ bool CGxDeviceD3d::QueryBegin(CGxQuery* query) {
 // VERIFY: d92bc702 auto
 // OFFSET: 0x0068EA90
 bool CGxDeviceD3d::QueryGetParam(CGxQuery* query, EGxQueryParam param, uint32_t& data) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return false;
     }
@@ -512,6 +580,7 @@ bool CGxDeviceD3d::QueryGetParam(CGxQuery* query, EGxQueryParam param, uint32_t&
 
 // VERIFY: 012b93fa manual
 // OFFSET: 0x0068ED80
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::ILoadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d) {
     d3dLib = nullptr;
     d3d = nullptr;
@@ -539,9 +608,11 @@ int32_t CGxDeviceD3d::ILoadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d) {
 
     return 0;
 }
+#endif
 
 // VERIFY: b78ec2a8 auto
 // OFFSET: 0x0069FE10
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::ISetWindowFocus(int32_t focus) {
     this->m_windowFocus = focus;
 
@@ -555,6 +626,7 @@ void CGxDeviceD3d::ISetWindowFocus(int32_t focus) {
         }
     }
 }
+#endif
 
 // VERIFY: d0799ea2 manual
 // OFFSET: 0x0069FB00
@@ -594,6 +666,7 @@ int32_t CGxDeviceD3d::CreatePoolAPI(CGxPool* pool) {
 
 // VERIFY: 2ee2e8ff auto
 // OFFSET: 0x0069FE80
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceSetGamma(const CGxGammaRamp& ramp) {
     CGxDevice::DeviceSetGamma(ramp);
 
@@ -601,6 +674,7 @@ void CGxDeviceD3d::DeviceSetGamma(const CGxGammaRamp& ramp) {
         this->m_d3dDevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, reinterpret_cast<const D3DGAMMARAMP*>(&this->m_gammaRamp));
     }
 }
+#endif
 
 // VERIFY: 0ec084bf auto
 // OFFSET: 0x0069FED0
@@ -623,6 +697,9 @@ void CGxDeviceD3d::DeviceOverride(EGxOverride override, uint32_t value) {
 // VERIFY: 46e713d8 auto
 // OFFSET: 0x0069FF80
 void CGxDeviceD3d::PoolSizeSet(CGxPool* pool, uint32_t size) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     this->IReleaseD3dPool(pool);
     pool->m_size = size;
 
@@ -677,6 +754,9 @@ bool CGxDeviceD3d::StereoEnabled() {
 // VERIFY: 54f891dc auto
 // OFFSET: 0x006A0190
 void CGxDeviceD3d::QueryDestroy(CGxQuery*& query) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     CGxQuery* gxQuery = query;
 
     if (gxQuery->m_apiSpecific) {
@@ -690,6 +770,9 @@ void CGxDeviceD3d::QueryDestroy(CGxQuery*& query) {
 // VERIFY: 57374da8 auto
 // OFFSET: 0x006A0240
 bool CGxDeviceD3d::QueryEnd(CGxQuery* query) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context || !query->m_apiSpecific) {
         return false;
     }
@@ -706,6 +789,9 @@ bool CGxDeviceD3d::QueryEnd(CGxQuery* query) {
 // VERIFY: 5708f36a manual
 // OFFSET: 0x006A0310
 bool CGxDeviceD3d::QueryGetData(CGxQuery* query, uint32_t& data) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context || !query->m_apiSpecific) {
         return false;
     }
@@ -732,12 +818,24 @@ void CGxDeviceD3d::ISceneEnd() {
 // VERIFY: d0242deb auto
 // OFFSET: 0x006A5A00
 void CGxDeviceD3d::CapsWindowSize(CRect& rect) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    int width, height, pixelWidth, pixelHeight;
+    m_nativeWindow->Size(width, height, pixelWidth, pixelHeight);
+    rect = CRect{0, 0, float(height), float(width)};
+#else
     rect = this->DeviceCurWindow();
+#endif
 }
 
 // VERIFY: c58c4596 manual
 // OFFSET: 0x006A5E10
 void CGxDeviceD3d::IShaderCreate(CGxShader* shader) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (shader->m_target == GxSh_Vertex) {
         this->IShaderCreateVertex(shader);
     } else if (shader->m_target == GxSh_Pixel) {
@@ -747,6 +845,7 @@ void CGxDeviceD3d::IShaderCreate(CGxShader* shader) {
 
 // VERIFY: f717b755 auto
 // OFFSET: 0x006A9920
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::CapsWindowSizeInScreenCoords(CRect& rect) {
     if (this->IDevIsWindowed()) {
         const CRect& window = this->DeviceCurWindow();
@@ -764,6 +863,7 @@ void CGxDeviceD3d::CapsWindowSizeInScreenCoords(CRect& rect) {
         rect = this->DeviceCurWindow();
     }
 }
+#endif
 
 // VERIFY: 616797ae manual
 // OFFSET: 0x006A9B40
@@ -847,6 +947,7 @@ void CGxDeviceD3d::IShaderCreateVertex(CGxShader* shader) {
 
 // VERIFY: 38fa5626 manual
 // OFFSET: 0x006AA130
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::ShaderCreate(CGxShader** shaders, EGxShTarget target, const char* path, const char* name, uint32_t permutations) {
     CGxDevice::ShaderCreate(shaders, target, path, name, permutations);
 
@@ -858,10 +959,29 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** shaders, EGxShTarget target, const c
         }
     }
 }
+#endif
 
 // VERIFY: ade44033 manual
 // OFFSET: 0x006AA190
 void CGxDeviceD3d::ShaderDestroy(CGxShader*& shader) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!shader) return;
+    if (!shader->m_refCount) throw std::logic_error("Unretained D3D9 shader destruction");
+    if (shader->m_refCount == 1) {
+        for (auto which : {GxRs_VertexShader, GxRs_PixelShader}) {
+            if (m_appRenderStates[which].m_value.m_data.p == shader) RsSet(which, nullptr);
+            if (m_hwRenderStates[which].m_data.p == shader) m_hwRenderStates[which].m_data.p = nullptr;
+        }
+        for (uint32_t i = 0; i < m_pushedStates.Count(); ++i) {
+            auto& pushed = m_pushedStates[i];
+            if ((pushed.m_which == GxRs_VertexShader || pushed.m_which == GxRs_PixelShader) && pushed.m_value.m_data.p == shader)
+                pushed.m_value.m_data.p = nullptr;
+        }
+    }
+#endif
     if (shader->m_target == GxSh_Vertex) {
         if (shader->m_refCount == 1) {
             if (shader->m_apiSpecific) {
@@ -885,14 +1005,20 @@ void CGxDeviceD3d::ShaderDestroy(CGxShader*& shader) {
     CGxDevice::ShaderDestroy(shader);
 }
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceUnk81(uint32_t a, uint32_t b) {
 }
+#endif
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceUnk82() {
 }
+#endif
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceUnk83(uint32_t a, uint32_t b) {
 }
+#endif
 
 // VERIFY: 3b44d011 manual
 // OFFSET: 0x006A3720
@@ -1618,6 +1744,9 @@ void CGxDeviceD3d::ISetTexGen(uint32_t tmu, int32_t texGen) {
 // VERIFY: 1b818712 manual
 // OFFSET: 0x006A4C30
 void CGxDeviceD3d::IRsSendToHw(EGxRenderState which) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     CGxStateBom& value = this->m_appRenderStates[which].m_value;
 
     switch (which) {
@@ -2266,6 +2395,7 @@ void CGxDeviceD3d::ISetPresentParms(D3DPRESENT_PARAMETERS& d3dpp, const CGxForma
 
 // VERIFY: 284cb5b4 manual
 // OFFSET: 0x0068EB20
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 static ATOM WindowClassCreate() {
     HINSTANCE instance = GetModuleHandleA(nullptr);
 
@@ -2285,9 +2415,11 @@ static ATOM WindowClassCreate() {
 
     return RegisterClassExA(&windowClass);
 }
+#endif
 
 // VERIFY: 9db942aa manual
 // OFFSET: 0x0068EBB0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::ICreateWindow(CGxFormat& format) {
     HINSTANCE instance = GetModuleHandleA(nullptr);
     DWORD style;
@@ -2375,6 +2507,7 @@ int32_t CGxDeviceD3d::ICreateWindow(CGxFormat& format) {
 
     return this->m_hwnd != nullptr;
 }
+#endif
 
 // VERIFY: d94c29eb manual
 // OFFSET: 0x0068EE20
@@ -2555,6 +2688,7 @@ static void DefaultTexUserFunc(EGxTexCommand command, uint32_t width, uint32_t h
 
 // VERIFY: ee744ef0 manual
 // OFFSET: 0x0068F3D0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::ICreateD3dDevice(const CGxFormat& format) {
     if (NvAPI_Initialize() == NVAPI_OK) {
         this->m_d3dStereoEnabled = 0;
@@ -2655,6 +2789,7 @@ int32_t CGxDeviceD3d::ICreateD3dDevice(const CGxFormat& format) {
 
     return 1;
 }
+#endif
 
 // VERIFY: 7e7b165d manual
 // OFFSET: 0x00690150
@@ -2691,13 +2826,16 @@ void CGxDeviceD3d::IReleaseD3dResources(int32_t freeTextures) {
 
     this->IReleaseD3dQueries();
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
     if (this->m_d3dDevice) {
         this->m_d3dDevice->ShowCursor(FALSE);
     }
+#endif
 }
 
 // VERIFY: 2f85a8b3 manual
 // OFFSET: 0x00690230
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::DeviceWM(EGxWM wm, uintptr_t param1, uintptr_t param2) {
     switch (wm) {
         case GxWM_Size:
@@ -2754,9 +2892,11 @@ int32_t CGxDeviceD3d::DeviceWM(EGxWM wm, uintptr_t param1, uintptr_t param2) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 53945590 manual
 // OFFSET: 0x006903B0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::IDestroyD3d() {
     for (uint32_t i = 0; i < 2; i++) {
         if (CGxDevice::s_uiVertexShader[i]) {
@@ -2806,9 +2946,11 @@ void CGxDeviceD3d::IDestroyD3d() {
         }
     }
 }
+#endif
 
 // VERIFY: fc602985 manual
 // OFFSET: 0x006904D0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::DeviceSetFormat(const CGxFormat& format) {
     CGxDevice::Log("CGxDeviceD3d::DeviceSetFormat():");
     this->Log(format);
@@ -2844,9 +2986,11 @@ int32_t CGxDeviceD3d::DeviceSetFormat(const CGxFormat& format) {
 
     return 0;
 }
+#endif
 
 // VERIFY: 1b01f8e3 manual
 // OFFSET: 0x006905F0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::DeviceDestroy() {
     CGxDevice::DeviceDestroy();
 
@@ -2872,9 +3016,11 @@ void CGxDeviceD3d::DeviceDestroy() {
         this->m_d3dLib = nullptr;
     }
 }
+#endif
 
 // VERIFY: cbd2d003 manual
 // OFFSET: 0x00690680
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::ICreateD3d() {
     if (CGxDeviceD3d::ILoadD3dLib(this->m_d3dLib, this->m_d3d) && SUCCEEDED(this->m_d3d->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &this->m_d3dCaps))) {
         if (this->m_desktopDisplayMode.Format) {
@@ -2894,9 +3040,11 @@ int32_t CGxDeviceD3d::ICreateD3d() {
 
     return 0;
 }
+#endif
 
 // VERIFY: a236ad1a auto
 // OFFSET: 0x00690750
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::DeviceCreate(GxWindowProc windowProc, const CGxFormat& format) {
     this->m_ownhwnd = 1;
 
@@ -2925,9 +3073,11 @@ int32_t CGxDeviceD3d::DeviceCreate(GxWindowProc windowProc, const CGxFormat& for
     this->DeviceDestroy();
     return 0;
 }
+#endif
 
 // VERIFY: 9f23f35b auto
 // OFFSET: 0x00690830
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 int32_t CGxDeviceD3d::DeviceCreate(void* window, const CGxFormat& format) {
     this->m_ownhwnd = 0;
     CGxDevice::DeviceCreate(window, format);
@@ -2940,6 +3090,7 @@ int32_t CGxDeviceD3d::DeviceCreate(void* window, const CGxFormat& format) {
     this->DeviceDestroy();
     return 0;
 }
+#endif
 
 // VERIFY: 64f9b1e2 manual
 // OFFSET: 0x006A1690
@@ -2965,6 +3116,7 @@ void CGxDeviceD3d::IReleaseD3dPools(int32_t freePools) {
 
 // VERIFY: edfb05c2 manual
 // OFFSET: 0x006A2AA0
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::ITexForceRecreation(int32_t all) {
     for (CGxTex* texId = this->m_textures.Head(); texId; texId = this->m_textures.Next(texId)) {
         if (!texId->m_apiSpecificData || !(all || texId->m_flags.m_renderTarget)) {
@@ -2991,10 +3143,30 @@ void CGxDeviceD3d::ITexForceRecreation(int32_t all) {
         this->NotifyOnTextureRecreation();
     }
 }
+#endif
 
 // VERIFY: d8c0bcf5 auto
 // OFFSET: 0x006A2BB0
 void CGxDeviceD3d::TexDestroy(CGxTex* texId) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (m_nativeUpload) throw std::logic_error("Texture destruction during a D3D9 upload callback");
+    if (!texId) return;
+    for (uint32_t i = 0; i < 2; ++i)
+        if (m_textureTarget[i].m_texture == texId) DeviceSetRenderTarget(static_cast<EGxBuffer>(i), nullptr, 0);
+    for (uint32_t i = GxRs_Texture0; i <= GxRs_Texture15; ++i) {
+        auto which = static_cast<EGxRenderState>(i);
+        if (m_appRenderStates[i].m_value.m_data.p == texId) RsSet(which, nullptr);
+        if (m_hwRenderStates[i].m_data.p == texId) m_hwRenderStates[i].m_data.p = nullptr;
+    }
+    for (uint32_t i = 0; i < m_pushedStates.Count(); ++i) {
+        auto& pushed = m_pushedStates[i];
+        if (pushed.m_which >= GxRs_Texture0 && pushed.m_which <= GxRs_Texture15 && pushed.m_value.m_data.p == texId)
+            pushed.m_value.m_data.p = nullptr;
+    }
+#endif
     if (!texId->m_needsCreation && (texId->m_apiSpecificData || texId->m_apiSpecificData2)) {
         static_cast<IDirect3DBaseTexture9*>(texId->m_apiSpecificData)->Release();
         texId->m_apiSpecificData = nullptr;
@@ -3079,6 +3251,9 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
     int32_t compressed = texId->m_dataFormat >= GxTex_Dxt1 && texId->m_dataFormat <= GxTex_Dxt5;
     uint32_t faceCount = texId->m_target == GxTex_CubeMap ? GxTexCubeFaces_Last : 1;
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    try {
+#endif
     for (uint32_t face = 0; face < faceCount; face++) {
         uint32_t mipWidth = width;
         uint32_t mipHeight = height;
@@ -3089,6 +3264,12 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
             texId->m_userFunc(GxTex_Latch, mipWidth, mipHeight, face, mip, texId->m_userArg, texelStrideInBytes, texels);
 
             if (texels && !texId->m_flags.m_renderTarget) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                const uint64_t rowBytes = compressed
+                    ? ((uint64_t(mipWidth) + 3) / 4) * s_texFormatBytesPerBlock[texId->m_dataFormat]
+                    : (uint64_t(mipWidth) * s_texFormatBitDepth[texId->m_dataFormat] + 7) / 8;
+                if (rowBytes > texelStrideInBytes) throw std::runtime_error("D3D9 texture callback stride is too small");
+#endif
                 IDirect3DSurface9* surface = nullptr;
                 HRESULT result;
 
@@ -3099,7 +3280,11 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
                 }
 
                 if (FAILED(result)) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                    throw std::runtime_error("DXVK texture surface/LockRect failed");
+#else
                     goto done;
+#endif
                 }
 
                 RECT rect;
@@ -3126,7 +3311,11 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
                 D3DLOCKED_RECT lockedRect;
                 if (FAILED(surface->LockRect(&lockedRect, &rect, 0))) {
                     surface->Release();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                    throw std::runtime_error("DXVK texture surface/LockRect failed");
+#else
                     goto done;
+#endif
                 }
 
                 const uint8_t* src = static_cast<const uint8_t*>(texels);
@@ -3163,7 +3352,15 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
         }
     }
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    } catch (...) {
+        texels = nullptr;
+        texId->m_userFunc(GxTex_Unlock, texId->m_width, texId->m_height, 0, 0, texId->m_userArg, texelStrideInBytes, texels);
+        throw;
+    }
+#else
 done:
+#endif
     texels = nullptr;
     texId->m_userFunc(GxTex_Unlock, texId->m_width, texId->m_height, 0, 0, texId->m_userArg, texelStrideInBytes, texels);
 
@@ -3175,6 +3372,12 @@ done:
 // VERIFY: e0a4f6e8 manual
 // OFFSET: 0x006A3070
 void CGxDeviceD3d::ITexMarkAsUpdated(CGxTex* texId) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (m_nativeUpload) throw std::logic_error("Recursive D3D9 texture upload");
+#endif
     if (!texId->m_needsUpdate || !this->m_context) {
         return;
     }
@@ -3185,7 +3388,14 @@ void CGxDeviceD3d::ITexMarkAsUpdated(CGxTex* texId) {
 
     if (!texId->m_needsCreation && (texId->m_apiSpecificData || texId->m_apiSpecificData2)) {
         if (texId->m_userFunc) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+            m_nativeUpload = texId;
+            try { this->ITexUpload(texId); }
+            catch (...) { m_nativeUpload = nullptr; throw; }
+            m_nativeUpload = nullptr;
+#else
             this->ITexUpload(texId);
+#endif
         }
 
         CGxDevice::ITexMarkAsUpdated(texId);
@@ -3226,6 +3436,7 @@ void CGxDeviceD3d::ISceneBegin() {
 
 // VERIFY: 677ac69d manual
 // OFFSET: 0x006A3450
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::ScenePresent() {
     if (this->m_context) {
         int32_t scrShotClick = this->m_scrShotClick;
@@ -3282,10 +3493,14 @@ void CGxDeviceD3d::ScenePresent() {
 
     this->ISceneBegin();
 }
+#endif
 
 // VERIFY: ada703ca manual
 // OFFSET: 0x006A3620
 void CGxDeviceD3d::Draw(CGxBatch* batch, int32_t count) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context || this->m_intF5C) {
         return;
     }
@@ -3395,6 +3610,9 @@ void CGxDeviceD3d::IReleaseD3dShaders(int32_t freeShaders) {
 // VERIFY: fca6a4dc manual
 // OFFSET: 0x006A74B0
 void CGxDeviceD3d::SceneClear(uint32_t mask, CImVector color) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return;
     }
@@ -3421,6 +3639,7 @@ void CGxDeviceD3d::DeviceSetBaseMipLevel(uint32_t level) {
 
 // VERIFY: bc1bdcba manual
 // OFFSET: 0x006A0360
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 LRESULT CALLBACK CGxDeviceD3d::WindowProcD3d(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
     CGxDeviceD3d* device = reinterpret_cast<CGxDeviceD3d*>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
 
@@ -3608,10 +3827,14 @@ LRESULT CALLBACK CGxDeviceD3d::WindowProcD3d(HWND hwnd, UINT message, WPARAM wpa
 
     return DefWindowProcA(hwnd, message, wparam, lparam);
 }
+#endif
 
 // VERIFY: d4889697 auto
 // OFFSET: 0x0068E510
 void CGxDeviceD3d::DeviceSaveDepthSurface() {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return;
     }
@@ -3623,6 +3846,9 @@ void CGxDeviceD3d::DeviceSaveDepthSurface() {
 // VERIFY: 50a84e81 auto
 // OFFSET: 0x0068E540
 void CGxDeviceD3d::DeviceRestoreDepthSurface() {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return;
     }
@@ -3651,7 +3877,11 @@ void CGxDeviceD3d::LogCrashInfo(char* buffer, uint32_t size) {
 
         SStrPrintf(line, sizeof(line), "  Driver: %s\r\n", identifier.Driver);
         SStrPack(buffer, line, size);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        SStrPrintf(line, sizeof(line), "  Version: %d.%d.%04d.%04d\r\n", (uint32_t(identifier.DriverVersion.HighPart) >> 16), (uint32_t(identifier.DriverVersion.HighPart) & 0xffff), (uint32_t(identifier.DriverVersion.LowPart) >> 16), (uint32_t(identifier.DriverVersion.LowPart) & 0xffff));
+#else
         SStrPrintf(line, sizeof(line), "  Version: %d.%d.%04d.%04d\r\n", HIWORD(identifier.DriverVersion.HighPart), LOWORD(identifier.DriverVersion.HighPart), HIWORD(identifier.DriverVersion.LowPart), LOWORD(identifier.DriverVersion.LowPart));
+#endif
         SStrPack(buffer, line, size);
         SStrPrintf(line, sizeof(line), "  Description: %s\r\n", identifier.Description);
         SStrPack(buffer, line, size);
@@ -3688,6 +3918,9 @@ void CGxDeviceD3d::ICreateReadbackSurface() {
 // VERIFY: 7f0e0e27 manual
 // OFFSET: 0x0068F770
 void CGxDeviceD3d::DeviceSetRenderTarget(EGxBuffer buffer, CGxTex* texture, uint32_t plane) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return;
     }
@@ -3750,6 +3983,9 @@ void CGxDeviceD3d::DeviceSetRenderTarget(EGxBuffer buffer, CGxTex* texture, uint
 // VERIFY: 312f9bf5 auto
 // OFFSET: 0x0068F900
 void CGxDeviceD3d::DeviceResolveDepthBuffer(CGxTex* texture) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return;
     }
@@ -3764,6 +4000,9 @@ void CGxDeviceD3d::DeviceResolveDepthBuffer(CGxTex* texture) {
 // VERIFY: 956c292e manual
 // OFFSET: 0x0068F950
 void CGxDeviceD3d::DeviceCopyTex(CGxTex* source, uint32_t sourcePlane, CGxTex* dest, uint32_t destPlane) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     LPDIRECT3DSURFACE9 sourceSurface = nullptr;
     LPDIRECT3DSURFACE9 destSurface = nullptr;
 
@@ -3812,12 +4051,17 @@ void CGxDeviceD3d::DeviceCopyTex(CGxTex* source, uint32_t sourcePlane, CGxTex* d
 
 // VERIFY: 6d2fe3bf manual
 // OFFSET: 0x0068FE80
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 CGxDeviceD3d::~CGxDeviceD3d() {
 }
+#endif
 
 // VERIFY: 36fbe9bf manual
 // OFFSET: 0x0068FED0
 void CGxDeviceD3d::DeviceReadPixels(CiRect& rect, TSGrowableArray<CImVector>& pixels) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     this->ClampRectToWindow(rect);
 
     uint32_t height = rect.maxY - rect.minY;
@@ -3945,6 +4189,9 @@ void CGxDeviceD3d::DeviceReadDepths(CiRect& rect, TSGrowableArray<float>& depths
 // VERIFY: de151551 manual
 // OFFSET: 0x006A30D0
 int32_t CGxDeviceD3d::TexCopy(CGxTex* dest, const C2iVector& destPos, const C2iVector& sourcePos, const C2iVector& size, uint32_t level, uint32_t plane) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return 0;
     }
@@ -3980,6 +4227,9 @@ int32_t CGxDeviceD3d::TexCopy(CGxTex* dest, const C2iVector& destPos, const C2iV
 // VERIFY: 3b8d3c9e manual
 // OFFSET: 0x006A31E0
 int32_t CGxDeviceD3d::TexStretch(CGxTex* dest, const CiRect* destRect, const CiRect* sourceRect, uint32_t level, uint32_t face) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    this->NativeCheckOwner();
+#endif
     if (!this->m_context) {
         return 0;
     }
@@ -4037,6 +4287,7 @@ int32_t CGxDeviceD3d::TexStretch(CGxTex* dest, const CiRect* destRect, const CiR
 
 // VERIFY: 1aeb3daa auto
 // OFFSET: 0x006A5D50
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 void CGxDeviceD3d::IShaderReload(CGxShader* shader, const char* path, const char* name) {
     switch (shader->m_target) {
         case GxSh_Vertex:
@@ -4071,6 +4322,7 @@ void CGxDeviceD3d::IShaderReload(CGxShader* shader, const char* path, const char
             break;
     }
 }
+#endif
 
 // VERIFY: ddea5205 auto
 // OFFSET: 0x006A7940

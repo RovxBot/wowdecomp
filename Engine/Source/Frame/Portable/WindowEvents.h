@@ -1,6 +1,7 @@
 #ifndef WOWDECOMP_NATIVE_FRAME_WINDOW_EVENTS_H
 #define WOWDECOMP_NATIVE_FRAME_WINDOW_EVENTS_H
 #include "Engine/Source/Os/Input.h"
+namespace OsNative { class Window; }
 namespace Gx { namespace Native { class GlContext; }}
 namespace Frame { namespace Native {
 // Call after Window::Pump/OsQueueGet, before root update/render. The caller keeps
@@ -9,6 +10,7 @@ namespace Frame { namespace Native {
 // than replay stale event dimensions. Zero-sized drawables wait for a later event.
 // Root, device and context must be live on their owner, outside all traversals.
 bool DispatchWindowEvent(Gx::Native::GlContext&, const OSEVENT&);
+bool DispatchWindowEvent(OsNative::Window&, const OSEVENT&);
 // Committed Unicode text, keys, pointer move/buttons/wheel/relative, capture loss,
 // focus and UTF-8 IME. Pointer coordinates use logical pixels, not drawable size.
 // Dispatch IME immediately after OsQueueGet, before any further dequeue; OsIME
@@ -18,5 +20,6 @@ bool DispatchWindowEvent(Gx::Native::GlContext&, const OSEVENT&);
 // propagate to other consumers. This does not install Lua/XML input factories.
 enum class InputResult { Unsupported, Unhandled, Handled };
 InputResult DispatchInputEvent(Gx::Native::GlContext&, const OSEVENT&);
+InputResult DispatchInputEvent(OsNative::Window&, const OSEVENT&);
 }}
 #endif

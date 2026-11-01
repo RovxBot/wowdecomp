@@ -6,7 +6,11 @@
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Services/Portable/LegacyFiles.h"
 #include "Engine/Source/Services/Portable/Texture.h"
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
+#else
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
+#endif
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
@@ -34,12 +38,14 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <sys/resource.h>
 #include "StartupLocale.h"
 #include "HtmlSource.h"
 #include "LoopScriptErrors.h"
+#include "ShaderSource.h"
 using Bytes = std::vector<uint8_t>;
 using namespace Services::Native;
 namespace {
@@ -111,6 +117,14 @@ struct Source {
             throw std::runtime_error("Original member read failed: " + path + ": " + result->error);
         return std::move(result->file.bytes);
     }
+    std::optional<Bytes> ReadShader(const std::string& path) {
+        auto result = std::make_shared<ReadResult>();
+        auto ticket = queue.ReadPackage(packages, path, [result](const ReadResult& value) { *result = value; });
+        if (!queue.Wait(ticket, std::chrono::seconds(60))) throw std::runtime_error("Shader package read timeout: " + path);
+        if (MissingShaderRead(*result, path)) return std::nullopt;
+        if (result->status != ReadStatus::Success) throw std::runtime_error("Original shader read failed: " + path + ": " + result->error);
+        return std::move(result->file.bytes);
+    }
 };
 int Update(const void* raw, void* root) {
     static_cast<CSimpleTop*>(root)->OnLayerUpdate(static_cast<const EVENT_DATA_UPDATE*>(raw)->m_elapsedSec);
@@ -122,12 +136,33 @@ int PollImages(const void*, void* images) {
 struct PaintContext {
     CSimpleTop& root;
     uint64_t scriptErrors = FrameScript::Native::ScriptErrorCount();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    std::string snapshot;
+#endif
 };
 int Paint(const void*, void* raw) {
     auto& paint = *static_cast<PaintContext*>(raw);
     CheckLoopScriptErrors(paint.scriptErrors);
     GxSceneClear(GxBufferBit_Color, CImVector(0, 0, 0, 255));
-    paint.root.OnLayerRender(); GxScenePresent(); return 1;
+    paint.root.OnLayerRender();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!paint.snapshot.empty()) {
+        const auto& rect = g_theGxDevicePtr->DeviceCurWindow();
+        const uint32_t width = uint32_t(rect.maxX), height = uint32_t(rect.maxY);
+        CiRect area{0, 0, int32_t(height), int32_t(width)};
+        TSGrowableArray<CImVector> pixels;
+        g_theGxDevicePtr->DeviceReadPixels(area, pixels);
+        if (uint64_t(width) * height != pixels.Count()) throw std::runtime_error("Snapshot readback failed");
+        std::ofstream file(paint.snapshot, std::ios::binary);
+        file << "P6\n" << width << ' ' << height << "\n255\n";
+        for (uint32_t i = 0; i < pixels.Count(); ++i) {
+            const auto& p = pixels[i]; const char rgb[]{char(p.r), char(p.g), char(p.b)}; file.write(rgb, 3);
+        }
+        if (!file) throw std::runtime_error("Snapshot write failed");
+        paint.snapshot.clear();
+    }
+#endif
+    GxScenePresent(); return 1;
 }
 struct LoopHandlers {
     PaintContext paint;
@@ -148,7 +183,7 @@ struct LoopHandlers {
         EventUnregister(EVENT_ID_PAINT, Paint);
     }
 };
-void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden) {
+void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden, const std::string& snapshot) {
     Source source(paths);
     LegacyFiles modelFiles(source.queue, source.packages);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
@@ -160,9 +195,17 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     // CVar strings close before XML's shared CStringManager and VM.
     Settings settings(paths);
     Events events;
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    OsNative::Window window("Waystone — original 12340 startup (DXVK)", 1024, 768, hidden, OsNative::WindowGraphics::Vulkan);
+    CGxDeviceD3d device(window, [&](const std::string& path) { return source.ReadShader(path); });
+    std::cout << "gx-backend=DXVK_NATIVE_SDL3 vertex-constants=" << device.Caps().m_shaderConstants[GxSh_Vertex]
+              << " texture-units=" << device.Caps().m_numTmus << std::endl;
+#else
     Gx::Native::GlContext context("Waystone — original 12340 startup", 1024, 768, hidden);
     std::cout << "gl-renderer=" << context.Info().renderer << "\ngl-version=" << context.Info().version << std::endl;
     Gx::Native::LegacyDevice device(context, [&](const std::string& path) { return source.Read(path); });
+    auto& window = context.Window();
+#endif
     CoordinateSetAspectRatio(1024.0f / 768.0f);
     GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_Culling, 0);
     Frame::Native::Runtime layout(GlueNative::FrameLevelLimit);
@@ -196,12 +239,15 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
         LoopHandlers handlers(root, images, modelFiles);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        handlers.paint.snapshot = snapshot;
+#endif
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
-            context.Window().Pump(); OSEVENT event;
+            window.Pump(); OSEVENT event;
             while (OsQueueGet(&event.id, &event.param[0], &event.param[1], &event.param[2], &event.param[3])) {
                 if (event.id == OS_INPUT_CLOSE || event.id == OS_INPUT_SHUTDOWN) EventPostClose();
-                else if (!Frame::Native::DispatchWindowEvent(context, event)) Frame::Native::DispatchInputEvent(context, event);
+                else if (!Frame::Native::DispatchWindowEvent(window, event)) Frame::Native::DispatchInputEvent(window, event);
             }
             CheckLoopScriptErrors(handlers.paint.scriptErrors);
             const auto now = OsGetAsyncTimeMs();
@@ -217,26 +263,43 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
 }
 int main(int argc, char** argv) {
     try {
-        std::string data, settings, cache; uint32_t frames = 0; bool hidden = false;
+        std::string data, settings, cache, snapshot; uint32_t frames = 0; bool hidden = false;
         for (int i = 1; i < argc; ++i) {
             std::string option = argv[i];
             if (option == "--hidden") { hidden = true; continue; }
             if (i + 1 == argc) throw std::invalid_argument("Missing option value");
             std::string value = argv[++i];
+#if defined(WOWDECOMP_NATIVE_D3D9)
+            if (option == "--snapshot") { snapshot = value; continue; }
+#endif
             if (option == "--data") data = value;
             else if (option == "--settings") settings = value;
             else if (option == "--cache") cache = value;
+            else if (option == "--renderer") {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                if (value != "dxvk") throw std::invalid_argument("This client requires --renderer dxvk");
+#else
+                if (value != "opengl") throw std::invalid_argument("DXVK is unavailable in this archived client build");
+#endif
+            }
             else if (option == "--frames") { size_t used; auto count = std::stoul(value, &used); if (used != value.size() || count > 10000000) throw std::invalid_argument("Invalid frame limit"); frames = uint32_t(count); }
             else throw std::invalid_argument("Unknown native client option: " + option);
         }
         if (data.empty() || settings.empty() || cache.empty()) throw std::invalid_argument("Supply separate --data, --settings and --cache roots");
         ProtectInstallations(data, settings, cache);
+        if (!snapshot.empty()) {
+            ProtectInstallations(data, std::filesystem::absolute(snapshot).string(), cache);
+            snapshot = std::filesystem::absolute(snapshot).string();
+        }
         Blizzard::File::Native::Paths paths;
         if (!Blizzard::File::Native::ConfigurePaths(data.c_str(), settings.c_str(), cache.c_str(), paths))
             throw std::invalid_argument("Data/settings/cache roots must be separate");
         std::filesystem::current_path(paths.settings);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        if (SDL_setenv_unsafe("DXVK_WSI_DRIVER", "SDL3", 1)) throw std::runtime_error("Cannot select DXVK SDL3 WSI");
+#endif
         Runtime runtime;
-        Run(paths, frames, hidden);
+        Run(paths, frames, hidden, snapshot);
         if (OsLiveThreadCount()) throw std::runtime_error("Native startup left workers alive");
         std::cout << "startup-shutdown=complete workers=0" << std::endl;
         return 0;

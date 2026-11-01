@@ -17,13 +17,14 @@ def digest(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--client', action='store_true', help='Build the integrated original D3D9 client and its focused contracts')
     parser.add_argument('--sanitizers', action='store_true')
     parser.add_argument('--software-driver', action='store_true', help='Build the pinned CI-only lavapipe driver')
     args = parser.parse_args()
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('All client/dependency compilation must run in GitHub Actions.')
     root = Path(__file__).resolve().parents[2]
-    mode = 'linux-d3d9-asan' if args.sanitizers else 'linux-d3d9'
+    mode = ('linux-client-d3d9' if args.client else 'linux-d3d9') + ('-asan' if args.sanitizers else '')
     work = root / 'build' / mode
     output = root / 'artifacts' / mode
     work.mkdir(parents=True, exist_ok=True)
@@ -33,7 +34,7 @@ def main():
     pins = json.loads((root / 'Tools/NativeD3D9/dependencies.json').read_text())
     environment = os.environ.copy()
     environment.update(CC='clang', CXX='clang++', PKG_CONFIG_PATH=str(prefix / 'lib/pkgconfig'),
-                       LD_LIBRARY_PATH=str(prefix / 'lib'), SDL_VIDEODRIVER='x11',
+                       LD_LIBRARY_PATH=str(prefix / 'lib'), SDL_VIDEODRIVER='x11', DXVK_WSI_DRIVER='SDL3',
                        ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
                        UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
                        DXVK_LOG_PATH=str(output), XDG_CACHE_HOME=str(work / 'cache'))
@@ -43,7 +44,9 @@ def main():
         workflow_attempt=os.environ.get('GITHUB_RUN_ATTEMPT'),
         preset=mode, target_os='LINUX', target_cpu='X86_64', backend='DXVK_NATIVE_SDL3',
         dependencies=pins, status='building',
-        scope='authored standalone ABI/WSI fixture; no original Gx/data/login/gameplay qualification')
+        signatures='required',
+        scope=('integrated original D3D9 client; authored contracts, original-data evidence separate' if args.client else
+               'authored standalone ABI/WSI fixture; no original Gx/data/login/gameplay qualification'))
 
     def run(name, command, cwd=root):
         with (output / (name + '.log')).open('w') as log:
@@ -52,8 +55,9 @@ def main():
             for line in process.stdout:
                 print(line, end='', flush=True)
                 log.write(line)
-            if process.wait():
-                raise RuntimeError(name + ' failed')
+            result = process.wait()
+            if result:
+                raise RuntimeError(name + ' failed (exit ' + str(result) + ')')
 
     try:
         for pin in pins:  # Parent DXVK must precede its submodule destinations.
@@ -146,6 +150,24 @@ def main():
         shutil.copy2(sources / 'dxvk/src/wsi/sdl3/wsi_platform_sdl3_funcs.h', notices / 'DXVK-SDL3-adapted.h')
         for patch in patches:
             shutil.copy2(patch, notices / patch.name)
+        if args.client:
+            run('client-configure', ['cmake', '--preset', mode, '-B', str(work / 'client'),
+                '-DCMAKE_C_FLAGS=' + flags, '-DCMAKE_CXX_FLAGS=' + flags])
+            run('client-compile', ['cmake', '--build', str(work / 'client'), '--target',
+                'WowNativeClient', 'NativeD3d9ClientCheck', '--parallel', '4'])
+            for name in ['WowNativeClient', 'NativeD3d9ClientCheck']:
+                shutil.copy2(work / 'client/bin' / name, output / name)
+            for source, name in [('ThirdParty/bzip2/LICENSE', 'bzip2-LICENSE.txt'),
+                    ('Engine/Source/lua-5.1/COPYRIGHT', 'Lua-LICENSE.txt'),
+                    ('ThirdParty/expat/COPYING', 'Expat-LICENSE.txt'),
+                    ('ThirdParty/freetype/docs/FTL.txt', 'FreeType-LICENSE.txt'),
+                    ('ThirdParty/freetype/docs/NATIVE_ADAPTATIONS.md', 'FreeType-NATIVE_ADAPTATIONS.md')]:
+                shutil.copy2(root / source, notices / name)
+            for source, name in [('ThirdParty/zlib/zlib.h', 'zlib-NOTICE.txt'),
+                    ('ThirdParty/zlib/contrib/blast/blast.h', 'blast-NOTICE.txt'),
+                    ('ThirdParty/lzma/LzmaDecode.c', 'LZMA-NOTICE.txt')]:
+                content = (root / source).read_text()
+                (notices / name).write_text(content[:content.index('*/') + 2] + '\n')
         environment['LD_LIBRARY_PATH'] = str(output / 'lib')
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         if args.software_driver:
@@ -191,8 +213,11 @@ def main():
             shutil.copy2(mesa_source / 'docs/license.rst', notices / 'Mesa-CI-driver-license.rst')
             shutil.copy2(driver_patch, notices / driver_patch.name)
             shutil.copy2(mesa_source / 'src/gallium/frontends/lavapipe/lvp_execute.c', notices / 'Mesa-CI-lvp-execute-adapted.c')
-        run('vulkan-driver', ['vulkaninfo', '--summary'])
-        run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
+        display = ['xvfb-run', '-a', '-s', '-screen 0 1280x1024x24'] if args.client else []
+        run('vulkan-driver', display + ['vulkaninfo', '--summary'])
+        run('contracts', display + [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
+        if args.client:
+            run('original-gx-client-contracts', display + [str(output / 'NativeD3d9ClientCheck')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])
         manifest['status'] = 'build-and-contracts-passed'
     except Exception as error:

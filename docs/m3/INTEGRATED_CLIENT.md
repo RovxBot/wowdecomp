@@ -3,6 +3,10 @@
 The opt-in `WOWDECOMP_BUILD_NATIVE_CLIENT` target `WowNativeClient` and
 `linux-client` / `linux-client-asan` presets connect qualified native archives,
 retained reads, SDL/Gx/Gxu, original FrameScript/XML/layout/Frame and images.
+The separate `linux-client-d3d9` / `linux-client-d3d9-asan` presets select the
+original D3D9 Gx implementation through shared SDL3/DXVK Native, with no GL
+context or fallback. [Build/run contract and limits](DXVK_NATIVE.md#original-client-integration);
+current original-data acceptance and blockers stay in [#133](https://github.com/RovxBot/wowdecomp/issues/133).
 All compilation runs in Actions; Windows remains a separate regression target.
 
 The native ScanDLL Lua bindings use the existing Glue script-service owner.

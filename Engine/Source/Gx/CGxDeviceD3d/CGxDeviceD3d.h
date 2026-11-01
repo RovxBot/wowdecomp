@@ -3,7 +3,15 @@
 
 #include <cstddef>
 #include <cstdint>
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include "Engine/Source/Os/Portable/Window.h"
+#include <functional>
+#include <optional>
+#include <string>
+#include <vector>
+#else
 #include <windows.h>
+#endif
 #include <d3d9.h>
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Storm/H/stpl.h"
@@ -205,7 +213,11 @@ class CGxDeviceD3d : public CGxDevice {
     };
 
     /* 3968 */ HWND m_hwnd;
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    uint16_t m_hwndClass; // No Win32 window class in the native ABI.
+#else
     /* 396C */ ATOM m_hwndClass;
+#endif
     /* 396E */ uint16_t unused_396E;
     /* 3970 */ int32_t m_ownhwnd;
     /* 3974 */ HINSTANCE m_d3dLib;
@@ -321,11 +333,26 @@ class CGxDeviceD3d : public CGxDevice {
     static const D3DDECLUSAGE s_gxAttribToD3dAttribUsage[GxVAs_Last];
     static const uint32_t s_gxAttribToD3dAttribUsageIndex[GxVAs_Last];
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
     static int32_t ILoadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d);
     static void IUnloadD3dLib(HINSTANCE& d3dLib, LPDIRECT3D9& d3d);
     static LRESULT CALLBACK WindowProcD3d(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
     CGxDeviceD3d();
+#else
+    // Native adaptation of the original 12340 renderer, not a Windows layout.
+    using ShaderBytes = std::function<std::optional<std::vector<uint8_t>>(const std::string&)>;
+    CGxDeviceD3d(OsNative::Window& window, ShaderBytes shaders);
+    void NativeCheckOwner() const override;
+    void NativeSyncTransforms() override;
+    void NativeBufDestroy(CGxBuf*) override;
+    void RetainShader(CGxShader*);
+    void AbortBufferWrite(CGxBuf*);
+    OsNative::Window& NativeWindow() const { NativeCheckOwner(); return *m_nativeWindow; }
+    OsNative::Window* m_nativeWindow = nullptr;
+    ShaderBytes m_nativeShaders;
+    CGxTex* m_nativeUpload = nullptr;
+#endif
     virtual ~CGxDeviceD3d();
     void DsSet(EDeviceState state, uint32_t value);
     int32_t ICheckDepthStencilFormat(D3DFORMAT format);
