@@ -90,6 +90,10 @@ void Stream(void (*pump)()) {
     Require(poll(&readable, 1, 1000) == 1, "Fixture reply did not become readable");
     pump();
     Require(response.events == std::vector<int>({1, 6, 4}) && response.stream == std::vector<uint8_t>{0xa5}, "Original write/read callback ordering changed");
+    // Write-ready means accepted by the sender kernel, not yet visible to
+    // the nonblocking peer on every OS. Wait for peer readiness explicitly.
+    pollfd sent{peer.stream.value, POLLIN, 0};
+    Require(poll(&sent, 1, 1000) == 1, "Fixture first send did not become readable");
     Require(recv(peer.stream.value, &first, 1, 0) == 1 && first == 0x77, "Fixture first send missing");
     response.stream.clear();
     // Exhaust kernel space without reading; every byte must remain queued once.
