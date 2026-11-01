@@ -223,7 +223,9 @@ void WowConnection::NativePoll(short readiness) {
     }
     if (m_connState != WOWC_CONNECTED) return;
     const auto generation = m_native->generation;
-    if (readiness & (POLLIN | POLLHUP | POLLERR | POLLNVAL)) DoReads();
+    // A bounded previous read can leave a complete frame in user storage
+    // after consuming all kernel bytes. Service it without another fd edge.
+    if ((readiness & (POLLIN | POLLHUP | POLLERR | POLLNVAL)) || (m_type == WOWC_TYPE_MESSAGES && m_readBytes)) DoReads();
     if (m_native->generation == generation && m_connState == WOWC_CONNECTED && (readiness & POLLOUT)) DoWrites();
 }
 WC_SEND_RESULT WowConnection::SendPacket(CDataStore* msg, int32_t) {

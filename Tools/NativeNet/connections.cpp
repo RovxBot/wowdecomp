@@ -84,7 +84,7 @@ void Stream(void (*pump)()) {
     Peer peer; Response response; Connection c(response); c.value->SetType(WOWC_TYPE_STREAM);
     Connect(pump, c, response, peer);
     // Exhaust kernel space without reading; every byte must remain queued once.
-    int small = 1024; Require(!setsockopt(c.value->m_sock, SOL_SOCKET, SO_SNDBUF, &small, sizeof(small)), "Fixture send buffer failed");
+    int small = 16384; Require(!setsockopt(c.value->m_sock, SOL_SOCKET, SO_SNDBUF, &small, sizeof(small)), "Fixture send buffer failed");
     std::vector<uint8_t> bytes(512 * 1024);
     for (size_t i = 0; i < bytes.size(); ++i) bytes[i] = uint8_t(i * 73);
     Require(c.value->Send(bytes.data(), bytes.size(), true) == WC_SEND_QUEUED, "Original stream send failed");
@@ -147,8 +147,16 @@ void Frames(void (*pump)(), bool encrypted, bool large) {
     std::copy(payload.begin(), payload.end(), expected.begin() + header);
     if (encrypted) SARC4ProcessBuffer(expected.data(), header + 4, &outbound, &outbound);
     Require(received == expected, "12340 framed send/encrypted opcode width changed");
-    // Coalesced frames: exactly once, in order, before EOF.
+    // Drain a burst beyond the per-poll budget without a later readiness
+    // edge. Include empty frames so even a header alone can finish a frame.
     if (!encrypted) {
+        std::vector<uint8_t> burst;
+        for (unsigned i = 0; i < 130; ++i) burst.insert(burst.end(), {0, 1, uint8_t(i)});
+        burst.insert(burst.end(), {0, 0}); peer.Put(burst);
+        Until(pump, [&] { return response.packets.size() == 132; }, "Complete buffered frame stalled after read budget");
+        for (unsigned i = 0; i < 130; ++i) Require(response.packets[i + 1] == std::vector<uint8_t>{uint8_t(i)}, "Burst frames reordered");
+        Require(response.packets.back().empty(), "Empty frame lost");
+        response.packets.resize(1);
         peer.Put({0, 1, 0xaa, 0, 2, 0xbb, 0xcc}); peer.stream.Close();
         Until(pump, [&] { return response.events.back() == 3; }, "Coalesced/EOF missing");
         Require(response.packets.size() == 3 && response.packets[1] == std::vector<uint8_t>{0xaa} && response.packets[2] == std::vector<uint8_t>({0xbb, 0xcc}), "Coalesced frames lost/reordered");

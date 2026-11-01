@@ -4,6 +4,10 @@ This package prepares the existing `CDataStore`, ARC4 and SHA1/HMAC code for
 native `WowConnection` integration. It does not implement sockets, DNS, connection
 dispatch, SRP authentication, realm selection or a server session. M3 remains open.
 
+The separate [original connection target](CONNECTIONS.md) now consumes these
+primitives through the existing WowConnection class. Its transport qualification
+and remaining integration gaps are tracked in [#97](https://github.com/RovxBot/wowdecomp/issues/97).
+
 ## Source and caller audit
 
 Source reference: merged main `365016e226547f7f3867f419988ccdf6b3182f25`.
