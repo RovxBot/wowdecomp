@@ -157,6 +157,10 @@ void DialogRaise() {
     const auto* normalImage = button->m_stateTextures[BUTTONSTATE_NORMAL]->m_texture;
     const auto* highlightImage = button->m_highlightTexture->m_texture;
     {
+        Frame::Native::CallbackScope callback;
+        Reject([&] { button->SetStateTexture(BUTTONSTATE_NORMAL, "fixture-c.blp"); });
+    }
+    {
         Frame::Native::ResizeScope resize;
         Reject([&] { button->SetStateTexture(BUTTONSTATE_NORMAL, "fixture-c.blp"); });
     }

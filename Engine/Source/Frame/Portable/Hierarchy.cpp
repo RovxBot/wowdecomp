@@ -65,6 +65,7 @@ void RequireScriptTextMutation() {
 }
 void RequireTextureContentMutation() {
     RequireRegions();
+    if (!updating) { RequireTreeMutation(); return; }
     RequireStateMutable(true);
     if (collecting) throw std::logic_error("Finish Frame batch collection before changing texture contents");
 }
