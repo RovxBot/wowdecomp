@@ -1023,7 +1023,7 @@ void CSimpleTop::CompressStrata(int32_t strata) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
     Frame::Native::RequireRoot();
-    Frame::Native::RequireTreeMutation();
+    Frame::Native::RequireStackingMutation(true);
 #endif
 
     if (strata < FRAME_STRATA_WORLD || strata > FRAME_STRATA_TOOLTIP) {
@@ -1087,7 +1087,7 @@ void CSimpleTop::CompressStrata(int32_t strata) {
 int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireRaiseEntry(frame);
     Frame::Native::RequireSimpleFrame(frame);
 #endif
 
@@ -1116,7 +1116,7 @@ int32_t CSimpleTop::RaiseFrame(CSimpleFrame* frame, int32_t checkOcclusion) {
 
     if (frame->m_frameFlags & 0x10) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-        Frame::Native::RequireRaise(frame); // Check final descendant levels before compression mutates lists.
+        Frame::Native::StackingEdits edits(frame); // Preflight before the internal, callback-free list changes.
 #endif
         this->CompressStrata(frame->m_strata);
         frame->SetFrameLevel(this->m_strata[frame->m_strata]->m_topLevel, 1);

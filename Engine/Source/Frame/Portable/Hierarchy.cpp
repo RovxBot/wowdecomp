@@ -23,10 +23,13 @@ bool mouseWheelEdits = false;
 bool buttonClickEdits = false;
 bool textChangedEdits = false;
 CSimpleFrame* showCallbackFrame = nullptr;
+CSimpleFrame* visibilityRaiseFrame = nullptr;
+bool stackingEdits = false;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
 ScrollRenderScope* scrollRender = nullptr;
 constexpr size_t MaxDepth = 64;
+void PreflightRaise(CSimpleFrame*);
 }
 void SetScrollNotify(ScrollNotify function) { RequireTreeMutation(); scrollNotify = function; }
 bool HasScrollSupport() { RequireRegions(); return scrollNotify != nullptr; }
@@ -119,7 +122,8 @@ void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
     if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits) return;
     RequireSimpleFrame(target);
-    // Movement unflattening and top-level raising retain their stricter guards.
+    // Movement unflattening retains its stricter guard. Admit only one top-level
+    // root through a selected Button click, never a subtree of top-level roots.
     // Preflight the entire subtree before changing any visibility/list state.
     if (!showing)
         for (auto* moving = CSimpleTop::s_instance->m_moveResizeFrame; moving; moving = moving->m_parent)
@@ -128,7 +132,15 @@ void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
         for (auto* leaf : frames)
             if (leaf->m_frameFlags & 1)
                 for (auto* parent = leaf; parent; parent = parent->m_parent)
-                    if (parent == target) throw std::logic_error("Top-level raising is unavailable in control callbacks");
+                    if (parent == target && (!buttonClickEdits || leaf != target))
+                        throw std::logic_error("Top-level subtree raising is unavailable in control callbacks");
+    if (showing && (target->m_frameFlags & 1)) {
+        if (CSimpleTop::s_instance->m_moveResizeFrame)
+            throw std::logic_error("Finish movement before control callback raising");
+        // Check compression and every shifted descendant before Show publishes
+        // m_isShown/m_isVisible or inserts the first event/stratum list entry.
+        PreflightRaise(target);
+    }
 }
 void RequireSimpleFrame(CSimpleFrame* frame) {
     RequireRoot();
@@ -173,6 +185,10 @@ void RequireLevel(CSimpleFrame* target, int32_t proposed) {
 }
 void RequireRaise(CSimpleFrame* target) {
     RequireStateMutation(); RequireSimpleFrame(target);
+    PreflightRaise(target);
+}
+namespace {
+void PreflightRaise(CSimpleFrame* target) {
     // Predict the original compression, including hidden registered Frames.
     // No list/level changes occur until the final subtree fits the native bound.
     const auto top = CSimpleTop::s_instance->m_strata[target->m_strata]->m_topLevel;
@@ -212,6 +228,27 @@ void RequireRaise(CSimpleFrame* target) {
                     throw std::invalid_argument("Native raised descendant level limit");
             }
 }
+}
+void RequireRaiseEntry(CSimpleFrame* frame) {
+    RequireStateMutation(buttonClickEdits && visibilityRaiseFrame == frame);
+    RequireSimpleFrame(frame);
+}
+void RequireStackingMutation(bool tree) {
+    if (tree && !stackingEdits) RequireTreeMutation();
+    else RequireStateMutation(stackingEdits);
+}
+VisibilityRaise::VisibilityRaise(CSimpleFrame* frame) : previous(visibilityRaiseFrame) {
+    RequireVisibilityMutation(frame, true);
+    visibilityRaiseFrame = frame;
+}
+VisibilityRaise::~VisibilityRaise() { visibilityRaiseFrame = previous; }
+StackingEdits::StackingEdits(CSimpleFrame* frame) {
+    RequireRaiseEntry(frame);
+    if (stackingEdits) throw std::logic_error("Nested internal Frame stacking mutation");
+    PreflightRaise(frame);
+    stackingEdits = buttonClickEdits && visibilityRaiseFrame == frame;
+}
+StackingEdits::~StackingEdits() { stackingEdits = false; }
 ShowCallback::ShowCallback(CSimpleFrame* frame) : previous(showCallbackFrame) {
     RequireSimpleFrame(frame);
     showCallbackFrame = frame;
@@ -220,7 +257,7 @@ ShowCallback::~ShowCallback() { showCallbackFrame = previous; }
 void RaiseFromScript(CSimpleFrame* target) {
     RequireSimpleFrame(target);
     if (showCallbackFrame == target && !updating && !collecting &&
-        !IsMouseButtonInput() && !IsMouseWheelInput()) {
+        (!IsMouseButtonInput() || buttonClickEdits) && !IsMouseWheelInput()) {
         RequireStateMutable(true); // Resize/render and owner guards still apply.
         auto* ancestor = target;
         while (ancestor && !(ancestor->m_frameFlags & 1)) ancestor = ancestor->m_parent;

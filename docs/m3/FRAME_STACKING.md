@@ -15,6 +15,19 @@ existing mutation guards. The scope ends on protected errors and native unwind.
 This admits the unchanged original Glue dialog's repeated `self:Raise()`;
 current login integration evidence is in [#96](https://github.com/RovxBot/wowdecomp/issues/96).
 
+A selected Button click may synchronously show one existing top-level root,
+including original `OptionsSelectFrame`. Nested top-level subtrees and active
+movement still reject. Compression and all shifted descendants are preflighted
+before visibility or event-list changes. Only `ShowThis` can enter the private
+raise scope; only the callback-free compression/level update can enter its list
+edit scope, which ends before `OnShow`. Public Raise/level/compression, layout,
+hierarchy, deletion, input reentry, resize, collection/render, owner and shutdown
+guards remain active. `OnShow` may repeat only its already-completed no-op raise.
+The DXVK client contract exercises actual button dispatch, callback/capture order,
+open/close, overflow rollback and protected-error recovery; matching original-data
+operator acceptance and remaining blockers are tracked in
+[#156](https://github.com/RovxBot/wowdecomp/issues/156).
+
 Occlusion follows original stratum/level membership, positive rectangle overlap
 and descendant exclusion. Hidden Frames are absent from occluding lists but remain
 registered for compression. Failed layout rectangles are skipped in the native
