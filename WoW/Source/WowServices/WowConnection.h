@@ -106,6 +106,16 @@ class WowConnection {
     /* 0376 */ uint8_t m_uint376;
     /* 0377 */ uint8_t unused_0377[1];
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // Host ABI state; never serialized or packed to the original x86 layout.
+    struct Native;
+    Native* m_native = nullptr;
+    void CheckNativeOwner() const;
+    void NativePoll(short readiness);
+    void NativeReset();
+    void NativeNotify(WOW_CONN_STATE result);
+#endif
+
     static void DestroyOsNet();
     static int32_t InitOsNet(bool (*netAddrFilter)(const NETADDR* addr), void (*threadInit)(), int32_t numThreads, bool useEngine);
     static void MarkSocketId(int32_t sock);

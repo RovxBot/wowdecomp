@@ -9,6 +9,28 @@
 #include "WoW/Source/WowServices/Types.h"
 #include "WoW/Source/WowServices/WowConnection.h"
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <memory>
+struct WowNativeLookup;
+// The existing connection owner, serviced by Event on its single native thread.
+// DNS is the only worker; it never sees a connection or calls client responses.
+class WowConnectionNet {
+public:
+    struct Native;
+    std::unique_ptr<Native> m_native;
+    WowConnectionNet(int32_t numThreads, void (*threadInit)());
+    ~WowConnectionNet();
+    void CheckOwner() const;
+    void Poll();
+    void Stop();
+    void Add(WowConnection*);
+    void Remove(WowConnection*);
+    void Delete(WowConnection*);
+    void PlatformChangeState(WowConnection*, WOW_CONN_STATE);
+    void PlatformDestruct(WowConnection*);
+    std::shared_ptr<WowNativeLookup> Resolve(const char* host);
+};
+#else
 class WowConnectionNet {
     public:
 #pragma pack(push, 1)
@@ -65,5 +87,7 @@ class WowConnectionNet {
     void SignalWorker(WowConnection* connection, uint32_t flags);
     void Start();
 };
+
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 #endif
