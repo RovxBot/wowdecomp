@@ -162,14 +162,17 @@ struct Response : LoginResponse {
     std::function<void(LOGIN_STATE)> onStatus;
     unsigned realms = 0;
     uint32_t realmResult = 999;
+    bool sawIdentityFailure = false;
     const char *GetLoginServer() override { return nullptr; }
     int32_t GetLoginServerType() override { return 0; }
     void JoinRealmResult(uint32_t, int32_t, int32_t, int32_t, int32_t) override {
         throw std::runtime_error("Unexpected realm join");
     }
-    void LoginServerStatus(LOGIN_STATE s, LOGIN_RESULT, const char *, const char *, const char *,
-                           uint16_t) override {
+    void LoginServerStatus(LOGIN_STATE s, LOGIN_RESULT result, const char *, const char *,
+                           const char *, uint16_t) override {
         states.push_back(s);
+        if (s == LOGIN_STATE_FAILED && result == LOGIN_FAILED)
+            sawIdentityFailure = true;
         if (onStatus)
             onStatus(s);
     }
@@ -471,8 +474,9 @@ void FailurePaths(void (*pump)()) {
                 return login.m_logonStatus == 1 && !login.m_clientLink->m_connection;
             },
             "Unsupported production identity did not fail");
-        Require(peer.Read().empty() && response.m_loginResult == LOGIN_FAILED,
-                "Production native identity forwarded a logon");
+        Require(peer.Read().empty(), "Production native identity forwarded a logon");
+        Require(response.sawIdentityFailure,
+                "Native identity refusal was not reported before disconnect");
     }
     for (auto releasedState : {LOGIN_STATE_CONNECTING, LOGIN_STATE_FAILED}) {
         Peer peer;
