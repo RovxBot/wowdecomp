@@ -806,6 +806,13 @@ static void Blit_Dxt5_Argb8888(const C2iVector& size, const void* in, uint32_t i
 // VERIFY: 93653188 auto
 // OFFSET: 0x006AE6E0
 static void InitBlit() {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    // Native BLP decoding publishes RGBA bytes (Abgr8888), unlike the original
+    // Windows image service's BGRA source. Reuse the pitched copy and symmetric
+    // R/B exchange; this adds no Windows or archived OpenGL conversion paths.
+    s_blits[BlitFormat_Abgr8888][BlitFormat_Abgr8888][BlitAlpha_0] = Blit_generic32_generic32;
+    s_blits[BlitFormat_Abgr8888][BlitFormat_Argb8888][BlitAlpha_0] = Blit_Argb8888_Abgr8888;
+#endif
     s_blits[BlitFormat_Argb8888][BlitFormat_Abgr8888][BlitAlpha_0] = Blit_Argb8888_Abgr8888;
     s_blits[BlitFormat_Argb8888][BlitFormat_Argb8888][BlitAlpha_0] = Blit_generic32_generic32;
     s_blits[BlitFormat_Argb8888][BlitFormat_Argb8888][BlitAlpha_1] = Blit_Argb8888_Argb8888_A1;
