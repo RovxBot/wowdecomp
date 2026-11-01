@@ -83,6 +83,15 @@ void Connect(void (*pump)(), Connection& c, Response& r, Peer& peer) {
 void Stream(void (*pump)()) {
     Peer peer; Response response; Connection c(response); c.value->SetType(WOWC_TYPE_STREAM);
     Connect(pump, c, response, peer);
+    // Both directions ready: original Service drains writes before reads.
+    uint8_t first = 0x77; c.value->Send(&first, 1, true); c.value->m_notifyWriteReady = 1;
+    peer.Put({0xa5});
+    pollfd readable{c.value->m_sock, POLLIN, 0};
+    Require(poll(&readable, 1, 1000) == 1, "Fixture reply did not become readable");
+    pump();
+    Require(response.events == std::vector<int>({1, 6, 4}) && response.stream == std::vector<uint8_t>{0xa5}, "Original write/read callback ordering changed");
+    Require(recv(peer.stream.value, &first, 1, 0) == 1 && first == 0x77, "Fixture first send missing");
+    response.stream.clear();
     // Exhaust kernel space without reading; every byte must remain queued once.
     int small = 16384; Require(!setsockopt(c.value->m_sock, SOL_SOCKET, SO_SNDBUF, &small, sizeof(small)), "Fixture send buffer failed");
     std::vector<uint8_t> bytes(512 * 1024);
