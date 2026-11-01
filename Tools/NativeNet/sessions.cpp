@@ -185,6 +185,9 @@ struct FixtureLogin : GruntLogin {
     // This test-only callback supplies an authored protocol identity. Production
     // GruntLogin refuses identity selection and UI DefaultServerLogin stays gated.
     void GetLogonMethod() override {
+        // Original GruntLogin retries only while a credential buffer remains.
+        if (!this->m_password)
+            return;
         Grunt::ClientLink::Logon identity{};
         identity.m_programId = 0x576f57;
         identity.m_processor = 0x783836;
