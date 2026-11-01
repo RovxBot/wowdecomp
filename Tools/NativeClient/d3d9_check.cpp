@@ -59,7 +59,7 @@ void Constants(CGxDeviceD3d& device) {
     Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 255, 2); });
     Reject([&] { device.ShaderConstantsSet(GxSh_Pixel, 223, value, 2); });
     Reject([&] { device.ShaderConstantsUnlock(GxSh_Vertex, 256, 1); });
-    Reject([&] { device.ShaderConstantsLockRange(static_cast<EGxShTarget>(99), 0, 1); });
+    Reject([&] { device.ShaderConstantsLockRange(GxSh_Geometry, 0, 1); });
     Require(!std::memcmp(&vertex, &CGxDevice::s_shadowConstants[1], sizeof(vertex)) &&
             !std::memcmp(&pixel, &CGxDevice::s_shadowConstants[0], sizeof(pixel)),
             "Rejected constant span changed shadow data or dirty bounds");
