@@ -2092,7 +2092,7 @@ void CSimpleFrame::SetFrameStrata(FRAME_STRATA strata) {
 void CSimpleFrame::SetFrameLevel(int32_t level, int32_t shiftChildren) {
     FRAME_TREE_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    Frame::Native::RequireStateMutation();
+    Frame::Native::RequireStackingMutation();
     Frame::Native::RequireLevel(this, level);
 #endif
     if (level < 0) {
@@ -2413,6 +2413,9 @@ int32_t CSimpleFrame::ShowThis() {
     }
 
     if (this->m_frameFlags & 0x1) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::VisibilityRaise raise(this);
+#endif
         this->m_simpleTop->RaiseFrame(this, 1);
     }
 

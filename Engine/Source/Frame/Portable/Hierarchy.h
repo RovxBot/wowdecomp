@@ -72,6 +72,30 @@ void SimpleFrameDestroyed(CSimpleFrame*);
 void RequireScale(CSimpleFrame*, float);
 void RequireLevel(CSimpleFrame*, int32_t);
 void RequireRaise(CSimpleFrame*);
+void RequireRaiseEntry(CSimpleFrame*);
+void RequireStackingMutation(bool tree = false);
+// ShowThis may raise its one top-level root during a selected Button click.
+// The internal list-edit scope ends before OnShow; it never grants Lua callers
+// hierarchy/layout/stacking mutation or relaxes resize/destruction guards.
+class VisibilityRaise final {
+public:
+    ~VisibilityRaise();
+    VisibilityRaise(const VisibilityRaise&) = delete;
+    VisibilityRaise& operator=(const VisibilityRaise&) = delete;
+private:
+    friend class ::CSimpleFrame;
+    explicit VisibilityRaise(CSimpleFrame*);
+    CSimpleFrame* previous;
+};
+class StackingEdits final {
+public:
+    ~StackingEdits();
+    StackingEdits(const StackingEdits&) = delete;
+    StackingEdits& operator=(const StackingEdits&) = delete;
+private:
+    friend class ::CSimpleTop;
+    explicit StackingEdits(CSimpleFrame*);
+};
 void RaiseFromScript(CSimpleFrame*);
 // Only an already-completed raise may be repeated by this frame's OnShow.
 // No level/list mutation is admitted while the visibility callback is pinned.

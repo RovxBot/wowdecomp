@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <thread>
 #include "ShaderSource.h"
+#include "OptionsChecks.h"
 
 using Bytes = std::vector<uint8_t>;
 void CheckNativeScanServices();
@@ -81,7 +82,7 @@ void Constants(CGxDeviceD3d& device) {
     Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 31, 156); });
     device.m_caps.m_shaderConstants[GxSh_Vertex] = actual;
 }
-void DialogRaise() {
+void DialogRaise(OsNative::Window& window) {
     Services::Native::FileQueue queue;
     FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, Bytes&) { return false; });
     FrameXML::Native::Runtime xml;
@@ -193,6 +194,7 @@ void DialogRaise() {
     std::cout << "native-original-dialog-repeat-raise-onshow-no-level-mutation-guards=passed\n";
     std::cout << "native-original-dialog-update-textures-retain-regions-reject-ownership-changes=passed\n";
     std::cout << "native-original-login-text-change-hint-control-state-pinned-guards=passed\n";
+    OptionsChecks::Run(root, window);
 }
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;
@@ -305,7 +307,7 @@ int main() {
                 device.m_nativeShaders = saved;
                 std::cout << "original-gx-stage=draw" << std::endl;
                 Pixel(device);
-                if (!cycle) DialogRaise();
+                if (!cycle) DialogRaise(window);
                 Require(SDL_SetWindowSize(window.Handle(), 400, 300) && SDL_SyncWindow(window.Handle()), "SDL resize failed");
                 device.DeviceWM(GxWM_Size, 0, 0);
                 Pixel(device);
