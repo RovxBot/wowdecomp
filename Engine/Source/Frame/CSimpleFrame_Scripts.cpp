@@ -1153,7 +1153,6 @@ static int32_t Script_IsShown(lua_State* L) {
 
 // VERIFY: 1266fd3b auto
 // OFFSET: 0x0049FEF0
-#ifndef WOWDECOMP_PORTABLE_RUNTIME
 static int32_t Script_Raise(lua_State* L) {
     CSimpleFrame* frame = static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L, CSimpleFrame::GetObjectType()));
 
@@ -1165,10 +1164,13 @@ static int32_t Script_Raise(lua_State* L) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RaiseFromScript(frame);
+#else
     frame->Raise();
+#endif
     return 0;
 }
-#endif
 
 // VERIFY: e0dae823 auto
 // OFFSET: 0x0049FF50
@@ -2177,7 +2179,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "Hide", &Frame::Native::ScriptMethod<&Script_Hide, true, false, true, true> },
     { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
     { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
-    { "Raise", &Frame::Native::UnavailableScriptMethod },
+    { "Raise", &Frame::Native::ScriptMethod<&Script_Raise, false, false> },
     { "Lower", &Frame::Native::UnavailableScriptMethod },
     { "GetHitRectInsets", &Frame::Native::UnavailableScriptMethod },
     { "SetHitRectInsets", &Frame::Native::UnavailableScriptMethod },

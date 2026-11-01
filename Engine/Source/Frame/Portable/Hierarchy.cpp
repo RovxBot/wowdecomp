@@ -21,6 +21,7 @@ bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 bool mouseWheelEdits = false;
 bool buttonClickEdits = false;
+CSimpleFrame* showCallbackFrame = nullptr;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
 ScrollRenderScope* scrollRender = nullptr;
@@ -192,6 +193,26 @@ void RequireRaise(CSimpleFrame* target) {
                 if (level + delta > limit)
                     throw std::invalid_argument("Native raised descendant level limit");
             }
+}
+ShowCallback::ShowCallback(CSimpleFrame* frame) : previous(showCallbackFrame) {
+    RequireSimpleFrame(frame);
+    showCallbackFrame = frame;
+}
+ShowCallback::~ShowCallback() { showCallbackFrame = previous; }
+void RaiseFromScript(CSimpleFrame* target) {
+    RequireSimpleFrame(target);
+    if (showCallbackFrame == target && !updating && !collecting &&
+        !IsMouseButtonInput() && !IsMouseWheelInput()) {
+        RequireStateMutable(true); // Resize/render and owner guards still apply.
+        auto* ancestor = target;
+        while (ancestor && !(ancestor->m_frameFlags & 1)) ancestor = ancestor->m_parent;
+        if (!ancestor) return; // Original Raise has no top-level frame to move.
+        // ShowThis already raises before OnShow. The unchanged dialog repeats
+        // that call; admit only the proven no-op, without changing flags/lists.
+        if ((ancestor->m_layoutFlags & 0x100) && !ancestor->IsResizePending() &&
+            !CSimpleTop::s_instance->m_strata[ancestor->m_strata]->FrameOccluded(ancestor)) return;
+    }
+    target->Raise(); // Real changes retain all existing traversal/callback guards.
 }
 void RequireScale(CSimpleFrame* target, float proposed) {
     // Original recursive scale multiplication must remain finite before mutation.

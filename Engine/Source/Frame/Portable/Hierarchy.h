@@ -57,6 +57,19 @@ void SimpleFrameDestroyed(CSimpleFrame*);
 void RequireScale(CSimpleFrame*, float);
 void RequireLevel(CSimpleFrame*, int32_t);
 void RequireRaise(CSimpleFrame*);
+void RaiseFromScript(CSimpleFrame*);
+// Only an already-completed raise may be repeated by this frame's OnShow.
+// No level/list mutation is admitted while the visibility callback is pinned.
+class ShowCallback final {
+public:
+    ~ShowCallback();
+    ShowCallback(const ShowCallback&) = delete;
+    ShowCallback& operator=(const ShowCallback&) = delete;
+private:
+    friend class ::CSimpleFrame;
+    explicit ShowCallback(CSimpleFrame*);
+    CSimpleFrame* previous;
+};
 [[noreturn]] void UnavailableFrameFeature();
 // Deferral is separate from CSimpleTop::m_destroyed's attribute-permission list.
 // Call on the owner outside batch rendering; it is allowed during layer updates.

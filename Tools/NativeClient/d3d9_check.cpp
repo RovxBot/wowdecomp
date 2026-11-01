@@ -3,6 +3,15 @@
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Os/Portable/Runtime.h"
 #include "Engine/Source/Os/Time.h"
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#include "Engine/Source/FrameScript/FrameScript.h"
+#include "Engine/Source/FrameXML/Portable/Runtime.h"
+#include "Engine/Source/Gxu/Portable/LegacyFonts.h"
+#include "Engine/Source/Frame/Portable/Fonts.h"
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/Frame/CSimpleTop.h"
+#include "Engine/Source/Base/Coordinate.h"
+#include "Engine/Source/Services/Portable/Texture.h"
 #include <SDL3/SDL.h>
 #include <cstring>
 #include <iostream>
@@ -68,6 +77,56 @@ void Constants(CGxDeviceD3d& device) {
     device.m_caps.m_shaderConstants[GxSh_Vertex] = 128;
     Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 31, 156); });
     device.m_caps.m_shaderConstants[GxSh_Vertex] = actual;
+}
+void DialogRaise() {
+    Services::Native::FileQueue queue;
+    FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, Bytes&) { return false; });
+    FrameXML::Native::Runtime xml;
+    Frame::Native::Runtime layout;
+    Gxu::Native::LegacyFonts gxu([](const std::string&) -> Bytes { throw std::runtime_error("Fixture has no fonts"); });
+    Frame::Native::Fonts fonts;
+    Frame::Native::Renderer renderer;
+    Services::Native::TextureService images(queue, [](const std::string&, const Services::Native::Cancellation&) -> Services::Native::ReadResult {
+        throw std::runtime_error("Fixture has no images");
+    });
+    Frame::Native::Scripts scripts;
+    CoordinateSetAspectRatio(4.0f / 3.0f);
+    CSimpleTop root;
+    const auto errors = FrameScript::Native::ScriptErrorCount();
+    auto lua = [&](const char* source) {
+        FrameScript_Execute(source, "authored original dialog Raise", nullptr);
+        Require(FrameScript::Native::ScriptErrorCount()==errors, "Dialog Raise regression failed");
+    };
+    lua(R"(
+        local f=CreateFrame('Frame','RaiseDialog'); f:SetSize(100,100);
+        f:SetPoint('CENTER'); f:SetFrameLevel(0); f:Hide();
+        local other=CreateFrame('Frame','RaiseOther'); other:SetAllPoints(f); other:SetFrameLevel(1);
+    )");
+    auto* frame = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("RaiseDialog", CSimpleFrame::GetObjectType()));
+    frame->SetFrameFlag(1,1);
+    lua(R"(
+        RaiseDialog:SetScript('OnShow',function(self)
+            local level=self:GetFrameLevel(); assert(level>RaiseOther:GetFrameLevel());
+            self:Raise(); self:Raise(); assert(self:GetFrameLevel()==level);
+            assert(not pcall(self.SetFrameLevel,self,0));
+            assert(not pcall(RaiseOther.Raise,RaiseOther));
+            assert(not pcall(CreateFrame,'Frame','ForbiddenDuringShow'));
+            raisedOnShow=true;
+        end);
+        RaiseDialog:Show(); assert(raisedOnShow);
+        local level=RaiseDialog:GetFrameLevel(); RaiseDialog:Raise(); assert(RaiseDialog:GetFrameLevel()==level);
+        RaiseDialog:SetScript('OnHide',function(self) assert(not pcall(self.Raise,self)) end);
+        RaiseDialog:Hide(); RaiseDialog:Show();
+    )");
+    {
+        Frame::Native::CallbackScope callback;
+        Reject([&] { Frame::Native::RaiseFromScript(frame); });
+    }
+    {
+        Frame::Native::ResizeScope resize;
+        Reject([&] { Frame::Native::RaiseFromScript(frame); });
+    }
+    std::cout << "native-original-dialog-repeat-raise-onshow-no-level-mutation-guards=passed\n";
 }
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;
@@ -180,6 +239,7 @@ int main() {
                 device.m_nativeShaders = saved;
                 std::cout << "original-gx-stage=draw" << std::endl;
                 Pixel(device);
+                if (!cycle) DialogRaise();
                 Require(SDL_SetWindowSize(window.Handle(), 400, 300) && SDL_SyncWindow(window.Handle()), "SDL resize failed");
                 device.DeviceWM(GxWM_Size, 0, 0);
                 Pixel(device);

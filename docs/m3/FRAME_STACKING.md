@@ -6,6 +6,15 @@ This extends the [bounded pointer adapter](FRAME_MOUSE.md) with original
 original top-level bit (1); other feature flags retain their unavailable paths.
 All client/dependency compilation and CTest run in GitHub Actions.
 
+The native Lua `Raise` binding uses the same original operation and preflights.
+During that frame's synchronous `OnShow`, only a redundant raise is admitted:
+no top-level ancestor exists, or `ShowThis` already completed the raise and the
+valid, nonpending ancestor rectangle is unoccluded. This path changes no flags,
+levels or lists. Real stacking changes and other callback targets retain the
+existing mutation guards. The scope ends on protected errors and native unwind.
+This admits the unchanged original Glue dialog's repeated `self:Raise()`;
+current login integration evidence is in [#96](https://github.com/RovxBot/wowdecomp/issues/96).
+
 Occlusion follows original stratum/level membership, positive rectangle overlap
 and descendant exclusion. Hidden Frames are absent from occluding lists but remain
 registered for compression. Failed layout rectangles are skipped in the native
