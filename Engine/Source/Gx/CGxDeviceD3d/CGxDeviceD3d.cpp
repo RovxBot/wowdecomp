@@ -135,6 +135,10 @@ int32_t CGxDeviceD3d::BufUnlock(CGxBuf* buf, uint32_t size) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
 #endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!buf || !buf->m_pool || size > buf->m_size || m_bufLocked[buf->m_pool->m_target] != buf)
+        throw std::logic_error("Invalid D3D9 buffer Unlock extent/owner");
+#endif
     CGxDevice::BufUnlock(buf, size);
     this->IBufUnlock(buf);
 
@@ -246,6 +250,10 @@ char* CGxDeviceD3d::BufLock(CGxBuf* buf) {
 void CGxDeviceD3d::BufData(CGxBuf* buf, const void* data, uint32_t size, uint32_t offset) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!buf || !buf->m_pool || !data || offset > buf->m_size || size > buf->m_size - offset || m_bufLocked[buf->m_pool->m_target])
+        throw std::invalid_argument("Invalid D3D9 buffer update span/owner");
 #endif
     CGxDevice::BufData(buf, data, size, offset);
 
@@ -803,7 +811,13 @@ void CGxDeviceD3d::CapsWindowSize(CRect& rect) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
 #endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    int width, height, pixelWidth, pixelHeight;
+    m_nativeWindow->Size(width, height, pixelWidth, pixelHeight);
+    rect = CRect{0, 0, float(height), float(width)};
+#else
     rect = this->DeviceCurWindow();
+#endif
 }
 
 // VERIFY: c58c4596 manual
@@ -942,6 +956,21 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** shaders, EGxShTarget target, const c
 void CGxDeviceD3d::ShaderDestroy(CGxShader*& shader) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!shader) return;
+    if (!shader->m_refCount) throw std::logic_error("Unretained D3D9 shader destruction");
+    if (shader->m_refCount == 1) {
+        for (auto which : {GxRs_VertexShader, GxRs_PixelShader}) {
+            if (m_appRenderStates[which].m_value.m_data.p == shader) RsSet(which, nullptr);
+            if (m_hwRenderStates[which].m_data.p == shader) m_hwRenderStates[which].m_data.p = nullptr;
+        }
+        for (uint32_t i = 0; i < m_pushedStates.Count(); ++i) {
+            auto& pushed = m_pushedStates[i];
+            if ((pushed.m_which == GxRs_VertexShader || pushed.m_which == GxRs_PixelShader) && pushed.m_value.m_data.p == shader)
+                pushed.m_value.m_data.p = nullptr;
+        }
+    }
 #endif
     if (shader->m_target == GxSh_Vertex) {
         if (shader->m_refCount == 1) {
@@ -3194,6 +3223,9 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
     int32_t compressed = texId->m_dataFormat >= GxTex_Dxt1 && texId->m_dataFormat <= GxTex_Dxt5;
     uint32_t faceCount = texId->m_target == GxTex_CubeMap ? GxTexCubeFaces_Last : 1;
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    try {
+#endif
     for (uint32_t face = 0; face < faceCount; face++) {
         uint32_t mipWidth = width;
         uint32_t mipHeight = height;
@@ -3214,7 +3246,11 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
                 }
 
                 if (FAILED(result)) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                    throw std::runtime_error("DXVK texture surface/LockRect failed");
+#else
                     goto done;
+#endif
                 }
 
                 RECT rect;
@@ -3241,7 +3277,11 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
                 D3DLOCKED_RECT lockedRect;
                 if (FAILED(surface->LockRect(&lockedRect, &rect, 0))) {
                     surface->Release();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                    throw std::runtime_error("DXVK texture surface/LockRect failed");
+#else
                     goto done;
+#endif
                 }
 
                 const uint8_t* src = static_cast<const uint8_t*>(texels);
@@ -3278,7 +3318,15 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
         }
     }
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    } catch (...) {
+        texels = nullptr;
+        texId->m_userFunc(GxTex_Unlock, texId->m_width, texId->m_height, 0, 0, texId->m_userArg, texelStrideInBytes, texels);
+        throw;
+    }
+#else
 done:
+#endif
     texels = nullptr;
     texId->m_userFunc(GxTex_Unlock, texId->m_width, texId->m_height, 0, 0, texId->m_userArg, texelStrideInBytes, texels);
 
@@ -3785,7 +3833,11 @@ void CGxDeviceD3d::LogCrashInfo(char* buffer, uint32_t size) {
 
         SStrPrintf(line, sizeof(line), "  Driver: %s\r\n", identifier.Driver);
         SStrPack(buffer, line, size);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        SStrPrintf(line, sizeof(line), "  Version: %d.%d.%04d.%04d\r\n", (uint32_t(identifier.DriverVersion.HighPart) >> 16), (uint32_t(identifier.DriverVersion.HighPart) & 0xffff), (uint32_t(identifier.DriverVersion.LowPart) >> 16), (uint32_t(identifier.DriverVersion.LowPart) & 0xffff));
+#else
         SStrPrintf(line, sizeof(line), "  Version: %d.%d.%04d.%04d\r\n", HIWORD(identifier.DriverVersion.HighPart), LOWORD(identifier.DriverVersion.HighPart), HIWORD(identifier.DriverVersion.LowPart), LOWORD(identifier.DriverVersion.LowPart));
+#endif
         SStrPack(buffer, line, size);
         SStrPrintf(line, sizeof(line), "  Description: %s\r\n", identifier.Description);
         SStrPack(buffer, line, size);

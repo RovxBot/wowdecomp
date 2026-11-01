@@ -33,7 +33,13 @@ void CameraSetupScreenProjection(const CRect& rect, const C2Vector& offset, floa
 
     if (!caps.m_pixelCenterOnEdge && caps.m_texelCenterOnEdge) {
         CRect window = { 0.0f, 0.0f, 0.0f, 0.0f };
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        // D3D half-pixel correction uses the current drawable/target extent;
+        // SDL desktop-global coordinates are unnecessary and unavailable on Wayland.
+        window = g_theGxDevicePtr->DeviceCurWindow();
+#else
         g_theGxDevicePtr->CapsWindowSizeInScreenCoords(window);
+#endif
         projection.d0 = projection.d0 - (rect.maxX - rect.minX) / (window.maxX - window.minX) * 0.5f;
         projection.d1 = 0.5f * ((rect.maxY - rect.minY) / (window.maxY - window.minY)) + projection.d1;
     }

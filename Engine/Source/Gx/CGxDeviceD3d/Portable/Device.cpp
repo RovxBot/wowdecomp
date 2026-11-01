@@ -46,7 +46,7 @@ CGxDeviceD3d::CGxDeviceD3d(OsNative::Window& window, ShaderBytes shaders)
         CapsWindowSize(m_defWindowRect);
         m_curWindowRect = m_defWindowRect;
         m_format = CGxFormat(true, {int32_t(m_defWindowRect.maxX), int32_t(m_defWindowRect.maxY)},
-                            CGxFormat::Fmt_Argb8888, CGxFormat::Fmt_Ds248, 0, 0, false, false, false, true, 0);
+                            CGxFormat::Fmt_Argb8888, CGxFormat::Fmt_Ds248, 0, 0, true, false, false, true, 0);
         D3DPRESENT_PARAMETERS present;
         ISetPresentParms(present, m_format);
         // SDL owns the window, focus, events and fullscreen state. DXVK's native
@@ -92,6 +92,7 @@ void CGxDeviceD3d::DeviceDestroy() {
     NativeCheckOwner();
     ISceneEnd();
     for (auto& target : m_textureTarget) { Release(reinterpret_cast<IDirect3DSurface9*&>(target.m_apiSpecific)); target.m_texture = nullptr; }
+    while (auto* query = m_queryList.Head()) QueryDestroy(query);
     while (auto* texture = m_textures.Head()) TexDestroy(texture);
     s_uiVertexShader[0] = s_uiVertexShader[1] = s_uiPixelShader = nullptr;
     IReleaseD3dShaders(1);
@@ -209,12 +210,16 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
         for (auto* shader : created) { shader->m_refCount = 1; ShaderDestroy(shader); }
         throw;
     }
-    for (uint32_t i = 0; i < count; ++i) { out[i] = list.Ptr(keys[i].c_str()); RetainShader(out[i]); }
+    for (uint32_t i = 0; i < count; ++i) { out[i] = list.Ptr(keys[i].c_str()); ++out[i]->m_refCount; }
 }
 void CGxDeviceD3d::RetainShader(CGxShader* shader) {
     NativeCheckOwner();
     Require(shader && (shader->m_target == GxSh_Vertex || shader->m_target == GxSh_Pixel) && shader->m_refCount < UINT32_MAX,
             "Invalid D3D9 shader reference");
+    bool owned = false;
+    for (auto* entry = m_shaderList[shader->m_target].m_fulllist.Head(); entry;
+         entry = m_shaderList[shader->m_target].m_fulllist.Next(entry)) owned |= entry == shader;
+    Require(owned && shader->m_refCount, "Foreign/unretained D3D9 shader");
     ++shader->m_refCount;
 }
 void CGxDeviceD3d::IShaderReload(CGxShader*, const char*, const char*) { Unavailable("D3D9 native shader reload unavailable"); }

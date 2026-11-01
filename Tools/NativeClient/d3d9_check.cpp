@@ -38,7 +38,7 @@ void Pixel(CGxDeviceD3d& device) {
     TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect, pixels);
     Require(pixels.Count() == 16, "Original D3D9 readback extent");
-    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == 37 && pixels[i].g == 83 && pixels[i].b == 149, "Original Gx clear/readback channel mismatch");
+    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == 149 && pixels[i].g == 83 && pixels[i].b == 37, "Original Gx clear/readback channel mismatch");
     GxScenePresent();
 }
 }

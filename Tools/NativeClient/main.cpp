@@ -38,6 +38,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <sys/resource.h>
@@ -126,12 +127,33 @@ int PollImages(const void*, void* images) {
 struct PaintContext {
     CSimpleTop& root;
     uint64_t scriptErrors = FrameScript::Native::ScriptErrorCount();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    std::string snapshot;
+#endif
 };
 int Paint(const void*, void* raw) {
     auto& paint = *static_cast<PaintContext*>(raw);
     CheckLoopScriptErrors(paint.scriptErrors);
     GxSceneClear(GxBufferBit_Color, CImVector(0, 0, 0, 255));
-    paint.root.OnLayerRender(); GxScenePresent(); return 1;
+    paint.root.OnLayerRender();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (!paint.snapshot.empty()) {
+        const auto& rect = g_theGxDevicePtr->DeviceCurWindow();
+        const uint32_t width = uint32_t(rect.maxX), height = uint32_t(rect.maxY);
+        CiRect area{0, 0, int32_t(height), int32_t(width)};
+        TSGrowableArray<CImVector> pixels;
+        g_theGxDevicePtr->DeviceReadPixels(area, pixels);
+        if (uint64_t(width) * height != pixels.Count()) throw std::runtime_error("Snapshot readback failed");
+        std::ofstream file(paint.snapshot, std::ios::binary);
+        file << "P6\n" << width << ' ' << height << "\n255\n";
+        for (uint32_t i = 0; i < pixels.Count(); ++i) {
+            const auto& p = pixels[i]; const char rgb[]{char(p.r), char(p.g), char(p.b)}; file.write(rgb, 3);
+        }
+        if (!file) throw std::runtime_error("Snapshot write failed");
+        paint.snapshot.clear();
+    }
+#endif
+    GxScenePresent(); return 1;
 }
 struct LoopHandlers {
     PaintContext paint;
@@ -152,7 +174,7 @@ struct LoopHandlers {
         EventUnregister(EVENT_ID_PAINT, Paint);
     }
 };
-void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden) {
+void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden, const std::string& snapshot) {
     Source source(paths);
     LegacyFiles modelFiles(source.queue, source.packages);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
@@ -208,6 +230,9 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         std::cout << "startup-stage=original-frame-root" << std::endl;
         GlueNative::LoadInterface();
         LoopHandlers handlers(root, images, modelFiles);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        handlers.paint.snapshot = snapshot;
+#endif
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
             window.Pump(); OSEVENT event;
@@ -229,12 +254,15 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
 }
 int main(int argc, char** argv) {
     try {
-        std::string data, settings, cache; uint32_t frames = 0; bool hidden = false;
+        std::string data, settings, cache, snapshot; uint32_t frames = 0; bool hidden = false;
         for (int i = 1; i < argc; ++i) {
             std::string option = argv[i];
             if (option == "--hidden") { hidden = true; continue; }
             if (i + 1 == argc) throw std::invalid_argument("Missing option value");
             std::string value = argv[++i];
+#if defined(WOWDECOMP_NATIVE_D3D9)
+            if (option == "--snapshot") { snapshot = value; continue; }
+#endif
             if (option == "--data") data = value;
             else if (option == "--settings") settings = value;
             else if (option == "--cache") cache = value;
@@ -250,12 +278,16 @@ int main(int argc, char** argv) {
         }
         if (data.empty() || settings.empty() || cache.empty()) throw std::invalid_argument("Supply separate --data, --settings and --cache roots");
         ProtectInstallations(data, settings, cache);
+        if (!snapshot.empty()) {
+            ProtectInstallations(data, std::filesystem::absolute(snapshot).string(), cache);
+            snapshot = std::filesystem::absolute(snapshot).string();
+        }
         Blizzard::File::Native::Paths paths;
         if (!Blizzard::File::Native::ConfigurePaths(data.c_str(), settings.c_str(), cache.c_str(), paths))
             throw std::invalid_argument("Data/settings/cache roots must be separate");
         std::filesystem::current_path(paths.settings);
         Runtime runtime;
-        Run(paths, frames, hidden);
+        Run(paths, frames, hidden, snapshot);
         if (OsLiveThreadCount()) throw std::runtime_error("Native startup left workers alive");
         std::cout << "startup-shutdown=complete workers=0" << std::endl;
         return 0;
