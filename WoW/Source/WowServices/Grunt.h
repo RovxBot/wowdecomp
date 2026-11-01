@@ -3,6 +3,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <memory>
+#endif
 #include "Engine/Source/Base/CDataStore.h"
 #include "Engine/Source/Os/OsTcp.h"
 #include "Engine/Source/Storm/H/storm.h"
@@ -144,6 +147,11 @@ class ClientLink : public WowConnectionResponse, public Grunt::Pending, public G
     /* 06D0 */ uint8_t m_serverChallenge [32];
     /* 06F0 */ uint8_t m_reconnectKey [40];
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // A callback may release its containing Login/ClientLink. The token outlives
+    // that release so outer dispatch never touches the retired datastore/lock.
+    std::shared_ptr<bool> m_nativeAlive = std::make_shared<bool>(true);
+#endif
     ~ClientLink() override;
     void WCMessageReady(WowConnection* connection, uint32_t timeStamp, CDataStore* msg) override;
     void WCConnected(WowConnection* connection, WowConnection* inbound, uint32_t timeStamp, const NETCONNADDR* addr) override;

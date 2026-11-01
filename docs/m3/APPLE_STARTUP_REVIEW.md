@@ -182,3 +182,16 @@ imported. WoWReMac's pinned WowServices tree returned HTTP 404; earlier evidence
 remains historical. The [connection contract](CONNECTIONS.md) records caller,
 protocol and unresolved resolver/shutdown limits. No Apple authentication shortcut
 or policy assumption is selected.
+
+
+## Original authentication/session callers
+
+For [#98](https://github.com/RovxBot/wowdecomp/issues/98), re-read the pinned
+jerrywossion `Grunt.cpp`, `GruntLogin.cpp` and `SRP6_Client.cpp`. Its Grunt timer
+still starts a worker; callback locking and Apple-specific assumptions do not
+satisfy this fork's Event-owned transport or native integrity requirements.
+This fork selects its own original SRP/Grunt/Login/NetClient callers, adapts their
+owner/lifetime boundary, and retains a failure disposition for unsupported native
+identity/version integrity. No Apple source body, identity shortcut or dependency
+is imported. The pinned `Apple/GruntLogin.cpp` path returns 404; the common source
+is the reviewed implementation. See [authentication contracts](AUTHENTICATION.md).

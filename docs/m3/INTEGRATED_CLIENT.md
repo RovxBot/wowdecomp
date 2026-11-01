@@ -23,7 +23,8 @@ it closes only that dialog. `DefaultServerLogin` validates the original API and
 refuses every request visibly, including calls before scan start/completion or
 after repeated continuation. Its dialog is queued to outer idle so input callbacks
 can finish and the original login action can clear its password field. It never retains or forwards credentials. This
-target has no authentication transport. Reentrant polling/closure during event
+script service creates no authentication session; the selected original transport
+and caller fixtures grant no sign-in permission. Reentrant polling/closure during event
 delivery is rejected. This removes a fatal UI callback while keeping sign-in
 unavailable; it implements no successful scanner or authentication.
 The [integrity contract](INTEGRITY.md) distinguishes these gates and the unresolved
@@ -107,8 +108,10 @@ The Event adapter retains original IDs, priority/equal-priority ordering,
 marker-based listener mutation and stop propagation on the SDL owner thread.
 Active dispatch cannot destroy its context. Event installs the original
 WowConnection owner and polls DNS/socket results before ordinary POLL handlers;
-see the [connection contract](CONNECTIONS.md). Upper authentication/session callers
-remain gated and are not selected merely by installing transport.
+see the [connection contract](CONNECTIONS.md). The [original authentication/session callers](AUTHENTICATION.md) are selected and
+pumped on that Event owner; product sign-in remains refused until the native
+integrity/authentication prerequisites are met. Controlled protocol fixtures do
+not establish live authentication.
 Input retains the existing SDL focus/IME/capture/lifetime contracts.
 
 The ordered TOC/Include/Script/Font/template/frame path feeds actual original read

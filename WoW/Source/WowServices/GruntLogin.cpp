@@ -2,8 +2,15 @@
 #include "Engine/Source/Os/OsSecureRandom.h"
 #include "WoW/Source/Net/NetClient/NetClient.h"
 #include <cstring>
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <alloca.h>
+#include <stdexcept>
+#else
 #include <malloc.h>
+#endif
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Os/OsTcp.h"
 #include "Engine/Source/Os/System.h"
 #include "Engine/Source/Os/Time.h"
@@ -33,9 +40,18 @@ bool GruntLogin::Connected(const NETADDR& address) {
 // VERIFY: 2720463d manual
 // OFFSET: 0x008CA140
 bool GruntLogin::CantConnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_SERVER_DOWN, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
     this->m_logonStatus = 1;
     this->LogonResult(Grunt::GRUNT_RESULT_CANT_CONNECT, nullptr, 0, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
     this->m_loggedOn = false;
     this->m_online = false;
 
@@ -45,11 +61,20 @@ bool GruntLogin::CantConnect() {
 // VERIFY: 7c5dddc1 manual
 // OFFSET: 0x008CA1D0
 bool GruntLogin::Disconnected() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_DISCONNECTED, LOGIN_OK, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
 
     if (!this->m_online) {
         this->m_logonStatus = 1;
         this->LogonResult(Grunt::GRUNT_RESULT_DISCONNECTED, nullptr, 0, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return false;
+#endif
     }
 
     this->m_loggedOn = false;
@@ -61,6 +86,12 @@ bool GruntLogin::Disconnected() {
 // VERIFY: ca1d1b53 manual
 // OFFSET: 0x008CA580
 void GruntLogin::GetLogonMethod() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // No approved native platform/version-integrity identity is available yet.
+    this->m_logonStatus = 1;
+    this->m_clientLink->Disconnect();
+    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, nullptr, 0);
+#else
     Grunt::ClientLink::Logon logon = {};
 
     logon.m_programId = Login::s_fourCCprogramID;
@@ -93,6 +124,7 @@ void GruntLogin::GetLogonMethod() {
         SMemFree(this->m_password, __FILE__, __LINE__, 0);
         this->m_password = nullptr;
     }
+#endif
 }
 
 // VERIFY: eb019dfb manual
@@ -109,7 +141,13 @@ void GruntLogin::Logon(const char* loginServer, const char* portal) {
     this->m_tokenEnabled = false;
     this->m_token[0] = '\0';
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_CONNECTING, LOGIN_OK, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return;
+#endif
     this->m_clientLink->Connect(loginServer ? loginServer : "us.logon.worldofwarcraft.com:3724");
 }
 
@@ -136,6 +174,9 @@ GruntLogin::~GruntLogin() {
 // VERIFY: e258ceaa manual
 // OFFSET: 0x008CAC50
 void GruntLogin::Init(LoginResponse* loginResponse) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!loginResponse || this->m_clientLink) throw std::logic_error("Invalid GruntLogin initialization");
+#endif
     this->m_loginResponse = loginResponse;
     this->m_clientLink = new (__FILE__, __LINE__) Grunt::ClientLink(*this);
 }
@@ -143,6 +184,11 @@ void GruntLogin::Init(LoginResponse* loginResponse) {
 // VERIFY: 93a5e7e0 manual
 // OFFSET: 0x008CACA0
 GruntLogin::GruntLogin() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->m_pinEnabled = this->m_matrixEnabled = this->m_tokenEnabled = false;
+    this->m_tokenRequired = 0;
+    this->m_token[0] = 0;
+#endif
     this->m_clientLink = nullptr;
     this->m_matrixChallengeCount = 0;
     this->m_matrixCoordinates = nullptr;
@@ -162,7 +208,13 @@ void GruntLogin::Logoff() {
 // OFFSET: 0x008CB160
 void GruntLogin::LogonResult(Grunt::Result result, const uint8_t* sessionKey, uint32_t sessionKeyLength, uint16_t flags) {
     if (this->IsReconnect()) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
         this->m_loginResponse->HandleRealmData(1, nullptr);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return;
+#endif
         this->m_clientLink->Disconnect();
         return;
     }
@@ -386,6 +438,9 @@ LOGIN_STATE GruntLogin::NextSecurityState(LOGIN_STATE state) {
 // VERIFY: 63b104b5 auto
 // OFFSET: 0x008CA700
 void GruntLogin::Reconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native reconnect integrity proof is unavailable");
+#endif
     this->m_reconnect = true;
     this->m_clientLink->Connect(this->m_loginResponse->GetLoginServer());
 }
@@ -590,6 +645,9 @@ static void ProcessMatrixRC4(uint8_t* data, uint32_t length, SARC4Key* key) {
 // VERIFY: d046e16b auto
 // OFFSET: 0x008CA4D0
 void GruntLogin::FileAccept(bool accept, uint64_t offset) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native authentication file-transfer service is unavailable");
+#endif
     this->m_clientLink->FileStatus(accept, offset);
 }
 
@@ -608,12 +666,18 @@ void GruntLogin::SendSurveyFailed() {
 // VERIFY: e0ac23d3 auto
 // OFFSET: 0x008CA570
 void GruntLogin::FileComplete(bool success) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native authentication file-transfer service is unavailable");
+#endif
     this->m_clientLink->FileComplete();
 }
 
 // VERIFY: 20c829de manual
 // OFFSET: 0x008CA7F0
 int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_logonStatus == -1) throw std::logic_error("Native login must progress on Event; blocking Wait is unavailable");
+#endif
     while (this->m_logonStatus == -1) {
         OsSleep(100);
     }
@@ -622,6 +686,9 @@ int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
         memset(&loginData, 0, sizeof(loginData));
     } else {
         loginData.m_loginServerID = 0;
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        loginData.m_loginServerType = 0;
+#endif
         SStrCopy(loginData.m_account, this->m_username, sizeof(loginData.m_account));
         memcpy(loginData.m_sessionKey, this->m_sessionKey, sizeof(loginData.m_sessionKey));
     }
@@ -632,6 +699,11 @@ int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
 // VERIFY: 66d294df manual
 // OFFSET: 0x008CA880
 void GruntLogin::EnterPIN(int32_t count, uint8_t* digits) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!digits || count < 1 || count > 10) throw std::invalid_argument("Invalid PIN span");
+    for (int32_t i = 0; i < count; ++i)
+        if (digits[i] > 9) throw std::invalid_argument("Invalid PIN digit");
+#endif
     char pin[12];
 
     for (int32_t i = 0; i < count; i++) {

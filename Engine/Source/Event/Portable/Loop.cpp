@@ -2,6 +2,7 @@
 // SDL owns the outer loop. Original handler IDs, order and propagation remain.
 #include "Loop.h"
 #include "WoW/Source/WowServices/WowConnectionNet.h"
+#include "WoW/Source/WowServices/Portable/Session.h"
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <array>
 #include <cmath>
@@ -67,7 +68,7 @@ void EventInitialize(uint32_t threads, int32_t server) {
     WowConnection::InitOsNet(nullptr, nullptr, 1, false);
     current = std::move(context);
     EventRegisterEx(EVENT_ID_POLL, +[](const void*, void*) -> int {
-        WowConnection::s_network->Poll(); return 1;
+        WowConnection::s_network->Poll(); NativeSession::Poll(); return 1;
     }, nullptr, 1000.0f);
 }
 void EventDestroy() {

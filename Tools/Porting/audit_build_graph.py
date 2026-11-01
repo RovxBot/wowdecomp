@@ -22,7 +22,7 @@ def audit(targets, mode, target_os, cpu):
     if mode in {'packets', 'connections'}:
         expected |= {'WowNativePackets', 'NativePacketCheck'}
     if mode == 'connections':
-        expected |= {'WowNativeNet', 'NativeConnectionCheck'}
+        expected |= {'WowNativeNet', 'NativeConnectionCheck', 'NativeSessionCheck'}
     if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
         expected |= {'WowNativeFiles', 'FileServicesCheck'}
     if mode in {'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
@@ -191,12 +191,17 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native Gx context provider/ABI")
-        if mode == 'connections' and target['name'] in {'WowNativeNet', 'NativeConnectionCheck'}:
+        if mode == 'connections' and target['name'] in {'WowNativeNet', 'NativeConnectionCheck', 'NativeSessionCheck'}:
             allowed = {'WowNativeNet': ['WoW/Source/WowServices/WowConnection.cpp',
                 'WoW/Source/WowServices/Portable/WowConnection.cpp',
                 'WoW/Source/WowServices/Portable/WowConnectionNet.cpp',
-                'Engine/Source/Os/Portable/NetAddress.cpp'],
-                'NativeConnectionCheck': ['Tools/NativeNet/connections.cpp']}[target['name']]
+                'Engine/Source/Os/Portable/NetAddress.cpp',
+                'Engine/Source/Storm/Source/MD5.cpp', 'Engine/Source/Storm/Source/SBig.cpp'] +
+                ['WoW/Source/WowServices/' + name + '.cpp' for name in
+                 ['BigInteger', 'SRP6_Client', 'SRP6_Random', 'Login', 'Grunt', 'GruntLogin', 'Portable/Session']] +
+                ['WoW/Source/Net/NetClient/NetClient.cpp'],
+                'NativeConnectionCheck': ['Tools/NativeNet/connections.cpp'],
+                'NativeSessionCheck': ['Tools/NativeNet/sessions.cpp']}[target['name']]
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed):
                 errors.append(f"{target['name']}: unexpected native connection sources: {sources}")
             if not {'WOWDECOMP_PORTABLE_RUNTIME=1', 'WOWDECOMP_NATIVE_CONNECTION=1'} <= definitions:

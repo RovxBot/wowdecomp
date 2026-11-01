@@ -1,5 +1,6 @@
 #include "Engine/Source/Event/Portable/Loop.h"
 void CheckNativeConnections(void (*pump)());
+void CheckNativeSessions(void (*pump)());
 // Focused regression of the device used by WowNativeClient, with authored bytes.
 #include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
 #include "Engine/Source/Gx/Gx.h"
@@ -255,7 +256,8 @@ int main() {
     StormRtlInitialize();
     try {
         EventInitialize(1, 0);
-        try { CheckNativeConnections(+[] { EventNative::Tick(0, 0); }); }
+        try { CheckNativeConnections(+[] { EventNative::Tick(0, 0); });
+              CheckNativeSessions(+[] { EventNative::Tick(0, 0); }); }
         catch (...) { EventDestroy(); throw; }
         EventDestroy();
         CheckNativeScanServices();

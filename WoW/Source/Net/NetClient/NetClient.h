@@ -9,7 +9,9 @@
 #include "Engine/Source/Storm/Source/SLock.h"
 #include "WoW/Source/Net/NetClient/Types.h"
 #include "WoW/Source/Net/Types.h"
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/Object/ObjectClient/Object_C.h"
+#endif
 #include "WoW/Source/WowServices/WowConnection.h"
 
 class CGObject_C;
@@ -17,6 +19,7 @@ class CHashKeyGUID;
 class ClientConnection;
 struct ClntObjMgr;
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 struct ClntObjMgr {
     /* 0000 */ TSHashTable<CGObject_C, CHashKeyGUID> m_objects;
     /* 0028 */ TSHashTable<CGObject_C, CHashKeyGUID> m_lazyCleanupObjects;
@@ -30,6 +33,8 @@ struct ClntObjMgr {
     /* 00D0 */ ClientConnection* m_net;
     /* 00D4 */ uint8_t unused_00D4[4];
 };
+
+#endif
 
 class AuthenticationChallenge {
     public:
@@ -64,6 +69,9 @@ class NETEVENTQUEUE {
     /* 0004 */ SCritSect m_critSect;
     /* 002C */ TSList<NETEVENTQUEUENODE> m_eventQueue;
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    bool m_polling = false;
+#endif
     NETEVENTQUEUE(NetClient* client);
     ~NETEVENTQUEUE();
     void AddEvent(EVENTID eventId, void* connection, NetClient* client, const void* data, uint32_t size);

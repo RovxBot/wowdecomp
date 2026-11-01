@@ -112,3 +112,9 @@ if(WOWDECOMP_BUILD_NATIVE_D3D9)
     target_sources(${connection_fixture} PRIVATE ${PROJECT_SOURCE_DIR}/Tools/NativeNet/connections.cpp)
     target_compile_definitions(${connection_fixture} PRIVATE WOWDECOMP_CONNECTION_FIXTURE_EMBEDDED=1)
 endif()
+
+# Original authentication/session callers use the same Event loop as the client.
+if(WOWDECOMP_BUILD_NATIVE_D3D9)
+    target_sources(NativeD3d9ClientCheck PRIVATE ${PROJECT_SOURCE_DIR}/Tools/NativeNet/sessions.cpp)
+    target_compile_definitions(NativeD3d9ClientCheck PRIVATE WOWDECOMP_SESSION_FIXTURE_EMBEDDED=1)
+endif()
