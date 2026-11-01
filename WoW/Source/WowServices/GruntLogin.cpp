@@ -2,8 +2,15 @@
 #include "Engine/Source/Os/OsSecureRandom.h"
 #include "WoW/Source/Net/NetClient/NetClient.h"
 #include <cstring>
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <alloca.h>
+#include <stdexcept>
+#else
 #include <malloc.h>
+#endif
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#endif
 #include "Engine/Source/Os/OsTcp.h"
 #include "Engine/Source/Os/System.h"
 #include "Engine/Source/Os/Time.h"
@@ -61,6 +68,12 @@ bool GruntLogin::Disconnected() {
 // VERIFY: ca1d1b53 manual
 // OFFSET: 0x008CA580
 void GruntLogin::GetLogonMethod() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // No approved native platform/version-integrity identity is available yet.
+    this->m_logonStatus = 1;
+    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, nullptr, 0);
+    this->m_clientLink->Disconnect();
+#else
     Grunt::ClientLink::Logon logon = {};
 
     logon.m_programId = Login::s_fourCCprogramID;
@@ -93,6 +106,7 @@ void GruntLogin::GetLogonMethod() {
         SMemFree(this->m_password, __FILE__, __LINE__, 0);
         this->m_password = nullptr;
     }
+#endif
 }
 
 // VERIFY: eb019dfb manual
@@ -143,6 +157,11 @@ void GruntLogin::Init(LoginResponse* loginResponse) {
 // VERIFY: 93a5e7e0 manual
 // OFFSET: 0x008CACA0
 GruntLogin::GruntLogin() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->m_pinEnabled = this->m_matrixEnabled = this->m_tokenEnabled = false;
+    this->m_tokenRequired = 0;
+    this->m_token[0] = 0;
+#endif
     this->m_clientLink = nullptr;
     this->m_matrixChallengeCount = 0;
     this->m_matrixCoordinates = nullptr;
@@ -386,6 +405,9 @@ LOGIN_STATE GruntLogin::NextSecurityState(LOGIN_STATE state) {
 // VERIFY: 63b104b5 auto
 // OFFSET: 0x008CA700
 void GruntLogin::Reconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native reconnect integrity proof is unavailable");
+#endif
     this->m_reconnect = true;
     this->m_clientLink->Connect(this->m_loginResponse->GetLoginServer());
 }
@@ -614,6 +636,9 @@ void GruntLogin::FileComplete(bool success) {
 // VERIFY: 20c829de manual
 // OFFSET: 0x008CA7F0
 int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_logonStatus == -1) throw std::logic_error("Native login must progress on Event; blocking Wait is unavailable");
+#endif
     while (this->m_logonStatus == -1) {
         OsSleep(100);
     }

@@ -8,7 +8,12 @@
 #include "Engine/Source/Event/Types.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/Glue/CGlueMgr.h"
+#else
+#include "WoW/Source/WowServices/Portable/Session.h"
+#include <stdexcept>
+#endif
 #include "WoW/Source/WowServices/HMAC.h"
 
 // STATIC: 0x00AD2ED0
@@ -31,7 +36,7 @@ uint32_t NetClient::s_clientCount;
 
 // VERIFY: 44b868cd manual
 // OFFSET: 0x006321B0
-static bool __stdcall ComputeProofOfWork(const SHA1_CONTEXT* context, uint32_t difficulty, uint64_t* proof) {
+static bool STORMAPI ComputeProofOfWork(const SHA1_CONTEXT* context, uint32_t difficulty, uint64_t* proof) {
     uint64_t nonce = 0;
 
     while (true) {
@@ -77,10 +82,17 @@ static bool __stdcall ComputeProofOfWork(const SHA1_CONTEXT* context, uint32_t d
 // VERIFY: 0b11eb2d auto
 // OFFSET: 0x00633330
 void NetClient::WCMessageReady(WowConnection* connection, uint32_t timeStamp, CDataStore* msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (msg->m_size < 2) { connection->Disconnect(); return; }
+#endif
     uint32_t size = msg->m_size;
     void* data;
     msg->GetDataInSitu(data, size);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->m_bytesReceived += msg->m_size;
+#else
     InterlockedExchangeAdd(reinterpret_cast<volatile LONG*>(&this->m_bytesReceived), msg->m_size);
+#endif
     msg->m_read = 0;
 
     uint16_t msgId;
@@ -127,6 +139,7 @@ NETEVENTQUEUE::NETEVENTQUEUE(NetClient* client) {
 
 // VERIFY: eb4e833d manual
 // OFFSET: 0x006334F0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void NETEVENTQUEUE::Poll() {
     this->m_critSect.Enter();
 
@@ -188,17 +201,22 @@ void NETEVENTQUEUE::Poll() {
     this->m_eventQueue.Clear();
     this->m_critSect.Leave();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: dd90b2c3 auto
 // OFFSET: 0x00631D10
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 static void InitializePropContext() {
     if (PropGetSelectedContext() != s_propContext) {
         PropSelectContext(s_propContext);
     }
 }
 
+#endif
+
 // VERIFY: 8093d1d7 manual
 // OFFSET: 0x00631D30
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t NetClient::Initialize() {
     if (!NetClient::s_clientCount) {
         s_propContext = PropGetSelectedContext();
@@ -221,6 +239,7 @@ int32_t NetClient::Initialize() {
 
     return 1;
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 22bd59ed auto
 // OFFSET: 0x00631E10
@@ -257,6 +276,9 @@ uint8_t* NetClient::GetSessionKey() {
 // VERIFY: f1080d7c auto
 // OFFSET: 0x00631FA0
 void NetClient::SetMessageHandler(NETMESSAGE msgId, MESSAGE_HANDLER handler, void* param) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (uint32_t(msgId) >= NUM_MSG_TYPES) throw std::out_of_range("Invalid network handler");
+#endif
     this->m_handlers[msgId] = handler;
     this->m_handlerParams[msgId] = param;
 }
@@ -264,6 +286,9 @@ void NetClient::SetMessageHandler(NETMESSAGE msgId, MESSAGE_HANDLER handler, voi
 // VERIFY: acb4d340 auto
 // OFFSET: 0x00631FC0
 void NetClient::ResetHandler(NETMESSAGE msgId) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (uint32_t(msgId) >= NUM_MSG_TYPES) throw std::out_of_range("Invalid network handler");
+#endif
     this->m_handlers[msgId] = nullptr;
     this->m_handlerParams[msgId] = nullptr;
 }
@@ -373,9 +398,13 @@ int32_t NetClient::Connect(const char* address) {
 // VERIFY: f0345188 manual
 // OFFSET: 0x00632460
 int32_t NetClient::HandleData(uint32_t timeReceived, void* data, int32_t size) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_objMgr) throw std::logic_error("Native world object-manager context is unavailable");
+#else
     if (this->m_objMgr) {
         NetClient::PushObjMgr(this->m_objMgr);
     }
+#endif
 
     s_stats[3] += size + 2;
 
@@ -384,7 +413,9 @@ int32_t NetClient::HandleData(uint32_t timeReceived, void* data, int32_t size) {
         this->ProcessMessage(timeReceived, &msg, 0);
     }
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     NetClient::PopObjMgr();
+#endif
 
     return 1;
 }
@@ -392,12 +423,18 @@ int32_t NetClient::HandleData(uint32_t timeReceived, void* data, int32_t size) {
 // VERIFY: 72928567 auto
 // OFFSET: 0x00632510
 int32_t NetClient::HandleConnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_objMgr) throw std::logic_error("Native world object-manager context is unavailable");
+#else
     if (this->m_objMgr) {
         NetClient::PushObjMgr(this->m_objMgr);
     }
+#endif
 
     this->m_netState = NS_CONNECTED;
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     NetClient::PopObjMgr();
+#endif
 
     return 1;
 }
@@ -405,14 +442,24 @@ int32_t NetClient::HandleConnect() {
 // VERIFY: df419859 auto
 // OFFSET: 0x00632540
 int32_t NetClient::HandleDisconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_objMgr) throw std::logic_error("Native world object-manager context is unavailable");
+#else
     if (this->m_objMgr) {
         NetClient::PushObjMgr(this->m_objMgr);
     }
+#endif
 
     this->m_netState = NS_INITIALIZED;
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     ConsolePrintf("NetClient::HandleDisconnect()");
+#endif
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     CGlueMgr::NetDisconnectHandler(this);
+#endif
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     NetClient::PopObjMgr();
+#endif
 
     return 1;
 }
@@ -420,12 +467,18 @@ int32_t NetClient::HandleDisconnect() {
 // VERIFY: 251c34c2 auto
 // OFFSET: 0x00632590
 int32_t NetClient::HandleCantConnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_objMgr) throw std::logic_error("Native world object-manager context is unavailable");
+#else
     if (this->m_objMgr) {
         NetClient::PushObjMgr(this->m_objMgr);
     }
+#endif
 
     this->m_netState = NS_INITIALIZED;
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     NetClient::PopObjMgr();
+#endif
 
     return 1;
 }
@@ -444,7 +497,9 @@ void NetClient::HandlePong(WowConnection* connection, CDataStore* msg) {
     msg->Get(sequence);
 
     if (sequence != this->m_pingSequence) {
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
         ConsolePrintf("Received pong with old sequence");
+#endif
         this->m_pingLock.Leave();
         return;
     }
@@ -494,6 +549,16 @@ void NetClient::WCDisconnected(WowConnection* connection, uint32_t timeStamp, co
 // VERIFY: 4a65a25e manual
 // OFFSET: 0x00632730
 void NetClient::HandleAuthChallenge(WowConnection* connection, CDataStore* msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // Proof-of-work must not block the Event owner without a qualified work budget.
+    if (msg->m_read > msg->m_size || msg->m_size - msg->m_read != 40) {
+        connection->Disconnect(); return;
+    }
+    uint32_t nativeDifficulty = 0;
+    const uint32_t begin = msg->m_read;
+    msg->Get(nativeDifficulty); msg->m_read = begin;
+    if (nativeDifficulty != 0) { connection->Disconnect(); return; }
+#endif
     AuthenticationChallenge* challenge = static_cast<AuthenticationChallenge*>(SMemAlloc(sizeof(AuthenticationChallenge), __FILE__, __LINE__, 0));
 
     uint32_t difficulty;
@@ -687,6 +752,7 @@ void NetClient::Disconnect() {
 
 // VERIFY: 7891283c manual
 // OFFSET: 0x006322A0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void NetClient::Destroy() {
     if (this->m_netState == NS_UNINITIALIZED) {
         return;
@@ -713,6 +779,7 @@ void NetClient::Destroy() {
         ConsolePrintf("Client net stats: %Lu bytes sent, %Lu bytes received, %Lu msec elapsed", s_stats[0], s_stats[3], OsGetAsyncTimeMs() - s_initializeTime);
     }
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: a5e5149c manual
 // OFFSET: [0x006331B0, 0x00633300]
@@ -729,17 +796,23 @@ NetClient::~NetClient() {
 
 // VERIFY: 4136bd3d auto
 // OFFSET: 0x00633630
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void NETEVENTQUEUE::Clear() {
     this->m_critSect.Enter();
     this->m_eventQueue.Clear();
     this->m_critSect.Leave();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 796de75c manual
 // OFFSET: 0x00633650
 void NETEVENTQUEUE::AddEvent(EVENTID eventId, void* connection, NetClient* client, const void* data, uint32_t size) {
     this->m_critSect.Enter();
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+    if (client != this->m_client || (size && !data)) throw std::invalid_argument("Invalid native network event");
+#endif
     NETEVENTQUEUENODE* node = this->m_eventQueue.NewNode(2, 0, 8);
     node->m_eventId = eventId;
 
@@ -760,11 +833,13 @@ void NETEVENTQUEUE::AddEvent(EVENTID eventId, void* connection, NetClient* clien
 
 // VERIFY: 4d2c7b3d manual
 // OFFSET: 0x00633730
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 NETEVENTQUEUE::~NETEVENTQUEUE() {
     this->m_critSect.Enter();
     this->m_eventQueue.Clear();
     this->m_critSect.Leave();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 75864678 auto
 // OFFSET: 0x00633020

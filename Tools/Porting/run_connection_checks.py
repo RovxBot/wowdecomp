@@ -20,7 +20,7 @@ def main():
     build=root/'build'/args.preset;evidence=root/'artifacts'/args.preset;evidence.mkdir(parents=True,exist_ok=True)
     target_os,cpu={'linux-connections':('LINUX','X86_64'),'linux-connections-asan':('LINUX','X86_64'),
         'macos-arm64-connections':('MACOS','ARM64')}[args.preset]
-    manifest=dict(schema_version=1,scope='Original WowConnection POSIX/DNS loopback contracts; no authentication/gameplay',
+    manifest=dict(schema_version=1,scope='Original WowConnection/Grunt/SRP/realm/NetClient loopback contracts; no live authentication/gameplay',
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),preset=args.preset,
         workflow_run=f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         target_os=target_os,target_cpu=cpu,host_machine=platform.machine(),runner_arch=os.environ.get('RUNNER_ARCH'),
@@ -44,7 +44,7 @@ def main():
         run('build',['cmake','--build',str(build),'--config','Release','--parallel','2'])
         run('tests',['ctest','--test-dir',str(build),'-C','Release','--output-on-failure','--no-tests=error'])
         (evidence/'bin').mkdir(exist_ok=True);manifest['binaries']=[]
-        for name in ['NativeConnectionCheck','NativePacketCheck','NativeCore','CoreServicesCheck','PortableCoreCheck']:
+        for name in ['NativeSessionCheck','NativeConnectionCheck','NativePacketCheck','NativeCore','CoreServicesCheck','PortableCoreCheck']:
             actual=name+('.exe' if target_os=='WINDOWS' else '')
             found=list((build/'bin').rglob(actual))
             if len(found)!=1:raise RuntimeError('Expected one packaged '+actual)

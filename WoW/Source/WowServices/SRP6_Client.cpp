@@ -29,6 +29,11 @@ int32_t SRP6_Client::BeginAuthentication(const char* accountName, const char* pa
 // VERIFY: 5d07ea4e auto
 // OFFSET: 0x009A83E0
 int32_t SRP6_Client::CalculateProof(const uint8_t* largeSafePrime, uint32_t largeSafePrimeLength, const uint8_t* generator, uint32_t generatorLength, const uint8_t* salt, uint32_t saltLength, const uint8_t* serverPublicKey, uint32_t serverPublicKeyLength, SRP6_Random& random) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!largeSafePrime || largeSafePrimeLength != 32 || !generator || !generatorLength ||
+        generatorLength > 32 || !salt || saltLength != 32 || !serverPublicKey || serverPublicKeyLength != 32)
+        return -1;
+#endif
     BigInteger N = BigIntegerFromBytes(largeSafePrime, largeSafePrimeLength);
     BigInteger g = BigIntegerFromBytes(generator, generatorLength);
     BigInteger x = BigIntegerFromInt(0);

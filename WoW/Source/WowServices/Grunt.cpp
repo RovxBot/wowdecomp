@@ -1,14 +1,25 @@
 #include "Grunt.h"
 #include <cstdio>
 #include <cstring>
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <alloca.h>
+#include <vector>
+#include "WoW/Source/WowServices/Portable/Session.h"
+#include <stdexcept>
+#else
 #include <malloc.h>
+#endif
 #include "Engine/Source/Os/OsSecureRandom.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/Source/MD5.h"
 #include "WoW/Source/WowServices/SRP6_Random.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.h"
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/Client.h"
+#else
+extern uint32_t s_localeIds[9]; // server-only legacy helper; not used by native client
+#endif
 
 // STATIC: 0x00B24D00
 static Grunt::Command<Grunt::ClientLink> s_authCmds[] = {
@@ -30,6 +41,7 @@ static const uint8_t s_serverAuthKey[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
 // STATIC: 0x00B24CA0
 static const char* s_linkTypeNames[] = { "Grunt", "Battlenet" };
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 // STATIC: 0x00B24D70
 static Grunt::Command<Grunt::ServerLink> s_serverCmds[] = {
     { 0x00, {}, "ServerLink::CMD_GRUNT_AUTH_CHALLENGE", &Grunt::ServerLink::CmdGruntAuthChallenge },
@@ -56,6 +68,8 @@ static Grunt::ServerLink::Feature s_serverFeatures[] = {
     { 0x00040001, 1 },
 };
 
+#endif
+
 // INLINED
 Grunt::Pending::Pending(uint32_t timeout) {
     this->m_timeout = timeout;
@@ -63,6 +77,7 @@ Grunt::Pending::Pending(uint32_t timeout) {
 }
 
 // INLINED
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void Grunt::Timer::Shutdown() {
     if (!this->m_thread.Valid()) {
         return;
@@ -76,6 +91,7 @@ void Grunt::Timer::Shutdown() {
     this->m_list.UnlinkAll();
     this->m_lock.Leave();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 93be7f01 auto
 // OFFSET: 0x008CBA40
@@ -130,10 +146,17 @@ void Grunt::ClientLink::SetState(int32_t state) {
 // VERIFY: 32e7119e manual
 // OFFSET: 0x008CBB40
 void Grunt::ClientLink::Connect(const char* address) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     if (this->m_state) {
         return;
     }
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->m_datastore.m_read = uint32_t(-1);
+    this->m_datastore.Reset();
+#endif
     this->SetState(1);
 
     this->m_connection = new (__FILE__, __LINE__) WowConnection(this, nullptr);
@@ -213,6 +236,9 @@ void Grunt::ClientLink::PackLogon(CDataStore& msg, const Grunt::ClientLink::Logo
 // VERIFY: abfd5c66 manual
 // OFFSET: 0x008CD7E0
 void Grunt::ClientLink::LogonNewSession(const Grunt::ClientLink::Logon& logon) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->SetState(3);
 
     SStrCopy(this->m_accountName, logon.m_accountName, sizeof(this->m_accountName));
@@ -245,6 +271,9 @@ void Grunt::ClientLink::LogonNewSession(const Grunt::ClientLink::Logon& logon) {
 // VERIFY: 902b90a7 manual
 // OFFSET: 0x008CD9F0
 void Grunt::ClientLink::LogonStoredSession(const Grunt::ClientLink::Logon& logon) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native reconnect integrity proof is unavailable");
+#endif
     this->SetState(3);
 
     SStrCopy(this->m_accountName, logon.m_accountName, sizeof(this->m_accountName));
@@ -286,6 +315,7 @@ void Grunt::ClientLink::SendSurveyFailed() {
 
 // VERIFY: 01aad7f9 auto
 // OFFSET: 0x008CE5C0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void Grunt::Timer::Insert(Grunt::Timer::Event& event) {
     this->m_lock.Enter();
 
@@ -302,6 +332,7 @@ void Grunt::Timer::Insert(Grunt::Timer::Event& event) {
     this->m_list.LinkToTail(&event);
     this->m_lock.Leave();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 2b47cb0c manual
 // OFFSET: 0x008CE6D0
@@ -310,6 +341,7 @@ Grunt::Pending::~Pending() {
 
 // VERIFY: 5ce0f696 manual
 // OFFSET: 0x008CED90
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t Grunt::Timer::Pump() {
     this->m_lock.Enter();
 
@@ -335,12 +367,15 @@ int32_t Grunt::Timer::Pump() {
 
     return 100;
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: c0fe3e15 manual
 // OFFSET: 0x008CEE20
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 Grunt::Timer::~Timer() {
     this->Shutdown();
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: 374cd430 manual
 // OFFSET: 0x008CEF70
@@ -434,16 +469,24 @@ uint32_t STORMAPI Grunt::Timer::ThreadProc(void* param) {
 
 // VERIFY: 44245c80 manual
 // OFFSET: 0x008CF7A0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 Grunt::Timer::Timer() : m_event(0, 0) {
     SThread::Create(Grunt::Timer::ThreadProc, this, this->m_thread, const_cast<char*>("GruntTimerEvt"), 0);
 }
+#endif // WOWDECOMP_NATIVE_CONNECTION
 
 // VERIFY: ec01e82e manual
 // OFFSET: 0x008CF800
 Grunt::ClientLink::ClientLink(Grunt::ClientResponse& clientResponse) : Grunt::Pending(18000), m_serverId(0), m_accountFlags(0), m_surveyId(0), m_localAddress(0), m_connection(nullptr), m_clientResponse(&clientResponse) {
     this->SetState(0);
 
-    if (this->m_timer.m_thread.Valid()) {
+    if (
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        true
+#else
+        this->m_timer.m_thread.Valid()
+#endif
+    ) {
         this->m_interval = 100;
         this->m_timer.Insert(*this);
     }
@@ -464,6 +507,9 @@ bool CanReadNumBytes(CDataStore& msg, uint32_t bytes) {
 // VERIFY: 58b79446 auto
 // OFFSET: 0x008CC250
 int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_state != 6) return 1;
+#endif
     if (msg.m_read > msg.m_size || msg.m_size - msg.m_read < 2) {
         return 0;
     }
@@ -475,15 +521,24 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
         return 0;
     }
 
-    uint32_t start = msg.m_read;
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    CDataStore bounded(msg.m_data + msg.m_read, size);
+    CDataStore& packet = bounded;
+#else
+    CDataStore& packet = msg;
+#endif
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (size < 8) return 1;
+#endif
+    uint32_t start = packet.m_read;
 
     uint32_t unknown;
-    msg.Get(unknown);
+    packet.Get(unknown);
 
-    uint32_t realmStart = msg.m_read;
+    uint32_t realmStart = packet.m_read;
 
     uint16_t count;
-    msg.Get(count);
+    packet.Get(count);
 
     for (uint32_t i = 0; i < count; i++) {
         uint8_t type;
@@ -496,15 +551,15 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
         uint8_t timeZone;
         uint8_t realmId;
 
-        msg.Get(type);
-        msg.Get(locked);
-        msg.Get(flags);
-        msg.GetString(name, sizeof(name));
-        msg.GetString(address, sizeof(address));
-        msg.Get(population);
-        msg.Get(characters);
-        msg.Get(timeZone);
-        msg.Get(realmId);
+        packet.Get(type);
+        packet.Get(locked);
+        packet.Get(flags);
+        packet.GetString(name, sizeof(name));
+        packet.GetString(address, sizeof(address));
+        packet.Get(population);
+        packet.Get(characters);
+        packet.Get(timeZone);
+        packet.Get(realmId);
 
         if (flags & 0x4) {
             uint8_t versionMajor;
@@ -512,29 +567,33 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
             uint8_t versionRevision;
             uint16_t build;
 
-            msg.Get(versionMajor);
-            msg.Get(versionMinor);
-            msg.Get(versionRevision);
-            msg.Get(build);
+            packet.Get(versionMajor);
+            packet.Get(versionMinor);
+            packet.Get(versionRevision);
+            packet.Get(build);
         }
 
-        if (msg.m_read > msg.m_size) {
+        if (packet.m_read > packet.m_size) {
             return 1;
         }
     }
 
     uint16_t trailer;
-    msg.Get(trailer);
+    packet.Get(trailer);
 
-    uint32_t end = msg.m_read;
+    uint32_t end = packet.m_read;
 
-    if (end > msg.m_size || end - start != size) {
+    if (end > packet.m_size || end - start != size) {
         return 1;
     }
 
-    msg.m_read = realmStart;
-    this->m_clientResponse->RealmListResult(&msg);
-    msg.m_read = end;
+    packet.m_read = realmStart;
+    this->m_clientResponse->RealmListResult(&packet);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    msg.m_read += end;
+#else
+    packet.m_read = end;
+#endif
 
     return 2;
 }
@@ -542,6 +601,9 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
 // VERIFY: 41cff6c4 manual
 // OFFSET: 0x008CC3E0
 int32_t Grunt::ClientLink::CmdAuthLogonChallenge(CDataStore& msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_state != 3) return 1;
+#endif
     if (msg.m_read > msg.m_size || msg.m_size - msg.m_read < 2) {
         return 0;
     }
@@ -645,6 +707,11 @@ int32_t Grunt::ClientLink::CmdAuthLogonChallenge(CDataStore& msg) {
             return 1;
         }
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if ((securityFlags & ~7u) || ((securityFlags & 2) &&
+            (!matrixWidth || !matrixHeight || !matrixDigitCount ||
+             matrixChallengeCount > uint32_t(matrixWidth) * matrixHeight))) return 1;
+#endif
         memcpy(this->m_serverChallenge, serverPublicKey, sizeof(this->m_serverChallenge));
 
         uint8_t seed[16];
@@ -684,6 +751,9 @@ int32_t Grunt::ClientLink::CmdAuthLogonChallenge(CDataStore& msg) {
 // VERIFY: c4dc2df1 manual
 // OFFSET: 0x008CC7A0
 int32_t Grunt::ClientLink::CmdAuthLogonProof(CDataStore& msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_state != 5) return 1;
+#endif
     if (msg.m_read >= msg.m_size) {
         return 0;
     }
@@ -692,7 +762,13 @@ int32_t Grunt::ClientLink::CmdAuthLogonProof(CDataStore& msg) {
     msg.Get(result);
 
     if (result == Grunt::GRUNT_RESULT_SUCCESS) {
-        if (msg.m_read > msg.m_size || msg.m_size - msg.m_read < 24) {
+        if (msg.m_read > msg.m_size || msg.m_size - msg.m_read <
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+            30
+#else
+            24
+#endif
+        ) {
             return 0;
         }
 
@@ -760,6 +836,37 @@ int32_t Grunt::ClientLink::CmdAuthLogonProof(CDataStore& msg) {
 // VERIFY: ea70b617 manual
 // OFFSET: 0x008CD710
 void Grunt::ClientLink::WCDataReady(WowConnection* connection, uint32_t timeStamp, uint8_t* data, int32_t length) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (length < 0 || uint32_t(length) > 131072u - this->m_datastore.m_size) {
+        this->Disconnect(); return;
+    }
+    this->m_datastore.PutArray(data, length);
+    this->m_datastore.Finalize();
+    uint32_t pos = 0;
+    bool valid = true;
+    while (CanReadNumBytes(this->m_datastore, 1)) {
+        uint8_t command = 0;
+        this->m_datastore.Get(command);
+        // File transfer and reconnect need separate integrity/service qualification.
+        int result = 1;
+        switch (command) {
+            case 0: result = this->CmdAuthLogonChallenge(this->m_datastore); break;
+            case 1: result = this->CmdAuthLogonProof(this->m_datastore); break;
+            case 0x10: result = this->CmdRealmList(this->m_datastore); break;
+        }
+        if (result == 0) break;
+        if (result != 2) { valid = false; break; }
+        pos = this->m_datastore.m_read;
+        if (!this->m_connection || this->m_connection != connection || this->m_state == 0) break;
+    }
+    std::vector<uint8_t> tail;
+    if (valid) tail.assign(this->m_datastore.m_data + pos,
+                           this->m_datastore.m_data + this->m_datastore.m_size);
+    this->m_datastore.m_read = uint32_t(-1);
+    this->m_datastore.Reset();
+    if (valid) this->m_datastore.PutData(tail.data(), tail.size());
+    else this->Disconnect();
+#else
     this->m_datastore.PutArray(data, length);
     this->m_datastore.Finalize();
 
@@ -779,11 +886,15 @@ void Grunt::ClientLink::WCDataReady(WowConnection* connection, uint32_t timeStam
         this->m_datastore.Reset();
         this->Disconnect();
     }
+#endif
 }
 
 // VERIFY: 8e4d36ef manual
 // OFFSET: 0x008CE0F0
 void Grunt::ClientLink::GetRealmList() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     if (this->m_state != 6) {
         return;
     }
@@ -798,6 +909,13 @@ void Grunt::ClientLink::GetRealmList() {
 // VERIFY: 58cb67ed manual
 // OFFSET: 0x008CE720
 void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_state != 4 || !versionChecksum)
+        throw std::logic_error("Version proof requires a complete logon challenge and checksum");
+#endif
     CDataStoreCache<1024> msg;
     Grunt::CdKey cdKeys;
     SHA1_CONTEXT context;
@@ -923,6 +1041,9 @@ void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
     }
 
     msg.Finalize();
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->SetState(5);
+#endif
     this->Send(msg);
 }
 
@@ -1073,6 +1194,7 @@ void Grunt::ClientLink::FileStatus(bool accept, uint64_t offset) {
     this->Send(msg);
 }
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 // VERIFY: 37b6a6bc manual
 // OFFSET: 0x008CDFC0
 void Grunt::ClientLink::FileComplete() {
@@ -1659,3 +1781,5 @@ void Grunt::ServerLink::PutFeatures(CDataStore& msg) {
     msg.Put(static_cast<uint32_t>('Area'));
     msg.Set(countPos, static_cast<uint16_t>(4));
 }
+
+#endif
