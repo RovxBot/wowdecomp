@@ -36,7 +36,7 @@ def verify_artifact(artifact, sanitizers, renderer="opengl"):
             if not path.is_relative_to(artifact.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 raise ValueError('DXVK client package path/hash mismatch: ' + name)
         for path in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*'))]:
-            if str(path.relative_to(artifact)) not in manifest['files']:
+            if path.relative_to(artifact).as_posix() not in manifest['files']:
                 raise ValueError('Unrecorded client executable/library')
             contents = path.read_bytes()
             if len(contents) < 20 or contents[:6] != b'\x7fELF\x02\x01' or contents[18:20] != b'\x3e\x00':

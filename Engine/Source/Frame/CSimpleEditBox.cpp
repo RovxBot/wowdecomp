@@ -2134,6 +2134,9 @@ void CSimpleEditBox::RunOnTabPressedScript() {
 void CSimpleEditBox::RunOnTextChangedScript() {
     EDIT_CHECK();
     if (this->m_onTextChanged.m_luaRef) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::TextChangedEdits edits;
+#endif
         lua_State* L = FrameScript_GetContext();
         lua_pushboolean(L, (this->m_dirtyBits >> 3) & 0x1);
         this->RunScript(this->m_onTextChanged, 1, nullptr);

@@ -21,6 +21,8 @@ bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 bool mouseWheelEdits = false;
 bool buttonClickEdits = false;
+bool textChangedEdits = false;
+CSimpleFrame* showCallbackFrame = nullptr;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
 ScrollRenderScope* scrollRender = nullptr;
@@ -61,13 +63,19 @@ void RequireScriptTextMutation() {
     RequireRegions();
     if (collecting) throw std::logic_error("Finish Frame batch collection before changing script text");
 }
+void RequireTextureContentMutation() {
+    RequireRegions();
+    if (!updating) { RequireTreeMutation(); return; }
+    RequireStateMutable(true);
+    if (collecting) throw std::logic_error("Finish Frame batch collection before changing texture contents");
+}
 void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
 }
 void RequireStateMutation(bool scrollCallback) {
     RequireRegions();
-    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits);
+    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits);
     RequireStateMutable(admitted);
     if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
@@ -96,9 +104,20 @@ ButtonClickEdits::ButtonClickEdits(CSimpleFrame* frame) {
     buttonClickEdits = active = true;
 }
 ButtonClickEdits::~ButtonClickEdits() { if (active) buttonClickEdits = false; }
+TextChangedEdits::TextChangedEdits() {
+    RequireRegions();
+    // Key/mouse callers can also flush dirty text while their existing lifetime
+    // guard is active. Preserve those callbacks and their ordinary restrictions.
+    if (!updating) return;
+    RequireStateMutable(true);
+    if (collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits)
+        throw std::logic_error("Nested or collecting EditBox text-change notification");
+    textChangedEdits = active = true;
+}
+TextChangedEdits::~TextChangedEdits() { if (active) textChangedEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits) return;
     RequireSimpleFrame(target);
     // Movement unflattening and top-level raising retain their stricter guards.
     // Preflight the entire subtree before changing any visibility/list state.
@@ -192,6 +211,26 @@ void RequireRaise(CSimpleFrame* target) {
                 if (level + delta > limit)
                     throw std::invalid_argument("Native raised descendant level limit");
             }
+}
+ShowCallback::ShowCallback(CSimpleFrame* frame) : previous(showCallbackFrame) {
+    RequireSimpleFrame(frame);
+    showCallbackFrame = frame;
+}
+ShowCallback::~ShowCallback() { showCallbackFrame = previous; }
+void RaiseFromScript(CSimpleFrame* target) {
+    RequireSimpleFrame(target);
+    if (showCallbackFrame == target && !updating && !collecting &&
+        !IsMouseButtonInput() && !IsMouseWheelInput()) {
+        RequireStateMutable(true); // Resize/render and owner guards still apply.
+        auto* ancestor = target;
+        while (ancestor && !(ancestor->m_frameFlags & 1)) ancestor = ancestor->m_parent;
+        if (!ancestor) return; // Original Raise has no top-level frame to move.
+        // ShowThis already raises before OnShow. The unchanged dialog repeats
+        // that call; admit only the proven no-op, without changing flags/lists.
+        if ((ancestor->m_layoutFlags & 0x100) && !ancestor->IsResizePending() &&
+            !CSimpleTop::s_instance->m_strata[ancestor->m_strata]->FrameOccluded(ancestor)) return;
+    }
+    target->Raise(); // Real changes retain all existing traversal/callback guards.
 }
 void RequireScale(CSimpleFrame* target, float proposed) {
     // Original recursive scale multiplication must remain finite before mutation.

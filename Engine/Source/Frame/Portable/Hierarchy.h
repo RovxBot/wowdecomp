@@ -6,6 +6,7 @@ class CSimpleTitleRegion;
 class CSimpleTexture;
 class CSimpleScrollFrame;
 class CSimpleButton;
+class CSimpleEditBox;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
@@ -15,6 +16,9 @@ void SetScrollNotify(ScrollNotify);
 bool HasScrollSupport();
 void NotifyScroll(CSimpleFrame*);
 void RequireScriptTextMutation();
+// Existing image handles may change during update scripts; region ownership,
+// construction/deletion, resize, collection and render remain pinned.
+void RequireTextureContentMutation();
 void RequireVisibilityMutation(CSimpleFrame*, bool showing);
 // Only the original scroll-range notification may update qualified existing
 // controls while layer traversal is pinned. No tree/layout/deletion capability.
@@ -49,6 +53,17 @@ private:
     explicit ButtonClickEdits(CSimpleFrame*);
     bool active = false;
 };
+// Original deferred EditBox OnTextChanged may update existing hints/controls.
+class TextChangedEdits final {
+public:
+    ~TextChangedEdits();
+    TextChangedEdits(const TextChangedEdits&) = delete;
+    TextChangedEdits& operator=(const TextChangedEdits&) = delete;
+private:
+    friend class ::CSimpleEditBox;
+    TextChangedEdits();
+    bool active = false;
+};
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTitleRegion* CreateTitleRegion(CSimpleFrame*);
@@ -57,6 +72,19 @@ void SimpleFrameDestroyed(CSimpleFrame*);
 void RequireScale(CSimpleFrame*, float);
 void RequireLevel(CSimpleFrame*, int32_t);
 void RequireRaise(CSimpleFrame*);
+void RaiseFromScript(CSimpleFrame*);
+// Only an already-completed raise may be repeated by this frame's OnShow.
+// No level/list mutation is admitted while the visibility callback is pinned.
+class ShowCallback final {
+public:
+    ~ShowCallback();
+    ShowCallback(const ShowCallback&) = delete;
+    ShowCallback& operator=(const ShowCallback&) = delete;
+private:
+    friend class ::CSimpleFrame;
+    explicit ShowCallback(CSimpleFrame*);
+    CSimpleFrame* previous;
+};
 [[noreturn]] void UnavailableFrameFeature();
 // Deferral is separate from CSimpleTop::m_destroyed's attribute-permission list.
 // Call on the owner outside batch rendering; it is allowed during layer updates.

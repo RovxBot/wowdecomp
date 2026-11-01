@@ -1594,6 +1594,9 @@ void CSimpleFrame::NotifyDrawLayerChanged(uint32_t drawLayer) {
 void CSimpleFrame::OnLayerShow() {
     FRAME_TREE_CHECK();
     if (this->m_onShow.m_luaRef && !this->m_isLoading) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::ShowCallback showCallback(this);
+#endif
         this->RunScript(this->m_onShow, 0, nullptr);
     }
 

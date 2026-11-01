@@ -734,6 +734,9 @@ int32_t CSimpleButton::SetHighlight(const char* fileName, EGxBlend blend) {
     CSimpleTexture* texture = this->m_highlightTexture;
 
     if (texture) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        Frame::Native::RequireTextureContentMutation();
+#endif
         texture->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
         texture->SetBlendMode(blend);
         return 1;
@@ -1118,7 +1121,9 @@ void CSimpleButton::LoadXML(XMLNode* node, CStatus* status) {
 int32_t CSimpleButton::SetStateTexture(CSimpleButtonState state, const char* fileName) {
     BUTTON_CHECK();
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
-    CheckState(state); Frame::Native::RequireTreeMutation();
+    CheckState(state);
+    if (this->m_stateTextures[state]) Frame::Native::RequireTextureContentMutation();
+    else Frame::Native::RequireTreeMutation();
 #endif
     if (this->m_stateTextures[state]) {
         this->m_stateTextures[state]->SetTexture(fileName, 0, 0, CSimpleTexture::s_textureFilterMode, ImageMode_Normal);
