@@ -43,12 +43,12 @@ static void Run(CSimpleTop& root, OsNative::Window& window) {
     };
     lua(R"(
         local p=CreateFrame('Frame','OptionsPanel'); p:SetSize(100,100); p:SetPoint('CENTER');
-        p:SetFrameStrata('DIALOG'); p:SetFrameLevel(0); p:Hide();
+        p:SetFrameLevel(0); p:Hide();
         local child=CreateFrame('Frame','OptionsChild',p); child:SetAllPoints(p);
         local other=CreateFrame('Frame','OptionsOccluder'); other:SetAllPoints(p);
-        other:SetFrameStrata('DIALOG'); other:SetFrameLevel(3);
+        other:SetFrameLevel(3);
         local open=CreateFrame('Button','OptionsOpen'); open:SetSize(40,30);
-        open:SetPoint('BOTTOMLEFT',nil,'BOTTOMLEFT',10,10); open:SetFrameStrata('DIALOG');
+        open:SetPoint('BOTTOMLEFT',nil,'BOTTOMLEFT',10,10);
         local close=CreateFrame('Button','OptionsClose',p); close:SetSize(40,30); close:SetPoint('CENTER');
         OptionsOrder={}; OptionsReject=false;
         open:SetScript('PreClick',function() table.insert(OptionsOrder,'pre') end);
@@ -86,6 +86,10 @@ static void Run(CSimpleTop& root, OsNative::Window& window) {
     auto* occluder = frame("OptionsOccluder");
     auto* opener = static_cast<CSimpleButton*>(frame("OptionsOpen"));
     auto* close = static_cast<CSimpleButton*>(frame("OptionsClose"));
+    // Original XML sets strata through C++; the Lua setter is not selected.
+    panel->SetFrameStrata(FRAME_STRATA_DIALOG);
+    occluder->SetFrameStrata(FRAME_STRATA_DIALOG);
+    opener->SetFrameStrata(FRAME_STRATA_DIALOG);
     panel->SetFrameFlag(1, 1);
     Guards guards{root, window, panel, opener};
     auto* L = FrameScript_GetContext();
