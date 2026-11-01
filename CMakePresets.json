@@ -203,6 +203,27 @@
       }
     },
     {
+      "name": "linux-connections",
+      "inherits": "linux-packets",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_NET": "ON"
+      }
+    },
+    {
+      "name": "linux-connections-asan",
+      "inherits": "linux-packets-asan",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_NET": "ON"
+      }
+    },
+    {
+      "name": "macos-arm64-connections",
+      "inherits": "macos-arm64-packets",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_NET": "ON"
+      }
+    },
+    {
       "name": "linux-packets",
       "inherits": "linux-core",
       "cacheVariables": {

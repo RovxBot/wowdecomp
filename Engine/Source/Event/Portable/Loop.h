@@ -3,7 +3,7 @@
 #include "Engine/Source/Event/Event.h"
 namespace EventNative {
 // Single original-client event context, driven on SDL's process main thread.
-// No network scheduler is installed by this boundary.
+// Original WowConnection callbacks are polled before POLL/UPDATE/IDLE/PAINT.
 void Dispatch(EVENTID, const void*);
 void Tick(float elapsed, uint32_t time);
 bool Closing();

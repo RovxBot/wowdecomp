@@ -6,7 +6,18 @@
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "WoW/Source/WowServices/HMAC.h"
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include <stdexcept>
+// Native send nodes use the qualified aligned Storm allocator. The legacy
+// WDataStore heaps retain their Windows object-handle ownership unchanged.
+namespace ConnectionBuffers {
+void* AllocBuffer(uint32_t size) { return SMemAlloc(size, __FILE__, __LINE__, 0); }
+void FreeBuffer(void* data, uint32_t) { SMemFree(data, __FILE__, __LINE__, 0); }
+}
+#else
 #include "WoW/Source/WowServices/WDataStore.h"
+using ConnectionBuffers = WDataStore;
+#endif
 #include "WoW/Source/WowServices/WowConnectionNet.h"
 
 // STATIC: 0x00AB96F8
@@ -37,7 +48,9 @@ int32_t WowConnection::s_lagTestDelayMin;
 int32_t WowConnection::s_lagTestDelayMax;
 
 // STATIC: 0x00B38D28
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 static volatile LONG s_numConnections;
+#endif
 
 // STATIC: 0x00B38D34
 SCritSect WowConnection::s_idLock;
@@ -64,6 +77,13 @@ void WowConnection::IDBITS::SetCount(uint32_t count) {
 // VERIFY: 2fa3073a manual
 // OFFSET: 0x00466BF0
 void WowConnection::SetEncryptionKey(const uint8_t* key, uint8_t keyLength, uint8_t direction, const uint8_t* seed, uint8_t seedLength) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!key || !keyLength || direction > 1 || (seed && (seedLength < 2 || seedLength > 128)))
+        throw std::invalid_argument("Invalid 12340 connection key parameters");
+#endif
     if (!seed) {
         seed = s_defaultSeed;
         seedLength = sizeof(s_defaultSeed);
@@ -127,12 +147,18 @@ WowConnectionResponse::~WowConnectionResponse() {
 // VERIFY: c3a40df5 auto
 // OFFSET: 0x004665B0
 void WowConnection::Encrypt(uint8_t* data, uint32_t length) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+#endif
     SARC4ProcessBuffer(data, length, &this->m_sendKey, &this->m_sendKey);
 }
 
 // VERIFY: 5fe5638b manual
 // OFFSET: 0x004665D0
 void WowConnection::SetSendTime(WowConnection::SENDNODE* node) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+#endif
     int32_t delay = WowConnection::s_lagTestDelayMin;
 
     if (!delay) {
@@ -149,11 +175,12 @@ void WowConnection::SetSendTime(WowConnection::SENDNODE* node) {
 // VERIFY: f06b0330 auto
 // OFFSET: 0x00466650
 void WowConnection::FreeSendNode(WowConnection::SENDNODE* node) {
-    WDataStore::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
+    ConnectionBuffers::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
 }
 
 // VERIFY: 3d72b789 manual
 // OFFSET: 0x004666D0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::SetResponse(WowConnectionResponse* response, bool deferred) {
     while (true) {
         this->m_responseLock.Enter();
@@ -176,18 +203,22 @@ void WowConnection::SetResponse(WowConnectionResponse* response, bool deferred) 
     this->m_pendingResponse = nullptr;
     this->m_responseLock.Leave();
 }
+#endif
 
 // VERIFY: 6119f9fe auto
 // OFFSET: 0x00466750
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::AcquireResponseRef() {
     this->m_responseLock.Enter();
     this->m_responseRef++;
     this->m_responseRefThread = SGetCurrentThreadId();
     this->m_responseLock.Leave();
 }
+#endif
 
 // VERIFY: 31a71f37 auto
 // OFFSET: 0x00466780
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::ReleaseResponseRef() {
     this->m_responseLock.Enter();
 
@@ -201,10 +232,14 @@ void WowConnection::ReleaseResponseRef() {
 
     this->m_responseLock.Leave();
 }
+#endif
 
 // VERIFY: 4ccaefb4 auto
 // OFFSET: 0x004667C0
 void WowConnection::SetState(WOW_CONN_STATE state) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+#endif
     WOW_CONN_STATE oldState = this->m_connState;
     this->m_connState = state;
 
@@ -216,6 +251,11 @@ void WowConnection::SetState(WOW_CONN_STATE state) {
 // VERIFY: 85b2e20b auto
 // OFFSET: 0x004667F0
 void WowConnection::SetType(WOWC_TYPE type) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+    if ((type != WOWC_TYPE_MESSAGES && type != WOWC_TYPE_STREAM) || this->m_readBytes)
+        throw std::logic_error("Cannot change a partial or invalid connection stream type");
+#endif
     this->m_lock.Enter();
     this->m_type = type;
     this->m_lock.Leave();
@@ -224,6 +264,9 @@ void WowConnection::SetType(WOWC_TYPE type) {
 // VERIFY: b8b5ccdd auto
 // OFFSET: 0x00466820
 void WowConnection::SetEncryption(bool enabled) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CheckNativeOwner();
+#endif
     this->m_lock.Enter();
     this->m_encrypt = enabled;
     SARC4PrepareKey(this->m_sendKeyInit, sizeof(this->m_sendKeyInit), &this->m_sendKey);
@@ -235,6 +278,7 @@ void WowConnection::SetEncryption(bool enabled) {
 
 // VERIFY: 9e1a898f manual
 // OFFSET: 0x004669D0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::Init(WowConnectionResponse* response, void (*threadInit)()) {
     InterlockedExchangeAdd(&s_numConnections, 1);
 
@@ -293,9 +337,11 @@ void WowConnection::Init(WowConnectionResponse* response, void (*threadInit)()) 
 
     this->m_type = WOWC_TYPE_MESSAGES;
 }
+#endif
 
 // VERIFY: f1a773bb auto
 // OFFSET: 0x00466B50
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::Disconnect() {
     this->m_lock.Enter();
 
@@ -305,6 +351,7 @@ void WowConnection::Disconnect() {
 
     this->m_lock.Leave();
 }
+#endif
 
 // VERIFY: baaffdbb auto
 // OFFSET: 0x00466E30
@@ -314,7 +361,7 @@ void WowConnection::FreeSendList() {
     while (!TSList<WowConnection::SENDNODE>::IsEnd(node)) {
         WowConnection::SENDNODE* next = this->m_sendList.RawNext(node);
         this->m_sendList.UnlinkNode(node);
-        WDataStore::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
+        ConnectionBuffers::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
         node = next;
     }
 
@@ -323,7 +370,7 @@ void WowConnection::FreeSendList() {
     while (!TSList<WowConnection::SENDNODE>::IsEnd(node)) {
         WowConnection::SENDNODE* next = this->m_lagTestRecvList.RawNext(node);
         this->m_lagTestRecvList.UnlinkNode(node);
-        WDataStore::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
+        ConnectionBuffers::FreeBuffer(node, node->m_datasize + sizeof(WowConnection::SENDNODE) + 3);
         node = next;
     }
 }
@@ -384,13 +431,16 @@ WowConnection::SENDNODE::SENDNODE(const void* data, int32_t size, uint8_t* buffe
 
 // VERIFY: da47c164 manual
 // OFFSET: 0x00467330
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 WowConnection::WowConnection(WowConnectionResponse* response, void (*threadInit)()) {
     this->Init(response, threadInit);
     this->m_sock = -1;
 }
+#endif
 
 // VERIFY: e9974d81 manual
 // OFFSET: 0x004673C0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 WowConnection::~WowConnection() {
     InterlockedExchangeAdd(&s_numConnections, -1);
 
@@ -417,6 +467,7 @@ WowConnection::~WowConnection() {
     this->m_sendKey.m_y = 0;
     this->m_sendKey.m_x = 0;
 }
+#endif
 
 // VERIFY: 8a04af59 manual
 // OFFSET: 0x00467540
@@ -425,7 +476,7 @@ WowConnection::SENDNODE* WowConnection::NewSendNodePacket(const void* data, int3
     s_sendNodeBytes += size;
 
     uint32_t allocSize = size + sizeof(WowConnection::SENDNODE) + 3;
-    void* buffer = WDataStore::AllocBuffer(allocSize);
+    void* buffer = ConnectionBuffers::AllocBuffer(allocSize);
     WowConnection::SENDNODE* node = new (buffer) WowConnection::SENDNODE(data, size, static_cast<uint8_t*>(buffer) + sizeof(WowConnection::SENDNODE), raw);
     node->m_allocsize = allocSize;
     this->SetSendTime(node);
@@ -439,7 +490,7 @@ WowConnection::SENDNODE* WowConnection::NewSendNodeCopy(const WowConnection::SEN
     s_sendNodeCount++;
     s_sendNodeBytes += size;
 
-    void* buffer = WDataStore::AllocBuffer(size + sizeof(WowConnection::SENDNODE) + 3);
+    void* buffer = ConnectionBuffers::AllocBuffer(size + sizeof(WowConnection::SENDNODE) + 3);
 
     if (!buffer) {
         return nullptr;
@@ -450,6 +501,7 @@ WowConnection::SENDNODE* WowConnection::NewSendNodeCopy(const WowConnection::SEN
 
 // VERIFY: 925f6659 manual
 // OFFSET: 0x004680D0
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::MarkSocketId(int32_t sock) {
     if (sock < 0) {
         return;
@@ -475,9 +527,11 @@ void WowConnection::MarkSocketId(int32_t sock) {
 
     WowConnection::s_idLock.Leave();
 }
+#endif
 
 // VERIFY: a9157009 auto
 // OFFSET: 0x00468200
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t WowConnection::Release() {
     int32_t refCount = InterlockedDecrement(reinterpret_cast<volatile LONG*>(&this->m_refCount.m_value));
 
@@ -491,9 +545,11 @@ int32_t WowConnection::Release() {
 
     return refCount;
 }
+#endif
 
 // VERIFY: 5d8f334b auto
 // OFFSET: 0x00468250
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::DoDisconnect() {
     this->m_lock.Enter();
 
@@ -522,9 +578,11 @@ void WowConnection::DoDisconnect() {
 
     this->Release();
 }
+#endif
 
 // VERIFY: f834433c manual
 // OFFSET: 0x00468A90
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::DoReads() {
     this->AddRef();
     this->m_lock.Enter();
@@ -546,9 +604,11 @@ void WowConnection::DoReads() {
     this->m_lock.Leave();
     this->Release();
 }
+#endif
 
 // VERIFY: 18fc5293 manual
 // OFFSET: 0x00468B30
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::DoExceptions() {
     this->AddRef();
     this->m_lock.Enter();
@@ -560,9 +620,11 @@ void WowConnection::DoExceptions() {
     this->m_lock.Leave();
     this->Release();
 }
+#endif
 
 // VERIFY: 2e088c06 auto
 // OFFSET: 0x00468D00
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 bool WowConnection::Connect(uint32_t address, uint16_t port, int32_t timeout) {
     this->m_connectAddress = address;
     this->m_connectPort = port;
@@ -570,9 +632,11 @@ bool WowConnection::Connect(uint32_t address, uint16_t port, int32_t timeout) {
 
     return true;
 }
+#endif
 
 // VERIFY: 30cc0530 manual
 // OFFSET: 0x00466B90
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::DestroyOsNet() {
     s_unused_B38D00 = 1;
 
@@ -586,9 +650,11 @@ void WowConnection::DestroyOsNet() {
     WowConnection::s_network = nullptr;
     WDataStore::StaticDestroy();
 }
+#endif
 
 // VERIFY: a65da1b0 manual
 // OFFSET: 0x00468D90
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t WowConnection::InitOsNet(bool (*netAddrFilter)(const NETADDR* addr), void (*threadInit)(), int32_t numThreads, bool useEngine) {
     if (!WowConnection::s_network) {
         WowConnection::s_idBits.SetCount(256);
@@ -607,9 +673,11 @@ int32_t WowConnection::InitOsNet(bool (*netAddrFilter)(const NETADDR* addr), voi
 
     return 1;
 }
+#endif
 
 // VERIFY: f15c6280 auto
 // OFFSET: 0x00468E50
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 bool WowConnection::Connect(const char* address, int32_t timeout) {
     char host[256];
     const char* separator = SStrChr(address, ':');
@@ -633,11 +701,14 @@ bool WowConnection::Connect(const char* address, int32_t timeout) {
 
     return true;
 }
+#endif
 
 // INLINED
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 void WowConnection::AddRef() {
     InterlockedExchangeAdd(reinterpret_cast<volatile LONG*>(&this->m_refCount.m_value), 1);
 }
+#endif
 
 // VERIFY: 050b636a manual
 // OFFSET: 0x00468EE0

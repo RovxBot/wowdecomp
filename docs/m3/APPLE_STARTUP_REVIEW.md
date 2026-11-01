@@ -168,3 +168,17 @@ through the existing native device/buffer/transform owners. Qualified limits sta
 at 94 constants and one texture unit; original palette preflights stay enabled.
 Compilation, authored CPU pixels and original-data rendering require separate
 validation. Bundled dependency selections and notices are unchanged.
+
+## Original connection integration
+
+For [#97](https://github.com/RovxBot/wowdecomp/issues/97), re-read the pinned
+jerrywossion common and `Apple/WowConnectionNet.cpp` implementations. Its poll
+snapshot references, socket serial checks and joined shutdown inform the ownership
+review. It retains a poll thread and worker dispatch; that design is not copied
+into our single Event owner. This checkout adapts its own original connection
+class, send nodes and packet primitives, using an isolated DNS worker and
+owner-thread readiness/callback dispatch. No Apple source body or dependency is
+imported. WoWReMac's pinned WowServices tree returned HTTP 404; earlier evidence
+remains historical. The [connection contract](CONNECTIONS.md) records caller,
+protocol and unresolved resolver/shutdown limits. No Apple authentication shortcut
+or policy assumption is selected.

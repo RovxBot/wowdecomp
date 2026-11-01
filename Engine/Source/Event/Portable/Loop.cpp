@@ -1,6 +1,7 @@
 // Owner-thread adaptation of Event/EvtQueue.cpp's priority/marker algorithm.
 // SDL owns the outer loop. Original handler IDs, order and propagation remain.
 #include "Loop.h"
+#include "WoW/Source/WowServices/WowConnectionNet.h"
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <array>
 #include <cmath>
@@ -15,6 +16,7 @@ struct Context {
     std::array<std::list<Handler>, EVENTIDS> handlers;
     std::thread::id owner = std::this_thread::get_id();
     bool closing = false;
+    ~Context() { WowConnection::DestroyOsNet(); }
     unsigned depth = 0;
 };
 std::unique_ptr<Context> current;
@@ -61,7 +63,12 @@ bool Closing() { Check(); return current->closing; }
 }
 void EventInitialize(uint32_t threads, int32_t server) {
     if (current || threads != 1 || server) throw std::logic_error("Native Event supports one client owner");
-    current = std::make_unique<Context>();
+    auto context = std::make_unique<Context>();
+    WowConnection::InitOsNet(nullptr, nullptr, 1, false);
+    current = std::move(context);
+    EventRegisterEx(EVENT_ID_POLL, +[](const void*, void*) -> int {
+        WowConnection::s_network->Poll(); return 1;
+    }, nullptr, 1000.0f);
 }
 void EventDestroy() {
     Check();

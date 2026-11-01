@@ -23,7 +23,7 @@ target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/VideoOptions.cpp
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)
-target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions)
+target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions WowNativeNet)
 add_library(WowNativeModels STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Cache.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Data.cpp
@@ -103,4 +103,12 @@ if(WOWDECOMP_BUILD_NATIVE_D3D9)
     if(BUILD_TESTING)
         add_test(NAME native-original-d3d9-client-contracts COMMAND NativeD3d9ClientCheck)
     endif()
+endif()
+
+# Exercise original connection callbacks through the actual Event owner as well
+# as the headless Linux/macOS transport target. No rendering fixtures are added.
+if(WOWDECOMP_BUILD_NATIVE_D3D9)
+    set(connection_fixture NativeD3d9ClientCheck)
+    target_sources(${connection_fixture} PRIVATE ${PROJECT_SOURCE_DIR}/Tools/NativeNet/connections.cpp)
+    target_compile_definitions(${connection_fixture} PRIVATE WOWDECOMP_CONNECTION_FIXTURE_EMBEDDED=1)
 endif()

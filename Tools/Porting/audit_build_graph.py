@@ -19,8 +19,10 @@ def audit(targets, mode, target_os, cpu):
         expected |= {'WowNativeExpat', 'WowNativeXML', 'NativeXMLCheck'}
     if mode in {'layout', 'gl'}:
         expected |= {'WowNativeLayout', 'NativeLayoutCheck'}
-    if mode == 'packets':
+    if mode in {'packets', 'connections'}:
         expected |= {'WowNativePackets', 'NativePacketCheck'}
+    if mode == 'connections':
+        expected |= {'WowNativeNet', 'NativeConnectionCheck'}
     if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
         expected |= {'WowNativeFiles', 'FileServicesCheck'}
     if mode in {'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
@@ -31,7 +33,7 @@ def audit(targets, mode, target_os, cpu):
         expected |= {'SDL3-static', 'SDL_uclibc', 'SDLDesktopControl', 'WowNativeWindow', 'NativeWindowCheck', 'NativeShell', 'ShellSettingsCheck'}
     if mode == 'gl':
         expected |= {'WowNativeFrameRegions', 'NativeFrameRegionsCheck', 'NativeFrameHierarchyCheck', 'WowNativeFrameRender', 'NativeFrameRenderCheck', 'WowNativeFrameFonts', 'NativeFrameFontsCheck', 'WowNativeGxu', 'LegacyGxuCheck', 'NativeImageCheck', 'WowNativeFonts', 'NativeFontsCheck', 'WowNativeGl', 'NativeGlCheck', 'ShaderPackageCheck', 'GlRenderTargetsCheck', 'GlTransformsCheck', 'GlTexturesCheck', 'GlBuffersCheck', 'LegacyGxCheck'}
-    if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml', 'layout'} and names != expected:
+    if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'connections', 'lua', 'framescript', 'xml', 'layout'} and names != expected:
         errors.append(f'Unexpected {mode} targets: {sorted(names)}')
     if mode == 'windows' and not {'Wow', 'WowClient', 'Os', 'Storm', 'BlizzardCore'} <= names:
         errors.append('Windows reference targets are missing')
@@ -49,13 +51,13 @@ def audit(targets, mode, target_os, cpu):
             errors.append(f"{target['name']}: portable runtime ABI leaked into the legacy client")
         for source in sources:
             parts = Path(source).parts
-            if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml', 'layout'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
+            if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'connections', 'lua', 'framescript', 'xml', 'layout'} and (set(parts) & {'Win32', 'Win64', 'Windows', 'win32'}
                                    or source.endswith(('.rc', '.def', '.lib'))):
                 errors.append(f"{target['name']}: Windows source in core: {source}")
             if mode == 'windows' and (('Win32' in parts and expected_platform != 'Win32')
                                       or ('Win64' in parts and expected_platform != 'Win64')):
                 errors.append(f"{target['name']}: wrong Windows source: {source}")
-        if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml', 'layout'}:
+        if mode in {'core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'connections', 'lua', 'framescript', 'xml', 'layout'}:
             forbidden = {'_USE_32BIT_TIME_T', 'DISABLE_SIGNATURE_CHECKS'}
             if target_os != 'WINDOWS':
                 forbidden |= {'WIN32', '_WINDOWS', 'NOMINMAX', 'WIN32_LEAN_AND_MEAN',
@@ -189,7 +191,17 @@ def audit(targets, mode, target_os, cpu):
                     any(not any(s.endswith(p) for s in sources) for p in allowed) or
                     'WOWDECOMP_PORTABLE_RUNTIME=1' not in definitions):
                 errors.append(f"{target['name']}: unexpected native Gx context provider/ABI")
-        if mode == 'packets' and target['name'] in {'WowNativePackets', 'NativePacketCheck'}:
+        if mode == 'connections' and target['name'] in {'WowNativeNet', 'NativeConnectionCheck'}:
+            allowed = {'WowNativeNet': ['WoW/Source/WowServices/WowConnection.cpp',
+                'WoW/Source/WowServices/Portable/WowConnection.cpp',
+                'WoW/Source/WowServices/Portable/WowConnectionNet.cpp',
+                'Engine/Source/Os/Portable/NetAddress.cpp'],
+                'NativeConnectionCheck': ['Tools/NativeNet/connections.cpp']}[target['name']]
+            if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed):
+                errors.append(f"{target['name']}: unexpected native connection sources: {sources}")
+            if not {'WOWDECOMP_PORTABLE_RUNTIME=1', 'WOWDECOMP_NATIVE_CONNECTION=1'} <= definitions:
+                errors.append(f"{target['name']}: native connection ABI missing")
+        if mode in {'packets', 'connections'} and target['name'] in {'WowNativePackets', 'NativePacketCheck'}:
             allowed = {'WowNativePackets': ['Engine/Source/Base/CDataStore.cpp',
                        'Engine/Source/Storm/Source/SArc4.cpp',
                        'Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.cpp'],
@@ -287,7 +299,7 @@ def read_targets(build_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, required=True)
-    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'lua', 'framescript', 'xml', 'layout', 'windows'], required=True)
+    parser.add_argument('--mode', choices=['core', 'files', 'assets', 'async', 'window', 'gl', 'packets', 'connections', 'lua', 'framescript', 'xml', 'layout', 'windows'], required=True)
     parser.add_argument('--os', required=True)
     parser.add_argument('--cpu', required=True)
     parser.add_argument('--output', type=Path, required=True)
