@@ -13,7 +13,13 @@
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
 #include "Engine/Source/Frame/Portable/Render.h"
 #include "Engine/Source/Gx/CGxBuf.h"
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
+using NativeStreamDevice = CGxDeviceD3d;
+#else
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
+using NativeStreamDevice = Gx::Native::LegacyDevice;
+#endif
 #include <vector>
 #include <stdexcept>
 namespace {
@@ -26,7 +32,7 @@ struct StreamScope {
     bool vertexOwned = false, indexOwned = false;
     ~StreamScope() {
         // A failure during allocation/upload must abort retained staging writes.
-        auto* device = static_cast<Gx::Native::LegacyDevice*>(g_theGxDevicePtr);
+        auto* device = static_cast<NativeStreamDevice*>(g_theGxDevicePtr);
         if (vertexOwned && device->m_bufLocked[GxPoolTarget_Vertex] == vertex)
             device->AbortBufferWrite(vertex);
         if (indexOwned && device->m_bufLocked[GxPoolTarget_Index] == index)

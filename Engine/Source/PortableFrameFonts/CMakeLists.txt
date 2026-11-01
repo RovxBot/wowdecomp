@@ -9,8 +9,10 @@ add_library(WowNativeFrameFonts STATIC
     ../Frame/CSimpleFontStringAttributes.cpp
     ../Frame/ScriptColor.cpp
     ../Frame/Portable/Fonts.cpp
-    ../FrameXML/FontXML.cpp
-    ../Tempest/CImVector.cpp)
+    ../FrameXML/FontXML.cpp)
+if(NOT WOWDECOMP_BUILD_NATIVE_D3D9)
+    target_sources(WowNativeFrameFonts PRIVATE ../Tempest/CImVector.cpp)
+endif()
 target_link_libraries(WowNativeFrameFonts PUBLIC WowNativeLayout WowNativeGxu)
 
 # Original render batching is a prerequisite for actual region/root consumers.

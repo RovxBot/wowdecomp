@@ -37,8 +37,10 @@ add_library(WowNativeGxu STATIC
     ../Base/Status.cpp
     ../Base/Coordinate.cpp
     ../Base/ConvertUTF.cpp
-    ../Tempest/C3Vector.cpp
     ../Tempest/C4Vector.cpp
 )
 target_include_directories(WowNativeGxu PUBLIC ${PROJECT_SOURCE_DIR}/ThirdParty/freetype/include)
 target_link_libraries(WowNativeGxu PUBLIC ${WOWDECOMP_NATIVE_GX_TARGET} WowNativeFonts)
+if(NOT WOWDECOMP_BUILD_NATIVE_D3D9)
+    target_sources(WowNativeGxu PRIVATE ../Tempest/C3Vector.cpp)
+endif()

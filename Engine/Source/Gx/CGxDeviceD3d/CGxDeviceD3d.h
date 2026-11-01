@@ -346,6 +346,7 @@ class CGxDeviceD3d : public CGxDevice {
     void NativeSyncTransforms() override;
     void NativeBufDestroy(CGxBuf*) override;
     void RetainShader(CGxShader*);
+    void AbortBufferWrite(CGxBuf*);
     OsNative::Window& NativeWindow() const { NativeCheckOwner(); return *m_nativeWindow; }
     OsNative::Window* m_nativeWindow = nullptr;
     ShaderBytes m_nativeShaders;

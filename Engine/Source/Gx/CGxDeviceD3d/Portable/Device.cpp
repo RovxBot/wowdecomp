@@ -90,6 +90,13 @@ void CGxDeviceD3d::NativeBufDestroy(CGxBuf* buf) {
     for (auto& stream : m_streamBufs) if (stream == buf) stream = nullptr;
     m_primVertexDirty = 0xffffffff;
 }
+void CGxDeviceD3d::AbortBufferWrite(CGxBuf* buf) {
+    NativeCheckOwner();
+    Require(buf && buf->m_pool && m_bufLocked[buf->m_pool->m_target] == buf, "D3D9 buffer is not locked");
+    IBufUnlock(buf);
+    CGxDevice::BufUnlock(buf, 0);
+    buf->m_hasData = 0;
+}
 void CGxDeviceD3d::DeviceDestroy() {
     NativeCheckOwner();
     ISceneEnd();
@@ -225,3 +232,31 @@ void CGxDeviceD3d::RetainShader(CGxShader* shader) {
     ++shader->m_refCount;
 }
 void CGxDeviceD3d::IShaderReload(CGxShader*, const char*, const char*) { Unavailable("D3D9 native shader reload unavailable"); }
+
+// Native optional display enumeration/inference stays explicitly unavailable.
+int32_t CGxDevice::AdapterDesktopMode(CGxMonitorMode& mode) {
+    auto* device = dynamic_cast<CGxDeviceD3d*>(g_theGxDevicePtr);
+    if (!device) return 0;
+    device->NativeCheckOwner();
+    mode.m_size = {int32_t(device->m_desktopDisplayMode.Width), int32_t(device->m_desktopDisplayMode.Height)};
+    mode.m_bpp = device->m_desktopDisplayMode.Format == D3DFMT_R5G6B5 ? 16 : 32;
+    mode.m_refreshRate = device->m_desktopDisplayMode.RefreshRate;
+    return 1;
+}
+int32_t CGxDevice::AdapterMonitorModes(TSGrowableArray<CGxMonitorMode>&) { return 0; }
+int32_t CGxDevice::AdapterFormats(EGxApi, TSGrowableArray<CGxFormat>&) { return 0; }
+int32_t CGxDevice::DeviceAdapterID(uint16_t& vendor, uint16_t& deviceID, uint32_t& high, uint32_t& low) {
+    auto* device = dynamic_cast<CGxDeviceD3d*>(g_theGxDevicePtr);
+    if (!device) return 0;
+    device->NativeCheckOwner();
+    D3DADAPTER_IDENTIFIER9 identity{};
+    if (FAILED(device->m_d3d->GetAdapterIdentifier(0, 0, &identity)) || identity.VendorId > UINT16_MAX || identity.DeviceId > UINT16_MAX) return 0;
+    vendor = uint16_t(identity.VendorId); deviceID = uint16_t(identity.DeviceId);
+    high = uint32_t(identity.DriverVersion.HighPart); low = identity.DriverVersion.LowPart;
+    return 1;
+}
+int32_t CGxDevice::DeviceAdapterInfer(uint16_t&) { return 0; }
+
+// Key functions for original abstract interfaces; keep strict vptr checking.
+GxuDrawListItem::~GxuDrawListItem() = default;
+GxuDrawListState::~GxuDrawListState() = default;
