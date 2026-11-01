@@ -52,13 +52,14 @@ CVar* g_accountUsesTokenVar;
 bool registered = false;
 uint8_t clientExpansionLevel = 0;
 // ScanDLLGlue.cpp's Windows DLL download/signature/ordinal-call pipeline is
-// unavailable on native Linux. Keep failure distinct from scan approval. In
-// particular, original AccountLogin's SCANDLL_ERROR handler automatically calls
-// ContinueAnyway; that must never turn this unsupported capability into success.
+// unavailable on native Linux. Original AccountLogin's SCANDLL_ERROR handler
+// calls ContinueAnyway before showing the controls. Permit that presentation
+// transition, while retaining the failed scan and refusing every login request.
 enum class ScanState { NotStarted, ErrorPending, Unavailable };
 ScanState scanState = ScanState::NotStarted;
 bool scanDispatching = false;
-constexpr const char* scanUnavailable = "Native Windows Scan.dll verification/execution unavailable; scan approval was not granted";
+bool unavailableDialog = false;
+constexpr const char* scanUnavailable = "Sign-in is unavailable: this native client cannot verify and run the Windows Scan.dll detector. No scan approval has been granted.";
 bool ServicesOpen() {
     return registered && CVar::m_initialized &&
         CVar::LookupRegistered("accountName") == g_accountNameVar &&
@@ -70,26 +71,53 @@ void RequireServices(lua_State* L) {
     if (!ServicesOpen())
         luaL_error(L, "Native Glue script services are closed");
 }
+void ShowUnavailable(const char* reason) {
+    unavailableDialog = true;
+    FrameScript_SignalEvent(GLUE_EVENT_OPEN_STATUS_DIALOG, "%s%s", "OKAY", reason);
+}
 // Native failure-only adaptations of original 12340 wrappers 0x004DCCF0,
 // 0x004DCDF0 and 0x004DCE00. No verified Windows implementation is selected.
 static int32_t Script_ScanDLLStart(lua_State* L) {
     RequireServices(L);
     if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
         return luaL_error(L, "Usage: ScanDLLStart(\"VersionURL\", \"DLLURL\")");
-    if (scanState == ScanState::NotStarted) scanState = ScanState::ErrorPending;
+    if (!scanDispatching) scanState = ScanState::ErrorPending;
     // Neither URL is retained or fetched; an empty non-Windows DLL URL is also
     // unsupported. Do not create files, load a library or start a scan worker.
     return 0;
 }
 static int32_t Script_ScanDLLContinueAnyway(lua_State* L) {
     RequireServices(L);
-    if (scanState == ScanState::Unavailable) return luaL_error(L, "%s", scanUnavailable);
-    return 0; // Original pre-completion call does not approve login either.
+    // Unlike the Windows transition, this never sets m_scandllOkayToLogIn.
+    // AccountLogin may display its controls; the integrity gate stays closed.
+    return 0;
 }
 static int32_t Script_IsScanDLLFinished(lua_State* L) {
     RequireServices(L);
     lua_pushnil(L); // No successful native scan or approved continuation exists.
     return 1;
+}
+// Original API 0x004DC260 / CGlueMgr::LoginServerLogin 0x004D8A30 guards
+// authentication separately from displaying the login UI. No transport owner
+// exists in this target, and no native scan can grant approval. Do not read,
+// retain, log or forward credentials while either prerequisite is unavailable.
+static int32_t Script_DefaultServerLogin(lua_State* L) {
+    RequireServices(L);
+    if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
+        return luaL_error(L, "Usage: DefaultServerLogin(\"accountName\", \"password\")");
+    ShowUnavailable(CGlueMgr::m_acceptedTOS && CGlueMgr::m_acceptedEULA
+        ? scanUnavailable : "Sign-in is unavailable until the original agreements are accepted.");
+    return 0;
+}
+// Only acknowledge this owner's unavailable-service dialog. There is no login
+// connection to cancel/clean up (original StatusDialogClick 0x004D98D0).
+static int32_t Script_StatusDialogClick(lua_State* L) {
+    RequireServices(L);
+    if (unavailableDialog) {
+        unavailableDialog = false;
+        FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
+    }
+    return 0;
 }
 // OFFSET: 0x004DBE60
 static int32_t Script_GetBuildInfo(lua_State* L) {
@@ -654,6 +682,8 @@ FrameScript_Method functions[] = {
     { "ScanDLLStart", Script_ScanDLLStart },
     { "ScanDLLContinueAnyway", Script_ScanDLLContinueAnyway },
     { "IsScanDLLFinished", Script_IsScanDLLFinished },
+    { "DefaultServerLogin", Script_DefaultServerLogin },
+    { "StatusDialogClick", Script_StatusDialogClick },
     { "GetBuildInfo", Script_GetBuildInfo },
     { "GetClientExpansionLevel", Script_GetClientExpansionLevel },
     { "SetSavedAccountName", Script_SetSavedAccountName },
@@ -826,7 +856,11 @@ void PollScriptServices() {
         Dispatch() { scanDispatching = true; }
         ~Dispatch() { scanDispatching = false; }
     } dispatch;
+    const auto errors = FrameScript::Native::ScriptErrorCount();
     FrameScript_SignalEvent(GLUE_EVENT_SCANDLL_ERROR, "%s", scanUnavailable);
+    // The original handler has now shown AccountLoginUI. Present the actual
+    // failure through its original dialog, without a fabricated FINISHED/OK.
+    if (FrameScript::Native::ScriptErrorCount() == errors) ShowUnavailable(scanUnavailable);
 }
 }
 void GlueScriptEventsRegisterFunctions() {
@@ -842,6 +876,7 @@ void GlueScriptEventsUnregisterFunctions() {
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
     scanState = ScanState::NotStarted;
+    unavailableDialog = false;
     CGlueMgr::m_authenticated = 0;
     CloseAgreements();
     CGlueMgr::AcceptChangedOptionWarnings();
