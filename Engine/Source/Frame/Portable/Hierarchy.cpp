@@ -105,12 +105,16 @@ ButtonClickEdits::ButtonClickEdits(CSimpleFrame* frame) {
 }
 ButtonClickEdits::~ButtonClickEdits() { if (active) buttonClickEdits = false; }
 TextChangedEdits::TextChangedEdits() {
-    RequireRegions(); RequireStateMutable(true);
+    RequireRegions();
+    // Key/mouse callers can also flush dirty text while their existing lifetime
+    // guard is active. Preserve those callbacks and their ordinary restrictions.
+    if (!updating) return;
+    RequireStateMutable(true);
     if (collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits)
         throw std::logic_error("Nested or collecting EditBox text-change notification");
-    textChangedEdits = true;
+    textChangedEdits = active = true;
 }
-TextChangedEdits::~TextChangedEdits() { textChangedEdits = false; }
+TextChangedEdits::~TextChangedEdits() { if (active) textChangedEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
     if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits) return;

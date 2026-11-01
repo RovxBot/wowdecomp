@@ -185,7 +185,7 @@ void DialogRaise() {
         Frame::Native::UpdateScope update;
         edit->RunOnTextChangedScript();
     }
-    lua("assert(hintNotified and Hint:IsShown() and not UpdateButton:IsEnabled())");
+    lua("assert(hintNotified and Hint:IsShown() and UpdateButton:IsEnabled()==0)");
     {
         Frame::Native::CallbackScope callback;
         lua("assert(not pcall(Hint.Hide,Hint))");

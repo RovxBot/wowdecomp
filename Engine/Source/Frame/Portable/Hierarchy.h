@@ -62,6 +62,7 @@ public:
 private:
     friend class ::CSimpleEditBox;
     TextChangedEdits();
+    bool active = false;
 };
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);
