@@ -612,6 +612,9 @@ static void ProcessMatrixRC4(uint8_t* data, uint32_t length, SARC4Key* key) {
 // VERIFY: d046e16b auto
 // OFFSET: 0x008CA4D0
 void GruntLogin::FileAccept(bool accept, uint64_t offset) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native authentication file-transfer service is unavailable");
+#endif
     this->m_clientLink->FileStatus(accept, offset);
 }
 
@@ -630,6 +633,9 @@ void GruntLogin::SendSurveyFailed() {
 // VERIFY: e0ac23d3 auto
 // OFFSET: 0x008CA570
 void GruntLogin::FileComplete(bool success) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("Native authentication file-transfer service is unavailable");
+#endif
     this->m_clientLink->FileComplete();
 }
 
@@ -647,6 +653,9 @@ int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
         memset(&loginData, 0, sizeof(loginData));
     } else {
         loginData.m_loginServerID = 0;
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        loginData.m_loginServerType = 0;
+#endif
         SStrCopy(loginData.m_account, this->m_username, sizeof(loginData.m_account));
         memcpy(loginData.m_sessionKey, this->m_sessionKey, sizeof(loginData.m_sessionKey));
     }
@@ -657,6 +666,11 @@ int32_t GruntLogin::Wait(const char* message, LoginData& loginData) {
 // VERIFY: 66d294df manual
 // OFFSET: 0x008CA880
 void GruntLogin::EnterPIN(int32_t count, uint8_t* digits) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!digits || count < 1 || count > 10) throw std::invalid_argument("Invalid PIN span");
+    for (int32_t i = 0; i < count; ++i)
+        if (digits[i] > 9) throw std::invalid_argument("Invalid PIN digit");
+#endif
     char pin[12];
 
     for (int32_t i = 0; i < count; i++) {

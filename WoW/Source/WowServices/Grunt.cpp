@@ -96,6 +96,9 @@ void Grunt::Timer::Shutdown() {
 // VERIFY: 93be7f01 auto
 // OFFSET: 0x008CBA40
 void Grunt::ClientLink::Send(CDataStore& msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->m_lock.Enter();
 
     if (this->m_connection) {
@@ -111,6 +114,9 @@ void Grunt::ClientLink::Send(CDataStore& msg) {
 // VERIFY: c3ecd7d1 auto
 // OFFSET: 0x008CBA90
 void Grunt::ClientLink::Shutdown() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->m_lock.Enter();
 
     if (this->m_connection) {
@@ -126,6 +132,9 @@ void Grunt::ClientLink::Shutdown() {
 // VERIFY: 08907387 auto
 // OFFSET: 0x008CBAE0
 void Grunt::ClientLink::Disconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->m_lock.Enter();
 
     if (this->m_connection) {
@@ -138,6 +147,9 @@ void Grunt::ClientLink::Disconnect() {
 // VERIFY: a80ac601 auto
 // OFFSET: 0x008CBB10
 void Grunt::ClientLink::SetState(int32_t state) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->m_lock.Enter();
     this->m_state = state;
     this->m_lock.Leave();
@@ -259,12 +271,22 @@ void Grunt::ClientLink::LogonNewSession(const Grunt::ClientLink::Logon& logon) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
 #endif
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (this->m_state != 2 || !logon.m_accountName || !*logon.m_accountName ||
+        std::strlen(logon.m_accountName) > 255 || !logon.m_password)
+        throw std::invalid_argument("Invalid native Grunt logon state or credential span");
+#endif
     this->SetState(3);
 
     SStrCopy(this->m_accountName, logon.m_accountName, sizeof(this->m_accountName));
     SStrUpper(this->m_accountName);
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    std::vector<char> passwordStorage(std::strlen(logon.m_password) + 1);
+    char* password = passwordStorage.data();
+#else
     char* password = static_cast<char*>(alloca(SStrLen(logon.m_password) + 1));
+#endif
     SStrCopy(password, logon.m_password, STORM_MAX_STR);
     SStrUpper(password);
 
@@ -542,10 +564,8 @@ bool CanReadNumBytes(CDataStore& msg, uint32_t bytes) {
 
 // VERIFY: 58b79446 auto
 // OFFSET: 0x008CC250
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    if (this->m_state != 6) return 1;
-#endif
     if (msg.m_read > msg.m_size || msg.m_size - msg.m_read < 2) {
         return 0;
     }
@@ -557,24 +577,15 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
         return 0;
     }
 
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    CDataStore bounded(msg.m_data + msg.m_read, size);
-    CDataStore& packet = bounded;
-#else
-    CDataStore& packet = msg;
-#endif
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    if (size < 8) return 1;
-#endif
-    uint32_t start = packet.m_read;
+    uint32_t start = msg.m_read;
 
     uint32_t unknown;
-    packet.Get(unknown);
+    msg.Get(unknown);
 
-    uint32_t realmStart = packet.m_read;
+    uint32_t realmStart = msg.m_read;
 
     uint16_t count;
-    packet.Get(count);
+    msg.Get(count);
 
     for (uint32_t i = 0; i < count; i++) {
         uint8_t type;
@@ -587,15 +598,15 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
         uint8_t timeZone;
         uint8_t realmId;
 
-        packet.Get(type);
-        packet.Get(locked);
-        packet.Get(flags);
-        packet.GetString(name, sizeof(name));
-        packet.GetString(address, sizeof(address));
-        packet.Get(population);
-        packet.Get(characters);
-        packet.Get(timeZone);
-        packet.Get(realmId);
+        msg.Get(type);
+        msg.Get(locked);
+        msg.Get(flags);
+        msg.GetString(name, sizeof(name));
+        msg.GetString(address, sizeof(address));
+        msg.Get(population);
+        msg.Get(characters);
+        msg.Get(timeZone);
+        msg.Get(realmId);
 
         if (flags & 0x4) {
             uint8_t versionMajor;
@@ -603,42 +614,34 @@ int32_t Grunt::ClientLink::CmdRealmList(CDataStore& msg) {
             uint8_t versionRevision;
             uint16_t build;
 
-            packet.Get(versionMajor);
-            packet.Get(versionMinor);
-            packet.Get(versionRevision);
-            packet.Get(build);
+            msg.Get(versionMajor);
+            msg.Get(versionMinor);
+            msg.Get(versionRevision);
+            msg.Get(build);
         }
 
-        if (packet.m_read > packet.m_size) {
+        if (msg.m_read > msg.m_size) {
             return 1;
         }
     }
 
     uint16_t trailer;
-    packet.Get(trailer);
+    msg.Get(trailer);
 
-    uint32_t end = packet.m_read;
+    uint32_t end = msg.m_read;
 
-    if (end > packet.m_size || end - start != size) {
+    if (end > msg.m_size || end - start != size) {
         return 1;
     }
 
-    packet.m_read = realmStart;
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    auto alive = this->m_nativeAlive;
-#endif
-    this->m_clientResponse->RealmListResult(&packet);
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    if (!*alive) return 2;
-#endif
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
-    msg.m_read += end;
-#else
-    packet.m_read = end;
-#endif
+    msg.m_read = realmStart;
+    this->m_clientResponse->RealmListResult(&msg);
+    msg.m_read = end;
 
     return 2;
 }
+
+#endif
 
 // VERIFY: 41cff6c4 manual
 // OFFSET: 0x008CC3E0

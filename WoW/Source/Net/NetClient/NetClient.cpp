@@ -268,6 +268,13 @@ int32_t NetClient::ConnectInternal(const char* host, uint16_t port) {
 // VERIFY: 0454197e auto
 // OFFSET: 0x00631F70
 void NetClient::SetLoginData(LoginData* loginData) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!loginData || !memchr(loginData->m_account, 0, sizeof(loginData->m_account)))
+        throw std::invalid_argument("Invalid session account span");
+#endif
     memcpy(&this->m_loginData, loginData, sizeof(this->m_loginData));
 }
 
@@ -378,6 +385,9 @@ void NetClient::PollEventQueue() {
 // VERIFY: 1eecebd5 auto
 // OFFSET: 0x006323C0
 int32_t NetClient::Connect(const char* address) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     if (this->m_netState != NS_INITIALIZED) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
         throw std::logic_error("NetClient connection requires NS_INITIALIZED");
@@ -656,6 +666,9 @@ NetClient::NetClient() {
 // VERIFY: 3e4c9045 manual
 // OFFSET: 0x00632B50
 void NetClient::Send(CDataStore* msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     if (this->m_netState != NS_CONNECTED) {
         return;
     }
@@ -746,6 +759,9 @@ void NetClient::HandleIdle() {
 // VERIFY: 4b27bdaa manual
 // OFFSET: 0x00631EA0
 void NetClient::Disconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     if (this->m_redirectConnection) {
         this->m_redirectConnection->SetResponse(nullptr, false);
         this->m_redirectConnection->Disconnect();

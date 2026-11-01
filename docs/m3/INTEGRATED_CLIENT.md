@@ -107,8 +107,10 @@ The Event adapter retains original IDs, priority/equal-priority ordering,
 marker-based listener mutation and stop propagation on the SDL owner thread.
 Active dispatch cannot destroy its context. Event installs the original
 WowConnection owner and polls DNS/socket results before ordinary POLL handlers;
-see the [connection contract](CONNECTIONS.md). Upper authentication/session callers
-remain gated and are not selected merely by installing transport.
+see the [connection contract](CONNECTIONS.md). The [original authentication/session callers](AUTHENTICATION.md) are selected and
+pumped on that Event owner; product sign-in remains refused until the native
+integrity/authentication prerequisites are met. Controlled protocol fixtures do
+not establish live authentication.
 Input retains the existing SDL focus/IME/capture/lifetime contracts.
 
 The ordered TOC/Include/Script/Font/template/frame path feeds actual original read

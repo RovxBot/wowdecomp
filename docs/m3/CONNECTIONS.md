@@ -12,8 +12,9 @@ Original `NetClient::Initialize` initializes `WowConnectionNet` and constructs
 `WowConnection`; world packets use `SendPacket` / `WCMessageReady` and the existing
 NETEVENTQUEUE. `Grunt::ClientLink::Connect` selects `WOWC_TYPE_STREAM`, default port
 3724 and a 5000 ms timeout; `WCDataReady` feeds its existing command datastore.
-The Battlenet caller also uses streams. These upper authentication/session owners
-are not selected by the native startup build yet.
+The Battlenet caller also uses streams. These upper authentication/session sources are now selected by the native target;
+the [authentication contract](AUTHENTICATION.md) describes their Event ownership,
+controlled protocol fixtures and remaining live sign-in gates.
 
 Native `EventInitialize` installs the same connection owner. Its first POLL
 handler services DNS results and nonblocking POSIX socket readiness before the
@@ -63,6 +64,6 @@ deadlines remain responsive while polling, but shutdown joins that lookup and ca
 wait for the system resolver. Controlled localhost fixtures do not establish a
 bounded shutdown under an unavailable/misconfigured external resolver. IPv6,
 listening/server transport, lag simulation and multiple network callback owners
-are unsupported. Native NetClient/NETEVENTQUEUE, Grunt challenge/version proof,
-realm/session/Warden integration and observed GrimGuzzler execution remain further
-work. A hosted loopback pass does not establish authentication or gameplay.
+are unsupported. Original Grunt/SRP/realm and NetClient queue fixtures do not establish native
+platform/version-integrity support or a live realm/session/Warden result. Those
+remaining requirements and observed GrimGuzzler execution stay under #98. A hosted loopback pass does not establish authentication or gameplay.

@@ -5,7 +5,7 @@ namespace NativeSession {
 // Called after WowConnectionNet::Poll on the same Event owner. No worker callback.
 void CheckOwner();
 void Poll();
-void Attach(NetClient* client);
-void Detach(NetClient* client);
-}
+void Attach(NetClient *client);
+void Detach(NetClient *client);
+} // namespace NativeSession
 #endif
