@@ -95,7 +95,8 @@ void DialogRaise() {
     const auto errors = FrameScript::Native::ScriptErrorCount();
     auto lua = [&](const char* source) {
         FrameScript_Execute(source, "authored original dialog Raise", nullptr);
-        Require(FrameScript::Native::ScriptErrorCount()==errors, "Dialog Raise regression failed");
+        if (FrameScript::Native::ScriptErrorCount()!=errors)
+            throw std::runtime_error("Dialog Raise regression failed: " + FrameScript::Native::LastScriptError());
     };
     lua(R"(
         local f=CreateFrame('Frame','RaiseDialog'); f:SetSize(100,100);
@@ -103,7 +104,11 @@ void DialogRaise() {
         local other=CreateFrame('Frame','RaiseOther'); other:SetAllPoints(f); other:SetFrameLevel(1);
     )");
     auto* frame = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("RaiseDialog", CSimpleFrame::GetObjectType()));
+    auto* other = static_cast<CSimpleFrame*>(CScriptObject::GetScriptObjectByName("RaiseOther", CSimpleFrame::GetObjectType()));
     frame->SetFrameFlag(1,1);
+    frame->Resize(1); other->Resize(1);
+    CRect rect;
+    Require(frame->GetRect(&rect) && other->GetRect(&rect), "Authored occlusion requires resolved rectangles");
     lua(R"(
         RaiseDialog:SetScript('OnShow',function(self)
             local level=self:GetFrameLevel(); assert(level>RaiseOther:GetFrameLevel());
