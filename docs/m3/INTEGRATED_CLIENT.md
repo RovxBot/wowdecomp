@@ -28,6 +28,14 @@ unavailable; it implements no successful scanner or authentication.
 The [integrity contract](INTEGRITY.md) distinguishes these gates and the unresolved
 native requirement in [#131](https://github.com/RovxBot/wowdecomp/issues/131).
 
+Original deferred EditBox `OnTextChanged` notifications may change qualified
+existing control state and hint visibility during update. Their scope pins
+hierarchy/layout/object lifetimes and retains top-level/movement, resize,
+collection, render, reentry and owner guards. This admits the unchanged account
+field's empty-text hint without permitting arbitrary callback mutations.
+Original dialog texture updates and redundant OnShow raising use the
+[texture](FRAME_TEXTURES.md) and [stacking](FRAME_STACKING.md) contracts.
+
 Native model startup loads unchanged `Model2.wfx` and `Particle.wfx` through the
 authenticated retained SFile adapter before constructing a scene. Files are
 bounded at 1 MiB; parsing bounds names, scopes, arguments, effects and the original

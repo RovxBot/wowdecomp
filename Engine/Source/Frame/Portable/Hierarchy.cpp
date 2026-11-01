@@ -21,6 +21,7 @@ bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 bool mouseWheelEdits = false;
 bool buttonClickEdits = false;
+bool textChangedEdits = false;
 CSimpleFrame* showCallbackFrame = nullptr;
 ScrollNotify scrollNotify = nullptr;
 std::unordered_set<CSimpleFrame*> preparedScrollFrames;
@@ -73,7 +74,7 @@ void RequireTreeMutation() {
 }
 void RequireStateMutation(bool scrollCallback) {
     RequireRegions();
-    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits);
+    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits);
     RequireStateMutable(admitted);
     if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
@@ -102,9 +103,16 @@ ButtonClickEdits::ButtonClickEdits(CSimpleFrame* frame) {
     buttonClickEdits = active = true;
 }
 ButtonClickEdits::~ButtonClickEdits() { if (active) buttonClickEdits = false; }
+TextChangedEdits::TextChangedEdits() {
+    RequireRegions(); RequireStateMutable(true);
+    if (collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits)
+        throw std::logic_error("Nested or collecting EditBox text-change notification");
+    textChangedEdits = true;
+}
+TextChangedEdits::~TextChangedEdits() { textChangedEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits) return;
     RequireSimpleFrame(target);
     // Movement unflattening and top-level raising retain their stricter guards.
     // Preflight the entire subtree before changing any visibility/list state.

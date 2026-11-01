@@ -6,6 +6,7 @@ class CSimpleTitleRegion;
 class CSimpleTexture;
 class CSimpleScrollFrame;
 class CSimpleButton;
+class CSimpleEditBox;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
@@ -51,6 +52,16 @@ private:
     friend class ::CSimpleButton;
     explicit ButtonClickEdits(CSimpleFrame*);
     bool active = false;
+};
+// Original deferred EditBox OnTextChanged may update existing hints/controls.
+class TextChangedEdits final {
+public:
+    ~TextChangedEdits();
+    TextChangedEdits(const TextChangedEdits&) = delete;
+    TextChangedEdits& operator=(const TextChangedEdits&) = delete;
+private:
+    friend class ::CSimpleEditBox;
+    TextChangedEdits();
 };
 CSimpleFontString* CreateFontString(CSimpleFrame*, uint32_t layer, bool show);
 CSimpleTexture* CreateTexture(CSimpleFrame*, uint32_t layer, bool show);

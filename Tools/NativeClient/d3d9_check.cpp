@@ -12,6 +12,7 @@
 #include "Engine/Source/Frame/CSimpleTop.h"
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
+#include "Engine/Source/Frame/CSimpleEditBox.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include <SDL3/SDL.h>
@@ -165,8 +166,29 @@ void DialogRaise() {
     }
     Require(button->m_stateTextures[BUTTONSTATE_NORMAL]->m_texture==normalImage &&
             button->m_highlightTexture->m_texture==highlightImage, "Rejected texture content mutation changed image ownership");
+    lua(R"(
+        local edit=CreateFrame('EditBox','HintEdit');
+        Hint=edit:CreateTexture(); Hint:Hide();
+        edit:SetScript('OnTextChanged',function(self,userInput)
+            Hint:Show(); UpdateButton:Disable(); hintNotified=true;
+            assert(not pcall(CreateFrame,'Frame','ForbiddenTextChange'));
+            assert(not pcall(RaiseDialog.Raise,RaiseDialog));
+            assert(not pcall(self.SetFrameLevel,self,1));
+        end);
+    )");
+    auto* edit = static_cast<CSimpleEditBox*>(CScriptObject::GetScriptObjectByName("HintEdit", CSimpleEditBox::GetObjectType()));
+    {
+        Frame::Native::UpdateScope update;
+        edit->RunOnTextChangedScript();
+    }
+    lua("assert(hintNotified and Hint:IsShown() and not UpdateButton:IsEnabled())");
+    {
+        Frame::Native::CallbackScope callback;
+        lua("assert(not pcall(Hint.Hide,Hint))");
+    }
     std::cout << "native-original-dialog-repeat-raise-onshow-no-level-mutation-guards=passed\n";
     std::cout << "native-original-dialog-update-textures-retain-regions-reject-ownership-changes=passed\n";
+    std::cout << "native-original-login-text-change-hint-control-state-pinned-guards=passed\n";
 }
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;
