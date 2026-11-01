@@ -59,6 +59,7 @@ enum class ScanState { NotStarted, ErrorPending, Unavailable };
 ScanState scanState = ScanState::NotStarted;
 bool scanDispatching = false;
 bool unavailableDialog = false;
+const char* pendingDialog = nullptr;
 constexpr const char* scanUnavailable = "Sign-in is unavailable: this native client cannot verify and run the Windows Scan.dll detector. No scan approval has been granted.";
 bool ServicesOpen() {
     return registered && CVar::m_initialized &&
@@ -105,8 +106,10 @@ static int32_t Script_DefaultServerLogin(lua_State* L) {
     RequireServices(L);
     if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
         return luaL_error(L, "Usage: DefaultServerLogin(\"accountName\", \"password\")");
-    ShowUnavailable(CGlueMgr::m_acceptedTOS && CGlueMgr::m_acceptedEULA
-        ? scanUnavailable : "Sign-in is unavailable until the original agreements are accepted.");
+    // Input callbacks pin frame hierarchy. Deliver the notice on outer idle,
+    // after the original login action has cleared its password edit field.
+    pendingDialog = CGlueMgr::m_acceptedTOS && CGlueMgr::m_acceptedEULA
+        ? scanUnavailable : "Sign-in is unavailable until the original agreements are accepted.";
     return 0;
 }
 // Only acknowledge this owner's unavailable-service dialog. There is no login
@@ -847,20 +850,26 @@ void PollScriptServices() {
     FrameScript::Native::RequireOwner();
     if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before polling Glue services");
     if (!ServicesOpen()) throw std::logic_error("Native Glue script services are closed");
-    if (scanState != ScanState::ErrorPending) return;
+    const bool scanFailed = scanState == ScanState::ErrorPending;
+    if (!scanFailed && !pendingDialog) return;
+    const char* reason = scanFailed ? scanUnavailable : pendingDialog;
+    pendingDialog = nullptr;
     // Publish the terminal state before dispatch. Repeated starts/polls cannot
     // duplicate the event, including when its protected Lua callback fails.
-    scanState = ScanState::Unavailable;
-    std::printf("native-unavailable=scandll reason=%s\n", scanUnavailable);
+    if (scanFailed) {
+        scanState = ScanState::Unavailable;
+        std::printf("native-unavailable=scandll reason=%s\n", scanUnavailable);
+    }
     struct Dispatch {
         Dispatch() { scanDispatching = true; }
         ~Dispatch() { scanDispatching = false; }
     } dispatch;
     const auto errors = FrameScript::Native::ScriptErrorCount();
-    FrameScript_SignalEvent(GLUE_EVENT_SCANDLL_ERROR, "%s", scanUnavailable);
+    if (scanFailed) FrameScript_SignalEvent(GLUE_EVENT_SCANDLL_ERROR, "%s", scanUnavailable);
     // The original handler has now shown AccountLoginUI. Present the actual
     // failure through its original dialog, without a fabricated FINISHED/OK.
-    if (FrameScript::Native::ScriptErrorCount() == errors) ShowUnavailable(scanUnavailable);
+    if (FrameScript::Native::ScriptErrorCount() == errors) ShowUnavailable(reason);
+    else pendingDialog = nullptr;
 }
 }
 void GlueScriptEventsRegisterFunctions() {
@@ -877,6 +886,7 @@ void GlueScriptEventsUnregisterFunctions() {
     registered = false;
     scanState = ScanState::NotStarted;
     unavailableDialog = false;
+    pendingDialog = nullptr;
     CGlueMgr::m_authenticated = 0;
     CloseAgreements();
     CGlueMgr::AcceptChangedOptionWarnings();

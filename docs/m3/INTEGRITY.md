@@ -41,7 +41,9 @@ The original error handler may finish displaying its controls. The owner then
 opens the original OKAY dialog with the actual unavailable reason.
 `DefaultServerLogin` refuses every request before reading or retaining credential
 bytes, including direct Lua calls, pre-start calls and calls after acknowledgement
-or repeated continuation. Agreement state is never changed by these operations.
+or repeated continuation. Refusal notices are deferred to outer idle, after input
+callbacks and the original login action's password-field clearing. Repeated
+requests coalesce without retaining account/password bytes. Agreement state is never changed by these operations.
 `StatusDialogClick` closes only the dialog owned by this failure path. There is no
 transport/session owner or successful scan result in this implementation.
 

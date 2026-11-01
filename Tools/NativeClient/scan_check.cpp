@@ -57,6 +57,7 @@ void CheckNativeScanServices() {
             presented=true;
             if scanHandlerFails then error('authored original handler failure') end;
         elseif event=='OPEN_STATUS_DIALOG' then
+            assert(scanPollRejected() and scanCloseRejected());
             local kind,reason=...;
             assert(kind=='OKAY' and string.find(reason,'Sign%-in is unavailable'));
             assert(not string.find(reason,'fixture credential'));
@@ -88,23 +89,32 @@ void CheckNativeScanServices() {
         assert(not pcall(ScanDLLStart,'version',{}));
         assert(not pcall(DefaultServerLogin) and not pcall(DefaultServerLogin,'',{}));
         DefaultServerLogin('fixture credential account','fixture credential password');
-        assert(notices==1 and scanEvents==0 and TOSAccepted()==nil and EULAAccepted()==nil);
+        assert(notices==0 and scanEvents==0 and TOSAccepted()==nil and EULAAccepted()==nil);
+    )");
+    GlueNative::PollScriptServices();
+    execute(R"(
+        assert(notices==1);
         StatusDialogClick(); StatusDialogClick(); assert(closes==1);
         -- Explicit authored agreement decisions, never original-data acceptance.
         AcceptTOS(); AcceptEULA();
         DefaultServerLogin('fixture credential account','fixture credential password');
-        assert(notices==2 and IsScanDLLFinished()==nil);
+        assert(notices==1 and IsScanDLLFinished()==nil);
     )");
     GlueNative::PollScriptServices();
+    execute("assert(notices==2)");
     execute("assert(scanEvents==0); ScanDLLStart('https://fixture.invalid/version',''); assert(scanEvents==0); ScanDLLStart('another','Scan.dll'); DefaultServerLogin('',''); ScanDLLContinueAnyway()");
     bool foreign=false;
     std::thread thread([&] { try { GlueNative::PollScriptServices(); } catch (const std::logic_error&) { foreign=true; } });
     thread.join(); Check(foreign,"Foreign ScanDLL polling was admitted");
     GlueNative::PollScriptServices(); GlueNative::PollScriptServices();
     execute(R"(
-        assert(scanEvents==1 and presented and notices==4 and IsScanDLLFinished()==nil);
+        assert(scanEvents==1 and presented and notices==3 and IsScanDLLFinished()==nil);
         DefaultServerLogin('fixture credential account','fixture credential password');
-        ScanDLLContinueAnyway(); assert(notices==5 and IsScanDLLFinished()==nil);
+        ScanDLLContinueAnyway(); assert(notices==3 and IsScanDLLFinished()==nil);
+    )");
+    GlueNative::PollScriptServices();
+    execute(R"(
+        assert(notices==4 and IsScanDLLFinished()==nil);
         StatusDialogClick(); assert(closes==2);
         retainedScanStart=ScanDLLStart; retainedScanContinue=ScanDLLContinueAnyway;
         retainedScanQuery=IsScanDLLFinished; retainedLogin=DefaultServerLogin; retainedStatus=StatusDialogClick;

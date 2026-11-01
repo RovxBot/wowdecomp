@@ -21,7 +21,8 @@ and allows that handler to show the controls. The native owner then presents an
 unavailable-service dialog through original `OPEN_STATUS_DIALOG`. Acknowledging
 it closes only that dialog. `DefaultServerLogin` validates the original API and
 refuses every request visibly, including calls before scan start/completion or
-after repeated continuation. It never retains or forwards credentials. This
+after repeated continuation. Its dialog is queued to outer idle so input callbacks
+can finish and the original login action can clear its password field. It never retains or forwards credentials. This
 target has no authentication transport. Reentrant polling/closure during event
 delivery is rejected. This removes a fatal UI callback while keeping sign-in
 unavailable; it implements no successful scanner or authentication.
