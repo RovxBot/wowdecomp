@@ -40,9 +40,18 @@ bool GruntLogin::Connected(const NETADDR& address) {
 // VERIFY: 2720463d manual
 // OFFSET: 0x008CA140
 bool GruntLogin::CantConnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_SERVER_DOWN, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
     this->m_logonStatus = 1;
     this->LogonResult(Grunt::GRUNT_RESULT_CANT_CONNECT, nullptr, 0, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
     this->m_loggedOn = false;
     this->m_online = false;
 
@@ -52,11 +61,20 @@ bool GruntLogin::CantConnect() {
 // VERIFY: 7c5dddc1 manual
 // OFFSET: 0x008CA1D0
 bool GruntLogin::Disconnected() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_DISCONNECTED, LOGIN_OK, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return false;
+#endif
 
     if (!this->m_online) {
         this->m_logonStatus = 1;
         this->LogonResult(Grunt::GRUNT_RESULT_DISCONNECTED, nullptr, 0, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return false;
+#endif
     }
 
     this->m_loggedOn = false;
@@ -71,8 +89,8 @@ void GruntLogin::GetLogonMethod() {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     // No approved native platform/version-integrity identity is available yet.
     this->m_logonStatus = 1;
-    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, nullptr, 0);
     this->m_clientLink->Disconnect();
+    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, nullptr, 0);
 #else
     Grunt::ClientLink::Logon logon = {};
 
@@ -123,7 +141,13 @@ void GruntLogin::Logon(const char* loginServer, const char* portal) {
     this->m_tokenEnabled = false;
     this->m_token[0] = '\0';
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_CONNECTING, LOGIN_OK, nullptr, 0);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return;
+#endif
     this->m_clientLink->Connect(loginServer ? loginServer : "us.logon.worldofwarcraft.com:3724");
 }
 
@@ -150,6 +174,9 @@ GruntLogin::~GruntLogin() {
 // VERIFY: e258ceaa manual
 // OFFSET: 0x008CAC50
 void GruntLogin::Init(LoginResponse* loginResponse) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!loginResponse || this->m_clientLink) throw std::logic_error("Invalid GruntLogin initialization");
+#endif
     this->m_loginResponse = loginResponse;
     this->m_clientLink = new (__FILE__, __LINE__) Grunt::ClientLink(*this);
 }
@@ -181,7 +208,13 @@ void GruntLogin::Logoff() {
 // OFFSET: 0x008CB160
 void GruntLogin::LogonResult(Grunt::Result result, const uint8_t* sessionKey, uint32_t sessionKeyLength, uint16_t flags) {
     if (this->IsReconnect()) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        const auto alive = this->m_clientLink->m_nativeAlive;
+#endif
         this->m_loginResponse->HandleRealmData(1, nullptr);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return;
+#endif
         this->m_clientLink->Disconnect();
         return;
     }

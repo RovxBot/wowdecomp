@@ -474,6 +474,26 @@ void FailurePaths(void (*pump)()) {
         Require(peer.Read().empty() && response.m_loginResult == LOGIN_FAILED,
                 "Production native identity forwarded a logon");
     }
+    for (auto releasedState : {LOGIN_STATE_CONNECTING, LOGIN_STATE_FAILED}) {
+        Peer peer;
+        Response response;
+        auto login = std::make_unique<GruntLogin>();
+        login->Init(&response);
+        login->SetLogonCreds("fixture", "authored-password");
+        response.onStatus = [&](LOGIN_STATE state) {
+            if (state == releasedState)
+                login.reset();
+        };
+        login->Logon(peer.Address().c_str(), nullptr);
+        Until(
+            pump,
+            [&] {
+                peer.Accept();
+                return !login;
+            },
+            "Login status callback release failed");
+        pump();
+    }
     // Security callback releases Login/ClientLink while command dispatch is active.
     {
         Peer peer;
@@ -520,7 +540,8 @@ void FailurePaths(void (*pump)()) {
             "Unsolicited proof did not disconnect");
         Require(login.m_logonStatus != 0, "Unsolicited proof authenticated");
     }
-    for (bool difficulty : {false, true}) {
+    for (unsigned variant : {0u, 1u, 2u}) {
+        const bool difficulty = variant == 1;
         Peer peer;
         Client client;
         client.Initialize();
@@ -541,6 +562,8 @@ void FailurePaths(void (*pump)()) {
         }
         Bytes wire{0, uint8_t(challenge.m_size)};
         Append(wire, Wire(challenge));
+        if (variant == 2)
+            wire = Bytes{0, 2, uint8_t(SMSG_RESUME_COMMS), uint8_t(SMSG_RESUME_COMMS >> 8)};
         peer.Put(wire);
         Until(
             pump, [&] { return client.m_netState == NS_INITIALIZED; },

@@ -100,8 +100,13 @@ void NetClient::WCMessageReady(WowConnection* connection, uint32_t timeStamp, CD
 
     switch (msgId) {
         case SMSG_CONNECT_TO:
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+            connection->Disconnect();
+            return; // Redirect/session control requires separate qualification.
+#else
             this->HandleRedirectClient(connection, msg);
             return;
+#endif
 
         case SMSG_PONG:
             this->HandlePong(connection, msg);
@@ -112,12 +117,22 @@ void NetClient::WCMessageReady(WowConnection* connection, uint32_t timeStamp, CD
             return;
 
         case SMSG_SUSPEND_COMMS:
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+            connection->Disconnect();
+            return; // Redirect/session control requires separate qualification.
+#else
             this->HandleSuspendComms(connection, msg);
             return;
+#endif
 
         case SMSG_RESUME_COMMS:
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+            connection->Disconnect();
+            return; // Redirect/session control requires separate qualification.
+#else
             this->HandleResumeComms(connection, msg);
             return;
+#endif
 
         default:
             break;
@@ -270,8 +285,7 @@ int32_t NetClient::ConnectInternal(const char* host, uint16_t port) {
 void NetClient::SetLoginData(LoginData* loginData) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
-#endif
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
+
     if (!loginData || !memchr(loginData->m_account, 0, sizeof(loginData->m_account)))
         throw std::invalid_argument("Invalid session account span");
 #endif
@@ -471,11 +485,9 @@ int32_t NetClient::HandleDisconnect() {
     this->m_netState = NS_INITIALIZED;
 #if !defined(WOWDECOMP_NATIVE_CONNECTION)
     ConsolePrintf("NetClient::HandleDisconnect()");
-#endif
-#if !defined(WOWDECOMP_NATIVE_CONNECTION)
+
     CGlueMgr::NetDisconnectHandler(this);
-#endif
-#if !defined(WOWDECOMP_NATIVE_CONNECTION)
+
     NetClient::PopObjMgr();
 #endif
 
@@ -509,6 +521,11 @@ void NetClient::HandlePong(WowConnection* connection, CDataStore* msg) {
         return;
     }
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (msg->m_read > msg->m_size || msg->m_size - msg->m_read != 4) {
+        connection->Disconnect(); return;
+    }
+#endif
     this->m_pingLock.Enter();
 
     uint32_t sequence;

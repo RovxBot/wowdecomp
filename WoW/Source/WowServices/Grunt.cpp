@@ -17,8 +17,6 @@
 #include "Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.h"
 #if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/Client.h"
-#else
-extern uint32_t s_localeIds[9]; // server-only legacy helper; not used by native client
 #endif
 
 // STATIC: 0x00B24D00
@@ -270,8 +268,6 @@ void Grunt::ClientLink::PackLogon(CDataStore& msg, const Grunt::ClientLink::Logo
 void Grunt::ClientLink::LogonNewSession(const Grunt::ClientLink::Logon& logon) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
-#endif
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
     if (this->m_state != 2 || !logon.m_accountName || !*logon.m_accountName ||
         std::strlen(logon.m_accountName) > 255 || !logon.m_password)
         throw std::invalid_argument("Invalid native Grunt logon state or credential span");
@@ -970,8 +966,6 @@ void Grunt::ClientLink::GetRealmList() {
 void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
-#endif
-#if defined(WOWDECOMP_NATIVE_CONNECTION)
     if (this->m_state != 4 || !versionChecksum)
         throw std::logic_error("Version proof requires a complete logon challenge and checksum");
 #endif
@@ -980,9 +974,15 @@ void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
     SHA1_CONTEXT context;
     uint8_t hash[20];
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    const auto alive = this->m_nativeAlive;
+#endif
     if (!this->m_clientResponse->GetCdKeys(cdKeys)) {
         cdKeys.m_count = 0;
     }
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!*alive) return;
+#endif
 
     if (this->m_state == 4) {
         msg.Put(static_cast<uint8_t>(1));
@@ -1017,6 +1017,9 @@ void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
         uint8_t* pinSalt;
         uint8_t* pinHash;
         this->m_clientResponse->GetPinInfo(&pinEnabled, &pinSalt, &pinHash);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return;
+#endif
 
         if (pinEnabled) {
             securityFlags = 0x1;
@@ -1025,6 +1028,9 @@ void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
         bool matrixEnabled;
         const uint8_t* matrixProof;
         this->m_clientResponse->GetMatrixProof(&matrixEnabled, &matrixProof);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return;
+#endif
 
         if (matrixEnabled) {
             securityFlags |= 0x2;
@@ -1033,6 +1039,9 @@ void Grunt::ClientLink::ProveVersion(const uint8_t* versionChecksum) {
         char token[17] = {};
         bool tokenEnabled;
         this->m_clientResponse->GetTokenInfo(&tokenEnabled, token);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        if (!*alive) return;
+#endif
         uint8_t tokenLength = SStrLen(token);
 
         if (tokenEnabled) {

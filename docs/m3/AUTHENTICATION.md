@@ -50,7 +50,8 @@ Native NetClient receives original framed world messages, queues connect/data/
 disconnect/auth-challenge events and dispatches original opcode handlers on Event.
 It checks short opcodes and complete challenge bodies before processing. A nonzero
 proof-of-work difficulty currently disconnects: unbounded work on the Event owner
-is unsupported. World object-manager context remains explicitly unavailable.
+is unsupported. Unqualified redirect/suspend/resume controls disconnect. World object-manager
+context remains explicitly unavailable.
 This is not a completed `RealmConnection`/`ClientServices`/Warden world session.
 
 ## Integrity gates and unsupported paths
