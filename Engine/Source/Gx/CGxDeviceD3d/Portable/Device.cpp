@@ -43,8 +43,10 @@ CGxDeviceD3d::CGxDeviceD3d(OsNative::Window& window, ShaderBytes shaders)
         Require(m_d3d, "DXVK Native Direct3DCreate9 failed");
         Result(m_d3d->GetDeviceCaps(0, D3DDEVTYPE_HAL, &m_d3dCaps), "GetDeviceCaps");
         Result(m_d3d->GetAdapterDisplayMode(0, &m_desktopDisplayMode), "GetAdapterDisplayMode");
-        CapsWindowSize(m_defWindowRect);
-        m_curWindowRect = m_defWindowRect;
+        int width, height, pixelWidth, pixelHeight;
+        window.Size(width, height, pixelWidth, pixelHeight);
+        Require(pixelWidth > 0 && pixelHeight > 0, "D3D9 requires a nonempty SDL drawable");
+        m_defWindowRect = m_curWindowRect = CRect{0, 0, float(pixelHeight), float(pixelWidth)};
         m_format = CGxFormat(true, {int32_t(m_defWindowRect.maxX), int32_t(m_defWindowRect.maxY)},
                             CGxFormat::Fmt_Argb8888, CGxFormat::Fmt_Ds248, 0, 0, true, false, false, true, 0);
         D3DPRESENT_PARAMETERS present;

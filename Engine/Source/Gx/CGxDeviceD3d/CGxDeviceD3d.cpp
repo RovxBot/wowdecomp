@@ -1,3 +1,5 @@
+// WOWDECOMP_NATIVE_D3D9 branches are native adaptations. Existing VERIFY/OFFSET
+// annotations describe only the original Windows-selected implementations.
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -151,7 +153,11 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
     CGxPool* pool = buf->m_pool;
 
     if (!this->m_context) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        throw std::runtime_error("D3D9 buffer Lock requires a live device");
+#else
         return static_cast<char*>(this->m_emergencyMem[pool->m_target].Lock(buf->m_size));
+#endif
     }
 
     DWORD flags = 0;
@@ -180,7 +186,11 @@ char* CGxDeviceD3d::IBufLock(CGxBuf* buf) {
     }
 
     if (!pool->m_apiSpecific) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        throw std::runtime_error("DXVK buffer allocation failed");
+#else
         return static_cast<char*>(this->m_emergencyMem[pool->m_target].Lock(buf->m_size));
+#endif
     }
 
     HRESULT result = S_OK;
@@ -3139,6 +3149,22 @@ void CGxDeviceD3d::TexDestroy(CGxTex* texId) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
 #endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (m_nativeUpload) throw std::logic_error("Texture destruction during a D3D9 upload callback");
+    if (!texId) return;
+    for (uint32_t i = 0; i < 2; ++i)
+        if (m_textureTarget[i].m_texture == texId) DeviceSetRenderTarget(static_cast<EGxBuffer>(i), nullptr, 0);
+    for (uint32_t i = GxRs_Texture0; i <= GxRs_Texture15; ++i) {
+        auto which = static_cast<EGxRenderState>(i);
+        if (m_appRenderStates[i].m_value.m_data.p == texId) RsSet(which, nullptr);
+        if (m_hwRenderStates[i].m_data.p == texId) m_hwRenderStates[i].m_data.p = nullptr;
+    }
+    for (uint32_t i = 0; i < m_pushedStates.Count(); ++i) {
+        auto& pushed = m_pushedStates[i];
+        if (pushed.m_which >= GxRs_Texture0 && pushed.m_which <= GxRs_Texture15 && pushed.m_value.m_data.p == texId)
+            pushed.m_value.m_data.p = nullptr;
+    }
+#endif
     if (!texId->m_needsCreation && (texId->m_apiSpecificData || texId->m_apiSpecificData2)) {
         static_cast<IDirect3DBaseTexture9*>(texId->m_apiSpecificData)->Release();
         texId->m_apiSpecificData = nullptr;
@@ -3236,6 +3262,12 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
             texId->m_userFunc(GxTex_Latch, mipWidth, mipHeight, face, mip, texId->m_userArg, texelStrideInBytes, texels);
 
             if (texels && !texId->m_flags.m_renderTarget) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                const uint64_t rowBytes = compressed
+                    ? ((uint64_t(mipWidth) + 3) / 4) * s_texFormatBytesPerBlock[texId->m_dataFormat]
+                    : (uint64_t(mipWidth) * s_texFormatBitDepth[texId->m_dataFormat] + 7) / 8;
+                if (rowBytes > texelStrideInBytes) throw std::runtime_error("D3D9 texture callback stride is too small");
+#endif
                 IDirect3DSurface9* surface = nullptr;
                 HRESULT result;
 
@@ -3341,6 +3373,9 @@ void CGxDeviceD3d::ITexMarkAsUpdated(CGxTex* texId) {
 #if defined(WOWDECOMP_NATIVE_D3D9)
     this->NativeCheckOwner();
 #endif
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    if (m_nativeUpload) throw std::logic_error("Recursive D3D9 texture upload");
+#endif
     if (!texId->m_needsUpdate || !this->m_context) {
         return;
     }
@@ -3351,7 +3386,14 @@ void CGxDeviceD3d::ITexMarkAsUpdated(CGxTex* texId) {
 
     if (!texId->m_needsCreation && (texId->m_apiSpecificData || texId->m_apiSpecificData2)) {
         if (texId->m_userFunc) {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+            m_nativeUpload = texId;
+            try { this->ITexUpload(texId); }
+            catch (...) { m_nativeUpload = nullptr; throw; }
+            m_nativeUpload = nullptr;
+#else
             this->ITexUpload(texId);
+#endif
         }
 
         CGxDevice::ITexMarkAsUpdated(texId);

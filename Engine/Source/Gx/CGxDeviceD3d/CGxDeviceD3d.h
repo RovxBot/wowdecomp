@@ -349,6 +349,7 @@ class CGxDeviceD3d : public CGxDevice {
     OsNative::Window& NativeWindow() const { NativeCheckOwner(); return *m_nativeWindow; }
     OsNative::Window* m_nativeWindow = nullptr;
     ShaderBytes m_nativeShaders;
+    CGxTex* m_nativeUpload = nullptr;
 #endif
     virtual ~CGxDeviceD3d();
     void DsSet(EDeviceState state, uint32_t value);

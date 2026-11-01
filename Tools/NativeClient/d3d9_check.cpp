@@ -32,14 +32,61 @@ Bytes Shader(const std::string& path) {
     Require(path.find(vertex ? "vs_3_0" : "ps_3_0") != std::string::npos, "D3D9 did not select its actual shader profile");
     return Package(vertex, vertex ? 2 : 1);
 }
+struct TextureSource {
+    CImVector pixels[4]{{37,83,149,255},{37,83,149,255},{37,83,149,255},{37,83,149,255}};
+    unsigned locks = 0, unlocks = 0;
+    bool fail = true, badStride = false;
+    static void Read(EGxTexCommand command, uint32_t width, uint32_t, uint32_t, uint32_t,
+                     void* user, uint32_t& stride, const void*& bytes) {
+        auto& source = *static_cast<TextureSource*>(user);
+        if (command == GxTex_Lock) ++source.locks;
+        if (command == GxTex_Unlock) ++source.unlocks;
+        if (command == GxTex_Latch && source.fail) throw std::runtime_error("authored texture callback failure");
+        stride = source.badStride ? 1 : width * 4; bytes = source.pixels;
+    }
+};
 void Pixel(CGxDeviceD3d& device) {
-    GxSceneClear(GxBufferBit_Color | GxBufferBit_Depth, CImVector(37, 83, 149, 255));
+    TextureSource source;
+    CGxTex* texture = nullptr;
+    Require(GxTexCreate(2, 2, GxTex_Argb8888, CGxTexFlags(GxTex_Linear), &source, TextureSource::Read, texture), "Original texture creation failed");
+    struct Cleanup { CGxTex* texture; ~Cleanup() { GxTexDestroy(texture); } } cleanup{texture};
+    Reject([&] { GxTexUpdate(texture, 0, 0, 2, 2, 1); });
+    Require(source.locks == 1 && source.unlocks == 1 && texture->m_needsUpdate, "Callback failure lost unlock/retry ownership");
+    source.fail = false; source.badStride = true;
+    Reject([&] { GxTexUpdate(texture, 0, 0, 2, 2, 1); });
+    Require(source.locks == 2 && source.unlocks == 2 && texture->m_needsUpdate, "Bad stride lost unlock/retry ownership");
+    source.badStride = false;
+    GxTexUpdate(texture, 0, 0, 2, 2, 1);
+    Require(device.TexIsReadyNow(texture) && source.locks == 3 && source.unlocks == 3, "Original upload retry failed");
+    GxRsSet(GxRs_Texture0, texture);
+    GxRsSet(GxRs_VertexShader, static_cast<void*>(nullptr));
+    GxRsSet(GxRs_PixelShader, static_cast<void*>(nullptr));
+    GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_Culling, 0);
+    GxRsSet(GxRs_DepthTest, 0); GxRsSet(GxRs_BlendingMode, GxBlend_Opaque);
+    C44Matrix identity; identity.Identity();
+    GxXformSetProjection(identity); GxXformSetView(identity);
+    struct Vertex { float x, y, z; CImVector color; float u, v; };
+    const Vertex quad[]{{-1,-1,0,{255,255,255,255},0,0},{1,-1,0,{255,255,255,255},1,0},
+                        {1,1,0,{255,255,255,255},1,1},{-1,1,0,{255,255,255,255},0,1}};
+    auto* buffer = GxBufStream(GxPoolTarget_Vertex, sizeof(Vertex), 4);
+    auto* mapped = GxBufLock(buffer);
+    std::memcpy(mapped, quad, sizeof(quad));
+    Reject([&] { GxBufUnlock(buffer, sizeof(quad) + 1); });
+    Require(device.m_bufLocked[0] == buffer, "Rejected Unlock discarded mapped ownership");
+    GxBufUnlock(buffer, sizeof(quad));
+    GxPrimVertexPtr(buffer, GxVBF_PCT);
+    const uint16_t indices[]{0,1,2,0,2,3};
+    GxPrimIndexPtr(6, indices);
+    CGxBatch batch{GxPrim_Triangles, 0, 6, 0, 3};
+    GxSceneClear(GxBufferBit_Color | GxBufferBit_Depth, CImVector(0,0,0,255));
+    GxDraw(&batch, 1);
     CiRect rect{0, 0, 4, 4};
     TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect, pixels);
     Require(pixels.Count() == 16, "Original D3D9 readback extent");
-    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == 149 && pixels[i].g == 83 && pixels[i].b == 37, "Original Gx clear/readback channel mismatch");
+    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == 149 && pixels[i].g == 83 && pixels[i].b == 37, "Original Gx texture/draw/readback channel mismatch");
     GxScenePresent();
+
 }
 }
 int main() {
@@ -49,6 +96,11 @@ int main() {
             OsNative::Window window("Original Gx DXVK client contracts", 320, 240, true, OsNative::WindowGraphics::Vulkan);
             Reject([&] { CGxDeviceD3d failed(window, [](const std::string&) -> Bytes { throw std::runtime_error("authored provider failure"); }); });
             Require(!g_theGxDevicePtr, "Failed shader setup published a device");
+            Reject([&] { CGxDeviceD3d failed(window, [](const std::string& path) {
+                if (path.find("Pixel") != std::string::npos) throw std::runtime_error("authored partial shader failure");
+                return Shader(path);
+            }); });
+            Require(!g_theGxDevicePtr, "Partial shader setup published a device");
             {
                 CGxDeviceD3d device(window, Shader);
                 Require(g_theGxDevicePtr == &device && device.DeviceApi() == GxApi_D3d9, "Original D3D9 dispatch not installed");

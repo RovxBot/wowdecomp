@@ -105,6 +105,9 @@ InputResult DispatchInputEvent(OsNative::Window& window, const OSEVENT& event) {
     } else if (event.id == OS_INPUT_FOCUS) {
         if (event.param[0] != 0 && event.param[0] != 1)
             throw std::invalid_argument("Invalid Frame focus event");
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        g_theGxDevicePtr->DeviceWM(event.param[0] ? GxWM_SetFocus : GxWM_KillFocus, 0, 0);
+#endif
         root.CancelMouseInput();
         // Window::Pump queues held-key releases before focus loss. Also retire
         // any remaining captures for direct host focus delivery or missed input.
