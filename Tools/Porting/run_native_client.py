@@ -91,9 +91,9 @@ def main():
         if shutil.which('llvm-symbolizer'):
             environment['ASAN_SYMBOLIZER_PATH'] = shutil.which('llvm-symbolizer')
     command = [str(binary), '--data', str(args.data.resolve()), '--settings', str(args.settings.resolve()),
-               '--cache', str(args.cache.resolve()), '--frames', str(args.frames), '--renderer', args.renderer]
+               '--cache', str(args.cache.resolve()), '--frames', str(args.frames)]
     if args.renderer == 'dxvk':
-        command += ['--snapshot', str(runtime / 'first-frame.ppm')]
+        command += ['--renderer', 'dxvk', '--snapshot', str(runtime / 'first-frame.ppm')]
     if args.hidden:
         command.append('--hidden')
     started = datetime.now(timezone.utc).isoformat()

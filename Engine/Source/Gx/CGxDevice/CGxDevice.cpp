@@ -21,6 +21,19 @@
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/ShaderEffect/Types.h"
 
+#if defined(WOWDECOMP_NATIVE_D3D9)
+namespace {
+void CheckD3dConstantSpan(const CGxCaps& caps, EGxShTarget target, uint32_t index, uint64_t count) {
+    // Native D3D9 uses its actual budget, bounded by original shadow storage.
+    // The separate 94-register frozen GL contract below remains unchanged.
+    constexpr uint64_t storage = sizeof(CGxDevice::s_shadowConstants[0].constants) / sizeof(float) / 4;
+    if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > storage || count > storage - index ||
+        index > caps.m_shaderConstants[target] || count > caps.m_shaderConstants[target] - index)
+        throw std::out_of_range("Native D3D9 shader constant range");
+}
+}
+#endif
+
 // STATIC: 0x00A2DAF8
 const uint32_t CGxDevice::s_texFormatBitDepth[GxTexFormats_Last] = { 0, 32, 32, 16, 16, 16, 4, 8, 8, 16, 32, 32, 32 };
 
@@ -887,7 +900,12 @@ void CGxDevice::ShaderConstantsSet(EGxShTarget target, uint32_t index, const flo
     this->NativeCheckOwner();
 #endif
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    CheckD3dConstantSpan(m_caps, target, index, count);
+    if (count && !constants) throw std::invalid_argument("Null D3D9 shader constants");
+#else
     if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index || (count && !constants)) throw std::out_of_range("Native shader constant range");
+#endif
 #endif
     ShadowConstants& shadow = s_shadowConstants[target ? 0 : 1];
     float* dest = &shadow.constants[index * 4];
@@ -929,9 +947,13 @@ float* CGxDevice::ShaderConstantsLock(EGxShTarget target) {
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 float* CGxDevice::ShaderConstantsLockRange(EGxShTarget target, uint32_t index, uint64_t count) {
     this->NativeCheckOwner();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    CheckD3dConstantSpan(m_caps, target, index, count);
+#else
     if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index ||
         index > m_caps.m_shaderConstants[target] || count > m_caps.m_shaderConstants[target] - index)
         throw std::out_of_range("Native shader constant write range");
+#endif
     return this->ShaderConstantsLock(target) + index * 4;
 }
 #endif
@@ -943,7 +965,11 @@ void CGxDevice::ShaderConstantsUnlock(EGxShTarget target, uint32_t index, uint32
     this->NativeCheckOwner();
 #endif
 #if defined(WOWDECOMP_PORTABLE_RUNTIME)
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    CheckD3dConstantSpan(m_caps, target, index, count);
+#else
     if ((target != GxSh_Vertex && target != GxSh_Pixel) || index > 94 || count > 94 - index) throw std::out_of_range("Native shader constant range");
+#endif
     if (!count) return;
 #endif
     ShadowConstants& shadow = s_shadowConstants[target ? 0 : 1];

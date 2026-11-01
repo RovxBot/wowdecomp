@@ -47,6 +47,27 @@ struct TextureSource {
         stride = source.badStride ? 1 : width * 4; bytes = source.pixels;
     }
 };
+void Constants(CGxDeviceD3d& device) {
+    const float value[4]{1,2,3,4};
+    // Reproduced original AccountLogin M2 palette: c31 through c186.
+    auto* palette = device.ShaderConstantsLockRange(GxSh_Vertex, 31, 156);
+    Require(palette == CGxDevice::s_shadowConstants[1].constants + 31 * 4, "Original M2 palette span rejected or rebased");
+    device.ShaderConstantsSet(GxSh_Vertex, 255, value, 1);
+    device.ShaderConstantsSet(GxSh_Pixel, 223, value, 1);
+    auto vertex = CGxDevice::s_shadowConstants[1], pixel = CGxDevice::s_shadowConstants[0];
+    Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 31, UINT64_MAX); });
+    Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 255, 2); });
+    Reject([&] { device.ShaderConstantsSet(GxSh_Pixel, 223, value, 2); });
+    Reject([&] { device.ShaderConstantsUnlock(GxSh_Vertex, 256, 1); });
+    Reject([&] { device.ShaderConstantsLockRange(static_cast<EGxShTarget>(99), 0, 1); });
+    Require(!std::memcmp(&vertex, &CGxDevice::s_shadowConstants[1], sizeof(vertex)) &&
+            !std::memcmp(&pixel, &CGxDevice::s_shadowConstants[0], sizeof(pixel)),
+            "Rejected constant span changed shadow data or dirty bounds");
+    const auto actual = device.m_caps.m_shaderConstants[GxSh_Vertex];
+    device.m_caps.m_shaderConstants[GxSh_Vertex] = 128;
+    Reject([&] { device.ShaderConstantsLockRange(GxSh_Vertex, 31, 156); });
+    device.m_caps.m_shaderConstants[GxSh_Vertex] = actual;
+}
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;
     CGxTex* texture = nullptr;
@@ -128,6 +149,7 @@ int main() {
                 Require(!CGxDevice::s_uiVertexShader[0]->m_loaded && CGxDevice::s_uiVertexShader[0]->Valid(),
                         "Original multi-permutation shader creation lost lazy binding");
                 Require(!CGxDevice::s_uiVertexShader[1]->m_loaded, "Unused shader permutation compiled eagerly");
+                Constants(device);
                 bool offThread = false;
                 std::thread thread([&] { try { device.ScenePresent(); } catch (const std::exception&) { offThread = true; } });
                 thread.join(); Require(offThread, "Off-owner presentation accepted");

@@ -22,7 +22,9 @@ retires COM resources before that window; bounded shader reads use the existing
 authenticated package provider and `0x10003` decoder, selecting D3D profiles from
 actual backend caps. Missing packages descend through the original D3D profiles;
 signature, codec, cancellation and package-decoding errors never permit descent.
-Multi-permutation programs retain original lazy GPU creation. Frame retains its
+Multi-permutation programs retain original lazy GPU creation. Constant spans are
+preflighted against both actual D3D9 caps and the original 256-register shadow
+storage; the frozen GL limit is not imposed on this backend. Frame retains its
 traversal, layout and callback guards.
 Resize resets the original device after retiring default-pool resources;
 active buffer writes/offscreen targets reject resize explicitly. Gamma, format
