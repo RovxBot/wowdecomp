@@ -3333,10 +3333,19 @@ void CGxDeviceD3d::ITexUpload(CGxTex* texId) {
                 C2iVector size;
                 size.x = rect.right - rect.left;
                 size.y = rect.bottom - rect.top;
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                const int32_t copied = Blit(size, BlitAlpha_0, src, texelStrideInBytes, GxGetBlitFormat(texId->m_dataFormat), lockedRect.pBits, lockedRect.Pitch, GxGetBlitFormat(texId->m_format));
+#else
                 Blit(size, BlitAlpha_0, src, texelStrideInBytes, GxGetBlitFormat(texId->m_dataFormat), lockedRect.pBits, lockedRect.Pitch, GxGetBlitFormat(texId->m_format));
+#endif
 
                 surface->UnlockRect();
                 surface->Release();
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                // A missing conversion must retain the pending upload, rather
+                // than publishing an untouched/transparent texture as ready.
+                if (!copied) throw std::runtime_error("D3D9 texture upload conversion unavailable");
+#endif
             }
 
             mipHeight >>= 1;

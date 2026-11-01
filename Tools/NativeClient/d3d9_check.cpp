@@ -196,10 +196,10 @@ void DialogRaise(OsNative::Window& window) {
     std::cout << "native-original-login-text-change-hint-control-state-pinned-guards=passed\n";
     OptionsChecks::Run(root, window);
 }
-void Pixel(CGxDeviceD3d& device) {
+void Pixel(CGxDeviceD3d& device, EGxTexFormat format, EGxTexFormat dataFormat) {
     TextureSource source;
     CGxTex* texture = nullptr;
-    Require(GxTexCreate(8, 8, GxTex_Argb8888, CGxTexFlags(GxTex_Linear), &source, TextureSource::Read, texture), "Original texture creation failed");
+    Require(GxTexCreate(GxTex_2d, 8, 8, 0, format, dataFormat, CGxTexFlags(GxTex_Linear), &source, TextureSource::Read, "authored upload", texture), "Original texture creation failed");
     struct Cleanup { CGxTex* texture; ~Cleanup() { GxTexDestroy(texture); } } cleanup{texture};
     Reject([&] { GxTexUpdate(texture, 0, 0, 8, 8, 1); });
     Require(source.locks == 1 && source.unlocks == 1 && texture->m_needsUpdate, "Callback failure lost unlock/retry ownership");
@@ -239,7 +239,11 @@ void Pixel(CGxDeviceD3d& device) {
     TSGrowableArray<CImVector> pixels;
     device.DeviceReadPixels(rect, pixels);
     Require(pixels.Count() == 16, "Original D3D9 readback extent");
-    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == 149 && pixels[i].g == 83 && pixels[i].b == 37, "Original Gx texture/draw/readback channel mismatch");
+    // The same source bytes are BGRA for original fonts/solids, RGBA for native
+    // decoded BLPs. Exercise both through the actual upload and indexed draw.
+    const auto red = dataFormat == GxTex_Abgr8888 ? 37 : 149;
+    const auto blue = dataFormat == GxTex_Abgr8888 ? 149 : 37;
+    for (uint32_t i = 0; i < pixels.Count(); ++i) Require(pixels[i].r == red && pixels[i].g == 83 && pixels[i].b == blue, "Original Gx texture/draw/readback channel mismatch");
     GxScenePresent();
 
 }
@@ -306,11 +310,14 @@ int main() {
                 Require(!fallback && integrityAttempts == 1, "Integrity failure fell through to another shader profile");
                 device.m_nativeShaders = saved;
                 std::cout << "original-gx-stage=draw" << std::endl;
-                Pixel(device);
+                Pixel(device, GxTex_Argb8888, GxTex_Argb8888);
+                Pixel(device, GxTex_Abgr8888, GxTex_Abgr8888);
+                Pixel(device, GxTex_Argb8888, GxTex_Abgr8888);
                 if (!cycle) DialogRaise(window);
                 Require(SDL_SetWindowSize(window.Handle(), 400, 300) && SDL_SyncWindow(window.Handle()), "SDL resize failed");
                 device.DeviceWM(GxWM_Size, 0, 0);
-                Pixel(device);
+                Pixel(device, GxTex_Argb8888, GxTex_Argb8888);
+                Pixel(device, GxTex_Abgr8888, GxTex_Abgr8888);
             }
             Require(!g_theGxDevicePtr, "D3D9 shutdown retained dispatch");
         }

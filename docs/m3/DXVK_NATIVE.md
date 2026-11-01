@@ -26,6 +26,18 @@ Multi-permutation programs retain original lazy GPU creation. Constant spans are
 preflighted against both actual D3D9 caps and the original 256-register shadow
 storage; the frozen GL limit is not imposed on this backend. Frame retains its
 traversal, layout and callback guards.
+
+Native BLP decoding supplies RGBA bytes (`GxTex_Abgr8888`), while font/solid
+callbacks retain their original packed formats. The native D3D9 blitter supports
+pitched RGBA copies and RGBA-to-BGRA channel exchange. An unavailable conversion
+releases the mapped surface and fails explicitly, retaining the pending upload;
+it cannot publish an untouched texture as ready. Original UI artwork and the
+Northrend model use this same image upload path. The original M2 GPU skinning,
+particle submission and Box4/Gauss4/Glow passes retain their original shaders and
+rendering code. Original-data captures and remaining Windows-reference comparison
+requirements are tracked in [#133](https://github.com/RovxBot/wowdecomp/issues/133)
+and [#107](https://github.com/RovxBot/wowdecomp/issues/107).
+
 Resize resets the original device after retiring default-pool resources;
 active buffer writes/offscreen targets reject resize explicitly. Gamma, format
 recreation, screen-coordinate queries, custom native cursors and device-loss
