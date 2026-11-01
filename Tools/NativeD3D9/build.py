@@ -34,7 +34,7 @@ def main():
     pins = json.loads((root / 'Tools/NativeD3D9/dependencies.json').read_text())
     environment = os.environ.copy()
     environment.update(CC='clang', CXX='clang++', PKG_CONFIG_PATH=str(prefix / 'lib/pkgconfig'),
-                       LD_LIBRARY_PATH=str(prefix / 'lib'), SDL_VIDEODRIVER='x11',
+                       LD_LIBRARY_PATH=str(prefix / 'lib'), SDL_VIDEODRIVER='x11', DXVK_WSI_DRIVER='SDL3',
                        ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
                        UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
                        DXVK_LOG_PATH=str(output), XDG_CACHE_HOME=str(work / 'cache'))
@@ -55,8 +55,9 @@ def main():
             for line in process.stdout:
                 print(line, end='', flush=True)
                 log.write(line)
-            if process.wait():
-                raise RuntimeError(name + ' failed')
+            result = process.wait()
+            if result:
+                raise RuntimeError(name + ' failed (exit ' + str(result) + ')')
 
     try:
         for pin in pins:  # Parent DXVK must precede its submodule destinations.
@@ -212,10 +213,11 @@ def main():
             shutil.copy2(mesa_source / 'docs/license.rst', notices / 'Mesa-CI-driver-license.rst')
             shutil.copy2(driver_patch, notices / driver_patch.name)
             shutil.copy2(mesa_source / 'src/gallium/frontends/lavapipe/lvp_execute.c', notices / 'Mesa-CI-lvp-execute-adapted.c')
-        run('vulkan-driver', ['vulkaninfo', '--summary'])
-        run('contracts', [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
+        display = ['xvfb-run', '-a', '-s', '-screen 0 1280x1024x24'] if args.client else []
+        run('vulkan-driver', display + ['vulkaninfo', '--summary'])
+        run('contracts', display + [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
         if args.client:
-            run('original-gx-client-contracts', [str(output / 'NativeD3d9ClientCheck')], cwd=output)
+            run('original-gx-client-contracts', display + [str(output / 'NativeD3d9ClientCheck')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])
         manifest['status'] = 'build-and-contracts-passed'
     except Exception as error:

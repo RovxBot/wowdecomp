@@ -6,6 +6,7 @@
 #if defined(WOWDECOMP_NATIVE_D3D9)
 #include "Engine/Source/Os/Portable/Window.h"
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 #else
@@ -340,7 +341,7 @@ class CGxDeviceD3d : public CGxDevice {
     CGxDeviceD3d();
 #else
     // Native adaptation of the original 12340 renderer, not a Windows layout.
-    using ShaderBytes = std::function<std::vector<uint8_t>(const std::string&)>;
+    using ShaderBytes = std::function<std::optional<std::vector<uint8_t>>(const std::string&)>;
     CGxDeviceD3d(OsNative::Window& window, ShaderBytes shaders);
     void NativeCheckOwner() const override;
     void NativeSyncTransforms() override;

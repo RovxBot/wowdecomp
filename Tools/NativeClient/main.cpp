@@ -45,6 +45,7 @@
 #include "StartupLocale.h"
 #include "HtmlSource.h"
 #include "LoopScriptErrors.h"
+#include "ShaderSource.h"
 using Bytes = std::vector<uint8_t>;
 using namespace Services::Native;
 namespace {
@@ -114,6 +115,14 @@ struct Source {
         auto ticket = queue.ReadPackage(packages, path, [result](const ReadResult& value) { *result = value; });
         if (!queue.Wait(ticket, std::chrono::seconds(60)) || result->status != ReadStatus::Success)
             throw std::runtime_error("Original member read failed: " + path + ": " + result->error);
+        return std::move(result->file.bytes);
+    }
+    std::optional<Bytes> ReadShader(const std::string& path) {
+        auto result = std::make_shared<ReadResult>();
+        auto ticket = queue.ReadPackage(packages, path, [result](const ReadResult& value) { *result = value; });
+        if (!queue.Wait(ticket, std::chrono::seconds(60))) throw std::runtime_error("Shader package read timeout: " + path);
+        if (MissingShaderRead(*result, path)) return std::nullopt;
+        if (result->status != ReadStatus::Success) throw std::runtime_error("Original shader read failed: " + path + ": " + result->error);
         return std::move(result->file.bytes);
     }
 };
@@ -188,7 +197,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     Events events;
 #if defined(WOWDECOMP_NATIVE_D3D9)
     OsNative::Window window("Waystone — original 12340 startup (DXVK)", 1024, 768, hidden, OsNative::WindowGraphics::Vulkan);
-    CGxDeviceD3d device(window, [&](const std::string& path) { return source.Read(path); });
+    CGxDeviceD3d device(window, [&](const std::string& path) { return source.ReadShader(path); });
     std::cout << "gx-backend=DXVK_NATIVE_SDL3 vertex-constants=" << device.Caps().m_shaderConstants[GxSh_Vertex]
               << " texture-units=" << device.Caps().m_numTmus << std::endl;
 #else
@@ -286,6 +295,9 @@ int main(int argc, char** argv) {
         if (!Blizzard::File::Native::ConfigurePaths(data.c_str(), settings.c_str(), cache.c_str(), paths))
             throw std::invalid_argument("Data/settings/cache roots must be separate");
         std::filesystem::current_path(paths.settings);
+#if defined(WOWDECOMP_NATIVE_D3D9)
+        if (SDL_setenv_unsafe("DXVK_WSI_DRIVER", "SDL3", 1)) throw std::runtime_error("Cannot select DXVK SDL3 WSI");
+#endif
         Runtime runtime;
         Run(paths, frames, hidden, snapshot);
         if (OsLiveThreadCount()) throw std::runtime_error("Native startup left workers alive");

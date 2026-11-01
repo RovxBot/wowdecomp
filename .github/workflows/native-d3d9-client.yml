@@ -59,7 +59,7 @@ jobs:
         run: |
           args=(--software-driver)
           if [ "$PROTOTYPE_SANITIZERS" = true ]; then args+=(--sanitizers); fi
-          xvfb-run -a -s "-screen 0 1280x1024x24" python3 Tools/NativeD3D9/build.py --client "${args[@]}"
+          python3 Tools/NativeD3D9/build.py --client "${args[@]}"
       - name: Preserve exact-source binaries, libraries, notices, pixels and logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

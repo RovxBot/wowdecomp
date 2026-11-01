@@ -8,6 +8,8 @@
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -34,6 +36,8 @@ CGxDeviceD3d::CGxDeviceD3d(OsNative::Window& window, ShaderBytes shaders)
       m_d3dVertexStreamStride{}, m_texEnabled{}, m_nativeWindow(&window), m_nativeShaders(std::move(shaders)) {
     NativeCheckOwner();
     Require(!g_theGxDevicePtr, "A Gx device is already installed");
+    const char* wsi = std::getenv("DXVK_WSI_DRIVER");
+    Require(wsi && std::strcmp(wsi, "SDL3") == 0, "Select DXVK_WSI_DRIVER=SDL3 before creating the native client");
     m_api = GxApi_D3d9;
     m_caps.m_colorFormat = GxCF_argb;
     m_caps.unk_0018 = 1;
@@ -178,24 +182,34 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
     NativeCheckOwner();
     Require(out && path && name && count && count <= 65536 && (target == GxSh_Vertex || target == GxSh_Pixel), "Invalid D3D9 shader request");
     std::fill_n(out, count, nullptr);
-    const auto profile = m_caps.m_shaderTargets[target];
+    uint32_t profile = m_caps.m_shaderTargets[target];
     Require(profile > 0, "DXVK shader profile unavailable");
-    const char* dialect = target == GxSh_Vertex ? s_vertexShaderTargetNames[profile] : s_pixelShaderTargetNames[profile];
-    const std::string member = std::string(path) + "\\" + dialect + "\\" + name + ".bls";
     auto& list = m_shaderList[target];
     std::vector<std::string> keys;
-    bool missing = false;
-    for (uint32_t i = 0; i < count; ++i) {
-        keys.push_back(member + ":" + std::to_string(count) + ":" + std::to_string(i));
-        auto* cached = list.Ptr(keys.back().c_str());
-        Require(!cached || cached->m_refCount < UINT32_MAX, "D3D9 shader reference overflow");
-        missing |= !cached;
-    }
     Gx::Native::ShaderPackage package;
-    if (missing) {
+    // Original IShaderLoad descends vs_3_0 -> vs_2_0 -> vs_1_1 and
+    // ps_3_0 -> ps_2_0 -> ps_1_4 -> ps_1_1 when a package is absent.
+    // A present package that fails verification/decoding never falls through.
+    while (profile) {
+        const char* dialect = target == GxSh_Vertex ? s_vertexShaderTargetNames[profile] : s_pixelShaderTargetNames[profile];
+        const std::string member = std::string(path) + "\\" + dialect + "\\" + name + ".bls";
+        keys.clear();
+        bool missing = false;
+        for (uint32_t i = 0; i < count; ++i) {
+            keys.push_back(member + ":" + std::to_string(count) + ":" + std::to_string(i));
+            auto* cached = list.Ptr(keys.back().c_str());
+            Require(!cached || cached->m_refCount < UINT32_MAX, "D3D9 shader reference overflow");
+            missing |= !cached;
+        }
+        if (!missing) break;
         Require(bool(m_nativeShaders), "Authenticated D3D9 shader provider unavailable");
-        package = Gx::Native::DecodeShaderPackage(m_nativeShaders(member), count);
+        auto bytes = m_nativeShaders(member);
+        if (!bytes) { --profile; continue; }
+        package = Gx::Native::DecodeShaderPackage(*bytes, count);
+        if (profile != m_caps.m_shaderTargets[target]) std::cout << "gx-shader-profile=" << member << std::endl;
+        break;
     }
+    Require(profile > 0, "Original D3D9 shader package unavailable in every supported profile");
     std::vector<CGxShader*> created;
     created.reserve(count);
     try {

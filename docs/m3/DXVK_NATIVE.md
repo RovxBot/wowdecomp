@@ -20,7 +20,10 @@ client presets and renderer implementation remain historical references.
 SDL owns the main-thread Vulkan window, input and focus. Native Gx ownership
 retires COM resources before that window; bounded shader reads use the existing
 authenticated package provider and `0x10003` decoder, selecting D3D profiles from
-actual backend caps. Frame retains its traversal, layout and callback guards.
+actual backend caps. Missing packages descend through the original D3D profiles;
+signature, codec, cancellation and package-decoding errors never permit descent.
+Multi-permutation programs retain original lazy GPU creation. Frame retains its
+traversal, layout and callback guards.
 Resize resets the original device after retiring default-pool resources;
 active buffer writes/offscreen targets reject resize explicitly. Gamma, format
 recreation, screen-coordinate queries, custom native cursors and device-loss

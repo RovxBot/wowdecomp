@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include "ShaderSource.h"
 
 using Bytes = std::vector<uint8_t>;
 namespace {
@@ -33,7 +34,8 @@ Bytes Shader(const std::string& path) {
     return Package(vertex, vertex ? 2 : 1);
 }
 struct TextureSource {
-    CImVector pixels[4]{{37,83,149,255},{37,83,149,255},{37,83,149,255},{37,83,149,255}};
+    CImVector pixels[64];
+    TextureSource() { for (auto& p : pixels) p = CImVector(37,83,149,255); }
     unsigned locks = 0, unlocks = 0;
     bool fail = true, badStride = false;
     static void Read(EGxTexCommand command, uint32_t width, uint32_t, uint32_t, uint32_t,
@@ -48,15 +50,15 @@ struct TextureSource {
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;
     CGxTex* texture = nullptr;
-    Require(GxTexCreate(2, 2, GxTex_Argb8888, CGxTexFlags(GxTex_Linear), &source, TextureSource::Read, texture), "Original texture creation failed");
+    Require(GxTexCreate(8, 8, GxTex_Argb8888, CGxTexFlags(GxTex_Linear), &source, TextureSource::Read, texture), "Original texture creation failed");
     struct Cleanup { CGxTex* texture; ~Cleanup() { GxTexDestroy(texture); } } cleanup{texture};
-    Reject([&] { GxTexUpdate(texture, 0, 0, 2, 2, 1); });
+    Reject([&] { GxTexUpdate(texture, 0, 0, 8, 8, 1); });
     Require(source.locks == 1 && source.unlocks == 1 && texture->m_needsUpdate, "Callback failure lost unlock/retry ownership");
     source.fail = false; source.badStride = true;
-    Reject([&] { GxTexUpdate(texture, 0, 0, 2, 2, 1); });
+    Reject([&] { GxTexUpdate(texture, 0, 0, 8, 8, 1); });
     Require(source.locks == 2 && source.unlocks == 2 && texture->m_needsUpdate, "Bad stride lost unlock/retry ownership");
     source.badStride = false;
-    GxTexUpdate(texture, 0, 0, 2, 2, 1);
+    GxTexUpdate(texture, 0, 0, 8, 8, 1);
     Require(device.TexIsReadyNow(texture) && source.locks == 3 && source.unlocks == 3, "Original upload retry failed");
     GxRsSet(GxRs_Texture0, texture);
     GxRsSet(GxRs_VertexShader, static_cast<void*>(nullptr));
@@ -94,10 +96,23 @@ void Pixel(CGxDeviceD3d& device) {
 }
 }
 int main() {
+    if (SDL_setenv_unsafe("DXVK_WSI_DRIVER", "SDL3", 1)) return 1;
     StormRtlInitialize();
     try {
+        using Services::Native::ReadStatus;
+        Services::Native::ReadResult read;
+        read.status = ReadStatus::Failed; read.error = "MPQ member not found: SHADERS\\PIXEL\\ABSENT.BLS";
+        Require(MissingShaderRead(read, "Shaders/Pixel/Absent.bls"), "Exact missing-package disposition rejected");
+        for (auto error : {"MPQ file MD5 verification failed: SHADERS\\PIXEL\\ABSENT.BLS", "MPQ member deleted by patch: SHADERS\\PIXEL\\ABSENT.BLS"}) {
+            read.error = error; Require(!MissingShaderRead(read, "Shaders/Pixel/Absent.bls"), "Integrity/deletion failure admitted as absent");
+        }
+        for (auto status : {ReadStatus::Success, ReadStatus::Cancelled}) {
+            read.status = status; read.error = "MPQ member not found: SHADERS\\PIXEL\\ABSENT.BLS";
+            Require(!MissingShaderRead(read, "Shaders/Pixel/Absent.bls"), "Non-failure status admitted as absent");
+        }
         for (unsigned cycle = 0; cycle < 3; ++cycle) {
             OsNative::Window window("Original Gx DXVK client contracts", 320, 240, true, OsNative::WindowGraphics::Vulkan);
+            std::cout << "original-gx-stage=provider-failure cycle=" << cycle << std::endl;
             Reject([&] { CGxDeviceD3d failed(window, [](const std::string&) -> Bytes { throw std::runtime_error("authored provider failure"); }); });
             Require(!g_theGxDevicePtr, "Failed shader setup published a device");
             Reject([&] { CGxDeviceD3d failed(window, [](const std::string& path) {
@@ -106,6 +121,7 @@ int main() {
             }); });
             Require(!g_theGxDevicePtr, "Partial shader setup published a device");
             {
+                std::cout << "original-gx-stage=device-create" << std::endl;
                 CGxDeviceD3d device(window, Shader);
                 Require(g_theGxDevicePtr == &device && device.DeviceApi() == GxApi_D3d9, "Original D3D9 dispatch not installed");
                 Require(device.Caps().m_numTmus > 1 && device.Caps().m_shaderConstants[GxSh_Vertex] > 94, "DXVK inherited frozen GL caps");
@@ -120,7 +136,25 @@ int main() {
                 device.m_nativeShaders = [](const std::string&) { auto bytes = Package(false, 1); bytes[4] = 4; return bytes; };
                 Reject([&] { device.ShaderCreate(&bad, GxSh_Pixel, "Shaders\\Pixel", "BadVersion", 1); });
                 Require(!bad, "Rejected package published a shader");
+                std::vector<std::string> attempts;
+                device.m_nativeShaders = [&](const std::string& path) -> std::optional<Bytes> {
+                    attempts.push_back(path);
+                    if (path.find("ps_1_4") == std::string::npos) return std::nullopt;
+                    return Package(false, 1);
+                };
+                CGxShader* fallback = nullptr;
+                device.ShaderCreate(&fallback, GxSh_Pixel, "Shaders\\Pixel", "Fallback", 1);
+                Require(fallback->Valid() && attempts.size() == 3 && device.Caps().m_shaderTargets[GxSh_Pixel] == 4,
+                        "Original package descent changed backend caps or skipped a profile");
+                device.ShaderDestroy(fallback);
+                unsigned integrityAttempts = 0;
+                device.m_nativeShaders = [&](const std::string&) -> std::optional<Bytes> {
+                    ++integrityAttempts; throw std::runtime_error("authored signature failure");
+                };
+                Reject([&] { device.ShaderCreate(&fallback, GxSh_Pixel, "Shaders\\Pixel", "BadSignature", 1); });
+                Require(!fallback && integrityAttempts == 1, "Integrity failure fell through to another shader profile");
                 device.m_nativeShaders = saved;
+                std::cout << "original-gx-stage=draw" << std::endl;
                 Pixel(device);
                 Require(SDL_SetWindowSize(window.Handle(), 400, 300) && SDL_SyncWindow(window.Handle()), "SDL resize failed");
                 device.DeviceWM(GxWM_Size, 0, 0);
