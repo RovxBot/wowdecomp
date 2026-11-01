@@ -1,4 +1,4 @@
-# Linux SDL3 / DXVK Native prototype
+# Linux SDL3 / DXVK Native rendering
 
 This opt-in standalone target resolves the native D3D9 ABI/window-system question
 for [#133](https://github.com/RovxBot/wowdecomp/issues/133), ahead of original
@@ -42,7 +42,7 @@ Use the matching strict artifact with `--sanitizers`. Every packaged runtime fil
 is hash checked before execution; SDL/DXVK and the client use one sanitizer
 runtime. The focused client contract covers failed shader-provider construction,
 actual D3D9 profile selection, package-version rejection, main-thread ownership,
-original Gx clear/readback/Present, resize and teardown. These authored checks
+original Gx texture upload/retry and indexed draw/readback/Present, resize and teardown. These authored checks
 are distinct from signed original Glue execution and original-data scenes. The
 current acceptance and remaining runtime blockers stay in
 [#133](https://github.com/RovxBot/wowdecomp/issues/133), including independent
@@ -179,6 +179,7 @@ Upstream's x86 SIMD/build assumptions and Vulkan requirements mean this Linux
 artifact establishes no ARM64/macOS support. Apple feasibility remains a separate
 Actions/hardware task under #133/#102. No macOS dependency or source is imported.
 
-Next, adapt original D3D9 Gx platform ownership and connect its authenticated
-shader/resource callers, then compare original-data scenes with #107. Keep the
-archived OpenGL implementation and historical evidence intact.
+The original D3D9 platform/resource adaptation is selected by the client presets
+above. Follow #133 for its current observed stop and original-data qualification,
+then compare representative scenes with #107. Keep the archived OpenGL
+implementation and historical evidence intact.

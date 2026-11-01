@@ -187,7 +187,9 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
     bool missing = false;
     for (uint32_t i = 0; i < count; ++i) {
         keys.push_back(member + ":" + std::to_string(count) + ":" + std::to_string(i));
-        missing |= !list.Ptr(keys.back().c_str());
+        auto* cached = list.Ptr(keys.back().c_str());
+        Require(!cached || cached->m_refCount < UINT32_MAX, "D3D9 shader reference overflow");
+        missing |= !cached;
     }
     Gx::Native::ShaderPackage package;
     if (missing) {
@@ -212,8 +214,13 @@ void CGxDeviceD3d::ShaderCreate(CGxShader** out, EGxShTarget target, const char*
             if (!record.code.empty()) std::memcpy(shader->m_code.Ptr(), record.code.data(), record.code.size());
             shader->unk_003C = record.unknown0; shader->unk_0040 = record.unknown1;
             shader->unk_0044 = record.unknown2; shader->unk_0046 = record.unknown3;
-            IShaderCreate(shader);
-            Require(record.code.empty() || shader->m_valid, "DXVK rejected original D3D9 shader");
+            // Match original ShaderCreate: multi-permutation packages stay CPU
+            // resident until Valid()/binding selects a permutation. Do not
+            // eagerly compile unreachable model/material programs.
+            if (count == 1) {
+                IShaderCreate(shader);
+                Require(record.code.empty() || shader->m_valid, "DXVK rejected original D3D9 shader");
+            }
         }
     } catch (...) {
         for (auto* shader : created) { shader->m_refCount = 1; ShaderDestroy(shader); }

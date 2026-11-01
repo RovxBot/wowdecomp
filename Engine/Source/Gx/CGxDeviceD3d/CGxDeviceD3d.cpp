@@ -2826,9 +2826,11 @@ void CGxDeviceD3d::IReleaseD3dResources(int32_t freeTextures) {
 
     this->IReleaseD3dQueries();
 
+#if !defined(WOWDECOMP_NATIVE_D3D9)
     if (this->m_d3dDevice) {
         this->m_d3dDevice->ShowCursor(FALSE);
     }
+#endif
 }
 
 // VERIFY: 2f85a8b3 manual

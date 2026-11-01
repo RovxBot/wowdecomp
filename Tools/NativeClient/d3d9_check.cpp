@@ -73,6 +73,10 @@ void Pixel(CGxDeviceD3d& device) {
     std::memcpy(mapped, quad, sizeof(quad));
     Reject([&] { GxBufUnlock(buffer, sizeof(quad) + 1); });
     Require(device.m_bufLocked[0] == buffer, "Rejected Unlock discarded mapped ownership");
+    device.AbortBufferWrite(buffer);
+    Require(!device.m_bufLocked[0] && !buffer->m_hasData, "Aborted Frame write retained mapped/published data");
+    mapped = GxBufLock(buffer);
+    std::memcpy(mapped, quad, sizeof(quad));
     GxBufUnlock(buffer, sizeof(quad));
     GxPrimVertexPtr(buffer, GxVBF_PCT);
     const uint16_t indices[]{0,1,2,0,2,3};
@@ -105,6 +109,9 @@ int main() {
                 CGxDeviceD3d device(window, Shader);
                 Require(g_theGxDevicePtr == &device && device.DeviceApi() == GxApi_D3d9, "Original D3D9 dispatch not installed");
                 Require(device.Caps().m_numTmus > 1 && device.Caps().m_shaderConstants[GxSh_Vertex] > 94, "DXVK inherited frozen GL caps");
+                Require(!CGxDevice::s_uiVertexShader[0]->m_loaded && CGxDevice::s_uiVertexShader[0]->Valid(),
+                        "Original multi-permutation shader creation lost lazy binding");
+                Require(!CGxDevice::s_uiVertexShader[1]->m_loaded, "Unused shader permutation compiled eagerly");
                 bool offThread = false;
                 std::thread thread([&] { try { device.ScenePresent(); } catch (const std::exception&) { offThread = true; } });
                 thread.join(); Require(offThread, "Off-owner presentation accepted");
