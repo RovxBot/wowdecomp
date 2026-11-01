@@ -245,7 +245,11 @@ int32_t NetClient::Initialize() {
 // OFFSET: 0x00631E10
 int32_t NetClient::ConnectInternal(const char* host, uint16_t port) {
     if (this->m_netState != NS_INITIALIZED) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        throw std::logic_error("NetClient connection requires NS_INITIALIZED");
+#else
         SErrDisplayAppFatal("Expected (m_netState == NS_INITIALIZED), got %d", this->m_netState);
+#endif
     }
 
     this->m_netState = NS_CONNECTING;
@@ -375,7 +379,11 @@ void NetClient::PollEventQueue() {
 // OFFSET: 0x006323C0
 int32_t NetClient::Connect(const char* address) {
     if (this->m_netState != NS_INITIALIZED) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        throw std::logic_error("NetClient connection requires NS_INITIALIZED");
+#else
         SErrDisplayAppFatal("Expected (m_netState == NS_INITIALIZED), got %d", this->m_netState);
+#endif
     }
 
     uint16_t port = 9090;
@@ -559,7 +567,13 @@ void NetClient::HandleAuthChallenge(WowConnection* connection, CDataStore* msg) 
     msg->Get(nativeDifficulty); msg->m_read = begin;
     if (nativeDifficulty != 0) { connection->Disconnect(); return; }
 #endif
-    AuthenticationChallenge* challenge = static_cast<AuthenticationChallenge*>(SMemAlloc(sizeof(AuthenticationChallenge), __FILE__, __LINE__, 0));
+    AuthenticationChallenge* challenge = static_cast<AuthenticationChallenge*>(SMemAlloc(sizeof(AuthenticationChallenge), __FILE__, __LINE__,
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        SMEM_FLAG_ZEROMEMORY
+#else
+        0
+#endif
+    ));
 
     uint32_t difficulty;
     msg->Get(difficulty);
@@ -618,6 +632,9 @@ void NetClient::HandleAuthChallenge(WowConnection* connection, CDataStore* msg) 
 // VERIFY: 1f76bddf manual
 // OFFSET: 0x00632A40
 NetClient::NetClient() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+#endif
     this->m_netState = NS_UNINITIALIZED;
     this->m_netEventQueue = nullptr;
     this->m_serverConnection = nullptr;
@@ -807,12 +824,11 @@ void NETEVENTQUEUE::Clear() {
 // VERIFY: 796de75c manual
 // OFFSET: 0x00633650
 void NETEVENTQUEUE::AddEvent(EVENTID eventId, void* connection, NetClient* client, const void* data, uint32_t size) {
-    this->m_critSect.Enter();
-
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
     if (client != this->m_client || (size && !data)) throw std::invalid_argument("Invalid native network event");
 #endif
+    this->m_critSect.Enter();
     NETEVENTQUEUENODE* node = this->m_eventQueue.NewNode(2, 0, 8);
     node->m_eventId = eventId;
 
@@ -891,6 +907,7 @@ void NetClient::HandleResumeComms(WowConnection* connection, CDataStore* msg) {
 
 // VERIFY: 4e75a52e auto
 // OFFSET: 0x00632390
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 int32_t NetClient::DelayedDelete() {
     if (!this->m_netState) {
         return 0;
@@ -900,6 +917,7 @@ int32_t NetClient::DelayedDelete() {
     this->m_netEventQueue->AddEvent(EVENT_ID_NET_DESTROY, nullptr, this, nullptr, 0);
     return 1;
 }
+#endif
 
 // VERIFY: 1be3a11a manual
 // OFFSET: 0x00632970

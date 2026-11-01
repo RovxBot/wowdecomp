@@ -151,3 +151,12 @@ void NETEVENTQUEUE::Poll() {
     }
     if (!client->m_deleteMe) client->HandleIdle();
 }
+
+int32_t NetClient::DelayedDelete() {
+    NativeSession::CheckOwner();
+    if (this->m_netState == NS_UNINITIALIZED) return 0;
+    if (this->m_serverConnection) this->m_serverConnection->Disconnect();
+    if (this->m_redirectConnection) this->m_redirectConnection->Disconnect();
+    this->m_netEventQueue->AddEvent(EVENT_ID_NET_DESTROY, nullptr, this, nullptr, 0);
+    return 1;
+}
