@@ -7,6 +7,47 @@ client renderer. The modern Gx comparison remains
 [#134](https://github.com/RovxBot/wowdecomp/issues/134), with selection in
 [#101](https://github.com/RovxBot/wowdecomp/issues/101).
 
+## Original client integration
+
+The opt-in `linux-client-d3d9` / `linux-client-d3d9-asan` presets build
+`WowNativeClient` with the original `CGxDeviceD3d` draw, state, texture, buffer,
+shader and render-target implementation. The separate
+[original D3D9 client workflow](../../.github/workflows/native-d3d9-client.yml)
+builds the same pinned shared SDL3/DXVK dependencies and the complete integrated
+startup target. It creates no GL context and has no GL fallback. The archived GL
+client presets and renderer implementation remain historical references.
+
+SDL owns the main-thread Vulkan window, input and focus. Native Gx ownership
+retires COM resources before that window; bounded shader reads use the existing
+authenticated package provider and `0x10003` decoder, selecting D3D profiles from
+actual backend caps. Frame retains its traversal, layout and callback guards.
+Resize resets the original device after retiring default-pool resources;
+active buffer writes/offscreen targets reject resize explicitly. Gamma, format
+recreation, screen-coordinate queries, custom native cursors and device-loss
+recovery remain unqualified/unavailable. No Windows NVAPI or DLL loading enters
+this build. Shader reload fails explicitly.
+
+After verifying the downloaded ZIP against its Actions API digest, launch the
+client artifact outside both read-only installations:
+
+```sh
+python3 Tools/Porting/run_native_client.py --renderer dxvk \
+  --artifact /path/to/extracted-client-artifact \
+  --data /mnt/games/3.3.5aClean/Data \
+  --settings /path/to/external/settings --cache /path/to/external/cache \
+  --output /tmp/dxvk-client.json --frames 300 --hidden
+```
+
+Use the matching strict artifact with `--sanitizers`. Every packaged runtime file
+is hash checked before execution; SDL/DXVK and the client use one sanitizer
+runtime. The focused client contract covers failed shader-provider construction,
+actual D3D9 profile selection, package-version rejection, main-thread ownership,
+original Gx clear/readback/Present, resize and teardown. These authored checks
+are distinct from signed original Glue execution and original-data scenes. The
+current acceptance and remaining runtime blockers stay in
+[#133](https://github.com/RovxBot/wowdecomp/issues/133), including independent
+RADV exit leak [#147](https://github.com/RovxBot/wowdecomp/issues/147).
+
 ## Build and execution
 
 All compilation runs in [Native D3D9 DXVK prototype](../../.github/workflows/native-d3d9.yml).

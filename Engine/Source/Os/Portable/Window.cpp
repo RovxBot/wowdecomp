@@ -419,6 +419,7 @@ Window::Window(const char *title, int width, int height, bool hidden, WindowGrap
     state->window = SDL_CreateWindow(title, width, height,
                                      SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
                                          (graphics == WindowGraphics::OpenGlCompatibility ? SDL_WINDOW_OPENGL : 0) |
+                                         (graphics == WindowGraphics::Vulkan ? SDL_WINDOW_VULKAN : 0) |
                                          (hidden ? SDL_WINDOW_HIDDEN : 0));
     if (!state->window)
         throw std::runtime_error(SDL_GetError());

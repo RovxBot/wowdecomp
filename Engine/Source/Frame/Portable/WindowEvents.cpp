@@ -2,25 +2,28 @@
 #include "WindowEvents.h"
 #include "Hierarchy.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
+#include "Engine/Source/Os/Portable/Window.h"
+#if !defined(WOWDECOMP_NATIVE_D3D9)
 #include "Engine/Source/Gx/Portable/GlContext.h"
+#endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Base/Coordinate.h"
 namespace Frame { namespace Native {
 namespace {
-void CheckWindow(Gx::Native::GlContext& context) {
+void CheckWindow(OsNative::Window& window) {
     RequireRoot();
     RequireTreeMutation();
-    context.CheckCurrent();
-    if (!g_theGxDevicePtr || g_theGxDevicePtr->DeviceWindow() != context.Window().Handle())
+    if (g_theGxDevicePtr) g_theGxDevicePtr->NativeCheckOwner();
+    if (!g_theGxDevicePtr || g_theGxDevicePtr->DeviceWindow() != window.Handle())
         throw std::logic_error("Frame delivery requires the owning Gx window");
 }
 }
-bool DispatchWindowEvent(Gx::Native::GlContext& context, const OSEVENT& event) {
-    CheckWindow(context);
+bool DispatchWindowEvent(OsNative::Window& window, const OSEVENT& event) {
+    CheckWindow(window);
     if (event.id != OS_INPUT_SIZE) return false;
     int width, height, pixelWidth, pixelHeight;
-    context.Window().Size(width, height, pixelWidth, pixelHeight);
+    window.Size(width, height, pixelWidth, pixelHeight);
     if (width <= 0 || height <= 0 || pixelWidth <= 0 || pixelHeight <= 0) return true;
     // Gx refreshes the drawable viewport without replacing a bound offscreen
     // target. Gxu/layout retain logical-pixel metrics, as in CapsWindowSize.
@@ -30,8 +33,8 @@ bool DispatchWindowEvent(Gx::Native::GlContext& context, const OSEVENT& event) {
     CSimpleTop::OnDisplaySizeChanged(&size, CSimpleTop::s_instance);
     return true;
 }
-InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& event) {
-    CheckWindow(context);
+InputResult DispatchInputEvent(OsNative::Window& window, const OSEVENT& event) {
+    CheckWindow(window);
     auto& root = *CSimpleTop::s_instance;
     int32_t propagate;
     if (event.id == OS_INPUT_CAPTURE_CHANGED) {
@@ -47,10 +50,10 @@ InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& ev
         if (!down && !up && event.id != OS_INPUT_MOUSE_WHEEL && button)
             throw std::invalid_argument("Invalid native Frame mouse motion");
         int width, height, pixelWidth, pixelHeight;
-        context.Window().Size(width, height, pixelWidth, pixelHeight);
+        window.Size(width, height, pixelWidth, pixelHeight);
         if (width <= 0 || height <= 0) return InputResult::Unhandled;
         EVENT_DATA_MOUSE data{};
-        data.m_mode = (relative || context.Window().IsRelative()) ? MOUSE_MODE_RELATIVE : MOUSE_MODE_NORMAL;
+        data.m_mode = (relative || window.IsRelative()) ? MOUSE_MODE_RELATIVE : MOUSE_MODE_NORMAL;
         data.m_flags = data.m_mode == MOUSE_MODE_RELATIVE ? 2 : 0;
         data.m_button = static_cast<MOUSEBUTTON>((down || up) ? button : 0);
         if (down) root.m_nativeButtonsDown |= button;
@@ -113,4 +116,12 @@ InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& ev
     } else return InputResult::Unsupported;
     return propagate ? InputResult::Unhandled : InputResult::Handled;
 }
+#if !defined(WOWDECOMP_NATIVE_D3D9)
+bool DispatchWindowEvent(Gx::Native::GlContext& context, const OSEVENT& event) {
+    context.CheckCurrent(); return DispatchWindowEvent(context.Window(), event);
+}
+InputResult DispatchInputEvent(Gx::Native::GlContext& context, const OSEVENT& event) {
+    context.CheckCurrent(); return DispatchInputEvent(context.Window(), event);
+}
+#endif
 }}

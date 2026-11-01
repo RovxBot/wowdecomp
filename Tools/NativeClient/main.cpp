@@ -6,7 +6,11 @@
 #include "Engine/Source/Services/Portable/AsyncFile.h"
 #include "Engine/Source/Services/Portable/LegacyFiles.h"
 #include "Engine/Source/Services/Portable/Texture.h"
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
+#else
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
+#endif
 #include "Engine/Source/Gx/Gx.h"
 #include "Engine/Source/Tempest/CImVector.h"
 #include "Engine/Source/Gxu/Portable/LegacyFonts.h"
@@ -160,9 +164,17 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     // CVar strings close before XML's shared CStringManager and VM.
     Settings settings(paths);
     Events events;
+#if defined(WOWDECOMP_NATIVE_D3D9)
+    OsNative::Window window("Waystone — original 12340 startup (DXVK)", 1024, 768, hidden, OsNative::WindowGraphics::Vulkan);
+    CGxDeviceD3d device(window, [&](const std::string& path) { return source.Read(path); });
+    std::cout << "gx-backend=DXVK_NATIVE_SDL3 vertex-constants=" << device.Caps().m_shaderConstants[GxSh_Vertex]
+              << " texture-units=" << device.Caps().m_numTmus << std::endl;
+#else
     Gx::Native::GlContext context("Waystone — original 12340 startup", 1024, 768, hidden);
     std::cout << "gl-renderer=" << context.Info().renderer << "\ngl-version=" << context.Info().version << std::endl;
     Gx::Native::LegacyDevice device(context, [&](const std::string& path) { return source.Read(path); });
+    auto& window = context.Window();
+#endif
     CoordinateSetAspectRatio(1024.0f / 768.0f);
     GxRsSet(GxRs_Lighting, 0); GxRsSet(GxRs_Fog, 0); GxRsSet(GxRs_Culling, 0);
     Frame::Native::Runtime layout(GlueNative::FrameLevelLimit);
@@ -198,10 +210,10 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         LoopHandlers handlers(root, images, modelFiles);
         uint32_t frames = 0; uint32_t previous = OsGetAsyncTimeMs();
         while (!EventNative::Closing() && (!frameLimit || frames < frameLimit)) {
-            context.Window().Pump(); OSEVENT event;
+            window.Pump(); OSEVENT event;
             while (OsQueueGet(&event.id, &event.param[0], &event.param[1], &event.param[2], &event.param[3])) {
                 if (event.id == OS_INPUT_CLOSE || event.id == OS_INPUT_SHUTDOWN) EventPostClose();
-                else if (!Frame::Native::DispatchWindowEvent(context, event)) Frame::Native::DispatchInputEvent(context, event);
+                else if (!Frame::Native::DispatchWindowEvent(window, event)) Frame::Native::DispatchInputEvent(window, event);
             }
             CheckLoopScriptErrors(handlers.paint.scriptErrors);
             const auto now = OsGetAsyncTimeMs();
@@ -226,6 +238,13 @@ int main(int argc, char** argv) {
             if (option == "--data") data = value;
             else if (option == "--settings") settings = value;
             else if (option == "--cache") cache = value;
+            else if (option == "--renderer") {
+#if defined(WOWDECOMP_NATIVE_D3D9)
+                if (value != "dxvk") throw std::invalid_argument("This client requires --renderer dxvk");
+#else
+                if (value != "opengl") throw std::invalid_argument("DXVK is unavailable in this archived client build");
+#endif
+            }
             else if (option == "--frames") { size_t used; auto count = std::stoul(value, &used); if (used != value.size() || count > 10000000) throw std::invalid_argument("Invalid frame limit"); frames = uint32_t(count); }
             else throw std::invalid_argument("Unknown native client option: " + option);
         }

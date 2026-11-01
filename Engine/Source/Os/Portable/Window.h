@@ -7,7 +7,7 @@
 
 struct SDL_Window;
 namespace OsNative {
-enum class WindowGraphics { Software, OpenGlCompatibility };
+enum class WindowGraphics { Software, OpenGlCompatibility, Vulkan };
 struct WindowState;
 struct Composition {
     std::string text, result;

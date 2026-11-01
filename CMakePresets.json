@@ -363,6 +363,24 @@
       "cacheVariables": {
         "WOWDECOMP_CORE_SANITIZERS": "ON"
       }
+    },
+    {
+      "name": "linux-client-d3d9",
+      "inherits": "linux-layout",
+      "cacheVariables": {
+        "WOWDECOMP_BUILD_NATIVE_WINDOW": "ON",
+        "WOWDECOMP_BUILD_NATIVE_D3D9": "ON",
+        "WOWDECOMP_BUILD_NATIVE_FRAME_FONTS": "ON",
+        "WOWDECOMP_BUILD_NATIVE_CLIENT": "ON"
+      }
+    },
+    {
+      "name": "linux-client-d3d9-asan",
+      "inherits": "linux-client-d3d9",
+      "cacheVariables": {
+        "WOWDECOMP_CORE_SANITIZERS": "ON",
+        "CMAKE_EXE_LINKER_FLAGS": "-shared-libasan"
+      }
     }
   ]
 }

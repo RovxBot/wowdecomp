@@ -3,7 +3,13 @@
 #include "Engine/Source/Frame/CRenderBatch.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Gx/Gx.h"
+#if defined(WOWDECOMP_NATIVE_D3D9)
+#include "Engine/Source/Gx/CGxDeviceD3d/CGxDeviceD3d.h"
+using NativeRenderDevice = CGxDeviceD3d;
+#else
 #include "Engine/Source/Gx/Portable/LegacyDevice.h"
+using NativeRenderDevice = Gx::Native::LegacyDevice;
+#endif
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxDevice/CGxShader.h"
 #include "Engine/Source/Gxu/GxuFont.h"
@@ -72,7 +78,7 @@ void RequireRenderer() {
 }
 Renderer::Renderer() {
     if (renderer) throw std::logic_error("Only one native Frame renderer may be installed");
-    if (!dynamic_cast<Gx::Native::LegacyDevice*>(g_theGxDevicePtr))
+    if (!dynamic_cast<NativeRenderDevice*>(g_theGxDevicePtr))
         throw std::logic_error("Native Frame renderer requires the qualified Gx adapter");
     renderer = this;
     try { CSimpleRender::Init(); CSimpleRender::s_mergeEnable = 0; }
@@ -162,7 +168,7 @@ void CRenderBatch::NativeQueue(CTexture* texture, EGxBlend blend, int32_t posCou
     auto* gx = TextureGetGxTex(texture, 1, nullptr);
     if (!gx) return;
     auto held = std::make_unique<Mesh>(texture);
-    static_cast<Gx::Native::LegacyDevice*>(g_theGxDevicePtr)->RetainShader(shader);
+    static_cast<NativeRenderDevice*>(g_theGxDevicePtr)->RetainShader(shader);
     held->shader = shader;
     for (size_t i=0; i<4; ++i) {
         held->positions[i] = positions[i]; held->coords[i] = coords[i];
