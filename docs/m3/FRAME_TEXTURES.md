@@ -15,6 +15,14 @@ quads duplicate image handles and shader references, so region destruction canno
 free resources still used by a batch. Texture coordinates invalidate retained
 batches after mutation. Native fields initialize before original flag masks.
 
+Original Glue dialog `OnUpdate` scripts can replace the image contents of
+existing Button normal/pushed/disabled/highlight regions. Retained batches keep
+their own image handles; invalidation rebuilds the next batch. Creating a missing
+slot, replacing a region object or clearing ownership still requires ordinary
+tree-mutation admission. Owner, resize, collection and rendering guards remain
+active. This bounded path preserves the original callback and async image-owner
+ordering; current integrated evidence stays in [#96](https://github.com/RovxBot/wowdecomp/issues/96).
+
 Lua CreateTexture, XML Layers/Texture, exact-key inherited templates, names and
 parentKey use existing canonical-table and exception-safe registry contracts.
 Selected methods expose images, visibility, colors/gradients, alpha, coordinates,

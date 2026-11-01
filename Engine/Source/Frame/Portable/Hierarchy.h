@@ -15,6 +15,9 @@ void SetScrollNotify(ScrollNotify);
 bool HasScrollSupport();
 void NotifyScroll(CSimpleFrame*);
 void RequireScriptTextMutation();
+// Existing image handles may change during update scripts; region ownership,
+// construction/deletion, resize, collection and render remain pinned.
+void RequireTextureContentMutation();
 void RequireVisibilityMutation(CSimpleFrame*, bool showing);
 // Only the original scroll-range notification may update qualified existing
 // controls while layer traversal is pinned. No tree/layout/deletion capability.

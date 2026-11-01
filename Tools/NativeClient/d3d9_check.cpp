@@ -10,6 +10,8 @@
 #include "Engine/Source/Frame/Portable/Fonts.h"
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/Frame/CSimpleTop.h"
+#include "Engine/Source/Frame/CSimpleButton.h"
+#include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include <SDL3/SDL.h>
@@ -131,7 +133,40 @@ void DialogRaise() {
         Frame::Native::ResizeScope resize;
         Reject([&] { Frame::Native::RaiseFromScript(frame); });
     }
+    lua(R"(
+        local b=CreateFrame('Button','UpdateButton'); b:SetSize(10,10); b:SetPoint('CENTER');
+        b:SetNormalTexture('fixture-a.blp'); b:SetPushedTexture('fixture-a.blp');
+        b:SetHighlightTexture('fixture-a.blp');
+        local n,p,h=b:GetNormalTexture(),b:GetPushedTexture(),b:GetHighlightTexture();
+        updateTextureCalls=0;
+        b:SetScript('OnUpdate',function(self)
+            self:SetNormalTexture('fixture-b.blp'); self:SetPushedTexture('fixture-b.blp');
+            self:SetHighlightTexture('fixture-b.blp');
+            assert(n==self:GetNormalTexture() and p==self:GetPushedTexture() and h==self:GetHighlightTexture());
+            assert(not pcall(self.SetDisabledTexture,self,'missing-slot.blp'));
+            assert(not pcall(self.SetNormalTexture,self,nil));
+            assert(not pcall(self.SetNormalTexture,self,h));
+            assert(not pcall(self.CreateTexture,self));
+            updateTextureCalls=updateTextureCalls+1;
+        end);
+    )");
+    root.OnLayerUpdate(.016f); root.OnLayerUpdate(.016f);
+    lua("assert(updateTextureCalls==2); UpdateButton:SetScript('OnUpdate',nil)");
+    auto* button = static_cast<CSimpleButton*>(CScriptObject::GetScriptObjectByName("UpdateButton", CSimpleButton::GetObjectType()));
+    const auto* normalImage = button->m_stateTextures[BUTTONSTATE_NORMAL]->m_texture;
+    const auto* highlightImage = button->m_highlightTexture->m_texture;
+    {
+        Frame::Native::ResizeScope resize;
+        Reject([&] { button->SetStateTexture(BUTTONSTATE_NORMAL, "fixture-c.blp"); });
+    }
+    {
+        Frame::Native::CollectScope collect;
+        Reject([&] { button->SetHighlight("fixture-c.blp", GxBlend_Add); });
+    }
+    Require(button->m_stateTextures[BUTTONSTATE_NORMAL]->m_texture==normalImage &&
+            button->m_highlightTexture->m_texture==highlightImage, "Rejected texture content mutation changed image ownership");
     std::cout << "native-original-dialog-repeat-raise-onshow-no-level-mutation-guards=passed\n";
+    std::cout << "native-original-dialog-update-textures-retain-regions-reject-ownership-changes=passed\n";
 }
 void Pixel(CGxDeviceD3d& device) {
     TextureSource source;

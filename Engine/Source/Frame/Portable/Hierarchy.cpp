@@ -62,6 +62,11 @@ void RequireScriptTextMutation() {
     RequireRegions();
     if (collecting) throw std::logic_error("Finish Frame batch collection before changing script text");
 }
+void RequireTextureContentMutation() {
+    RequireRegions();
+    RequireStateMutable(true);
+    if (collecting) throw std::logic_error("Finish Frame batch collection before changing texture contents");
+}
 void RequireTreeMutation() {
     RequireRegions(); RequireDestroyable();
     if (updating || collecting) throw std::logic_error("Defer Frame hierarchy mutation until traversal completes");
