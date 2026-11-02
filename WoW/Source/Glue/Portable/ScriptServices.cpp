@@ -17,6 +17,7 @@
 #include "Engine/Source/Event/Event.h"
 #include "Engine/Source/Os/Processor.h"
 #include "Engine/Source/Services/AsyncFile.h"
+#include "Engine/Source/Os/TimeManager.h"
 #include "GameVersion.h"
 #include <cstdio>
 #include <cstring>
@@ -26,6 +27,10 @@
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "WoW/Source/WowServices/Portable/TestServerLogin.h"
 #include "WoW/Source/WowServices/LoginResponse.h"
+#include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
+#include "WoW/Source/Glue/RealmList.h"
+#include "WoW/Source/Glue/CharacterSelection.h"
+#include "WoW/Source/Glue/Portable/RealmData.h"
 #include <memory>
 #endif
 // Native selection of original CGlueMgr activation state. Warning text is owned
@@ -75,8 +80,8 @@ std::string testEndpoint;
 constexpr const char* testCapabilities =
     "TEST SERVER ONLY: Linux x86-64 identity. ScanDLL, executable integrity and Warden "
     "are unavailable; no successful checks are claimed. Requires the isolated server's "
-    "StrictVersionCheck=0 and Warden.Enabled=0. Sign-in stops after the realm list.";
-struct TestResponse final : LoginResponse {
+    "StrictVersionCheck=0 and Warden.Enabled=0. This profile targets character selection; world entry is unavailable.";
+struct TestResponse final : ClientServices {
     LOGIN_STATE state = LOGIN_STATE_INITIALIZED;
     LOGIN_RESULT result = LOGIN_OK;
     std::string resultName;
@@ -92,24 +97,45 @@ struct TestResponse final : LoginResponse {
         // A subsequent close can emit both DISCONNECTED and a generic FAILED.
         // Preserve the first server/proof error until outer idle presents it.
         if (state == LOGIN_STATE_FAILED) return;
+        ClientServices::LoginServerStatus(value, status, nullptr, nullptr, name, 0);
         state = value; result = status; resultName = name; changed = true;
     }
-    void RealmEnumCallback(uint32_t value) override { realms = true; realmResult = value; }
+    void RealmEnumCallback(uint32_t value) override {
+        ClientServices::RealmEnumCallback(value);
+        realms = true; realmResult = value;
+    }
 };
 // Response outlives login. Network callbacks only record state; UI delivery and
 // cancellation happen on outer idle, after the original password field clears.
 TestResponse testResponse;
 std::unique_ptr<NativeTestServer::Login> testLogin;
+ClientRealmResponseAdapter testRealmResponse;
+std::unique_ptr<ClientConnection> testWorld;
 bool testStartPending = false, testCancelPending = false, testRealmRequested = false;
+bool testRealmsReady = false, testConnectPending = false, testWorldStarted = false;
+bool testCharacterRequestPending = false;
+bool testRealmRequestPending = false;
+uint32_t testWorldDeadline = 0;
 bool testDialog = false;
 void ResetTestLogin() {
+    GlueNative::CloseCharacterServices();
+    CGlueMgr::m_authenticated = 0;
+    ClientServices::m_selectRealmInfoValid = false;
+    ClientServices::s_currentConnection = nullptr;
+    ClientServices::s_loginObj = nullptr;
+    ClientServices::m_instance = nullptr;
+    std::memset(ClientServices::s_accountName, 0, sizeof(ClientServices::s_accountName));
+    testWorld.reset();
     testLogin.reset();
+    CRealmList::Shutdown();
     testResponse.m_realmList.Clear();
     testResponse.state = LOGIN_STATE_INITIALIZED;
     testResponse.result = LOGIN_OK;
     testResponse.resultName.clear();
     testResponse.changed = testResponse.realms = false;
     testStartPending = testCancelPending = testRealmRequested = false;
+    testRealmsReady = testConnectPending = testWorldStarted = testCharacterRequestPending = false;
+    testRealmRequestPending = false;
 }
 void TestDialog(const char* kind, const char* message) {
     testDialog = true;
@@ -126,18 +152,68 @@ void PollTestLogin() {
         testStartPending = false;
         testLogin->Logon(testEndpoint.c_str(), nullptr);
     }
+    if (testRealmRequestPending) {
+        testRealmRequestPending = false;
+        ClientServices::GetRealmList();
+    }
     if (testResponse.realms) {
         const bool valid = !testResponse.realmResult;
         const auto count = testResponse.m_realmList.Count();
-        // Auth server proof/realm list only; never set m_authenticated or enter
-        // original character/world callers which still require #98/#99.
-        ResetTestLogin();
-        std::string message = valid
-            ? "TEST SERVER: SRP server proof verified; received " + std::to_string(count) +
-              " advertised realm(s). Realm selection/world entry is unavailable. Executable integrity remains unavailable."
-            : "TEST SERVER: realm list failed. No world session was started.";
-        TestDialog("OKAY", message.c_str());
+        testResponse.realms = false;
+        if (!valid) {
+            ResetTestLogin(); TestDialog("OKAY", "TEST SERVER: realm list failed. No world session was started."); return;
+        }
+        testRealmsReady = true;
+        std::printf("native-test-server=srp-verified advertised-realms=%u integrity=unavailable\n", count);
+        if (!CRealmList::m_categories.Count()) CRealmList::Initialize();
+        testDialog = false;
+        FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
+        CRealmList::UpdateList();
         return;
+    }
+    if (testConnectPending) {
+        testConnectPending = false;
+        if (testWorldStarted) {
+            testWorld = std::make_unique<ClientConnection>(&testRealmResponse);
+            ClientServices::s_currentConnection = testWorld.get();
+            ClientServices::m_instance->ClientServices::LoginServerStatus(LOGIN_STATE_AUTHENTICATED, LOGIN_OK, nullptr, nullptr, nullptr, 0);
+        }
+        testWorld->Connect(); testWorldStarted = true;
+        testWorldDeadline = OsGetAsyncTimeMs() + 30000;
+        TestDialog("CANCEL", "TEST SERVER: connecting to the selected advertised realm. Executable integrity and Warden remain unavailable.");
+    }
+    if (testWorldStarted) {
+        if (testWorld->m_statusComplete && !testWorld->m_statusResult) {
+            const int error = testWorld->m_errorCode;
+            ResetTestLogin();
+            TestDialog("OKAY", ("TEST SERVER: world connection failed (server/status code " + std::to_string(error) + ").").c_str());
+            return;
+        }
+        if (!testWorld->m_statusComplete && int32_t(OsGetAsyncTimeMs() - testWorldDeadline) >= 0) {
+            ResetTestLogin(); TestDialog("OKAY", "TEST SERVER: world connection/character enumeration timed out."); return;
+        }
+        if (testWorld->m_statusOp == COP_WAIT_QUEUE) {
+            TestDialog("CANCEL", ("TEST SERVER: server queue position " + std::to_string(testWorld->m_queuePosition)).c_str());
+        } else if (testWorld->m_statusOp == COP_AUTHENTICATE && testWorld->m_statusComplete && testWorld->m_authenticated) {
+            std::printf("native-test-server=world-authenticated integrity=unavailable warden=unavailable\n");
+            testWorld->GetCharacterList();
+            testWorldDeadline = OsGetAsyncTimeMs() + 30000;
+            TestDialog("CANCEL", "TEST SERVER: world authentication accepted by server; retrieving characters.");
+        } else if (testWorld->m_statusOp == COP_GET_CHARACTERS && testWorld->m_statusComplete) {
+            testWorld->m_statusOp = COP_NONE;
+            testDialog = false;
+            FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
+            std::printf("native-test-server=characters-received count=%u\n", testWorld->m_characterList.Count());
+            GlueNative::LoadCharacterServices();
+            FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "charselect");
+            CCharacterSelection::UpdateCharacterList();
+        }
+        if (testCharacterRequestPending) {
+            testCharacterRequestPending = false;
+            if (testWorld->m_statusOp == COP_NONE) {
+                testWorld->GetCharacterList(); testWorldDeadline = OsGetAsyncTimeMs() + 30000;
+            }
+        }
     }
     if (!testResponse.changed) return;
     testResponse.changed = false;
@@ -147,6 +223,7 @@ void PollTestLogin() {
         TestDialog("CANCEL", "TEST SERVER: executable checksum unavailable; sending the documented placeholder. Verifying SRP server proof.");
         return;
     case LOGIN_STATE_AUTHENTICATED:
+        CGlueMgr::m_authenticated = 1;
         if (!testRealmRequested) {
             testRealmRequested = true; testLogin->GetRealmList();
             TestDialog("CANCEL", "TEST SERVER: SRP server proof verified. Retrieving advertised realms.");
@@ -230,6 +307,10 @@ static int32_t Script_DefaultServerLogin(lua_State* L) {
             return luaL_error(L, "Test-server credentials require nonempty bounded strings without embedded NULs");
         // Retail 12340/enUS is this integrated target's authenticated data locale.
         testLogin = std::make_unique<NativeTestServer::Login>(0x656e5553);
+        testWorld = std::make_unique<ClientConnection>(&testRealmResponse);
+        ClientServices::m_instance = &testResponse;
+        ClientServices::s_loginObj = testLogin.get();
+        ClientServices::s_currentConnection = testWorld.get();
         testLogin->Init(&testResponse);
         testLogin->SetLogonCreds(account, password);
         testStartPending = true;
@@ -328,6 +409,22 @@ static int32_t Script_GetSavedAccountList(lua_State* L) {
 // Do not infer PvP/RP/availability or an endpoint from that name.
 static int32_t Script_GetServerName(lua_State* L) {
     RequireServices(L);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile && ClientServices::GetSelectedRealm()) {
+        auto* realm = ClientServices::GetSelectedRealm();
+        int pvp=0, rp=0;
+        for (int i=0;i<g_cfg_ConfigsDB.m_numRecords;++i) {
+            const auto& config=g_cfg_ConfigsDB.m_records[i];
+            if (config.m_realmType != realm->m_type) continue;
+            pvp = config.m_playerKillingAllowed; rp = config.m_roleplaying; break;
+        }
+        lua_pushstring(L, realm->m_realmName);
+        if (pvp) lua_pushnumber(L,1); else lua_pushnil(L);
+        if (rp) lua_pushnumber(L,1); else lua_pushnil(L);
+        if (realm->m_flags & 2) lua_pushnumber(L,1); else lua_pushnil(L);
+        return 4;
+    }
+#endif
     if (CGlueMgr::m_authenticated)
         return luaL_error(L, "Native selected realm metadata unavailable");
     auto* name = CVar::LookupRegistered("realmName");
@@ -342,6 +439,12 @@ static int32_t Script_GetServerName(lua_State* L) {
 // existing conversion preference, without inventing account entitlements.
 static int32_t Script_IsTrialAccount(lua_State* L) {
     RequireServices(L);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile && testLogin && testLogin->m_logonStatus == 0) {
+        if (testLogin->IsTrialAccount()) lua_pushnumber(L,1); else lua_pushnil(L);
+        return 1;
+    }
+#endif
     if (CGlueMgr::m_authenticated)
         return luaL_error(L, "Native authenticated account metadata unavailable");
     auto* converted = CVar::Lookup("converted");
@@ -533,8 +636,13 @@ static int32_t Script_SetCurrentScreen(lua_State* L) {
     RequireServices(L);
     if (!lua_isstring(L, 1)) return luaL_error(L, "Usage: SetCurrentScreen(\"screen\")");
     const char* screen = lua_tostring(L, 1);
-    if (CharacterScreen(screen) || CharacterScreen(CGlueMgr::m_currentScreen))
-        return luaL_error(L, "Native character screen lifecycle unavailable");
+    if (CharacterScreen(screen) || CharacterScreen(CGlueMgr::m_currentScreen)) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        if (!testServerProfile || !testWorld || !testWorld->m_authenticated ||
+            !SStrCmpI(screen,"charcreate",STORM_MAX_STR))
+#endif
+            return luaL_error(L, "Native character screen lifecycle unavailable");
+    }
     CGlueMgr::UpdateCurrentScreen(screen);
     if (!SFile::IsStreamingMode()) AsyncFileReadWaitAll();
     return 0;
@@ -937,6 +1045,18 @@ void CGlueMgr::AcceptContest() {
 // screens require their real OnHide/Idle services before entering this surface.
 void CGlueMgr::UpdateCurrentScreen(const char* screen) {
     FrameScript::Native::RequireOwner();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (screen && !SStrCmpI(screen,"charselect",STORM_MAX_STR) &&
+        testServerProfile && testWorld && testWorld->m_authenticated) {
+        SStrCopy(m_currentScreen,screen,sizeof(m_currentScreen));
+        return;
+    }
+    if (screen && !SStrCmpI(m_currentScreen,"charselect",STORM_MAX_STR) && !CharacterScreen(screen)) {
+        CCharacterSelection::OnHide();
+        SStrCopy(m_currentScreen,screen,sizeof(m_currentScreen));
+        return;
+    }
+#endif
     if (!screen || CharacterScreen(screen) || CharacterScreen(m_currentScreen))
         throw std::logic_error("Native character screen lifecycle unavailable");
     SStrCopy(m_currentScreen, screen, sizeof(m_currentScreen));
@@ -959,6 +1079,38 @@ void CGlueMgr::AddChangedOptionWarning(const char* warning) {
     catch (...) { warningText.pop_back(); throw; }
     ++m_numChangedOptionWarnings;
 }
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+// Original realm/character API calls defer connection/UI work until outer idle.
+void CGlueMgr::GetRealmList(int32_t) {
+    FrameScript::Native::RequireOwner();
+    if (!testServerProfile || !testLogin || testLogin->m_logonStatus != 0)
+        throw std::logic_error("Realm list requires verified test-server authentication");
+    testRealmRequestPending = true;
+}
+void CancelRealmListQuery() {
+    FrameScript::Native::RequireOwner();
+    testRealmRequestPending = false;
+}
+void CGlueMgr::RealmListDialogCancelled() {
+    FrameScript::Native::RequireOwner();
+    if (!SStrCmpI(m_currentScreen,"login",STORM_MAX_STR)) testCancelPending = true;
+}
+void CGlueMgr::ChangeRealm(REALM_INFO* realm) {
+    FrameScript::Native::RequireOwner();
+    if (!testServerProfile || !testRealmsReady || !realm ||
+        !ClientServices::SelectRealm(realm->m_realmName))
+        throw std::logic_error("Selected realm is unavailable or incompatible");
+    auto* name = CVar::Register("realmName", "Last realm connected to", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
+    name->Set(realm->m_realmName,true,false,false,true);
+    testConnectPending = true;
+}
+void CGlueMgr::GetCharacterList() {
+    FrameScript::Native::RequireOwner();
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        throw std::logic_error("Character list requires actual world authentication");
+    testCharacterRequestPending = true;
+}
+#endif
 namespace GlueNative {
 void InitializeScriptServices(uint8_t expansionLevel, bool testServerLogin) {
     FrameScript::Native::RequireOwner();
@@ -1029,12 +1181,16 @@ void GlueScriptEventsRegisterFunctions() {
     if (registered || !CVar::m_initialized || !g_accountNameVar || !g_accountListVar || !g_accountUsesTokenVar)
         throw std::logic_error("Register original Glue console variables before scripts");
     for (const auto& function : functions) FrameScript_RegisterFunction(function.m_name, function.m_method);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile) RealmListRegisterScriptFunctions();
+#endif
     registered = true;
 }
 void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before closing Glue services");
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile) RealmListUnregisterScriptFunctions();
     ResetTestLogin();
     testServerProfile = testDialog = false;
     testEndpoint.clear();

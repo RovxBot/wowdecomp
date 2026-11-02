@@ -1,5 +1,9 @@
 #include "CharacterSelection.h"
 #include <cstdint>
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "Engine/Source/Frame/Portable/Scripts.h"
+#include <cmath>
+#endif
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
 #include "Engine/Source/Frame/CScriptObject.h"
 #include "Engine/Source/Frame/CSimpleModel.h"
@@ -28,7 +32,13 @@ static int32_t Script_SetCharSelectModelFrame(lua_State* L) {
         return 0;
     }
 
-    CSimpleModelFFX* frame = static_cast<CSimpleModelFFX*>(CScriptObject::GetScriptObjectByName(lua_tolstring(L, 1, nullptr), CSimpleModel::GetObjectType()));
+    CSimpleModelFFX* frame =
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        dynamic_cast<CSimpleModelFFX*>
+#else
+        static_cast<CSimpleModelFFX*>
+#endif
+    (CScriptObject::GetScriptObjectByName(lua_tolstring(L, 1, nullptr), CSimpleModel::GetObjectType()));
 
     if (frame) {
         CCharacterSelection::m_modelFrame = frame;
@@ -132,6 +142,9 @@ static int32_t Script_GetCharacterInfo(lua_State* L) {
 // VERIFY: 927337c9 auto
 // OFFSET: 0x004E33A0
 static int32_t Script_DeleteCharacter(lua_State* L) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    return luaL_error(L,"Character modification is outside this TEST-SERVER profile");
+#else
     if (!lua_isnumber(L, 1)) {
         luaL_error(L, "Usage: DeleteCharacter(index)");
         return 0;
@@ -144,11 +157,15 @@ static int32_t Script_DeleteCharacter(lua_State* L) {
     }
 
     return 0;
+#endif
 }
 
 // VERIFY: a99b6877 auto
 // OFFSET: 0x004E3410
 static int32_t Script_RenameCharacter(lua_State* L) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    return luaL_error(L,"Character modification is outside this TEST-SERVER profile");
+#else
     if (!lua_isnumber(L, 1)) {
         luaL_error(L, "Usage: RenameCharacter(index, name)");
         return 0;
@@ -188,11 +205,15 @@ static int32_t Script_RenameCharacter(lua_State* L) {
     }
 
     return 1;
+#endif
 }
 
 // VERIFY: f6ef29a9 auto
 // OFFSET: 0x004E3530
 static int32_t Script_DeclineCharacter(lua_State* L) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    return luaL_error(L,"Character modification is outside this TEST-SERVER profile");
+#else
     if (!lua_isnumber(L, 1)) {
         luaL_error(L, "Usage: DeclineCharacter(index, name1, name2, name3, name4, name5)");
         return 0;
@@ -227,6 +248,7 @@ static int32_t Script_DeclineCharacter(lua_State* L) {
     }
 
     return 1;
+#endif
 }
 
 // VERIFY: 433a84a4 manual
@@ -298,7 +320,11 @@ static int32_t Script_SetCharSelectBackground(lua_State* L) {
 // VERIFY: e07b5113 auto
 // OFFSET: 0x004E4530
 static int32_t Script_GetCharacterListUpdate(lua_State* L) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    CCharacterSelection::s_characterList.Clear();
+#else
     CCharacterSelection::s_characterList.SetCount(0);
+#endif
 
     if (CCharacterSelection::m_modelFrame && CCharacterSelection::m_modelFrame->m_model) {
         CCharacterSelection::m_modelFrame->m_model->DetachAllChildrenById(0);
@@ -338,21 +364,34 @@ static int32_t Script_SelectCharacter(lua_State* L) {
     return 0;
 }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+template<int32_t (*Method)(lua_State*)> int32_t NativeCharacterMethod(lua_State* L) {
+    for (int i=1;i<=lua_gettop(L);++i) if (lua_isnumber(L,i)) {
+        const double value=lua_tonumber(L,i);
+        if (!std::isfinite(value) || value < INT32_MIN+1 || value > INT32_MAX-1)
+            return luaL_error(L,"Character arguments must be bounded finite numbers");
+    }
+    return Frame::Native::ScriptMethod<Method,true,false,true>(L);
+}
+#define CHARACTER_METHOD(method) NativeCharacterMethod<method>
+#else
+#define CHARACTER_METHOD(method) method
+#endif
 // STATIC: 0x00AC4378
 static FrameScript_Method s_scriptFunctions[] = {
-    { "SetCharSelectModelFrame", &Script_SetCharSelectModelFrame },
-    { "SetCharSelectBackground", &Script_SetCharSelectBackground },
-    { "GetCharacterListUpdate", &Script_GetCharacterListUpdate },
-    { "GetNumCharacters", &Script_GetNumCharacters },
-    { "GetCharacterInfo", &Script_GetCharacterInfo },
-    { "SelectCharacter", &Script_SelectCharacter },
-    { "DeleteCharacter", &Script_DeleteCharacter },
-    { "RenameCharacter", &Script_RenameCharacter },
-    { "DeclineCharacter", &Script_DeclineCharacter },
-    { "UpdateSelectionCustomizationScene", &Script_UpdateSelectionCustomizationScene },
-    { "GetCharacterSelectFacing", &Script_GetCharacterSelectFacing },
-    { "SetCharacterSelectFacing", &Script_SetCharacterSelectFacing },
-    { "GetSelectBackgroundModel", &Script_GetSelectBackgroundModel },
+    { "SetCharSelectModelFrame", CHARACTER_METHOD(Script_SetCharSelectModelFrame ) },
+    { "SetCharSelectBackground", CHARACTER_METHOD(Script_SetCharSelectBackground ) },
+    { "GetCharacterListUpdate", CHARACTER_METHOD(Script_GetCharacterListUpdate ) },
+    { "GetNumCharacters", CHARACTER_METHOD(Script_GetNumCharacters ) },
+    { "GetCharacterInfo", CHARACTER_METHOD(Script_GetCharacterInfo ) },
+    { "SelectCharacter", CHARACTER_METHOD(Script_SelectCharacter ) },
+    { "DeleteCharacter", CHARACTER_METHOD(Script_DeleteCharacter ) },
+    { "RenameCharacter", CHARACTER_METHOD(Script_RenameCharacter ) },
+    { "DeclineCharacter", CHARACTER_METHOD(Script_DeclineCharacter ) },
+    { "UpdateSelectionCustomizationScene", CHARACTER_METHOD(Script_UpdateSelectionCustomizationScene ) },
+    { "GetCharacterSelectFacing", CHARACTER_METHOD(Script_GetCharacterSelectFacing ) },
+    { "SetCharacterSelectFacing", CHARACTER_METHOD(Script_SetCharacterSelectFacing ) },
+    { "GetSelectBackgroundModel", CHARACTER_METHOD(Script_GetSelectBackgroundModel ) },
 };
 
 // VERIFY: 55f0de4b auto
@@ -366,6 +405,9 @@ void CharSelectRegisterScriptFunctions() {
 // VERIFY: 96271309 auto
 // OFFSET: 0x004E25A0
 void CharSelectUnregisterScriptFunctions() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    CCharacterSelection::m_modelFrame = nullptr;
+#endif
     for (uint32_t i = 0; i < sizeof(s_scriptFunctions) / sizeof(s_scriptFunctions[0]); i++) {
         FrameScript_UnregisterFunction(s_scriptFunctions[i].m_name);
     }

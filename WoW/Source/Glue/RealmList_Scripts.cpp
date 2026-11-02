@@ -7,8 +7,17 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "WoW/Source/Client.h"
 #include "WoW/Source/DB/DBClient/DBClient.h"
+#else
+#include "WoW/Source/Glue/Portable/RealmData.h"
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
+#include <cmath>
+#include <cstdio>
+#include <stdexcept>
+static constexpr int32_t s_locale = 0; // authenticated integrated enUS target
+#endif
 #include "WoW/Source/Glue/CGlueMgr.h"
 #include "WoW/Source/WowServices/Login.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
@@ -97,6 +106,9 @@ static int32_t Script_GetRealmInfo(lua_State* L) {
             if (category) {
                 if (category->m_numRealms > index) {
                     realm = ClientServices::GetRealmInfoByIndex(category->m_realms[index]);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+                    break;
+#endif
                 } else {
                     index -= category->m_numRealms;
                 }
@@ -227,6 +239,9 @@ static int32_t Script_ChangeRealm(lua_State* L) {
             if (category) {
                 if (category->m_numRealms > index) {
                     realm = ClientServices::GetRealmInfoByIndex(category->m_realms[index]);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+                    break;
+#endif
                 } else {
                     index -= category->m_numRealms;
                 }
@@ -267,7 +282,7 @@ static int32_t Script_GetRealmCategories(lua_State* L) {
     }
 
     RealmCategory* category = CRealmList::m_categories.Count() ? CRealmList::m_categories[0] : nullptr;
-    lua_pushstring(L, category->m_category ? category->m_category->m_name : "UNKNOWN");
+    lua_pushstring(L, category && category->m_category ? category->m_category->m_name : "UNKNOWN");
 
     return 1;
 }
@@ -427,21 +442,41 @@ static int32_t Script_GetSelectedCategory(lua_State* L) {
 }
 
 // STATIC: 0x00AC4190
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+template<int32_t (*Method)(lua_State*)> int32_t NativeRealmMethod(lua_State* L) {
+    char failure[512]{};
+    try {
+        FrameScript::Native::RequireOwner();
+        for (int i=1;i<=lua_gettop(L);++i) if (lua_isnumber(L,i)) {
+            const double value=lua_tonumber(L,i);
+            if (!std::isfinite(value) || value < 0 || value > INT32_MAX-1 || std::floor(value)!=value)
+                return luaL_error(L,"Realm arguments must be bounded nonnegative integers");
+        }
+        return Method(L);
+    } catch (const std::exception& error) {
+        std::snprintf(failure,sizeof(failure),"%s",error.what());
+    }
+    return luaL_error(L,"Native realm operation failed: %s",failure);
+}
+#define REALM_METHOD(method) NativeRealmMethod<method>
+#else
+#define REALM_METHOD(method) method
+#endif
 static FrameScript_Method s_scriptFunctions[] = {
-    { "RequestRealmList", &Script_RequestRealmList },
-    { "RealmListUpdateRate", &Script_RealmListUpdateRate },
-    { "CancelRealmListQuery", &Script_CancelRealmListQuery },
-    { "GetNumRealms", &Script_GetNumRealms },
-    { "GetRealmInfo", &Script_GetRealmInfo },
-    { "ChangeRealm", &Script_ChangeRealm },
-    { "GetRealmCategories", &Script_GetRealmCategories },
-    { "SetPreferredInfo", &Script_SetPreferredInfo },
-    { "SortRealms", &Script_SortRealms },
-    { "GetSelectedCategory", &Script_GetSelectedCategory },
-    { "RealmListDialogCancelled", &Script_RealmListDialogCancelled },
-    { "IsInvalidTournamentRealmCategory", &Script_IsInvalidTournamentRealmCategory },
-    { "IsTournamentRealmCategory", &Script_IsTournamentRealmCategory },
-    { "IsInvalidLocale", &Script_IsInvalidLocale },
+    { "RequestRealmList", REALM_METHOD(Script_RequestRealmList ) },
+    { "RealmListUpdateRate", REALM_METHOD(Script_RealmListUpdateRate ) },
+    { "CancelRealmListQuery", REALM_METHOD(Script_CancelRealmListQuery ) },
+    { "GetNumRealms", REALM_METHOD(Script_GetNumRealms ) },
+    { "GetRealmInfo", REALM_METHOD(Script_GetRealmInfo ) },
+    { "ChangeRealm", REALM_METHOD(Script_ChangeRealm ) },
+    { "GetRealmCategories", REALM_METHOD(Script_GetRealmCategories ) },
+    { "SetPreferredInfo", REALM_METHOD(Script_SetPreferredInfo ) },
+    { "SortRealms", REALM_METHOD(Script_SortRealms ) },
+    { "GetSelectedCategory", REALM_METHOD(Script_GetSelectedCategory ) },
+    { "RealmListDialogCancelled", REALM_METHOD(Script_RealmListDialogCancelled ) },
+    { "IsInvalidTournamentRealmCategory", REALM_METHOD(Script_IsInvalidTournamentRealmCategory ) },
+    { "IsTournamentRealmCategory", REALM_METHOD(Script_IsTournamentRealmCategory ) },
+    { "IsInvalidLocale", REALM_METHOD(Script_IsInvalidLocale ) },
 };
 
 // VERIFY: 98b99f13 auto

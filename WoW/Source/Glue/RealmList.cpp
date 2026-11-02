@@ -4,7 +4,12 @@
 #include <new>
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/Storm/H/storm.h"
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "WoW/Source/DB/DBClient/DBClient.h"
+#else
+#include "WoW/Source/Glue/Portable/RealmData.h"
+#include <stdexcept>
+#endif
 #include "WoW/Source/Glue/Types.h"
 #include "WoW/Source/WowServices/Types.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
@@ -274,6 +279,9 @@ void CRealmList::SetPreferredInfo(int32_t index, int32_t pvp, int32_t roleplayin
 // VERIFY: 67ff9938 manual
 // OFFSET: 0x004DF580
 void CRealmList::Initialize() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    GlueNative::LoadRealmData();
+#endif
     uint32_t count = g_cfg_CategoriesDB.m_numRecords;
     CRealmList::m_categories.SetCount(count);
 
@@ -304,6 +312,10 @@ void CRealmList::Shutdown() {
     }
 
     CRealmList::m_categories.Clear();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    m_selectedCategory = m_preferredCategory = -1;
+    GlueNative::CloseRealmData();
+#endif
 }
 
 // VERIFY: 853f8f8d manual

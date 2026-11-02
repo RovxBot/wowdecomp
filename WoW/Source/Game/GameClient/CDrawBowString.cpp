@@ -1,4 +1,7 @@
 #include "CDrawBowString.h"
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include <stdexcept>
+#endif
 #include "Engine/Source/Gx/CGxBuf.h"
 #include "Engine/Source/Gx/CGxDevice/CGxDevice.h"
 #include "Engine/Source/Gx/CGxVertexPC.h"
@@ -92,6 +95,9 @@ void CDrawBowString::GlueDrawBowStringCB(CM2Model* model, const CM2Lighting* lig
 // VERIFY: fbd64b06 auto
 // OFFSET: 0x007EADA0
 bool GuildGetGuildTabard(WOWGUID guid, int32_t guildID, void (*callback)(int32_t guildID, const WOWGUID& guid, void* param, bool success), void* param, int32_t& emblemStyle, int32_t& emblemColor, int32_t& borderStyle, int32_t& borderColor, int32_t& background) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    throw std::logic_error("Native guild tabard cache/query lifecycle is unavailable");
+#else
     GuildStats_C* stats = g_guildInfoCache.GetRecord(guildID, guid, callback, param, false);
 
     emblemStyle = -1;
@@ -111,6 +117,7 @@ bool GuildGetGuildTabard(WOWGUID guid, int32_t guildID, void (*callback)(int32_t
     background = stats->m_background;
 
     return true;
+#endif
 }
 
 // VERIFY: 76d7eb0b auto

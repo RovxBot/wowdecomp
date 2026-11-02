@@ -24,6 +24,35 @@ target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterSelection.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions WowNativeNet)
+if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    target_sources(WowNativeStartup PRIVATE
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/RealmList.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/RealmList_Scripts.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/RealmData.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/Portable/CharacterServices.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/DB/WowClientDB.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/DB/Rec/Cfg_CategoriesRec.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/DB/Rec/Cfg_ConfigsRec.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CharacterSelection.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CharacterSelectionDisplay.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CharacterSelection_Scripts.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/ComponentData.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/CGlueLoading.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Common/ComponentCore/CharacterComponent.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Common/ComponentCore/CharacterComponent_CVar.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Common/ComponentCore/ComponentUtils.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Common/TextureCache.cpp
+        ${PROJECT_SOURCE_DIR}/WoW/Source/Game/GameClient/CDrawBowString.cpp
+        ${PROJECT_SOURCE_DIR}/Engine/Source/BLPFile/blp.cpp)
+    target_compile_options(WowNativeStartup PRIVATE -fms-extensions)
+    target_compile_definitions(WowNativeStartup PRIVATE raw_name=name _alloca=alloca _vsnprintf=vsnprintf)
+    set(character_records CharHairGeosets CharSections CharacterFacialHairStyles ChrRaces ChrClasses
+        AreaTable CreatureDisplayInfo CreatureFamily CreatureModelData HelmetGeosetVisData
+        ItemDisplayInfo ItemVisualEffects ItemVisuals LightParams ParticleColor SpellVisualEffectName SpellVisualKit)
+    foreach(record IN LISTS character_records)
+        target_sources(WowNativeStartup PRIVATE ${PROJECT_SOURCE_DIR}/WoW/Source/DB/Rec/${record}Rec.cpp)
+    endforeach()
+endif()
 add_library(WowNativeModels STATIC
     ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Cache.cpp
     ${PROJECT_SOURCE_DIR}/Engine/Source/Model2/M2Data.cpp

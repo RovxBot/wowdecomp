@@ -28,6 +28,9 @@
 #include "WoW/Source/Glue/GlueMgr.h"
 #include "WoW/Source/Glue/Portable/ScriptServices.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "WoW/Source/Glue/Portable/RealmData.h"
+#endif
 #include "WoW/Source/Glue/CharacterCreation.h"
 #include "WoW/Source/Ui/VideoOptions.h"
 #include "WoW/Source/SoundInterface/SoundInterface2.h"
@@ -230,6 +233,13 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     } glueScripts;
     {
         CSimpleTop root;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        // Components, asynchronous textures and borrowed model frames retire
+        // before the original root/frame/model owners, including exceptions.
+        struct CharacterServices {
+            ~CharacterServices() { GlueNative::CloseCharacterServices(); }
+        } characterServices;
+#endif
         GlueScriptEventsInitialize();
         CharSelectRegisterScriptFunctions();
         CharacterCreateRegisterScriptFunctions();

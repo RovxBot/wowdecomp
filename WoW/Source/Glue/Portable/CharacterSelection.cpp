@@ -11,10 +11,11 @@
 #include <exception>
 static_assert(sizeof(CHARACTER_INFO) == 0x188, "Original fixed-width character record changed");
 
-TSGrowableArray<CharacterSelectionDisplay> CCharacterSelection::s_characterList;
-CSimpleModelFFX* CCharacterSelection::m_modelFrame;
 CSimpleModelFFX* CCharacterCreation::m_charCustomizeFrame;
 
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+TSGrowableArray<CharacterSelectionDisplay> CCharacterSelection::s_characterList;
+CSimpleModelFFX* CCharacterSelection::m_modelFrame;
 CharacterSelectionDisplay::CharacterSelectionDisplay() {
     m_component = nullptr;
     m_petAlpha = 1.0f;
@@ -25,6 +26,7 @@ CharacterSelectionDisplay::~CharacterSelectionDisplay() {
     // Native producers must connect their real owners before populating these.
     if (m_petModel || m_component) std::terminate();
 }
+#endif
 namespace {
 bool selectionRegistered = false, creationRegistered = false;
 // Original CharacterSelection_Scripts.cpp 0x004E2F60 and
@@ -52,6 +54,7 @@ int32_t GetNumCharacters(lua_State* L) {
     return 1;
 }
 }
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 void CharSelectRegisterScriptFunctions() {
     selectionRegistered = true;
     FrameScript_RegisterFunction("GetNumCharacters", GetNumCharacters);
@@ -63,6 +66,7 @@ void CharSelectUnregisterScriptFunctions() {
     selectionRegistered = false;
     CCharacterSelection::m_modelFrame = nullptr;
 }
+#endif
 void CharacterCreateRegisterScriptFunctions() {
     creationRegistered = true;
     FrameScript_RegisterFunction("SetCharCustomizeFrame", Frame::Native::ScriptMethod<SetCharCustomizeFrame, true, false, true>);

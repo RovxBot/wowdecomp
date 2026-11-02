@@ -1,5 +1,9 @@
 #include "CharacterSelection.h"
 #include <cstring>
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "WoW/Source/Glue/Portable/RealmData.h"
+#include <stdexcept>
+#endif
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 #include "Engine/Source/Event/Event.h"
 #include "Engine/Source/FFX/FFX.h"
@@ -70,6 +74,13 @@ void CCharacterSelection::Initialize() {
 // VERIFY: cead22db auto
 // OFFSET: 0x004E38F0
 void CCharacterSelection::Shutdown() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    OnHide();
+    s_characterList.Clear();
+    s_selectionIndex = -1;
+    s_characterCount = 0;
+    CharacterSelectionDisplay::SetSelectedCharacterInfo(nullptr);
+#else
     LoadingScreenMiniDisable();
 
     if (CCharacterComponent::m_activePlayerComponent) {
@@ -102,6 +113,7 @@ void CCharacterSelection::Shutdown() {
 
     CCharacterSelection::s_characterList.Clear();
     CharacterSelectionDisplay::SetSelectedCharacterInfo(nullptr);
+#endif
 }
 
 // VERIFY: d8b19604 auto
@@ -217,6 +229,9 @@ void CCharacterSelection::GuildCallback(int32_t guildID, const WOWGUID& guid, vo
 // VERIFY: 9fe08e4d auto
 // OFFSET: 0x004E2870
 void CCharacterSelection::UpdateCharacterName(WOWGUID guid, const char* name) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    throw std::logic_error("Character modification is outside the native selection profile");
+#else
     uint32_t index;
 
     for (index = 0; index < CCharacterSelection::s_characterList.Count(); index++) {
@@ -243,11 +258,15 @@ void CCharacterSelection::UpdateCharacterName(WOWGUID guid, const char* name) {
     CCharacterSelection::s_characterList[index].m_characterInfo.m_flags &= ~0x4000;
     CCharacterSelection::s_characterList[index].m_characterInfo.m_flags &= ~0x2000000;
     FrameScript_SignalEvent(GLUE_EVENT_CHARACTER_LIST_UPDATE, nullptr);
+#endif
 }
 
 // VERIFY: 945f4dbd auto
 // OFFSET: 0x004E29E0
 void CCharacterSelection::UpdateCharacterInfo(WOWGUID guid, const char* name, uint8_t sexID, uint8_t skinColorID, uint8_t faceID, uint8_t hairStyleID, uint8_t hairColorID, uint8_t facialHairStyleID, uint8_t raceID) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    throw std::logic_error("Character modification is outside the native selection profile");
+#else
     uint32_t index;
 
     for (index = 0; index < CCharacterSelection::s_characterList.Count(); index++) {
@@ -288,17 +307,22 @@ void CCharacterSelection::UpdateCharacterInfo(WOWGUID guid, const char* name, ui
 
     info.m_customizeFlags &= 0xFFEEFFFE;
     FrameScript_SignalEvent(GLUE_EVENT_CHARACTER_LIST_UPDATE, nullptr);
+#endif
 }
 
 // VERIFY: db6735fe manual
 // OFFSET: 0x004E2BD0
 void CCharacterSelection::UpdateCharacterNameDeclension(WOWGUID guid) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    throw std::logic_error("Character modification is outside the native selection profile");
+#else
     for (uint32_t index = 0; index < CCharacterSelection::s_characterList.Count(); index++) {
         if (CCharacterSelection::s_characterList[index].m_characterInfo.m_guid == guid) {
             CCharacterSelection::s_characterList[index].m_characterInfo.m_flags |= 0x2000000;
             return;
         }
     }
+#endif
 }
 
 // VERIFY: 805a43b3 auto
@@ -405,7 +429,9 @@ void CCharacterSelection::SetBackgroundModel(const char* modelName) {
 // OFFSET: 0x004E3CA0
 void CCharacterSelection::EnumerateCharactersCallback(CHARACTER_INFO& info, void* param) {
     memcpy(&CCharacterSelection::s_characterList.New()->m_characterInfo, &info, sizeof(info));
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
     LoadAddOnEnableState(info.m_name);
+#endif
 }
 
 // VERIFY: 3fe94d69 manual
@@ -415,6 +441,11 @@ void CCharacterSelection::ShowCharacter() {
         return;
     }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (!m_modelFrame) throw std::logic_error("Original character model frame is not bound");
+    if (s_characterList[s_selectionIndex].m_characterInfo.m_flags & 0x2000)
+        throw std::logic_error("Native ghost character lighting/effect is not qualified");
+#endif
     CreatureDisplayInfoRec* displayRec = nullptr;
     CreatureModelDataRec* modelRec = nullptr;
     ComponentData data;
@@ -615,8 +646,17 @@ void CCharacterSelection::ShowCharacter() {
 // VERIFY: eafa3254 manual
 // OFFSET: 0x004E4610
 void CCharacterSelection::UpdateCharacterList() {
+#if !defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
     ClearAddOnEnableState(nullptr);
+#else
+    GlueNative::LoadCharacterServices();
+#endif
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    CCharacterSelection::s_characterList.Clear();
+    CCharacterSelection::s_characterCount = 0;
+#else
     CCharacterSelection::s_characterList.SetCount(0);
+#endif
 
     CCharacterSelection::s_raceRestrictions[0] = 0;
     CCharacterSelection::s_raceRestrictions[1] = 0;
@@ -674,7 +714,12 @@ void CCharacterSelection::UpdateCharacterList() {
 // VERIFY: 83731d6e auto
 // OFFSET: 0x004E47F0
 void CCharacterSelection::ClearCharacterList() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    CCharacterSelection::s_characterList.Clear();
+    CCharacterSelection::s_characterCount = 0;
+#else
     CCharacterSelection::s_characterList.SetCount(0);
+#endif
 
     if (CCharacterSelection::m_modelFrame && CCharacterSelection::m_modelFrame->m_model) {
         CCharacterSelection::m_modelFrame->m_model->DetachAllChildrenById(0);
