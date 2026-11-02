@@ -89,7 +89,9 @@ struct TestResponse final : LoginResponse {
     }
     void LoginServerStatus(LOGIN_STATE value, LOGIN_RESULT status, const char*, const char*,
                            const char* name, uint16_t) override {
-        if (state == LOGIN_STATE_FAILED && value == LOGIN_STATE_DISCONNECTED) return;
+        // A subsequent close can emit both DISCONNECTED and a generic FAILED.
+        // Preserve the first server/proof error until outer idle presents it.
+        if (state == LOGIN_STATE_FAILED) return;
         state = value; result = status; resultName = name; changed = true;
     }
     void RealmEnumCallback(uint32_t value) override { realms = true; realmResult = value; }
@@ -132,7 +134,7 @@ void PollTestLogin() {
         ResetTestLogin();
         std::string message = valid
             ? "TEST SERVER: SRP server proof verified; received " + std::to_string(count) +
-              " advertised realm(s). Realm selection/world entry is unavailable. No integrity checks passed."
+              " advertised realm(s). Realm selection/world entry is unavailable. Executable integrity remains unavailable."
             : "TEST SERVER: realm list failed. No world session was started.";
         TestDialog("OKAY", message.c_str());
         return;

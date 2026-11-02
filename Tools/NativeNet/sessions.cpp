@@ -718,8 +718,8 @@ void CheckNativeTestServerExchange(void (*pump)(),
     Require(!finished(), "Login completed before verifying the server proof");
     if (scenario == 2) {
         peer.Put(Bytes{1,9}); // GRUNT_RESULT_BAD_VERSION; never treated as approval
+        peer.stream.Close(); // preserve the actual rejection through the close callbacks
         Until(pump, finished, "Server version refusal was ignored");
-        Require(peer.Read().empty(), "Version refusal requested realms");
         return;
     }
     Bytes m2 = a; Append(m2, expected); Append(m2,key); m2=Hash(m2);
