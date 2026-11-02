@@ -59,10 +59,15 @@ This is not a completed `RealmConnection`/`ClientServices`/Warden world session.
 `DefaultServerLogin` still refuses every request without reading or forwarding
 credentials. Production `GruntLogin::GetLogonMethod` cannot select a supported
 native platform/version-integrity identity and reports failure without emitting a
-logon request. No Windows/Mac identity is chosen as a native substitute. No native
-executable/version checksum producer or detector approval is implemented here.
-The fixture alone overrides that virtual identity callback with authored values
-and supplies a checksum over authored executable bytes. It is not reachable from
+logon request. No Windows/Mac identity is chosen as a native substitute. Identity
+refusal erases pending credentials before the failure callback. No native
+loaded-executable checksum inventory or detector approval is implemented here.
+The supported file-mode checksum callback is distinct from that missing inventory;
+`ChecksumExecutables` explicitly rejects its unsupported native inventory without
+publishing output. The fixture alone overrides the identity callback with authored
+values and feeds a temporary authored file through the original challenge-keyed
+HMAC and native file callback. Independent Python HMAC bytes then verify the
+Grunt version proof. It is not reachable from
 Lua, startup options or the product sign-in path.
 
 Reconnect and file-transfer authentication commands remain unavailable natively;
@@ -89,3 +94,10 @@ server proof. Negative cases reject bad proofs and malformed messages. Fixture
 credentials, platform identity, executable bytes and advertised realms are authored
 and contain no private accounts or game data. Fixture authentication is distinct
 from observing an interactive GrimGuzzler session or qualifying native integrity.
+
+Configure the isolated endpoint through the existing external settings root:
+`WTF/Config.wtf` may contain `SET realmlist "<isolated-host>"`. Preserve the two
+read-only installations and keep that file outside Git. This configuration grants
+no integrity capability and does not connect the gated product sign-in path.
+Use loopback peers until supported platform/version/detector/Warden requirements
+justify an interactive user session; never embed a test hostname in client code.

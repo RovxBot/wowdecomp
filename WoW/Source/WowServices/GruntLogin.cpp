@@ -88,6 +88,13 @@ bool GruntLogin::Disconnected() {
 void GruntLogin::GetLogonMethod() {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     // No approved native platform/version-integrity identity is available yet.
+    // Retire pending credentials before the failure callback can release us.
+    if (this->m_password) {
+        volatile char* byte = this->m_password;
+        while (*byte) *byte++ = 0;
+        SMemFree(this->m_password, __FILE__, __LINE__, 0);
+        this->m_password = nullptr;
+    }
     this->m_logonStatus = 1;
     this->m_clientLink->Disconnect();
     this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, nullptr, 0);

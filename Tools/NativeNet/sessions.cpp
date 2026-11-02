@@ -7,14 +7,19 @@
 #include "WoW/Source/WowServices/Portable/Session.h"
 #include "WoW/Source/WowServices/SRP6_Random.h"
 #include "WoW/Source/WowServices/WowConnectionNet.h"
+#include "Engine/Source/Os/OsVersionHash.h"
+#include "WoW/Source/WowServices/HMAC.h"
+#include "WoW/Source/WowSvcs/WowSvcsClient/ChecksumExecutables.h"
 #include <arpa/inet.h>
 #include <chrono>
 #include <cstring>
 #include <fcntl.h>
 #include <functional>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -93,6 +98,80 @@ struct Fd {
         n = -1;
     }
 };
+struct ExecutableFixture {
+    std::string path;
+    Fd file;
+    ExecutableFixture() {
+        auto name = (std::filesystem::temp_directory_path() / "wowdecomp-version-XXXXXX").string();
+        std::vector<char> buffer(name.begin(), name.end());
+        buffer.push_back(0);
+        file.n = mkstemp(buffer.data());
+        Require(file.n >= 0, "Create authored executable fixture");
+        path = buffer.data();
+    }
+    ~ExecutableFixture() { unlink(path.c_str()); }
+    void Write(const char* bytes) {
+        const size_t length = strlen(bytes);
+        Require(write(file.n, bytes, length) == ssize_t(length), "Write authored executable bytes");
+    }
+};
+Bytes FileChecksum(const uint8_t* challenge) {
+    ExecutableFixture file;
+    file.Write("authored-exe");
+    HMAC<SHA1> hmac;
+    hmac.Init(challenge, 16);
+    IOsVersionHashCallback2<HMAC<SHA1>> callback(&hmac);
+    Require(IOsVersionChecksum(callback, file.path.c_str(), 0), "Native raw-file checksum failed");
+    SHA1::Digest digest;
+    hmac.Finish(digest);
+    return Bytes(digest.m_data, digest.m_data + sizeof(digest.m_data));
+}
+void VersionChecksums() {
+    const auto challenge = Hex("a0a1a2a3a4a5a6a7a8a9aaabacadaeaf");
+    Require(FileChecksum(challenge.data()) == ExpectedVersionChecksum,
+            "Native file HMAC differs from independent Python vector");
+    struct Callback : IOsVersionHashCallback {
+        unsigned calls = 0;
+        Bytes bytes;
+        void Process(const void* data, uint32_t size) override {
+            ++calls;
+            const auto* begin = static_cast<const uint8_t*>(data);
+            bytes.assign(begin, begin + size);
+        }
+    } callback;
+    ExecutableFixture file;
+    Require(!IOsVersionChecksum(callback, nullptr, 0) &&
+                !IOsVersionChecksum(callback, "", 0) &&
+                !IOsVersionChecksum(callback, nullptr, 1) &&
+                !IOsVersionChecksum(callback, file.path.c_str(), 1) &&
+                !IOsVersionChecksum(callback, (file.path + "/missing").c_str(), 0) &&
+                !IOsVersionChecksum(callback, std::filesystem::temp_directory_path().c_str(), 0) &&
+                !callback.calls,
+            "Unsupported checksum input reached callback");
+    Require(IOsVersionChecksum(callback, file.path.c_str(), 0) && callback.calls == 1 &&
+                callback.bytes.empty(), "Empty raw file was not delivered exactly once");
+    // Reject a sparse extent wider than the original uint32 callback before allocation.
+    Require(!ftruncate(file.file.n, int64_t(UINT32_MAX) + 1), "Create wide checksum fixture");
+    Require(!IOsVersionChecksum(callback, file.path.c_str(), 0) && callback.calls == 1,
+            "Wide file truncated into checksum callback");
+    Require(!ftruncate(file.file.n, 0), "Reset checksum fixture");
+    std::string content(65539, 'x');
+    file.Write(content.c_str());
+    Require(IOsVersionChecksum(callback, file.path.c_str(), 0) && callback.calls == 2 &&
+                callback.bytes == Bytes(content.begin(), content.end()),
+            "Raw checksum did not deliver complete ordered bytes");
+    const auto fifo = file.path + ".fifo";
+    Require(!mkfifo(fifo.c_str(), 0600), "Create nonregular checksum fixture");
+    const bool accepted = IOsVersionChecksum(callback, fifo.c_str(), 0);
+    unlink(fifo.c_str());
+    Require(!accepted && callback.calls == 2, "Nonregular file reached checksum callback");
+    Bytes output(20, 0x5a), sentinel = output;
+    bool rejected = false;
+    try { ChecksumExecutables(nullptr, UINT32_MAX, output.data()); }
+    catch (const std::runtime_error&) { rejected = true; }
+    Require(rejected && output == sentinel,
+            "Unsupported executable inventory published a version checksum");
+}
 struct Peer {
     Fd listener{socket(AF_INET, SOCK_STREAM, 0)}, stream;
     uint16_t port = 0;
@@ -292,9 +371,7 @@ void Authenticate(void (*pump)(), bool badProof, bool malformedRealm,
         pending = true;
     }
     Require(pending, "Blocking native Wait accepted");
-    Bytes checksumInput(login.GetVersionChallenge(), login.GetVersionChallenge() + 16);
-    Append(checksumInput, Bytes{'a', 'u', 't', 'h', 'o', 'r', 'e', 'd', '-', 'e', 'x', 'e'});
-    Bytes checksum = Hash(checksumInput);
+    Bytes checksum = FileChecksum(login.GetVersionChallenge());
     login.ProveVersion(checksum.data());
     Bytes proof = Receive(peer, pump, 75), a(proof.begin() + 1, proof.begin() + 33),
           key = ServerSession(a), expected = ClientProof(a, key);
@@ -302,7 +379,7 @@ void Authenticate(void (*pump)(), bool badProof, bool malformedRealm,
                 !memcmp(proof.data() + 33, expected.data(), 20),
             "Peer rejected SRP client proof");
     Bytes version = a;
-    Append(version, checksum);
+    Append(version, ExpectedVersionChecksum);
     Require(!memcmp(proof.data() + 53, Hash(version).data(), 20), "Version proof bytes changed");
     Bytes m2 = a;
     Append(m2, expected);
@@ -480,6 +557,7 @@ void FailurePaths(void (*pump)()) {
         Require(peer.Read().empty(), "Production native identity forwarded a logon");
         Require(response.sawIdentityFailure,
                 "Native identity refusal was not reported before disconnect");
+        Require(!login.m_password, "Native identity refusal retained pending credentials");
     }
     for (auto releasedState : {LOGIN_STATE_CONNECTING, LOGIN_STATE_FAILED}) {
         Peer peer;
@@ -605,6 +683,7 @@ void FailurePaths(void (*pump)()) {
 } // namespace
 void CheckNativeSessions(void (*pump)()) {
     Vectors();
+    VersionChecksums();
     LoginData handoff{};
     Authenticate(pump, false, false, &handoff);
     Authenticate(pump, true, false);

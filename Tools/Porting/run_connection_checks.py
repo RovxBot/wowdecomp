@@ -44,7 +44,7 @@ def main():
         run('build',['cmake','--build',str(build),'--config','Release','--parallel','2'])
         run('tests',['ctest','--test-dir',str(build),'-C','Release','--output-on-failure','--no-tests=error'])
         (evidence/'bin').mkdir(exist_ok=True);manifest['binaries']=[]
-        for name in ['NativeSessionCheck','NativeConnectionCheck','NativePacketCheck','NativeCore','CoreServicesCheck','PortableCoreCheck']:
+        for name in ['NativeSessionCheck','NativeConnectionCheck','FileServicesCheck','NativePacketCheck','NativeCore','CoreServicesCheck','PortableCoreCheck']:
             actual=name+('.exe' if target_os=='WINDOWS' else '')
             found=list((build/'bin').rglob(actual))
             if len(found)!=1:raise RuntimeError('Expected one packaged '+actual)

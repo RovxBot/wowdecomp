@@ -4,6 +4,7 @@ add_library(WowNativeNet STATIC
     ../../../WoW/Source/WowServices/Portable/WowConnection.cpp
     ../../../WoW/Source/WowServices/Portable/WowConnectionNet.cpp
     ../Os/Portable/NetAddress.cpp
+    ../Os/Portable/OsVersionHash.cpp
     ../Storm/Source/MD5.cpp
     ../Storm/Source/SBig.cpp
     ../../../WoW/Source/WowServices/BigInteger.cpp
@@ -13,9 +14,13 @@ add_library(WowNativeNet STATIC
     ../../../WoW/Source/WowServices/Grunt.cpp
     ../../../WoW/Source/WowServices/GruntLogin.cpp
     ../../../WoW/Source/WowServices/Portable/Session.cpp
+    ../../../WoW/Source/WowSvcs/WowSvcsClient/ChecksumExecutables.cpp
     ../../../WoW/Source/Net/NetClient/NetClient.cpp)
 target_compile_definitions(WowNativeNet PUBLIC WOWDECOMP_NATIVE_CONNECTION=1)
-target_link_libraries(WowNativeNet PUBLIC WowNativePackets)
+if(NOT TARGET WowNativeFiles)
+    message(FATAL_ERROR "Native version checksums require the native file services.")
+endif()
+target_link_libraries(WowNativeNet PUBLIC WowNativePackets WowNativeFiles)
 add_executable(NativeConnectionCheck ${PROJECT_SOURCE_DIR}/Tools/NativeNet/connections.cpp)
 target_link_libraries(NativeConnectionCheck PRIVATE WowNativeNet)
 if(BUILD_TESTING)

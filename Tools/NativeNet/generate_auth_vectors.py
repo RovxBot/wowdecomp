@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 from pathlib import Path
 H=lambda b:hashlib.sha1(b).digest()
 L=lambda n:n.to_bytes(32,'little')
@@ -9,6 +10,7 @@ seed=bytes(range(16));state=H(seed);buf=H(state+bytes(20)+state);buf2=H(state+bu
 shared=L(S).lstrip(b'\0');shared=shared[len(shared)%2:];even=H(shared[::2]);odd=H(shared[1::2]);K=bytes(sum(zip(even,odd),()))
 M=H(bytes(a^b for a,b in zip(H(L(N)),H(bytes([g]))))+H(b'FIXTURE')+salt+L(A)+L(B)+K);M2=H(L(A)+M+K)
 vals={'Prime':L(N),'Salt':salt,'ServerPrivate':L(b),'Verifier':L(v),'ServerPublic':L(B),'ExpectedA':L(A),'ExpectedK':K,'ExpectedM':M,'ExpectedM2':M2}
+vals['ExpectedVersionChecksum']=hmac.digest(bytes(range(0xa0,0xb0)),b'authored-exe','sha1')
 text='// Authored SRP fixture vectors generated with Python hashlib/pow; no account or game data.\n'
 for key,val in vals.items():text+=f'const auto {key} = Hex("{val.hex()}");\n'
 Path('Tools/NativeNet/auth_vectors.h').write_text(text)

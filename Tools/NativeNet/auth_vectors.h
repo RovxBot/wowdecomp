@@ -8,3 +8,4 @@ const auto ExpectedA = Hex("a419334b080b9514818d71d148f2a812ff9d65612b5bac8a3aff
 const auto ExpectedK = Hex("3234a540f859d199754eb6bcfd2b01d873f11d85a1320c8b25bc0d7f406e4117eb63417c782b4a65");
 const auto ExpectedM = Hex("703971179572a1f7656166cf02ca29fecf6bc125");
 const auto ExpectedM2 = Hex("3146ef050304eee5f3131a4335f7909b62553769");
+const auto ExpectedVersionChecksum = Hex("422c9515b729fc524e8eba181936e2a1c1c91da4");
