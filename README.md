@@ -67,6 +67,32 @@ opt-in [integrated Linux startup](docs/m3/INTEGRATED_CLIENT.md), which is still
 being connected to the complete original login UI. The full Windows client target
 requires Windows and MSVC; native startup success does not establish gameplay.
 
+For the Linux DXVK desktop package, download `linux-desktop-d3d9-*` from a passing
+[original D3D9 client run](.github/workflows/native-d3d9-client.yml), verify the
+Actions artifact digest and enclosed `.tar.gz.sha256`, then extract the tarball
+into your clean **12340/enUS** WoW directory. Keep the extracted
+`WoW-Native-Linux` folder beside `Data`, then double-click `Play WoW.desktop`
+or `Launch WoW.sh`. Some desktops require **Allow Launching** or **Run as a program**.
+The tarball retains executable permissions and bundles SDL3, DXVK, the Vulkan
+loader, C++ runtime and linked display libraries. Linux x86-64, glibc 2.39+,
+Python 3.10+, X11/Xwayland and a compatible Vulkan 1.3 GPU driver are required.
+
+The launcher discovers adjacent `Data` independently of its working directory.
+Settings/cache/logs use external XDG directories, separately for each installation
+and release/test/strict profile. It seeds only `SET realmlist` from the original
+`Data/enUS/realmlist.wtf` (root `realmlist.wtf` fallback); an existing external
+setting wins. Original data, signatures and agreement decisions stay intact.
+Run `python3 launch.py --check` inside the package to see the resolved paths.
+See the packaged `README-Linux.txt` and [launcher contract](docs/m3/DXVK_NATIVE.md#linux-desktop-package)
+for configuration and diagnostics. Packaging does not remove the current
+authentication/world-entry gates.
+
+Normal desktop packages exclude test login. Separately built **TEST-SERVER**
+packages require the explicitly labelled TEST-SERVER launcher or
+`--test-server-login`; their ordinary launcher keeps login disabled. The
+[test profile's requirements and auth/realm-list-only limit](docs/m3/AUTHENTICATION.md#isolated-test-server-profile)
+still apply. Strict packages retain all sanitizer detectors.
+
 | Build or check | Workflow |
 | --- | --- |
 | Full Windows x64 reference client | [Windows baseline](.github/workflows/windows-baseline.yml) |

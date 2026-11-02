@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tarfile
 from urllib.request import urlopen
+from package import bundle_runtime, desktop_archive, stage_launchers
 
 
 def digest(path):
@@ -28,8 +29,9 @@ def main():
         raise SystemExit('All client/dependency compilation must run in GitHub Actions.')
     root = Path(__file__).resolve().parents[2]
     mode = ('linux-client-d3d9' if args.client else 'linux-d3d9') + ('-asan' if args.sanitizers else '')
-    work = root / 'build' / mode
-    output = root / 'artifacts' / mode
+    build_identity = mode + ('-TEST-SERVER' if args.test_server_login else '')
+    work = root / 'build' / build_identity
+    output = root / 'artifacts' / build_identity
     work.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
     prefix = work / 'prefix'
@@ -173,6 +175,9 @@ def main():
                     ('ThirdParty/lzma/LzmaDecode.c', 'LZMA-NOTICE.txt')]:
                 content = (root / source).read_text()
                 (notices / name).write_text(content[:content.index('*/') + 2] + '\n')
+        if args.client:
+            manifest['runtime'] = bundle_runtime(output, environment)
+            stage_launchers(output, root, args.test_server_login)
         environment['LD_LIBRARY_PATH'] = str(output / 'lib')
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         if args.software_driver:
@@ -241,6 +246,9 @@ def main():
         manifest['files'] = {str(p.relative_to(output)): digest(p) for p in sorted(output.rglob('*'))
                              if p.is_file() and p.name != 'manifest.json'}
         (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    if args.client:
+        archive = desktop_archive(output, root)
+        run('desktop-package-smoke', ['python3', str(root / 'Tools/NativeD3D9/package_check.py'), str(archive)], cwd=root)
 
 
 if __name__ == '__main__':
