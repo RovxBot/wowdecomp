@@ -55,6 +55,22 @@ class D3d9ClientPackageTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 verify_artifact(root, False, 'dxvk')
 
+    def test_distribution_fallbacks_are_verified_and_unrecorded_files_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest = self.package(root)
+            fallback = root / 'runtime/libwayland-client.so.0'
+            fallback.parent.mkdir()
+            fallback.write_bytes((root / 'WowNativeClient').read_bytes())
+            with self.assertRaises(ValueError):
+                verify_artifact(root, False, 'dxvk')
+            manifest['files'][fallback.relative_to(root).as_posix()] = hashlib.sha256(fallback.read_bytes()).hexdigest()
+            (root / 'manifest.json').write_text(json.dumps(manifest))
+            verify_artifact(root, False, 'dxvk')
+            fallback.write_bytes(b'changed')
+            with self.assertRaises(ValueError):
+                verify_artifact(root, False, 'dxvk')
+
 
 if __name__ == '__main__':
     unittest.main()

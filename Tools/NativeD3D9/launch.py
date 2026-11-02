@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 
-from run_native_client import require_test_server_artifact, validate_paths, verify_artifact
+from run_native_client import dxvk_library_path, require_test_server_artifact, validate_paths, verify_artifact
 
 
 def child(directory, name):
@@ -107,7 +107,7 @@ def runtime_environment(package, cache, logs, strict):
     for key in ['LD_PRELOAD', 'LD_AUDIT', 'LSAN_OPTIONS', 'DXVK_CONFIG', 'DXVK_CONFIG_FILE',
                 'DXVK_FILTER_DEVICE_NAME', 'DXVK_FILTER_DEVICE_UUID']:
         environment.pop(key, None)
-    environment.update(LD_LIBRARY_PATH=str(package / 'lib'), SDL_VIDEODRIVER='x11', DXVK_WSI_DRIVER='SDL3',
+    environment.update(LD_LIBRARY_PATH=dxvk_library_path(package), SDL_VIDEODRIVER='x11', DXVK_WSI_DRIVER='SDL3',
                        DXVK_LOG_PATH=str(logs), XDG_CACHE_HOME=str(cache),
                        DXVK_STATE_CACHE_PATH=str(cache), MESA_SHADER_CACHE_DIR=str(cache / 'mesa'))
     if strict:

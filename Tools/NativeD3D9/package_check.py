@@ -33,11 +33,14 @@ def main():
         manifest = json.loads((artifact / 'manifest.json').read_text())
         environment = os.environ.copy()
         environment.update(XDG_CONFIG_HOME=str(root / 'config'), XDG_CACHE_HOME=str(root / 'cache'),
-                           XDG_STATE_HOME=str(root / 'state'), LD_LIBRARY_PATH=str(artifact / 'lib'))
-        for binary in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*'))]:
+                           XDG_STATE_HOME=str(root / 'state'),
+                           LD_LIBRARY_PATH=str(artifact / 'lib') + ':' + str(artifact / 'runtime'))
+        for binary in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*')),
+                       *sorted((artifact / 'runtime').glob('*'))]:
             assert binary.is_file()
             for name, path in linked_libraries(binary, environment).items():
-                assert name in HOST_LIBRARIES or path.resolve().is_relative_to(artifact / 'lib'), (name, str(path))
+                assert (name in HOST_LIBRARIES or path.resolve().is_relative_to(artifact / 'lib') or
+                        path.resolve().is_relative_to(artifact / 'runtime')), (name, str(path))
         shell = artifact / 'Launch WoW.sh'
         assert os.access(shell, os.X_OK)
         desktop = artifact / 'Play WoW.desktop'
@@ -72,7 +75,8 @@ def main():
         assert 'Original archive authentication:' in log and 'workers=0' in log, log
         settings = Path(report['settings']) / 'WTF/Config.wtf'
         assert settings.read_text().strip() == 'SET realmlist "127.0.0.1:3724"'
-        assert original == {p: hashlib.sha256((game / p).read_bytes()).hexdigest() for p in original}
+        assert original == {p.relative_to(game).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                            for p in (game / 'Data').rglob('*') if p.is_file()}
         assert not any((game / name).exists() for name in ['WTF', 'Cache', 'Logs'])
         # Relocate the package: identity follows Data, never the extraction folder.
         relocated = game / 'another package folder'

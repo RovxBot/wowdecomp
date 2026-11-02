@@ -86,6 +86,12 @@ The host supplies glibc 2.39+ (Ubuntu 24.04 baseline), Python 3.10+, a terminal,
 X11/Xwayland and a DXVK-compatible Vulkan 1.3 GPU/ICD. GPU drivers and CI lavapipe
 are not distributed. The desktop package manifest hashes all included files;
 the existing diagnostic ZIP and CLI remain available.
+Pinned SDL/DXVK/ASan remain in private `lib/`; distribution dependencies are
+bundled in `runtime/` as fallbacks after installed system libraries. This avoids
+masking a newer GPU driver's Wayland/C++ dependencies with older bundled versions.
+Both directories retain mandatory hash/ELF admission, including rejection of
+unrecorded libraries. Hosted closure checks also exercise the complete bundled
+runtime explicitly, separately from normal host-preferred launch.
 
 Discovery checks `Data` beside the launcher, then beside its containing package
 directory, with case-ambiguity refusal. Only the integrated target's currently

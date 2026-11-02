@@ -55,6 +55,8 @@ def distribution_notice(source, notices):
 def bundle_runtime(output, environment):
     """Resolve the real ELF closure, including DXVK's dynamically opened loader."""
     library_dir = output / 'lib'
+    fallback_dir = output / 'runtime'
+    fallback_dir.mkdir(exist_ok=True)
     notices = output / 'notices'
     pending = [output / 'WowNativeClient', *sorted(library_dir.glob('*'))]
     loader_lines = subprocess.check_output(['ldconfig', '-p'], text=True).splitlines()
@@ -77,6 +79,8 @@ def bundle_runtime(output, environment):
             if soname in HOST_LIBRARIES:
                 continue
             destination = library_dir / soname
+            if not destination.exists():
+                destination = fallback_dir / soname
             if destination.exists():
                 if digest(source) != digest(destination):
                     raise RuntimeError('Conflicting runtime SONAME: ' + soname)
@@ -88,6 +92,7 @@ def bundle_runtime(output, environment):
             pending.append(source)
     return dict(host_libraries=sorted(HOST_LIBRARIES), bundled=records,
                 minimum_glibc='2.39', python='3.10+', display='X11 or Xwayland',
+                library_policy='Pinned SDL/DXVK/ASan in lib; host distribution libraries before bundled runtime fallbacks',
                 gpu='Host Vulkan 1.3 capable GPU/ICD; no GPU driver bundled')
 
 
@@ -148,7 +153,7 @@ def desktop_archive(output, root):
     with tempfile.TemporaryDirectory() as temp:
         package = Path(temp) / name
         package.mkdir()
-        for entry in ['WowNativeClient', 'lib', 'notices', 'launch.py', 'run_native_client.py',
+        for entry in ['WowNativeClient', 'lib', 'runtime', 'notices', 'launch.py', 'run_native_client.py',
                       'README-Linux.txt', 'Launch WoW.sh', 'Play WoW.desktop'] + (
                           ['Launch TEST-SERVER.sh', 'Play WoW TEST-SERVER.desktop'] if test_build else []):
             source = output / entry

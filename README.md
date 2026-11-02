@@ -76,6 +76,8 @@ or `Launch WoW.sh`. Some desktops require **Allow Launching** or **Run as a prog
 The tarball retains executable permissions and bundles SDL3, DXVK, the Vulkan
 loader, C++ runtime and linked display libraries. Linux x86-64, glibc 2.39+,
 Python 3.10+, X11/Xwayland and a compatible Vulkan 1.3 GPU driver are required.
+Pinned SDL/DXVK libraries stay private; installed system libraries take precedence
+over bundled distribution-library fallbacks to support the host GPU driver.
 
 The launcher discovers adjacent `Data` independently of its working directory.
 Settings/cache/logs use external XDG directories, separately for each installation

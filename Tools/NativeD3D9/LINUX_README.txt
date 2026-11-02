@@ -12,6 +12,9 @@ Python 3.10+, X11 or Xwayland, and a Vulkan 1.3 GPU driver supporting DXVK 2.7.1
 SDL3, DXVK, the Vulkan loader, C++ runtime and linked display libraries are
 bundled with notices. glibc, GPU drivers/ICDs, Python and a terminal emulator
 come from your distribution. An incompatible/missing GPU remains an error.
+Pinned SDL3/DXVK/sanitizer libraries stay private. Installed system libraries
+take precedence over the bundled distribution-library fallbacks in runtime/,
+so an older bundled Wayland/C++ library cannot mask a newer GPU driver's needs.
 
 Settings: $XDG_CONFIG_HOME/wowdecomp/<profile>/<installation-id>/WTF/Config.wtf
 Cache:    $XDG_CACHE_HOME/wowdecomp/<profile>/<installation-id>/

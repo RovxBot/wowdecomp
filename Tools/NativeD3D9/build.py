@@ -178,7 +178,7 @@ def main():
         if args.client:
             manifest['runtime'] = bundle_runtime(output, environment)
             stage_launchers(output, root, args.test_server_login)
-        environment['LD_LIBRARY_PATH'] = str(output / 'lib')
+        environment['LD_LIBRARY_PATH'] = str(output / 'lib') + (':' + str(output / 'runtime') if args.client else '')
         run('sha1-contracts', [str(output / 'DxvkSha1Check')], cwd=output)
         if args.software_driver:
             # CI's Mesa 25.2.8 leaks bounded vertex-buffer resources. Use a

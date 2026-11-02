@@ -13,7 +13,7 @@ SOURCE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SOURCE / 'Tools/NativeD3D9'))
 from launch import discover_data, read_endpoint, runtime_environment, seed_realmlist, user_file, user_paths
 from package import desktop_entry, linked_libraries, stage_launchers
-from run_native_client import validate_paths
+from run_native_client import dxvk_library_path, validate_paths
 
 
 class LinuxLauncherTests(unittest.TestCase):
@@ -23,6 +23,17 @@ class LinuxLauncherTests(unittest.TestCase):
         with patch('package.subprocess.check_output', return_value='\tlibSDL3.so.0 => not found\n'):
             with self.assertRaisesRegex(RuntimeError, 'Unresolved'):
                 linked_libraries(Path('/client'), {})
+
+    def test_pinned_libraries_precede_host_and_distribution_fallbacks_follow(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.assertEqual(dxvk_library_path(root), str(root / 'lib'))
+            (root / 'runtime').mkdir()
+            paths = dxvk_library_path(root).split(os.pathsep)
+            self.assertEqual(paths[0], str(root / 'lib'))
+            self.assertEqual(paths[-1], str(root / 'runtime'))
+            if os.name != 'nt':
+                self.assertIn('/usr/lib', paths[1:-1])
 
     def test_discovery_beside_data_and_one_directory_below(self):
         with tempfile.TemporaryDirectory() as temp:

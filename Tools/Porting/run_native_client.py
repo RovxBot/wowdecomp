@@ -35,7 +35,8 @@ def verify_artifact(artifact, sanitizers, renderer="opengl"):
             path = (artifact / name).resolve()
             if not path.is_relative_to(artifact.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 raise ValueError('DXVK client package path/hash mismatch: ' + name)
-        for path in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*'))]:
+        for path in [artifact / 'WowNativeClient', *sorted((artifact / 'lib').glob('*')),
+                     *sorted((artifact / 'runtime').glob('*'))]:
             if path.relative_to(artifact).as_posix() not in manifest['files']:
                 raise ValueError('Unrecorded client executable/library')
             contents = path.read_bytes()
@@ -54,6 +55,18 @@ def verify_artifact(artifact, sanitizers, renderer="opengl"):
         if Path(name).name != name or hashlib.sha256((artifact / 'notices' / name).read_bytes()).hexdigest() != digest:
             raise ValueError('Hosted dependency notice hash mismatch')
     return manifest, binary
+
+
+def dxvk_library_path(artifact):
+    # Keep pinned SDL/DXVK/ASan private. Distribution libraries are fallbacks:
+    # an older bundled Wayland/C++ library must not mask a newer host GPU ICD's
+    # dependencies. No driver, loader path override or preload is fabricated.
+    paths = [artifact / 'lib']
+    if (artifact / 'runtime').is_dir():
+        paths += [Path(p) for p in ['/lib/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu',
+                                   '/lib64', '/usr/lib64', '/usr/lib', '/lib'] if Path(p).is_dir()]
+        paths.append(artifact / 'runtime')
+    return os.pathsep.join(str(p) for p in paths)
 
 
 def require_test_server_artifact(manifest, renderer):
@@ -95,7 +108,7 @@ def main():
         runtime.mkdir(parents=True, exist_ok=True)
         for name in ['DXVK_CONFIG', 'DXVK_CONFIG_FILE', 'DXVK_FILTER_DEVICE_NAME', 'DXVK_FILTER_DEVICE_UUID']:
             environment.pop(name, None)
-        environment.update(LD_LIBRARY_PATH=str(args.artifact.resolve() / 'lib'), DXVK_WSI_DRIVER='SDL3',
+        environment.update(LD_LIBRARY_PATH=dxvk_library_path(args.artifact.resolve()), DXVK_WSI_DRIVER='SDL3',
                            DXVK_LOG_PATH=str(runtime), XDG_CACHE_HOME=str(args.cache.resolve()))
     if args.sanitizers:
         environment.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
