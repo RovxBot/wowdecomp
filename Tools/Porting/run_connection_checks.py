@@ -42,6 +42,13 @@ def main():
         query=build/'.cmake/api/v1/query/codemodel-v2';query.parent.mkdir(parents=True,exist_ok=True);query.touch()
         run('cmake-version',['cmake','--version']);run('configure',['cmake','--preset',args.preset,'-B',str(build),
             '-DWOWDECOMP_NATIVE_TEST_SERVER_LOGIN='+('ON' if args.test_server_login else 'OFF')])
+        if args.test_server_login:
+            for name,flag in [('signature-disabled','WOWDECOMP_DISABLE_SIGNATURE_CHECKS'),('windows-client','WOWDECOMP_BUILD_CLIENT')]:
+                refused=subprocess.run(['cmake','--preset',args.preset,'-B',str(build/name),
+                    '-DWOWDECOMP_NATIVE_TEST_SERVER_LOGIN=ON','-D'+flag+'=ON'],capture_output=True,text=True)
+                (evidence/('forbidden-'+name+'.log')).write_text(refused.stdout+refused.stderr)
+                if not refused.returncode or 'Test-server login requires Linux x86-64' not in refused.stderr:
+                    raise RuntimeError('Test-server profile admitted '+name)
         targets=read_targets(build);errors=audit(targets,'connections',target_os,cpu)
         (evidence/'build-graph.json').write_text(json.dumps(dict(errors=errors,targets=targets),indent=2)+'\n')
         if errors:raise RuntimeError('\n'.join(errors))

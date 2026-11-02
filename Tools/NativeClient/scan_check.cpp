@@ -89,6 +89,11 @@ void CheckNativeTestLoginUI() {
             execute("StatusDialogClick(); AcceptTOS(); AcceptEULA(); ScanDLLStart('fixture','')");
             GlueNative::PollScriptServices();
             execute("assert(IsScanDLLFinished()==nil); StatusDialogClick()");
+            execute(R"(
+                assert(not pcall(DefaultServerLogin,'fixture',string.char(0)..'secret'));
+                assert(not pcall(DefaultServerLogin,string.rep('x',256),'secret'));
+                assert(not pcall(DefaultServerLogin,'fixture',''));
+            )");
             // The actual original login wrapper, not a virtual fixture callback.
             execute("DefaultServerLogin('fixture','authored-password'); DefaultServerLogin('duplicate','duplicate'); assert(IsScanDLLFinished()==nil)");
         },[&] {

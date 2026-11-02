@@ -19,7 +19,7 @@ is fetched, file written, Windows DLL loaded or scan worker created. Neither
 `ScanDLLContinueAnyway` automatically; native continuation leaves the scan failed
 and allows that handler to show the controls. The native owner then presents an
 unavailable-service dialog through original `OPEN_STATUS_DIALOG`. Acknowledging
-it closes only that dialog. `DefaultServerLogin` validates the original API and
+it closes only that dialog. In normal builds, `DefaultServerLogin` validates the original API and
 refuses every request visibly, including calls before scan start/completion or
 after repeated continuation. Its dialog is queued to outer idle so input callbacks
 can finish and the original login action can clear its password field. It never retains or forwards credentials. This
@@ -29,6 +29,10 @@ delivery is rejected. This removes a fatal UI callback while keeping sign-in
 unavailable; it implements no successful scanner or authentication.
 The [integrity contract](INTEGRITY.md) distinguishes these gates and the unresolved
 native requirement in [#131](https://github.com/RovxBot/wowdecomp/issues/131).
+The separately built [isolated test-server profile](AUTHENTICATION.md#isolated-test-server-profile)
+requires explicit runtime activation, retains failed/unavailable scan state and
+connects the original login action only through auth/realm-list completion. It
+does not enable character/world callers or change normal release behavior.
 
 Original deferred EditBox `OnTextChanged` notifications may change qualified
 existing control state and hint visibility during update. Their scope pins

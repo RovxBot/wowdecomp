@@ -222,6 +222,14 @@ def main():
         run('vulkan-driver', display + ['vulkaninfo', '--summary'])
         run('contracts', display + [str(output / 'NativeD3D9Check'), '--snapshot', str(output / 'scene.ppm')], cwd=output)
         if args.client:
+            # The normal release executable must reject the activation flag
+            # before opening data, a window or any network connection.
+            if not args.test_server_login:
+                refusal = subprocess.run([str(output / 'WowNativeClient'), '--test-server-login'],
+                    cwd=output, env=environment, text=True, capture_output=True)
+                (output / 'normal-login-profile-refusal.log').write_text(refusal.stdout + refusal.stderr)
+                if refusal.returncode != 1 or 'Test-server login is unavailable in this normal build' not in refusal.stderr:
+                    raise RuntimeError('Normal client admitted the test-server activation flag')
             run('original-gx-client-contracts', display + [str(output / 'NativeD3d9ClientCheck')], cwd=output)
         run('toolchain', ['sh', '-c', 'clang --version && cmake --version && meson --version && glslangValidator --version'])
         manifest['status'] = 'build-and-contracts-passed'

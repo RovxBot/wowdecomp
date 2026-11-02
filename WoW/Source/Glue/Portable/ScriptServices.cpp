@@ -60,7 +60,7 @@ uint8_t clientExpansionLevel = 0;
 // ScanDLLGlue.cpp's Windows DLL download/signature/ordinal-call pipeline is
 // unavailable on native Linux. Original AccountLogin's SCANDLL_ERROR handler
 // calls ContinueAnyway before showing the controls. Permit that presentation
-// transition, while retaining the failed scan and refusing every login request.
+// transition while retaining the failed scan. Normal builds refuse every login.
 enum class ScanState { NotStarted, ErrorPending, Unavailable };
 ScanState scanState = ScanState::NotStarted;
 bool scanDispatching = false;
@@ -210,9 +210,8 @@ static int32_t Script_IsScanDLLFinished(lua_State* L) {
     return 1;
 }
 // Original API 0x004DC260 / CGlueMgr::LoginServerLogin 0x004D8A30 guards
-// authentication separately from displaying the login UI. No transport owner
-// exists in this target, and no native scan can grant approval. Do not read,
-// retain, log or forward credentials while either prerequisite is unavailable.
+// authentication separately from displaying the login UI. Normal builds refuse
+// credential bytes; the separately compiled test profile never grants scan approval.
 static int32_t Script_DefaultServerLogin(lua_State* L) {
     RequireServices(L);
     if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
@@ -241,8 +240,8 @@ static int32_t Script_DefaultServerLogin(lua_State* L) {
         ? ScanNotice() : "Sign-in is unavailable until the original agreements are accepted.";
     return 0;
 }
-// Only acknowledge this owner's unavailable-service dialog. There is no login
-// connection to cancel/clean up (original StatusDialogClick 0x004D98D0).
+// Original StatusDialogClick 0x004D98D0: acknowledge this owner's dialog or queue
+// test-connection cancellation for outer idle, outside input callbacks.
 static int32_t Script_StatusDialogClick(lua_State* L) {
     RequireServices(L);
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)

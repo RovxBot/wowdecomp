@@ -1,0 +1,38 @@
+"""Release profile/package policies; no client or dependency compilation."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+import test_native_d3d9_client as packages
+
+ROOT = Path(__file__).resolve().parents[2]
+
+class TestServerLoginPolicyTests(unittest.TestCase):
+    def test_all_normal_presets_exclude_test_allowance(self):
+        for preset in json.loads((ROOT/'CMakePresets.json').read_text())['configurePresets']:
+            self.assertNotIn('WOWDECOMP_NATIVE_TEST_SERVER_LOGIN', preset.get('cacheVariables',{}))
+
+    def test_launcher_refuses_profile_with_normal_artifact(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            packages.D3d9ClientPackageTests().package(root)
+            result=subprocess.run([sys.executable,str(ROOT/'Tools/Porting/run_native_client.py'),
+                '--artifact',str(root),'--data',str(root/'game/Data'),'--settings',str(root/'settings'),
+                '--cache',str(root/'cache'),'--output',str(root/'report.json'),
+                '--renderer','dxvk','--test-server-login'],capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertIn('requires a signature-enabled TEST-SERVER DXVK artifact',result.stderr)
+            self.assertFalse((root/'report.json').exists())
+
+    def test_test_build_drivers_refuse_local_compilation(self):
+        env=os.environ.copy();env.pop('GITHUB_ACTIONS',None)
+        for script,args in [('Tools/NativeD3D9/build.py',['--client','--test-server-login']),
+                ('Tools/Porting/run_connection_checks.py',['--preset','linux-connections','--test-server-login'])]:
+            result=subprocess.run([sys.executable,str(ROOT/script),*args],env=env,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertIn('compilation must run in GitHub Actions',result.stderr)
+
+if __name__=='__main__': unittest.main()
