@@ -17,6 +17,10 @@ add_library(WowNativeNet STATIC
     ../../../WoW/Source/WowSvcs/WowSvcsClient/ChecksumExecutables.cpp
     ../../../WoW/Source/Net/NetClient/NetClient.cpp)
 target_compile_definitions(WowNativeNet PUBLIC WOWDECOMP_NATIVE_CONNECTION=1)
+if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    target_sources(WowNativeNet PRIVATE ../../../WoW/Source/WowServices/Portable/TestServerLogin.cpp)
+    target_compile_definitions(WowNativeNet PUBLIC WOWDECOMP_NATIVE_TEST_SERVER_LOGIN=1)
+endif()
 if(NOT TARGET WowNativeFiles)
     message(FATAL_ERROR "Native version checksums require the native file services.")
 endif()

@@ -204,6 +204,10 @@ def audit(targets, mode, target_os, cpu):
                 ['WoW/Source/Net/NetClient/NetClient.cpp'],
                 'NativeConnectionCheck': ['Tools/NativeNet/connections.cpp'],
                 'NativeSessionCheck': ['Tools/NativeNet/sessions.cpp']}[target['name']]
+            if target['name'] == 'WowNativeNet' and 'WOWDECOMP_NATIVE_TEST_SERVER_LOGIN=1' in definitions:
+                if target_os != 'LINUX' or cpu != 'X86_64':
+                    errors.append('Test-server login selected outside Linux x86-64')
+                allowed = allowed + ['WoW/Source/WowServices/Portable/TestServerLogin.cpp']
             if len(sources) != len(allowed) or any(not any(s.endswith(p) for s in sources) for p in allowed):
                 errors.append(f"{target['name']}: unexpected native connection sources: {sources}")
             if not {'WOWDECOMP_PORTABLE_RUNTIME=1', 'WOWDECOMP_NATIVE_CONNECTION=1'} <= definitions:

@@ -20,7 +20,10 @@ def main():
     parser.add_argument('--client', action='store_true', help='Build the integrated original D3D9 client and its focused contracts')
     parser.add_argument('--sanitizers', action='store_true')
     parser.add_argument('--software-driver', action='store_true', help='Build the pinned CI-only lavapipe driver')
+    parser.add_argument('--test-server-login', action='store_true', help='TEST ONLY: include explicitly activated native test-server login')
     args = parser.parse_args()
+    if args.test_server_login and not args.client:
+        parser.error('--test-server-login requires --client')
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('All client/dependency compilation must run in GitHub Actions.')
     root = Path(__file__).resolve().parents[2]
@@ -45,6 +48,7 @@ def main():
         preset=mode, target_os='LINUX', target_cpu='X86_64', backend='DXVK_NATIVE_SDL3',
         dependencies=pins, status='building',
         signatures='required',
+        test_server_login=args.test_server_login,
         scope=('integrated original D3D9 client; authored contracts, original-data evidence separate' if args.client else
                'authored standalone ABI/WSI fixture; no original Gx/data/login/gameplay qualification'))
 
@@ -152,7 +156,8 @@ def main():
             shutil.copy2(patch, notices / patch.name)
         if args.client:
             run('client-configure', ['cmake', '--preset', mode, '-B', str(work / 'client'),
-                '-DCMAKE_C_FLAGS=' + flags, '-DCMAKE_CXX_FLAGS=' + flags])
+                '-DCMAKE_C_FLAGS=' + flags, '-DCMAKE_CXX_FLAGS=' + flags,
+                '-DWOWDECOMP_NATIVE_TEST_SERVER_LOGIN=' + ('ON' if args.test_server_login else 'OFF')])
             run('client-compile', ['cmake', '--build', str(work / 'client'), '--target',
                 'WowNativeClient', 'NativeD3d9ClientCheck', '--parallel', '4'])
             for name in ['WowNativeClient', 'NativeD3d9ClientCheck']:

@@ -28,6 +28,9 @@ void CheckNativeSessions(void (*pump)());
 
 using Bytes = std::vector<uint8_t>;
 void CheckNativeScanServices();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+void CheckNativeTestLoginUI();
+#endif
 namespace {
 void Require(bool yes, const char* message) { if (!yes) throw std::runtime_error(message); }
 template<class F> void Reject(F operation) { bool rejected = false; try { operation(); } catch (const std::exception&) { rejected = true; } Require(rejected, "Expected an explicit failure"); }
@@ -261,6 +264,9 @@ int main() {
         catch (...) { EventDestroy(); throw; }
         EventDestroy();
         CheckNativeScanServices();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        CheckNativeTestLoginUI();
+#endif
         using Services::Native::ReadStatus;
         Services::Native::ReadResult read;
         read.status = ReadStatus::Failed; read.error = "MPQ member not found: SHADERS\\PIXEL\\ABSENT.BLS";

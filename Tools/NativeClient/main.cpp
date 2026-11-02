@@ -183,7 +183,7 @@ struct LoopHandlers {
         EventUnregister(EVENT_ID_PAINT, Paint);
     }
 };
-void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden, const std::string& snapshot) {
+void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool hidden, const std::string& snapshot, bool testServerLogin) {
     Source source(paths);
     LegacyFiles modelFiles(source.queue, source.packages);
     FrameScript::Native::Runtime vm([&](FrameScript::Native::SourceKind kind, const std::string& path, Bytes& bytes) {
@@ -217,7 +217,7 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
     });
     Frame::Native::Scripts scripts;
     Frame::Native::LoginWidgets widgets;
-    GlueNative::InitializeScriptServices(source.packages->ExpansionLevel());
+    GlueNative::InitializeScriptServices(source.packages->ExpansionLevel(), testServerLogin);
     GlueScriptEventsRegisterFunctions();
     struct GlueScripts {
         ~GlueScripts() {
@@ -264,9 +264,17 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
 int main(int argc, char** argv) {
     try {
         std::string data, settings, cache, snapshot; uint32_t frames = 0; bool hidden = false;
+        bool testServerLogin = false;
         for (int i = 1; i < argc; ++i) {
             std::string option = argv[i];
             if (option == "--hidden") { hidden = true; continue; }
+            if (option == "--test-server-login") {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+                testServerLogin = true; continue;
+#else
+                throw std::invalid_argument("Test-server login is unavailable in this normal build");
+#endif
+            }
             if (i + 1 == argc) throw std::invalid_argument("Missing option value");
             std::string value = argv[++i];
 #if defined(WOWDECOMP_NATIVE_D3D9)
@@ -299,7 +307,7 @@ int main(int argc, char** argv) {
         if (SDL_setenv_unsafe("DXVK_WSI_DRIVER", "SDL3", 1)) throw std::runtime_error("Cannot select DXVK SDL3 WSI");
 #endif
         Runtime runtime;
-        Run(paths, frames, hidden, snapshot);
+        Run(paths, frames, hidden, snapshot, testServerLogin);
         if (OsLiveThreadCount()) throw std::runtime_error("Native startup left workers alive");
         std::cout << "startup-shutdown=complete workers=0" << std::endl;
         return 0;

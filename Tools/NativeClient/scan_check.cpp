@@ -6,6 +6,7 @@
 #include "Engine/Source/FrameXML/Portable/Runtime.h"
 #include "Engine/Source/Frame/Portable/Runtime.h"
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
+#include "Engine/Source/ConsoleBase/Types.h"
 #include "Engine/Source/ConsoleBase/ConsoleCommand.h"
 #include "WoW/Source/Glue/GlueMgr.h"
 #include "WoW/Source/Glue/CGlueMgr.h"
@@ -16,10 +17,108 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "Engine/Source/Event/Portable/Loop.h"
+#include "Tools/NativeNet/test_server_peer.h"
+#endif
 
 namespace {
 void Check(bool good, const char* message) { if (!good) throw std::runtime_error(message); }
 }
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+void CheckNativeTestLoginUI() {
+    const auto directory = std::filesystem::temp_directory_path() /
+        ("wow-test-login-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    struct Remove { std::filesystem::path path; ~Remove() { std::filesystem::remove_all(path); } } remove{directory};
+    FrameScript::Native::Runtime vm([](FrameScript::Native::SourceKind, const std::string&, std::vector<uint8_t>&) { return false; });
+    FrameXML::Native::Runtime xml;
+    Frame::Native::Runtime layout;
+    const auto config = (directory / "Config.wtf").string();
+    { std::ofstream file(config); }
+    ConsoleInitializeClientCommand(); CVar::Initialize(config.c_str());
+    struct Console { ~Console() { CVar::Destroy(); ConsoleCommandDestroy(); } } console;
+    EventInitialize(1,0);
+    struct Events { ~Events() { EventDestroy(); } } events;
+    const auto execute = [](const char* code) { FrameScript_Execute(code,"authored test-server UI",nullptr); };
+    auto* endpoint = CVar::Register("realmlist", "Authored endpoint", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
+    bool rejected=false;
+    try { GlueNative::InitializeScriptServices(2,true); } catch (const std::invalid_argument&) { rejected=true; }
+    Check(rejected,"Test profile accepted missing external endpoint");
+    bool scriptsOpen=false;
+    struct Scripts { bool& open; ~Scripts() { if (open) GlueScriptEventsUnregisterFunctions(); } } scripts{scriptsOpen};
+    GlueScriptEventsInitialize(); FrameScript_CreateEvents(g_glueScriptEvents,NUM_GLUE_SCRIPT_EVENTS);
+    const int meta=FrameScript_Object::CreateScriptMetaTable(s_context,+[](lua_State*) {});
+    struct Meta { int ref; ~Meta() { luaL_unref(s_context,LUA_REGISTRYINDEX,ref); } } release{meta};
+    struct Listener final : FrameScript_Object {
+        int meta;
+        explicit Listener(int value) : meta(value) { RegisterScriptObject("TestLoginListener"); }
+        const char* GetName() override { return "TestLoginListener"; }
+        int32_t GetScriptMetaTable() override { return meta; }
+        bool IsA(int32_t) override { return false; }
+    } listener(meta);
+    listener.m_onEvent.m_luaRef=FrameScript_CompileFunction("*OnEvent","return function(self,event,...) %s end",R"(
+        assert(IsScanDLLFinished()==nil);
+        if event=='SCANDLL_ERROR' then ScanDLLContinueAnyway();
+        elseif event=='SCANDLL_FINISHED' then scanSuccess=scanSuccess+1;
+        elseif event=='OPEN_STATUS_DIALOG' then
+            local kind,reason=...;
+            assert(not string.find(reason,'authored%-password') and not string.find(reason,'fixture'));
+            if kind=='OKAY' and (string.find(reason,'advertised realm') or string.find(reason,'sign%-in failed')
+                or string.find(reason,'realm list failed') or string.find(reason,'unsupported')) then
+                testTerminal=reason; testDone=true;
+            end;
+        elseif event~='CLOSE_STATUS_DIALOG' then error('Unexpected test login event') end;
+    )",nullptr);
+    Check(listener.m_onEvent.m_luaRef>0,"Test login listener compilation failed");
+    for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG"})
+        Check(listener.RegisterScriptEvent(event),"Test login event registration failed");
+    for (int scenario=0; scenario<5; ++scenario) {
+        const auto errors=FrameScript::Native::ScriptErrorCount();
+        CheckNativeTestServerExchange(+[] { EventNative::Tick(0,0); GlueNative::PollScriptServices(); },
+        [&](const char* address) {
+            endpoint->Set(address,true,false,false,true);
+            GlueNative::InitializeScriptServices(2,true); GlueScriptEventsRegisterFunctions();
+            scriptsOpen=true;
+            // Only authored fixtures accept agreements here; product startup never does.
+            execute(R"(
+                testDone=false; testTerminal=''; scanSuccess=0;
+                DefaultServerLogin('fixture','authored-password');
+            )");
+            GlueNative::PollScriptServices();
+            execute("StatusDialogClick(); AcceptTOS(); AcceptEULA(); ScanDLLStart('fixture','')");
+            GlueNative::PollScriptServices();
+            execute("assert(IsScanDLLFinished()==nil); StatusDialogClick()");
+            // The actual original login wrapper, not a virtual fixture callback.
+            execute("DefaultServerLogin('fixture','authored-password'); DefaultServerLogin('duplicate','duplicate'); assert(IsScanDLLFinished()==nil)");
+        },[&] {
+            lua_getglobal(s_context,"testDone"); const bool done=lua_toboolean(s_context,-1); lua_pop(s_context,1); return done;
+        },scenario);
+        lua_getglobal(s_context,"testTerminal");
+        const std::string terminal=lua_tostring(s_context,-1); lua_pop(s_context,1);
+        const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported"};
+        Check(terminal.find(expected[scenario])!=std::string::npos,"UI hid or changed authentication outcome");
+        execute("assert(IsScanDLLFinished()==nil and scanSuccess==0); StatusDialogClick()");
+        GlueNative::PollScriptServices();
+        Check(!CGlueMgr::m_authenticated,"Realm-only test profile entered character/world state");
+        Check(FrameScript::Native::ScriptErrorCount()==errors,"Test-server UI Lua contract failed");
+        // Cancel both a started connection and a queued credential before close.
+        execute("DefaultServerLogin('fixture','authored-password')");
+        GlueNative::PollScriptServices();
+        execute("StatusDialogClick()"); GlueNative::PollScriptServices();
+        execute("DefaultServerLogin('fixture','authored-password')");
+        GlueScriptEventsUnregisterFunctions();
+        scriptsOpen=false;
+        EventNative::Tick(0,0);
+    }
+    // Recreating Glue never retains the runtime allowance.
+    GlueNative::InitializeScriptServices(2); GlueScriptEventsRegisterFunctions();
+    scriptsOpen=true;
+    execute("DefaultServerLogin('fixture','authored-password'); assert(IsScanDLLFinished()==nil)");
+    GlueNative::PollScriptServices(); GlueScriptEventsUnregisterFunctions(); scriptsOpen=false;
+    std::cout << "native-test-server-original-login-ui-proof-realms-cancel-close-default-recovery=passed\n";
+}
+#endif
 void CheckNativeScanServices() {
     const auto directory = std::filesystem::temp_directory_path() /
         ("wow-native-scan-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));

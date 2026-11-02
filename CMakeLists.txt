@@ -32,6 +32,16 @@ option(WOWDECOMP_BUILD_NATIVE_XML "Build original XML trees and interface signat
 option(WOWDECOMP_BUILD_NATIVE_LAYOUT "Build original Frame anchors/layout (no Frame factories/login)" OFF)
 option(WOWDECOMP_BUILD_NATIVE_FRAME_FONTS "Build original Frame font factories (no regions/login)" OFF)
 option(WOWDECOMP_BUILD_NATIVE_CLIENT "Build the opt-in integrated Linux client startup" OFF)
+option(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN "TEST ONLY: Linux login without available executable integrity/ScanDLL; never a release default" OFF)
+if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if(NOT WOWDECOMP_OS STREQUAL "LINUX" OR NOT WOWDECOMP_CPU STREQUAL "X86_64"
+       OR WOWDECOMP_BUILD_CLIENT OR WOWDECOMP_DISABLE_SIGNATURE_CHECKS
+       OR NOT (WOWDECOMP_BUILD_NATIVE_NET OR WOWDECOMP_BUILD_NATIVE_CLIENT)
+       OR (WOWDECOMP_BUILD_NATIVE_CLIENT AND NOT WOWDECOMP_BUILD_NATIVE_D3D9))
+        message(FATAL_ERROR "Test-server login requires Linux x86-64 native connections, signatures, no Windows client, and D3D9 for integrated startup.")
+    endif()
+    message(WARNING "TEST SERVER BUILD: native executable integrity, ScanDLL and Warden are unavailable. Requires external StrictVersionCheck=0 and Warden.Enabled=0.")
+endif()
 if(WOWDECOMP_BUILD_NATIVE_GL AND (NOT WOWDECOMP_OS STREQUAL "LINUX" OR NOT WOWDECOMP_BUILD_NATIVE_WINDOW))
     message(FATAL_ERROR "Native Gx OpenGL currently requires the Linux native window target.")
 endif()

@@ -13,15 +13,20 @@ from audit_build_graph import audit, read_targets
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--preset',choices=['linux-connections','linux-connections-asan','macos-arm64-connections'],required=True)
+    parser.add_argument('--test-server-login',action='store_true')
     args=parser.parse_args()
+    if args.test_server_login and args.preset=='macos-arm64-connections':
+        parser.error('Test-server login is Linux x86-64 only')
     if os.environ.get('GITHUB_ACTIONS')!='true':
         raise SystemExit('Client/dependency compilation must run in GitHub Actions.')
     root=Path(__file__).resolve().parents[2];os.chdir(root)
-    build=root/'build'/args.preset;evidence=root/'artifacts'/args.preset;evidence.mkdir(parents=True,exist_ok=True)
+    mode=args.preset+('-test-server' if args.test_server_login else '')
+    build=root/'build'/mode;evidence=root/'artifacts'/mode;evidence.mkdir(parents=True,exist_ok=True)
     target_os,cpu={'linux-connections':('LINUX','X86_64'),'linux-connections-asan':('LINUX','X86_64'),
         'macos-arm64-connections':('MACOS','ARM64')}[args.preset]
     manifest=dict(schema_version=1,scope='Original WowConnection/Grunt/SRP/realm/NetClient loopback contracts; no live authentication/gameplay',
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),preset=args.preset,
+        test_server_login=args.test_server_login,
         workflow_run=f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         target_os=target_os,target_cpu=cpu,host_machine=platform.machine(),runner_arch=os.environ.get('RUNNER_ARCH'),
         runner_image=os.environ.get('ImageVersion'),status='preflight')
@@ -35,7 +40,8 @@ def main():
         if cpu=='ARM64' and (platform.machine()!='arm64' or os.environ.get('RUNNER_ARCH')!='ARM64'):
             raise RuntimeError('Connection qualification requires an actual ARM64 macOS runner.')
         query=build/'.cmake/api/v1/query/codemodel-v2';query.parent.mkdir(parents=True,exist_ok=True);query.touch()
-        run('cmake-version',['cmake','--version']);run('configure',['cmake','--preset',args.preset])
+        run('cmake-version',['cmake','--version']);run('configure',['cmake','--preset',args.preset,'-B',str(build),
+            '-DWOWDECOMP_NATIVE_TEST_SERVER_LOGIN='+('ON' if args.test_server_login else 'OFF')])
         targets=read_targets(build);errors=audit(targets,'connections',target_os,cpu)
         (evidence/'build-graph.json').write_text(json.dumps(dict(errors=errors,targets=targets),indent=2)+'\n')
         if errors:raise RuntimeError('\n'.join(errors))

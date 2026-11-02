@@ -10,6 +10,10 @@
 #include "Engine/Source/Os/OsVersionHash.h"
 #include "WoW/Source/WowServices/HMAC.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ChecksumExecutables.h"
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "WoW/Source/WowServices/Portable/TestServerLogin.h"
+#include "test_server_peer.h"
+#endif
 #include <arpa/inet.h>
 #include <chrono>
 #include <cstring>
@@ -681,6 +685,93 @@ void FailurePaths(void (*pump)()) {
     }
 }
 } // namespace
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+void CheckNativeTestServerExchange(void (*pump)(),
+    const std::function<void(const char*)>& begin,
+    const std::function<bool()>& finished, int scenario) {
+    Peer peer;
+    begin(peer.Address().c_str());
+    Until(pump, [&] { peer.Accept(); return peer.stream.n >= 0; }, "Test profile did not connect");
+    auto hello = Receive(peer, pump, 41);
+    Require(hello[0] == 0 && hello[1] == 8 && hello[2] == 37 && hello[3] == 0 &&
+        Bytes(hello.begin()+4, hello.begin()+25) == Hex("576f5700030305343034367800786e4c0053556e65") &&
+        hello[33] == 7 && std::string(hello.begin()+34, hello.end()) == "FIXTURE",
+        "Test profile did not serialize truthful Linux/x64 12340/enUS identity");
+    auto challenge = Challenge();
+    if (scenario == 4) { challenge.back() = 4; challenge.push_back(1); }
+    Fragment(peer, pump, Bytes(challenge.begin(), challenge.end()-1));
+    Require(peer.Read().empty() && !finished(), "Incomplete challenge produced proof/result");
+    peer.Put(Bytes{challenge.back()});
+    if (scenario == 4) {
+        Until(pump, finished, "Unsupported security did not stop sign-in");
+        Require(peer.Read().empty(), "Unsupported security emitted a proof");
+        return;
+    }
+    const auto proof = Receive(peer, pump, 75);
+    Bytes a(proof.begin()+1, proof.begin()+33), key = ServerSession(a), expected = ClientProof(a,key);
+    Require(proof[0] == 1 && proof[73] == 0 && proof[74] == 0 &&
+        !memcmp(proof.data()+33, expected.data(),20), "Test profile SRP client proof invalid");
+    Bytes unavailable = a;
+    unavailable.resize(52, 0);
+    Require(!memcmp(proof.data()+53, Hash(unavailable).data(),20),
+        "Test profile unavailable-version placeholder changed");
+    Require(!finished(), "Login completed before verifying the server proof");
+    if (scenario == 2) {
+        peer.Put(Bytes{1,9}); // GRUNT_RESULT_BAD_VERSION; never treated as approval
+        Until(pump, finished, "Server version refusal was ignored");
+        Require(peer.Read().empty(), "Version refusal requested realms");
+        return;
+    }
+    Bytes m2 = a; Append(m2, expected); Append(m2,key); m2=Hash(m2);
+    if (scenario == 1) m2[0] ^= 1;
+    CDataStore reply;
+    reply.Put(uint8_t(1)).Put(uint8_t(0)).PutData(m2.data(),20);
+    reply.Put(uint32_t(8)).Put(uint32_t(0)).Put(uint16_t(0));
+    auto wire=Wire(reply);
+    Fragment(peer,pump,Bytes(wire.begin(),wire.end()-1));
+    Require(!finished() && peer.Read().empty(), "Incomplete server proof released a session");
+    peer.Put(Bytes{wire.back()});
+    if (scenario == 1) {
+        Until(pump,finished,"Bad server proof was ignored");
+        Require(peer.Read().empty(), "Bad server proof requested realms");
+        return;
+    }
+    Require(Receive(peer,pump,5)==Bytes({0x10,0,0,0,0}), "Original realm request changed");
+    peer.Put(RealmPacket(scenario == 3));
+    Until(pump,finished,"Test profile realm completion/failure missing");
+}
+namespace {
+void TestServerProfiles(void (*pump)()) {
+    for (const char* invalid : {"", "host:", ":3724", "host:0", "host:65536", "host:999999999999", "http://host", "host:abc", "host name", "host:1:2"}) {
+        bool rejected=false;
+        try { NativeTestServer::ValidateEndpoint(invalid); } catch (const std::invalid_argument&) { rejected=true; }
+        Require(rejected,"Invalid external test endpoint accepted");
+    }
+    for (int scenario=0; scenario<4; ++scenario) {
+        Response response;
+        NativeTestServer::Login login(0x656e5553);
+        login.Init(&response);
+        response.onStatus=[&](LOGIN_STATE state) {
+            if (state==LOGIN_STATE_CHECKINGVERSIONS) login.ProveUnavailableVersion();
+            if (state==LOGIN_STATE_AUTHENTICATED) login.GetRealmList();
+        };
+        CheckNativeTestServerExchange(pump,[&](const char* endpoint) {
+            NativeTestServer::ValidateEndpoint(endpoint);
+            login.SetLogonCreds("fixture","authored-password"); login.Logon(endpoint,nullptr);
+        },[&] { return response.realms || (!response.states.empty() &&
+            (response.states.back()==LOGIN_STATE_FAILED || response.states.back()==LOGIN_STATE_DISCONNECTED)); },scenario);
+        Require(!login.m_password,"Test profile retained pending password");
+        if (!scenario) {
+            Require(response.realms==1 && response.m_realmList.Count()==2 &&
+                !strcmp(response.m_realmList[0].m_realmAddress,"127.0.0.1:12345") &&
+                response.m_realmList[1].m_versionBuild==12340,
+                "Test profile lost original advertised realm data");
+        } else Require(!response.realms,"Failed test profile authenticated realms");
+    }
+    std::cout << "native-test-server-linux-identity-srp-placeholder-realms-failures=passed\n";
+}
+}
+#endif
 void CheckNativeSessions(void (*pump)()) {
     Vectors();
     VersionChecksums();
@@ -690,6 +781,9 @@ void CheckNativeSessions(void (*pump)()) {
     Authenticate(pump, false, true);
     WorldQueue(pump, handoff);
     FailurePaths(pump);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    TestServerProfiles(pump);
+#endif
 }
 #ifndef WOWDECOMP_SESSION_FIXTURE_EMBEDDED
 int main() {

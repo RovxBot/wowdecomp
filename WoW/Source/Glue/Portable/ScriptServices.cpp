@@ -19,9 +19,15 @@
 #include "Engine/Source/Services/AsyncFile.h"
 #include "GameVersion.h"
 #include <cstdio>
+#include <cstring>
 #include <deque>
 #include <string>
 #include <stdexcept>
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "WoW/Source/WowServices/Portable/TestServerLogin.h"
+#include "WoW/Source/WowServices/LoginResponse.h"
+#include <memory>
+#endif
 // Native selection of original CGlueMgr activation state. Warning text is owned
 // until acknowledgement/close, rather than borrowing collectable Lua strings.
 char CGlueMgr::m_currentScreen[64];
@@ -63,6 +69,109 @@ const char* pendingDialog = nullptr;
 constexpr const char* scanUnavailable =
     "Sign-in is unavailable: native platform identity, executable version proof and integrity "
     "services are unsupported. Sign-in has not been approved.";
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+bool testServerProfile = false;
+std::string testEndpoint;
+constexpr const char* testCapabilities =
+    "TEST SERVER ONLY: Linux x86-64 identity. ScanDLL, executable integrity and Warden "
+    "are unavailable; no successful checks are claimed. Requires the isolated server's "
+    "StrictVersionCheck=0 and Warden.Enabled=0. Sign-in stops after the realm list.";
+struct TestResponse final : LoginResponse {
+    LOGIN_STATE state = LOGIN_STATE_INITIALIZED;
+    LOGIN_RESULT result = LOGIN_OK;
+    std::string resultName;
+    bool changed = false, realms = false;
+    uint32_t realmResult = 0;
+    const char* GetLoginServer() override { return testEndpoint.c_str(); }
+    int32_t GetLoginServerType() override { return 0; }
+    void JoinRealmResult(uint32_t, int32_t, int32_t, int32_t, int32_t) override {
+        throw std::logic_error("Native test profile cannot join a world session");
+    }
+    void LoginServerStatus(LOGIN_STATE value, LOGIN_RESULT status, const char*, const char*,
+                           const char* name, uint16_t) override {
+        if (state == LOGIN_STATE_FAILED && value == LOGIN_STATE_DISCONNECTED) return;
+        state = value; result = status; resultName = name; changed = true;
+    }
+    void RealmEnumCallback(uint32_t value) override { realms = true; realmResult = value; }
+};
+// Response outlives login. Network callbacks only record state; UI delivery and
+// cancellation happen on outer idle, after the original password field clears.
+TestResponse testResponse;
+std::unique_ptr<NativeTestServer::Login> testLogin;
+bool testStartPending = false, testCancelPending = false, testRealmRequested = false;
+bool testDialog = false;
+void ResetTestLogin() {
+    testLogin.reset();
+    testResponse.m_realmList.Clear();
+    testResponse.state = LOGIN_STATE_INITIALIZED;
+    testResponse.result = LOGIN_OK;
+    testResponse.resultName.clear();
+    testResponse.changed = testResponse.realms = false;
+    testStartPending = testCancelPending = testRealmRequested = false;
+}
+void TestDialog(const char* kind, const char* message) {
+    testDialog = true;
+    FrameScript_SignalEvent(GLUE_EVENT_OPEN_STATUS_DIALOG, "%s%s", kind, message);
+}
+void PollTestLogin() {
+    if (testCancelPending) {
+        ResetTestLogin(); testDialog = false;
+        FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
+        return;
+    }
+    if (!testLogin) return;
+    if (testStartPending) {
+        testStartPending = false;
+        testLogin->Logon(testEndpoint.c_str(), nullptr);
+    }
+    if (testResponse.realms) {
+        const bool valid = !testResponse.realmResult;
+        const auto count = testResponse.m_realmList.Count();
+        // Auth server proof/realm list only; never set m_authenticated or enter
+        // original character/world callers which still require #98/#99.
+        ResetTestLogin();
+        std::string message = valid
+            ? "TEST SERVER: SRP server proof verified; received " + std::to_string(count) +
+              " advertised realm(s). Realm selection/world entry is unavailable. No integrity checks passed."
+            : "TEST SERVER: realm list failed. No world session was started.";
+        TestDialog("OKAY", message.c_str());
+        return;
+    }
+    if (!testResponse.changed) return;
+    testResponse.changed = false;
+    switch (testResponse.state) {
+    case LOGIN_STATE_CHECKINGVERSIONS:
+        testLogin->ProveUnavailableVersion();
+        TestDialog("CANCEL", "TEST SERVER: executable checksum unavailable; sending the documented placeholder. Verifying SRP server proof.");
+        return;
+    case LOGIN_STATE_AUTHENTICATED:
+        if (!testRealmRequested) {
+            testRealmRequested = true; testLogin->GetRealmList();
+            TestDialog("CANCEL", "TEST SERVER: SRP server proof verified. Retrieving advertised realms.");
+        }
+        return;
+    case LOGIN_STATE_PIN: case LOGIN_STATE_MATRIX: case LOGIN_STATE_TOKEN:
+    case LOGIN_STATE_DOWNLOADFILE: case LOGIN_STATE_SURVEY:
+        ResetTestLogin();
+        TestDialog("OKAY", "TEST SERVER: requested security challenge or download is unsupported. Sign-in stopped.");
+        return;
+    case LOGIN_STATE_FAILED: case LOGIN_STATE_DISCONNECTED: {
+        const std::string name = testResponse.resultName;
+        ResetTestLogin();
+        TestDialog("OKAY", ("TEST SERVER: sign-in failed (" + name + "). No world session was started.").c_str());
+        return;
+    }
+    default:
+        TestDialog("CANCEL", "TEST SERVER: connecting/authenticating with Linux identity. Integrity services are unavailable.");
+    }
+}
+#endif
+const char* ScanNotice() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile) return testCapabilities;
+#endif
+    return scanUnavailable;
+}
 bool ServicesOpen() {
     return registered && CVar::m_initialized &&
         CVar::LookupRegistered("accountName") == g_accountNameVar &&
@@ -108,16 +217,37 @@ static int32_t Script_DefaultServerLogin(lua_State* L) {
     RequireServices(L);
     if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
         return luaL_error(L, "Usage: DefaultServerLogin(\"accountName\", \"password\")");
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile && CGlueMgr::m_acceptedTOS && CGlueMgr::m_acceptedEULA &&
+        scanState == ScanState::Unavailable && !unavailableDialog && !scanDispatching) {
+        if (testLogin || testDialog) return 0;
+        size_t accountLength = 0, passwordLength = 0;
+        const char* account = lua_tolstring(L, 1, &accountLength);
+        const char* password = lua_tolstring(L, 2, &passwordLength);
+        if (!accountLength || accountLength > 255 || !passwordLength || passwordLength > 255 ||
+            std::memchr(account, 0, accountLength) || std::memchr(password, 0, passwordLength))
+            return luaL_error(L, "Test-server credentials require nonempty bounded strings without embedded NULs");
+        // Retail 12340/enUS is this integrated target's authenticated data locale.
+        testLogin = std::make_unique<NativeTestServer::Login>(0x656e5553);
+        testLogin->Init(&testResponse);
+        testLogin->SetLogonCreds(account, password);
+        testStartPending = true;
+        return 0;
+    }
+#endif
     // Input callbacks pin frame hierarchy. Deliver the notice on outer idle,
     // after the original login action has cleared its password edit field.
     pendingDialog = CGlueMgr::m_acceptedTOS && CGlueMgr::m_acceptedEULA
-        ? scanUnavailable : "Sign-in is unavailable until the original agreements are accepted.";
+        ? ScanNotice() : "Sign-in is unavailable until the original agreements are accepted.";
     return 0;
 }
 // Only acknowledge this owner's unavailable-service dialog. There is no login
 // connection to cancel/clean up (original StatusDialogClick 0x004D98D0).
 static int32_t Script_StatusDialogClick(lua_State* L) {
     RequireServices(L);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testDialog) { testCancelPending = true; return 0; }
+#endif
     if (unavailableDialog) {
         unavailableDialog = false;
         FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
@@ -829,10 +959,23 @@ void CGlueMgr::AddChangedOptionWarning(const char* warning) {
     ++m_numChangedOptionWarnings;
 }
 namespace GlueNative {
-void InitializeScriptServices(uint8_t expansionLevel) {
+void InitializeScriptServices(uint8_t expansionLevel, bool testServerLogin) {
     FrameScript::Native::RequireOwner();
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    testServerProfile = false;
+    testEndpoint.clear();
+    if (testServerLogin) {
+        auto* endpoint = CVar::Register("realmlist", "External isolated test auth server", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
+        NativeTestServer::ValidateEndpoint(endpoint->m_stringValue.m_str);
+        testEndpoint = endpoint->m_stringValue.m_str;
+        testServerProfile = true;
+        std::printf("native-login-profile=isolated-test-server identity=Linux-x86_64 integrity=unavailable warden=unavailable\n");
+    }
+#else
+    if (testServerLogin) throw std::invalid_argument("Test-server login was not compiled into this build");
+#endif
     clientExpansionLevel = expansionLevel;
     scanState = ScanState::NotStarted;
     CGlueMgr::m_authenticated = 0;
@@ -852,9 +995,15 @@ void PollScriptServices() {
     FrameScript::Native::RequireOwner();
     if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before polling Glue services");
     if (!ServicesOpen()) throw std::logic_error("Native Glue script services are closed");
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (testServerProfile) {
+        struct Dispatch { Dispatch() { scanDispatching = true; } ~Dispatch() { scanDispatching = false; } } dispatch;
+        PollTestLogin();
+    }
+#endif
     const bool scanFailed = scanState == ScanState::ErrorPending;
     if (!scanFailed && !pendingDialog) return;
-    const char* reason = scanFailed ? scanUnavailable : pendingDialog;
+    const char* reason = scanFailed ? ScanNotice() : pendingDialog;
     pendingDialog = nullptr;
     // Publish the terminal state before dispatch. Repeated starts/polls cannot
     // duplicate the event, including when its protected Lua callback fails.
@@ -884,6 +1033,11 @@ void GlueScriptEventsRegisterFunctions() {
 void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before closing Glue services");
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    ResetTestLogin();
+    testServerProfile = testDialog = false;
+    testEndpoint.clear();
+#endif
     for (const auto& function : functions) FrameScript_UnregisterFunction(function.m_name);
     registered = false;
     scanState = ScanState::NotStarted;
