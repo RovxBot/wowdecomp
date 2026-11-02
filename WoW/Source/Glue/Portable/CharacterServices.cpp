@@ -9,6 +9,10 @@
 #include "Engine/Source/FFX/FFX.h"
 #include "Engine/Source/Os/OsFile.h"
 #include <stdexcept>
+#include <cstdarg>
+#include <cstdio>
+#include "Engine/Source/Os/OsSecureRandom.h"
+#include "Engine/Source/Tempest/CRandom.h"
 #include "Engine/Source/Images/MippedImg.h"
 #include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/Tempest/C2iVector.h"
@@ -32,6 +36,8 @@ WowClientDB<SpellVisualEffectNameRec> g_spellVisualEffectNameDB;
 WowClientDB<SpellVisualKitRec> g_spellVisualKitDB;
 int32_t g_clientDbPerformCompress = 0; // Original uncompressed runtime record path.
 uint32_t CGPlayer_C::s_displayId;
+int32_t s_locale = 0; // Integrated target authenticates only enUS data.
+CRndSeed g_rndSeed;
 CHARACTER_INFO* CGlueMgr::m_characterInfo;
 int32_t CGlueMgr::s_displayedCharacterIndex;
 CVar* g_lastCharacterIndexVar;
@@ -77,6 +83,8 @@ void LoadCharacterServices() {
     g_lastCharacterIndexVar = CVar::Register("lastCharacterIndex", "Last selected character", 0, "0", nullptr, 0, false, nullptr, false);
     if (!CCharacterComponent::Initialize(GxTex_Rgb565, 8, 0, 0))
         throw std::runtime_error("Original scalar character component initialization failed");
+    uint32_t seed; OsSecureRandom(reinterpret_cast<uint8_t*>(&seed),sizeof(seed));
+    g_rndSeed.SetSeed(seed);
     characterOpen = true;
 }
 void CloseCharacterServices() {
@@ -331,4 +339,93 @@ MipBits* TextureAllocMippedImg(PIXEL_FORMAT format, uint32_t width, uint32_t hei
 }
 void TextureFreeMippedImg(MipBits* bits, PIXEL_FORMAT, uint32_t, uint32_t) {
     SMemFree(bits,__FILE__,__LINE__,0);
+}
+
+// Original 12340 texture/path helpers, using the native local SFile owner.
+TEXFILETYPE TextureDiscoverFileType(const char* fileName) {
+    const char* extension = SStrChrR(const_cast<char*>(fileName), '.');
+
+    if (!extension || SStrLen(extension) != 4) {
+        return TEXFILETYPE_UNKNOWN;
+    }
+
+    if (!SStrCmpI(extension, ".TGA", STORM_MAX_STR)) {
+        return TEXFILETYPE_TGA;
+    }
+
+    return SStrCmpI(extension, ".BLP", STORM_MAX_STR) ? TEXFILETYPE_UNKNOWN : TEXFILETYPE_BLP;
+}
+TEXFILETYPE TexturePickAlternateFilename(const char* fileName, TEXFILETYPE type, char* buffer, uint32_t size) {
+    if (fileName != buffer) {
+        SStrCopy(buffer, fileName, size);
+    }
+
+    if (!type) {
+        return TEXFILETYPE_UNKNOWN;
+    }
+
+    char* extension = SStrChrR(buffer, '.');
+
+    if (extension) {
+        *extension = '\0';
+    }
+
+    if (type == TEXFILETYPE_TGA) {
+        SStrPack(buffer, ".BLP", size);
+        return TEXFILETYPE_BLP;
+    }
+
+    if (type == TEXFILETYPE_BLP) {
+        SStrPack(buffer, ".TGA", size);
+        return TEXFILETYPE_TGA;
+    }
+
+    return type;
+}
+char* IOsPathFindExtension(char* path, int32_t offset) {
+    char* extension = nullptr;
+
+    while (true) {
+        switch (*path) {
+            case '\0':
+                return extension ? extension : path;
+
+            case '.':
+                extension = path + offset;
+                path++;
+                break;
+
+            case '/':
+            case '\\':
+                extension = nullptr;
+                path++;
+                break;
+
+            default:
+                path++;
+                break;
+        }
+    }
+}
+char* OsPathFindExtensionWithoutDot(char* path) { return IOsPathFindExtension(path,1); }
+int32_t STORMAPI SFile::FileExists(const char* name) {
+    SFileImpl* file=nullptr;
+    if (!SFileOpenFile(name,&file)) return 0;
+    SFileCloseFile(file); return 1;
+}
+uint32_t TextureGetBytesPerBlock(PIXEL_FORMAT format) {
+    static const uint16_t bytes[] = {8,16,0,0,0,0,0,16,0,0};
+    if (uint32_t(format)>=sizeof(bytes)/sizeof(bytes[0]))
+        throw std::out_of_range("Invalid original pixel format");
+    return bytes[format];
+}
+void SErrDisplayAppFatal(const char* format, ...) {
+    char message[2048]; va_list args; va_start(args,format);
+    std::vsnprintf(message,sizeof(message),format,args); va_end(args);
+    throw std::runtime_error(message);
+}
+void SErrDisplayAppFatalCustom(uint32_t code, const char* format, ...) {
+    char message[2048]; va_list args; va_start(args,format);
+    std::vsnprintf(message,sizeof(message),format,args); va_end(args);
+    throw std::runtime_error("Original client fatal " + std::to_string(code) + ": " + message);
 }

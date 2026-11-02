@@ -115,6 +115,8 @@ bool testStartPending = false, testCancelPending = false, testRealmRequested = f
 bool testRealmsReady = false, testConnectPending = false, testWorldStarted = false;
 bool testCharacterRequestPending = false;
 bool testRealmRequestPending = false;
+bool testPublishingCharacters = false;
+uint32_t testQueuePosition = UINT32_MAX;
 uint32_t testWorldDeadline = 0;
 bool testDialog = false;
 void ResetTestLogin() {
@@ -136,6 +138,7 @@ void ResetTestLogin() {
     testStartPending = testCancelPending = testRealmRequested = false;
     testRealmsReady = testConnectPending = testWorldStarted = testCharacterRequestPending = false;
     testRealmRequestPending = false;
+    testPublishingCharacters = false; testQueuePosition = UINT32_MAX;
 }
 void TestDialog(const char* kind, const char* message) {
     testDialog = true;
@@ -193,7 +196,11 @@ void PollTestLogin() {
             ResetTestLogin(); TestDialog("OKAY", "TEST SERVER: world connection/character enumeration timed out."); return;
         }
         if (testWorld->m_statusOp == COP_WAIT_QUEUE) {
-            TestDialog("CANCEL", ("TEST SERVER: server queue position " + std::to_string(testWorld->m_queuePosition)).c_str());
+            if (testQueuePosition != testWorld->m_queuePosition) {
+                testQueuePosition = testWorld->m_queuePosition;
+                testWorldDeadline = OsGetAsyncTimeMs() + 120000;
+                TestDialog("CANCEL", ("TEST SERVER: server queue position " + std::to_string(testWorld->m_queuePosition)).c_str());
+            }
         } else if (testWorld->m_statusOp == COP_AUTHENTICATE && testWorld->m_statusComplete && testWorld->m_authenticated) {
             std::printf("native-test-server=world-authenticated integrity=unavailable warden=unavailable\n");
             testWorld->GetCharacterList();
@@ -205,6 +212,7 @@ void PollTestLogin() {
             FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
             std::printf("native-test-server=characters-received count=%u\n", testWorld->m_characterList.Count());
             GlueNative::LoadCharacterServices();
+            struct Publish { Publish() { testPublishingCharacters=true; } ~Publish() { testPublishingCharacters=false; } } publish;
             FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "charselect");
             CCharacterSelection::UpdateCharacterList();
         }
@@ -212,6 +220,7 @@ void PollTestLogin() {
             testCharacterRequestPending = false;
             if (testWorld->m_statusOp == COP_NONE) {
                 testWorld->GetCharacterList(); testWorldDeadline = OsGetAsyncTimeMs() + 30000;
+                TestDialog("CANCEL", "TEST SERVER: retrieving characters from the authenticated realm.");
             }
         }
     }
@@ -425,7 +434,11 @@ static int32_t Script_GetServerName(lua_State* L) {
         return 4;
     }
 #endif
-    if (CGlueMgr::m_authenticated)
+    if (CGlueMgr::m_authenticated
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        && !testServerProfile
+#endif
+    )
         return luaL_error(L, "Native selected realm metadata unavailable");
     auto* name = CVar::LookupRegistered("realmName");
     if (!name) name = CVar::Register("realmName", "Last realm connected to", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
@@ -452,6 +465,27 @@ static int32_t Script_IsTrialAccount(lua_State* L) {
     else lua_pushnil(L);
     return 1;
 }
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+static int32_t Script_GetAccountExpansionLevel(lua_State* L) {
+    RequireServices(L);
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        return luaL_error(L,"Account expansion requires actual world authentication");
+    lua_pushnumber(L,testWorld->m_accountExpansion); return 1;
+}
+static int32_t Script_IsConnectedToServer(lua_State* L) {
+    RequireServices(L);
+    if (testServerProfile && testWorld && testWorld->m_connected) lua_pushnumber(L,1); else lua_pushnil(L);
+    return 1;
+}
+static int32_t Script_DisconnectFromServer(lua_State* L) {
+    RequireServices(L); testCancelPending = true; return 0;
+}
+static int32_t Script_EnterWorld(lua_State* L) {
+    RequireServices(L);
+    pendingDialog = "TEST SERVER: world entry is unavailable in this character-selection profile.";
+    return 0;
+}
+#endif
 
 // Original agreement query/explicit acceptance wrappers. Loading never accepts.
 static int32_t Script_TOSAccepted(lua_State* L) {
@@ -923,6 +957,12 @@ int32_t Script_GetClientExpansionLevel(lua_State* L) {
     lua_pushnumber(L, clientExpansionLevel + 1); return 1;
 }
 FrameScript_Method functions[] = {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    { "GetAccountExpansionLevel", Script_GetAccountExpansionLevel },
+    { "IsConnectedToServer", Script_IsConnectedToServer },
+    { "DisconnectFromServer", Script_DisconnectFromServer },
+    { "EnterWorld", Script_EnterWorld },
+#endif
     { "ScanDLLStart", Script_ScanDLLStart },
     { "ScanDLLContinueAnyway", Script_ScanDLLContinueAnyway },
     { "IsScanDLLFinished", Script_IsScanDLLFinished },
@@ -1048,6 +1088,8 @@ void CGlueMgr::UpdateCurrentScreen(const char* screen) {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
     if (screen && !SStrCmpI(screen,"charselect",STORM_MAX_STR) &&
         testServerProfile && testWorld && testWorld->m_authenticated) {
+        if (!SStrCmpI(m_currentScreen,"charselect",STORM_MAX_STR)) CCharacterSelection::OnHide();
+        EventRegisterEx(EVENT_ID_IDLE,CCharacterSelection::Idle,nullptr,EVENT_PRIORITY_NORMAL);
         SStrCopy(m_currentScreen,screen,sizeof(m_currentScreen));
         return;
     }
@@ -1085,6 +1127,7 @@ void CGlueMgr::GetRealmList(int32_t) {
     FrameScript::Native::RequireOwner();
     if (!testServerProfile || !testLogin || testLogin->m_logonStatus != 0)
         throw std::logic_error("Realm list requires verified test-server authentication");
+    if (testConnectPending || (testWorldStarted && !testWorld->m_statusComplete)) return;
     testRealmRequestPending = true;
 }
 void CancelRealmListQuery() {
@@ -1108,6 +1151,7 @@ void CGlueMgr::GetCharacterList() {
     FrameScript::Native::RequireOwner();
     if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
         throw std::logic_error("Character list requires actual world authentication");
+    if (testPublishingCharacters) return; // A fresh server enumeration is being published.
     testCharacterRequestPending = true;
 }
 #endif

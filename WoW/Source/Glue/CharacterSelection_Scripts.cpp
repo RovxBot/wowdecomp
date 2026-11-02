@@ -2,6 +2,7 @@
 #include <cstdint>
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "Engine/Source/Frame/Portable/Scripts.h"
+#include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <cmath>
 #endif
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
@@ -366,11 +367,17 @@ static int32_t Script_SelectCharacter(lua_State* L) {
 
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 template<int32_t (*Method)(lua_State*)> int32_t NativeCharacterMethod(lua_State* L) {
+    FrameScript::Native::RequireOwner();
     for (int i=1;i<=lua_gettop(L);++i) if (lua_isnumber(L,i)) {
         const double value=lua_tonumber(L,i);
         if (!std::isfinite(value) || value < INT32_MIN+1 || value > INT32_MAX-1)
             return luaL_error(L,"Character arguments must be bounded finite numbers");
     }
+    if constexpr (Method == Script_GetNumCharacters || Method == Script_GetCharacterInfo ||
+                  Method == Script_GetSelectBackgroundModel || Method == Script_GetCharacterSelectFacing)
+        return Method(L);
+    if constexpr (Method == Script_UpdateSelectionCustomizationScene)
+        return Frame::Native::ScriptMethod<Method,true,false,false>(L);
     return Frame::Native::ScriptMethod<Method,true,false,true>(L);
 }
 #define CHARACTER_METHOD(method) NativeCharacterMethod<method>

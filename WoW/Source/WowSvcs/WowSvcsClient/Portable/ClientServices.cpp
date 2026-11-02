@@ -117,7 +117,8 @@ void ClientServices::LoginServerStatus(LOGIN_STATE state, LOGIN_RESULT, const ch
 }
 void ClientServices::RealmEnumCallback(uint32_t result) {
     if (!s_currentConnection) throw std::logic_error("Realm response has no native owner");
-    s_currentConnection->Complete(result == 0, result == 0 ? REALM_LIST_SUCCESS : REALM_LIST_FAILED);
+    if (s_currentConnection->m_statusOp == COP_GET_REALMS || s_currentConnection->m_statusOp == COP_NONE)
+        s_currentConnection->Complete(result == 0, result == 0 ? REALM_LIST_SUCCESS : REALM_LIST_FAILED);
 }
 REALM_INFO* ClientServices::GetRealmInfoByIndex(uint32_t index) {
     auto* response = CreateLoginResponse();

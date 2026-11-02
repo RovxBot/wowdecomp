@@ -13,6 +13,13 @@ CharacterSelectionDisplay::CharacterSelectionDisplay() {
 
 // INLINED
 CharacterSelectionDisplay::~CharacterSelectionDisplay() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    // Detach while both frame/scene and component still live. A parent retains
+    // a model reference independently of this row's reference.
+    if (m_petModel && m_petModel->m_attachParent) m_petModel->DetachFromParent();
+    if (m_component && m_component->m_data.m_model && m_component->m_data.m_model->m_attachParent)
+        m_component->m_data.m_model->DetachFromParent();
+#endif
     if (this->m_petModel) {
         this->m_petModel->Release();
     }
@@ -39,6 +46,11 @@ int32_t CharacterSelectionDisplay::SetSelectedCharacterInfo(CHARACTER_INFO* info
 // VERIFY: 96adbffe manual
 // OFFSET: 0x004E2E70
 void CharacterSelectionDisplay::SetCharacterFacing(float rotation) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (CCharacterSelection::s_selectionIndex < 0 ||
+        uint32_t(CCharacterSelection::s_selectionIndex) >= CCharacterSelection::s_characterList.Count() ||
+        !CCharacterSelection::s_characterList[CCharacterSelection::s_selectionIndex].m_component) return;
+#endif
     if (!CCharacterSelection::s_characterCount) {
         return;
     }

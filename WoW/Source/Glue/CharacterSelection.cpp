@@ -523,6 +523,9 @@ void CCharacterSelection::ShowCharacter() {
 
             ItemDisplayInfoRec itemRec;
             int32_t found = g_itemDisplayInfoDB.GetRecord(displayID, &itemRec);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+            if (!found) throw std::runtime_error("Server character equipment references an unavailable original item display");
+#endif
             int32_t visual = found && g_itemVisualsDB.GetRecord(itemRec.m_itemVisual) ? 0 : itemVisual;
 
             if (slot == INVSLOT_MAINHAND || slot == INVSLOT_OFFHAND || (slot == INVSLOT_RANGED && hunter)) {

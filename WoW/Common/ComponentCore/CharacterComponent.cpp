@@ -4194,6 +4194,9 @@ inline CharacterBaseVariation::~CharacterBaseVariation() {
 // VERIFY: 1d57f8e3 manual
 // OFFSET: 0x004EFBE0
 CCharacterComponent::CCharacterComponent() {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    this->m_flags = 0;
+#endif
     memset(this->m_baseVariation, 0, sizeof(this->m_baseVariation));
     this->m_flags |= 0x7;
     this->m_dirtySections = 0xFFFFFFFF;
@@ -5501,6 +5504,9 @@ bool CCharacterComponent::Destroy() {
 
     if (CCharacterComponent::s_characterFacialHairStylesList) {
         SMemFree(CCharacterComponent::s_characterFacialHairStylesList, __FILE__, __LINE__, 0);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        CCharacterComponent::s_characterFacialHairStylesList = nullptr;
+#endif
     }
 
     delete s_componentHeap;

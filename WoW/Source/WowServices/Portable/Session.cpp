@@ -117,7 +117,8 @@ void NetClient::Destroy() {
     delete this->m_netEventQueue;
     this->m_netEventQueue = nullptr;
     this->m_heldMessages.Clear();
-    memset(&this->m_loginData, 0, sizeof(this->m_loginData));
+    volatile uint8_t* loginBytes = reinterpret_cast<volatile uint8_t*>(&this->m_loginData);
+    for (size_t i=0; i<sizeof(this->m_loginData); ++i) loginBytes[i]=0;
     this->m_netState = NS_UNINITIALIZED;
     --s_clientCount;
     // Event owns transport lifetime; destroying the last session must not retire it.

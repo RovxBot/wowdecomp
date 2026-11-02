@@ -78,7 +78,12 @@ int32_t QSortCategory(const void* a, const void* b) {
                 }
 
                 if (realm1->m_numCharacters == realm2->m_numCharacters) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+                    result = SStrSortUTF8I(realm1->m_realmName, realm2->m_realmName, STORM_MAX_STR);
+                    break;
+#else
                     SStrSortUTF8I(realm1->m_realmName, realm2->m_realmName, STORM_MAX_STR);
+#endif
                 }
 
                 result = realm2->m_numCharacters < realm1->m_numCharacters ? -1 : 1;
