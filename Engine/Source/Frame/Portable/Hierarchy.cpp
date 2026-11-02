@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <vector>
 namespace Frame { namespace Native {
+namespace { ControlRootQuery controlRootQuery=nullptr; bool controlPublication=false; }
 namespace {
 std::unordered_set<CSimpleFrame*> frames;
 std::vector<CSimpleFrame*> deferred;
@@ -33,6 +34,24 @@ ScrollRenderScope* scrollRender = nullptr;
 constexpr size_t MaxDepth = 64;
 void PreflightRaise(CSimpleFrame*);
 }
+void SetControlRootQuery(ControlRootQuery query) {
+    RequireOwner();
+    if (controlPublication || InControlScriptEdit()) throw std::logic_error("Finish Glue control publication before closing roots");
+    controlRootQuery=query;
+}
+bool IsControlRegion(CScriptRegion* region) { return controlRootQuery && controlRootQuery(region); }
+bool ControlScriptContext() {
+    RequireOwner();
+    return InControlScriptEdit() || (controlRootQuery && !updating && !collecting &&
+        (controlPublication || buttonClickEdits || mouseWheelEdits || sliderValueEdits));
+}
+ControlPublication::ControlPublication() {
+    RequireDestroyable();
+    RequireTreeMutable();
+    if (controlPublication || updating || collecting) throw std::logic_error("Nested or traversing Glue control publication");
+    controlPublication=true;
+}
+ControlPublication::~ControlPublication() { controlPublication=false; }
 void SetScrollNotify(ScrollNotify function) { RequireTreeMutation(); scrollNotify = function; }
 bool HasScrollSupport() { RequireRegions(); return scrollNotify != nullptr; }
 void NotifyScroll(CSimpleFrame* frame) {
@@ -70,6 +89,7 @@ void RequireScriptTextMutation() {
 }
 void RequireTextureContentMutation() {
     RequireRegions();
+    if (InControlScriptEdit()) { RequireStateMutation(); return; }
     if (!updating) { RequireTreeMutation(); return; }
     RequireStateMutable(true);
     if (collecting) throw std::logic_error("Finish Frame batch collection before changing texture contents");
@@ -150,7 +170,7 @@ TextChangedEdits::TextChangedEdits() {
 TextChangedEdits::~TextChangedEdits() { if (active) textChangedEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits && !sliderValueEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits && !sliderValueEdits && !InControlScriptEdit()) return;
     RequireSimpleFrame(target);
     // Movement unflattening retains its stricter guard. Admit only one top-level
     // root through a selected Button click, never a subtree of top-level roots.
@@ -162,7 +182,7 @@ void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
         for (auto* leaf : frames)
             if (leaf->m_frameFlags & 1)
                 for (auto* parent = leaf; parent; parent = parent->m_parent)
-                    if (parent == target && (!buttonClickEdits || leaf != target))
+                    if (parent == target && ((!buttonClickEdits && !InControlScriptEdit()) || leaf != target))
                         throw std::logic_error("Top-level subtree raising is unavailable in control callbacks");
     if (showing && (target->m_frameFlags & 1)) {
         if (CSimpleTop::s_instance->m_moveResizeFrame)
@@ -276,7 +296,7 @@ StackingEdits::StackingEdits(CSimpleFrame* frame) {
     RequireRaiseEntry(frame);
     if (stackingEdits) throw std::logic_error("Nested internal Frame stacking mutation");
     PreflightRaise(frame);
-    stackingEdits = buttonClickEdits && visibilityRaiseFrame == frame;
+    stackingEdits = (buttonClickEdits || InControlScriptEdit()) && visibilityRaiseFrame == frame;
 }
 StackingEdits::~StackingEdits() { stackingEdits = false; }
 ShowCallback::ShowCallback(CSimpleFrame* frame) : previous(showCallbackFrame) {

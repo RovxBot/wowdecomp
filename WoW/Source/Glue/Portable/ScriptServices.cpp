@@ -31,6 +31,9 @@
 #include "WoW/Source/Glue/RealmList.h"
 #include "WoW/Source/Glue/CharacterSelection.h"
 #include "WoW/Source/Glue/Portable/RealmData.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include "Engine/Source/Frame/CScriptRegion.h"
+#include "Engine/Source/Frame/CSimpleFrame.h"
 #include <memory>
 #endif
 // Native selection of original CGlueMgr activation state. Warning text is owned
@@ -114,11 +117,27 @@ std::unique_ptr<ClientConnection> testWorld;
 bool testStartPending = false, testCancelPending = false, testRealmRequested = false;
 bool testRealmsReady = false, testConnectPending = false, testWorldStarted = false;
 bool testCharacterRequestPending = false;
+bool testAccountRequestPending=false, testSplitRequestPending=false;
 bool testRealmRequestPending = false;
 bool testPublishingCharacters = false;
 uint32_t testQueuePosition = UINT32_MAX;
 uint32_t testWorldDeadline = 0;
 bool testDialog = false;
+bool testUiRetiring = false;
+bool TestControlRegion(CScriptRegion* region) {
+    if (!registered || !testServerProfile) return false;
+    const bool realmsReady=testRealmsReady || testUiRetiring;
+    const bool charactersReady=(testWorld && testWorld->m_authenticated) || testUiRetiring;
+    if (!realmsReady && !charactersReady) return false;
+    const char* names[]={"RealmList","CharacterSelect","CharacterDeleteDialog","CharacterRenameDialog","DeclensionFrame"};
+    CScriptObject* roots[5]{};
+    for (unsigned i=0;i<5;++i) if (i==0 ? realmsReady : charactersReady)
+        roots[i]=CScriptObject::GetScriptObjectByName(names[i],CSimpleFrame::GetObjectType());
+    CScriptObject* object=region;
+    for (unsigned depth=0;object && depth<64;++depth,object=object->GetScriptObjectParent())
+        for (auto* root:roots) if (object==root) return true;
+    return false;
+}
 void ResetTestLogin() {
     GlueNative::CloseCharacterServices();
     CGlueMgr::m_authenticated = 0;
@@ -138,6 +157,7 @@ void ResetTestLogin() {
     testStartPending = testCancelPending = testRealmRequested = false;
     testRealmsReady = testConnectPending = testWorldStarted = testCharacterRequestPending = false;
     testRealmRequestPending = false;
+    testAccountRequestPending=testSplitRequestPending=false;
     testPublishingCharacters = false; testQueuePosition = UINT32_MAX;
 }
 void TestDialog(const char* kind, const char* message) {
@@ -146,6 +166,8 @@ void TestDialog(const char* kind, const char* message) {
 }
 void RetireTestSession() {
     const bool returnToLogin = !SStrCmpI(CGlueMgr::m_currentScreen,"charselect",STORM_MAX_STR);
+    struct Retiring { Retiring() { testUiRetiring=true; } ~Retiring() { testUiRetiring=false; } } retiring;
+    Frame::Native::ControlPublication publication;
     ResetTestLogin();
     if (returnToLogin) FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN,"%s","login");
 }
@@ -226,6 +248,7 @@ void PollTestLogin() {
             FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
             std::printf("native-test-server=characters-received count=%u\n", testWorld->m_characterList.Count());
             GlueNative::LoadCharacterServices();
+            Frame::Native::ControlPublication publication;
             struct Publish { Publish() { testPublishingCharacters=true; } ~Publish() { testPublishingCharacters=false; } } publish;
             FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN, "%s", "charselect");
             CCharacterSelection::UpdateCharacterList();
@@ -236,6 +259,14 @@ void PollTestLogin() {
                 testWorld->GetCharacterList(); testWorldDeadline = OsGetAsyncTimeMs() + 30000;
                 TestDialog("CANCEL", "TEST SERVER: retrieving characters from the authenticated realm.");
             }
+        }
+        if (testAccountRequestPending) { testAccountRequestPending=false; testWorld->RequestAccountDataTimes(); }
+        if (testSplitRequestPending) { testSplitRequestPending=false; testWorld->RequestRealmSplitInfo(); }
+        if (testWorld->m_nativeSplitChanged) {
+            testWorld->m_nativeSplitChanged=false;
+            Frame::Native::ControlPublication publication;
+            FrameScript_SignalEvent(GLUE_EVENT_SERVER_SPLIT_NOTICE,"%d%d%s",
+                int32_t(testWorld->m_nativeSplitChoice),int32_t(testWorld->m_nativeSplitState),testWorld->m_nativeSplitDate);
         }
     }
     if (!testResponse.changed) return;
@@ -494,6 +525,33 @@ static int32_t Script_IsConnectedToServer(lua_State* L) {
     RequireServices(L);
     if (testServerProfile && testWorld && testWorld->m_connected) lua_pushnumber(L,1); else lua_pushnil(L);
     return 1;
+}
+static int32_t Script_ReadyForAccountDataTimes(lua_State* L) {
+    RequireServices(L);
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        return luaL_error(L,"Account times require actual world authentication");
+    testAccountRequestPending=true; return 0;
+}
+static int32_t Script_RequestRealmSplitInfo(lua_State* L) {
+    RequireServices(L);
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        return luaL_error(L,"Realm split query requires actual world authentication");
+    testSplitRequestPending=true; return 0;
+}
+static int32_t Script_GetBillingPlan(lua_State* L) {
+    RequireServices(L);
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        return luaL_error(L,"Billing record requires actual world authentication");
+    const auto flags=testWorld->m_billingFlags;
+    const auto plan=flags&0x16;
+    lua_pushnumber(L,plan==2 ? 1 : plan==4 ? 2 : plan==0 ? 3 : plan==16 ? 4 : 0);
+    lua_pushnumber(L,(flags&0x20)!=0); lua_pushnumber(L,(flags&8)!=0); return 3;
+}
+static int32_t Script_GetBillingTimeRemaining(lua_State* L) {
+    RequireServices(L);
+    if (!testServerProfile || !testWorld || !testWorld->m_authenticated)
+        return luaL_error(L,"Billing record requires actual world authentication");
+    lua_pushnumber(L,testWorld->m_billingFlags&2 ? 0 : testWorld->m_billingTimeRemaining); return 1;
 }
 static int32_t Script_DisconnectFromServer(lua_State* L) {
     RequireServices(L); testCancelPending = true; return 0;
@@ -978,6 +1036,10 @@ FrameScript_Method functions[] = {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
     { "GetAccountExpansionLevel", Script_GetAccountExpansionLevel },
     { "IsConnectedToServer", Script_IsConnectedToServer },
+    { "ReadyForAccountDataTimes", Script_ReadyForAccountDataTimes },
+    { "RequestRealmSplitInfo", Script_RequestRealmSplitInfo },
+    { "GetBillingPlan", Script_GetBillingPlan },
+    { "GetBillingTimeRemaining", Script_GetBillingTimeRemaining },
     { "DisconnectFromServer", Script_DisconnectFromServer },
     { "EnterWorld", Script_EnterWorld },
 #endif
@@ -1183,6 +1245,7 @@ void InitializeScriptServices(uint8_t expansionLevel, bool testServerLogin) {
     if (expansionLevel > 2) throw std::invalid_argument("Invalid original client expansion level");
     if (registered || !CVar::m_initialized) throw std::logic_error("Register Glue CVars inside their live owner before scripts");
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    Frame::Native::SetControlRootQuery(nullptr);
     testServerProfile = false;
     testEndpoint.clear();
     if (testServerLogin) {
@@ -1190,6 +1253,7 @@ void InitializeScriptServices(uint8_t expansionLevel, bool testServerLogin) {
         NativeTestServer::ValidateEndpoint(endpoint->m_stringValue.m_str);
         testEndpoint = endpoint->m_stringValue.m_str;
         testServerProfile = true;
+        Frame::Native::SetControlRootQuery(TestControlRegion);
         std::printf("native-login-profile=isolated-test-server identity=Linux-x86_64 integrity=unavailable warden=unavailable\n");
     }
 #else
@@ -1218,7 +1282,10 @@ void PollScriptServices() {
     if (testServerProfile) {
         struct Dispatch { Dispatch() { scanDispatching = true; } ~Dispatch() { scanDispatching = false; } } dispatch;
         PollTestLogin();
-        if (testWorld && testWorld->m_authenticated) CCharacterSelection::PollScriptRequests();
+        if (testWorld && testWorld->m_authenticated) {
+            Frame::Native::ControlPublication publication;
+            CCharacterSelection::PollScriptRequests();
+        }
     }
 #endif
     const bool scanFailed = scanState == ScanState::ErrorPending;
@@ -1257,6 +1324,7 @@ void GlueScriptEventsUnregisterFunctions() {
     FrameScript::Native::RequireOwner();
     if (scanDispatching) throw std::logic_error("Finish ScanDLL event dispatch before closing Glue services");
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    Frame::Native::SetControlRootQuery(nullptr);
     if (testServerProfile) RealmListUnregisterScriptFunctions();
     ResetTestLogin();
     testServerProfile = testDialog = false;

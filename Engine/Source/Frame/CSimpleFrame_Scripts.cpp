@@ -2136,6 +2136,20 @@ void CSimpleFrame::DestroyScriptMetaTable() {
 
 // STATIC: 0x00AC1550
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
+static int32_t Script_ControlHide(lua_State* L) {
+    char failure[512]{};
+    try {
+        Frame::Native::RequireRegionScripts(); Frame::Native::RequireRoot();
+        auto* frame=static_cast<CSimpleFrame*>(FrameScript_GetObjectThis(L,CSimpleFrame::GetObjectType()));
+        // Original character OnUpdate repeatedly hides an already hidden control.
+        // This performs no visibility, list, layout or callback mutation.
+        if (!frame->m_isShown && !frame->m_isVisible && frame->ProtectedFunctionsAllowed() && Frame::Native::IsControlRegion(frame)) {
+            Frame::Native::RequireStateMutable(true); return 0;
+        }
+    } catch (const std::exception& error) { std::snprintf(failure,sizeof(failure),"%s",error.what()); }
+    if (*failure) return luaL_error(L,"Native Frame hide rejected: %s",failure);
+    return Frame::Native::ScriptMethod<&Script_Hide,true,false,true,true,true>(L);
+}
 static FrameScript_Method s_ScriptMethods[] = {
     { "GetTitleRegion", &Frame::Native::ScriptMethod<&Script_GetTitleRegion, true, false> },
     { "CreateTitleRegion", &Frame::Native::ScriptMethod<&Script_CreateTitleRegion> },
@@ -2175,8 +2189,8 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "IsToplevel", &Frame::Native::UnavailableScriptMethod },
     { "EnableDrawLayer", &Frame::Native::UnavailableScriptMethod },
     { "DisableDrawLayer", &Frame::Native::UnavailableScriptMethod },
-    { "Show", &Frame::Native::ScriptMethod<&Script_Show, true, false, true, true> },
-    { "Hide", &Frame::Native::ScriptMethod<&Script_Hide, true, false, true, true> },
+    { "Show", &Frame::Native::ScriptMethod<&Script_Show, true, false, true, true, true> },
+    { "Hide", &Script_ControlHide },
     { "IsVisible", &Frame::Native::ScriptMethod<&Script_IsVisible, true, false> },
     { "IsShown", &Frame::Native::ScriptMethod<&Script_IsShown, true, false> },
     { "Raise", &Frame::Native::ScriptMethod<&Script_Raise, false, false> },

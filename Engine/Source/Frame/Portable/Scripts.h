@@ -17,12 +17,21 @@ public:
     void CheckCanClose() const;
 };
 void RequireRegionScripts();
+int CallControlScript(lua_State*, int (*)(lua_State*), bool enabled);
+template<int (*Method)(lua_State*), bool StateMutation, bool ScrollCallback> int ControlMethod(lua_State* L) {
+    char failure[512]{};
+    try {
+        if (StateMutation) RequireStateMutation(ScrollCallback);
+        return Method(L);
+    } catch (const std::exception& error) { std::snprintf(failure,sizeof(failure),"%s",error.what()); }
+    return luaL_error(L,"Native Frame control rejected: %s",failure);
+}
 inline int UnavailableScriptMethod(lua_State* L) {
     lua_Debug call{};
     const char* method = lua_getstack(L, 0, &call) && lua_getinfo(L, "n", &call) && call.name ? call.name : "<unknown>";
     return luaL_error(L, "Native Frame method '%s' requires an unavailable widget, XML, language or animation service", method);
 }
-template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false, bool ScrollCallback = false> int ScriptMethod(lua_State* L) {
+template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation = true, bool StateMutation = false, bool ScrollCallback = false, bool ControlEdit = false> int ScriptMethod(lua_State* L) {
     // Lua errors longjmp. Convert C++ failures only after their stack unwinds;
     // no owning automatic object may surround the subsequent luaL_error call.
     char failure[512]{};
@@ -30,11 +39,15 @@ template<int (*Method)(lua_State*), bool Coordinates = true, bool TreeMutation =
         RequireRegionScripts();
         RequireRoot();
         if (TreeMutation) RequireTreeMutation();
-        else if (StateMutation) RequireStateMutation(ScrollCallback);
         for (int i = 2; i <= lua_gettop(L); ++i)
             if (Coordinates && lua_isnumber(L, i) && (!std::isfinite(lua_tonumber(L, i)) ||
                 std::fabs(lua_tonumber(L, i)) > FLT_MAX))
                 return luaL_error(L, "Native Frame coordinates must fit finite floats");
+        if constexpr (!TreeMutation) {
+            const int results=CallControlScript(L,ControlMethod<Method,StateMutation,ScrollCallback>,ControlEdit);
+            if (results>=0) return results;
+            if (StateMutation) RequireStateMutation(ScrollCallback);
+        }
         return Method(L);
     } catch (const std::exception& error) {
         std::snprintf(failure, sizeof(failure), "%s", error.what());

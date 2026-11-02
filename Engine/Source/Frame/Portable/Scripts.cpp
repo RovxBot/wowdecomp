@@ -10,8 +10,26 @@
 #include "Engine/Source/Frame/CSimpleFrame.h"
 #include "Engine/Source/Frame/CSimpleRender.h"
 #include "Engine/Source/Frame/CSimpleTitleRegion.h"
+#include "Engine/Source/Frame/CScriptRegion.h"
 namespace Frame { namespace Native {
 namespace { bool installed = false; }
+int CallControlScript(lua_State* L,int (*method)(lua_State*),bool enabled) {
+    if (!ControlScriptContext()) return -1;
+    CScriptRegion* region=nullptr;
+    if (lua_istable(L,1)) region=dynamic_cast<CScriptRegion*>(FrameScript_GetObjectThis(L,CScriptObject::GetObjectType()));
+    const bool admitted=enabled && region && IsControlRegion(region);
+    int status;
+    {
+        // Foreign targets and unqualified methods suspend an enclosing admission.
+        // Contain Lua longjmp before restoring the prior per-call context.
+        ControlScriptEdit edit(admitted);
+        const int arguments=lua_gettop(L);
+        lua_pushcfunction(L,method); lua_insert(L,1);
+        status=lua_pcall(L,arguments,LUA_MULTRET,0);
+    }
+    if (status) return lua_error(L);
+    return lua_gettop(L);
+}
 void RequireRegionScripts() {
     RequireRegions();
     if (!installed) throw std::logic_error("Native region script metatables are not installed");

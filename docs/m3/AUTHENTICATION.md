@@ -137,6 +137,15 @@ retire before their frame/scene owners; screen hide unregisters original idle.
 Original character OnShow/button/update scripts retain bounded scalar requests;
 the outer Glue poll applies model changes after Frame callbacks/traversal. Session
 retirement discards pending controls before releasing their rows and resources.
+Required OnShow requests use original account-data readiness and realm-split
+packets. Actual bounded replies are retained in-session; the original split notice
+is published from outer Glue polling. This does not implement remote settings
+synchronization, a settings-write approval, or realm-split choice changes.
+Original realm tabs are prepared through their unchanged Lua function outside
+callbacks. During publication or selected control input, only explicitly admitted
+state/layout methods on live authenticated realm/character controls can mutate.
+Protected calls restore this per-call admission after Lua errors; hierarchy,
+deletion, input reentry, resize, update traversal and collection guards remain.
 Ghost lighting/effects and guild-tabard query/cache paths remain explicitly
 unavailable. Native addon producers are not loaded: the auth-session field encodes
 an empty loaded inventory, and actual server banned-addon records are bounded and

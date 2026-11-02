@@ -30,6 +30,7 @@ void CheckNativeSessions(void (*pump)());
 #include "OptionsChecks.h"
 #include "AgreementInputChecks.h"
 #include "SliderNumericChecks.h"
+#include "RealmControlChecks.h"
 
 using Bytes = std::vector<uint8_t>;
 void CheckNativeScanServices();
@@ -210,6 +211,7 @@ void DialogRaise(OsNative::Window& window) {
     OptionsChecks::Run(root, window);
     SliderNumericChecks::Run();
     AgreementInputChecks::Run(root, window);
+    RealmControlChecks::Run(root,window);
 }
 void Pixel(CGxDeviceD3d& device, EGxTexFormat format, EGxTexFormat dataFormat) {
     TextureSource source;

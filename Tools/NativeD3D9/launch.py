@@ -124,7 +124,7 @@ def main():
     parser.add_argument('--artifact', type=Path, default=Path(__file__).resolve().parent)
     for key in ['data', 'settings', 'cache', 'logs']:
         parser.add_argument('--' + key, type=Path)
-    parser.add_argument('--test-server-login', action='store_true', help='Explicit TEST-SERVER runtime opt-in; isolated auth/realm lists only')
+    parser.add_argument('--test-server-login', action='store_true', help='Explicit TEST-SERVER runtime opt-in; isolated character-selection testing')
     parser.add_argument('--check', action='store_true', help='Verify package and show resolved paths without starting or writing settings')
     parser.add_argument('--desktop', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -157,7 +157,7 @@ def main():
             path.mkdir(parents=True, exist_ok=True)
         seed_realmlist(data, settings)
         session = Path(tempfile.mkdtemp(prefix=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-'), dir=logs))
-        print('Starting WoW Native' + (' — TEST-SERVER login enabled (auth/realm lists only)' if args.test_server_login else ''))
+        print('Starting WoW Native' + (' — TEST-SERVER character-selection testing' if args.test_server_login else ''))
         print('Settings: ' + str(settings) + '\nSession logs: ' + str(session), flush=True)
         environment = runtime_environment(package, cache, session, strict)
         command = [str(binary), '--renderer', 'dxvk', '--data', str(data), '--settings', str(settings), '--cache', str(cache)]

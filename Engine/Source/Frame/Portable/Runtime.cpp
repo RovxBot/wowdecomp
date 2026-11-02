@@ -21,6 +21,7 @@ const CLayoutFrame* mouseButtonTarget = nullptr;
 std::unordered_set<CLayoutFrame*> frames;
 size_t resizing = 0, consumers = 0;
 size_t callbacks = 0, loadScriptEdits = 0;
+bool controlScriptEdit = false;
 constexpr size_t NoFactory = std::numeric_limits<size_t>::max();
 size_t factoryCallbackDepth = NoFactory;
 std::unordered_set<CFramePoint*> points;
@@ -74,7 +75,7 @@ void SetLayoutRenderActive(bool value) { renderActive = value; }
 uint32_t MaximumFrameLevel() { RequireOwner(); return frameLevelLimit; }
 void RequireNoObjects() {
     RequireOwner();
-    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || mouseWheelInput || mouseButtonInput || mouseMotionInput || callbacks || loadScriptEdits || factoryCallbackDepth != NoFactory || !points.empty())
+    if (consumers || !frames.empty() || CFramePoint::s_framePointHeap.m_dataUsed || resizing || mouseWheelInput || mouseButtonInput || mouseMotionInput || callbacks || loadScriptEdits || controlScriptEdit || factoryCallbackDepth != NoFactory || !points.empty())
         throw std::logic_error("Close layout frames/points and finish resize before shutdown");
 }
 OwnerLease::OwnerLease() { RequireOwner(); ++consumers; }
@@ -135,11 +136,15 @@ void RequireTreeMutable() {
 }
 void RequireStateMutable(bool callbacksAllowed) {
     RequireOwner();
+    callbacksAllowed = callbacksAllowed || controlScriptEdit;
     if (resizing || ((mouseWheelInput || mouseButtonInput || mouseMotionInput) && !callbacksAllowed) || (callbacks && !loadScriptEdits && !callbacksAllowed))
         throw std::logic_error("Defer Frame structure edits until callbacks finish");
 }
+bool InControlScriptEdit() { RequireOwner(); return controlScriptEdit; }
+ControlScriptEdit::ControlScriptEdit(bool admitted) : previous(controlScriptEdit) { controlScriptEdit=admitted; }
+ControlScriptEdit::~ControlScriptEdit() { controlScriptEdit=previous; }
 bool IsMouseWheelInput() { RequireOwner(); return mouseWheelInput; }
-MouseWheelInput::MouseWheelInput() { RequireTreeMutable(); mouseWheelInput = true; }
+MouseWheelInput::MouseWheelInput() { RequireDestroyable(); RequireTreeMutable(); mouseWheelInput = true; }
 MouseWheelInput::~MouseWheelInput() { mouseWheelInput = false; }
 bool IsMouseButtonInput() { RequireOwner(); return mouseButtonInput; }
 bool IsMouseButtonClick(const CLayoutFrame* frame) {
@@ -147,6 +152,7 @@ bool IsMouseButtonClick(const CLayoutFrame* frame) {
     return mouseButtonInput && frame == mouseButtonTarget && !callbacks && !resizing;
 }
 MouseButtonInput::MouseButtonInput(CLayoutFrame* frame) {
+    RequireDestroyable();
     RequireTreeMutable();
     if (frame) RequireFrame(frame);
     mouseButtonTarget = frame;
@@ -160,14 +166,17 @@ bool IsMouseTrackingInput(const CLayoutFrame* frame) {
         ((mouseButtonInput && frame == mouseButtonTarget) || (mouseMotionInput && frame == mouseMotionTarget));
 }
 MouseMotionInput::MouseMotionInput(CLayoutFrame* frame) {
+    RequireDestroyable();
     RequireTreeMutable();
     if (frame) RequireFrame(frame);
     mouseMotionTarget = frame;
     mouseMotionInput = true;
 }
 MouseMotionInput::~MouseMotionInput() { mouseMotionInput = false; mouseMotionTarget = nullptr; }
-CallbackScope::CallbackScope() { RequireOwner(); ++callbacks; }
-CallbackScope::~CallbackScope() { --callbacks; }
+CallbackScope::CallbackScope() : previousControlEdit(controlScriptEdit) {
+    RequireOwner(); controlScriptEdit=false; ++callbacks;
+}
+CallbackScope::~CallbackScope() { --callbacks; controlScriptEdit=previousControlEdit; }
 LoadScriptEdits::LoadScriptEdits() { RequireTreeMutable(); ++loadScriptEdits; }
 LoadScriptEdits::~LoadScriptEdits() { --loadScriptEdits; }
 FactoryScope::FactoryScope() : previous(factoryCallbackDepth) {

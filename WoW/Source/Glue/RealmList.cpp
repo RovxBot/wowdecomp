@@ -8,6 +8,7 @@
 #include "WoW/Source/DB/DBClient/DBClient.h"
 #else
 #include "WoW/Source/Glue/Portable/RealmData.h"
+#include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include <stdexcept>
 #endif
 #include "WoW/Source/Glue/Types.h"
@@ -399,6 +400,13 @@ void CRealmList::UpdateList() {
         }
     }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    Frame::Native::ControlPublication publication;
+    // The original OnShow creates the optional tabs. Prepare that same original
+    // function outside callbacks so runtime updates only touch existing controls.
+    FrameScript_Execute("if type(RealmList_UpdateTabs)=='function' then RealmList_UpdateTabs(GetRealmCategories()) end",
+        "original realm tabs before callback publication",nullptr);
+#endif
     if (ClientServices::Connection()->m_characterList.Count() || CRealmList::m_preferredCategory != -1) {
         FrameScript_SignalEvent(GLUE_EVENT_OPEN_REALM_LIST, nullptr);
     } else {

@@ -137,7 +137,10 @@ void CheckNativeTestLoginUI() {
             else testTerminal='received 2 advertised realm'; testDone=true; end;
         elseif event=='SET_GLUE_SCREEN' then
             local screen=...; SetCurrentScreen(screen);
-            if screen=='charselect' then GetCharacterListUpdate(); end;
+            if screen=='charselect' then
+                GetCharacterListUpdate(); ReadyForAccountDataTimes(); RequestRealmSplitInfo();
+                assert(GetBillingPlan()==3 and GetBillingTimeRemaining()==0);
+            end;
         elseif event=='CHARACTER_LIST_UPDATE' then
             assert(GetNumCharacters()==0 and IsConnectedToServer());
             testTerminal='empty character selection'; testDone=true;
@@ -146,12 +149,14 @@ void CheckNativeTestLoginUI() {
         elseif event=='CLIENT_ACCOUNT_MISMATCH' then
             local account,client=...; assert(account==3 and client==2);
             testTerminal='expansion mismatch'; testDone=true;
+        elseif event=='SERVER_SPLIT_NOTICE' then
+            local choice,state,date=...; assert(choice==-1 and state==0 and date=='01/01/01');
         elseif event~='CLOSE_STATUS_DIALOG' then error('Unexpected test login event') end;
     )",nullptr);
     Check(listener.m_onEvent.m_luaRef>0,"Test login listener compilation failed");
     for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG",
                             "GET_PREFERRED_REALM_INFO","OPEN_REALM_LIST","SET_GLUE_SCREEN",
-                            "CHARACTER_LIST_UPDATE","UPDATE_SELECTED_CHARACTER","CLIENT_ACCOUNT_MISMATCH"})
+                            "CHARACTER_LIST_UPDATE","UPDATE_SELECTED_CHARACTER","CLIENT_ACCOUNT_MISMATCH","SERVER_SPLIT_NOTICE"})
         Check(listener.RegisterScriptEvent(event),"Test login event registration failed");
     for (int scenario=0; scenario<8; ++scenario) {
         const auto errors=FrameScript::Native::ScriptErrorCount();

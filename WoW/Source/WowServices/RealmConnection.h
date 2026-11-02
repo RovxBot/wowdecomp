@@ -25,6 +25,15 @@ class RealmConnection : public NetClient {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     bool m_nativeAuthSent = false, m_nativeEnumPending = false;
     bool m_nativeBillingReceived = false;
+    bool m_nativeAccountTimesPending=false, m_nativeAccountTimesReceived=false;
+    bool m_nativeSplitPending=false, m_nativeSplitChanged=false;
+    uint32_t m_nativeAccountTime=0, m_nativeAccountMask=0, m_nativeAccountTimes[8]{};
+    uint32_t m_nativeSplitChoice=0, m_nativeSplitState=0;
+    char m_nativeSplitDate[64]{};
+    void RequestAccountDataTimes();
+    void RequestRealmSplitInfo();
+    int32_t HandleAccountDataTimes(CDataStore*);
+    int32_t HandleRealmSplit(CDataStore*);
     uint32_t m_nativeCacheVersion = 0;
     struct NativeBannedAddon {
         uint32_t id;

@@ -5,7 +5,17 @@
 #include <cstddef>
 class CLayoutFrame;
 class CFramePoint;
+struct lua_State;
 namespace Frame { namespace Native {
+// Per-call state admission; only the existing Glue owner can select roots.
+// Lua errors are contained by CallControlScript before this scope retires.
+bool InControlScriptEdit();
+class ControlScriptEdit final {
+    friend int CallControlScript(lua_State*, int (*)(lua_State*), bool);
+    explicit ControlScriptEdit(bool);
+    ~ControlScriptEdit();
+    bool previous;
+};
 // Create inside XML/FrameScript owners. Close all frames and standalone points
 // before this owner. Mutate public legacy fields only on this owner thread.
 class Runtime final {
@@ -80,6 +90,8 @@ struct CallbackScope final {
     ~CallbackScope();
     CallbackScope(const CallbackScope&) = delete;
     CallbackScope& operator=(const CallbackScope&) = delete;
+private:
+    bool previousControlEdit;
 };
 // Original ordered Glue creation runs outside root traversal. Existing objects
 // may change visibility/layout there. Actual resize/input/render guards apply.

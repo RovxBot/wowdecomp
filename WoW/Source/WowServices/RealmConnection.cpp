@@ -146,13 +146,18 @@ int32_t RealmConnection::MessageHandler(void* param, NETMESSAGE msgId, uint32_t 
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     // Character mutation/gameplay remains outside this TEST-SERVER target.
     if (msgId != SMSG_AUTH_RESPONSE && msgId != SMSG_ADDON_INFO &&
-        msgId != SMSG_ENUM_CHARACTERS_RESULT && msgId != SMSG_CACHE_VERSION) {
+        msgId != SMSG_ENUM_CHARACTERS_RESULT && msgId != SMSG_CACHE_VERSION &&
+        msgId != SMSG_ACCOUNT_DATA_TIMES && msgId != SMSG_REALM_SPLIT) {
         connection->m_serverConnection->Disconnect(); return 0;
     }
 #endif
     int32_t result = 0;
 
     switch (msgId) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        case SMSG_ACCOUNT_DATA_TIMES: return connection->HandleAccountDataTimes(msg);
+        case SMSG_REALM_SPLIT: return connection->HandleRealmSplit(msg);
+#endif
         case SMSG_CHAR_CREATE:
             result = connection->HandleCharacterCreate(msgId, time, msg);
             break;
@@ -233,6 +238,10 @@ RealmConnection::RealmConnection(RealmResponse* realmResponse) : m_realmResponse
     this->SetMessageHandler(SMSG_LOGOUT_RESPONSE, RealmConnection::MessageHandler, this);
     this->SetMessageHandler(SMSG_DELETE_CHAR, RealmConnection::MessageHandler, this);
     this->SetMessageHandler(SMSG_CACHE_VERSION, RealmConnection::MessageHandler, this);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    SetMessageHandler(SMSG_ACCOUNT_DATA_TIMES,RealmConnection::MessageHandler,this);
+    SetMessageHandler(SMSG_REALM_SPLIT,RealmConnection::MessageHandler,this);
+#endif
 
     RealmConnection::s_allRealmConnectionsCrit.Enter();
     RealmConnection::REALMCONNECTIONNODE* node = RealmConnection::s_allRealmConnections.NewNode(2, 0, 0);
@@ -245,6 +254,7 @@ RealmConnection::RealmConnection(RealmResponse* realmResponse) : m_realmResponse
 int32_t RealmConnection::HandleConnect() {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     m_nativeBillingReceived = false;
+    m_nativeAccountTimesPending=m_nativeAccountTimesReceived=m_nativeSplitPending=m_nativeSplitChanged=false;
 #endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "Connected", nullptr, nullptr);
@@ -263,6 +273,7 @@ int32_t RealmConnection::HandleDisconnect() {
     m_authenticated = 0;
     m_nativeAuthSent = m_nativeEnumPending = false;
     m_nativeBillingReceived = false;
+    m_nativeAccountTimesPending=m_nativeAccountTimesReceived=m_nativeSplitPending=m_nativeSplitChanged=false;
     m_characterList.Clear();
     m_nativeBannedAddons.Clear();
 #endif
@@ -319,6 +330,58 @@ int32_t RealmConnection::HandleAddonInfo(uint32_t msgId, uint32_t time, CDataSto
 
     return 1;
 }
+
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+// Original GlueScriptEvents 0x004DE390 / 0x004DE2E0 and AccountData.cpp
+// account-time packet. Retain actual metadata only; native settings sync and
+// realm-split selection/mutation are not implemented or approved here.
+void RealmConnection::RequestAccountDataTimes() {
+    NativeSession::CheckOwner();
+    if (!m_authenticated) throw std::logic_error("Account times require world authentication");
+    if (m_nativeAccountTimesPending) return;
+    CDataStore msg; msg.Put(uint32_t(CMSG_READY_FOR_ACCOUNT_DATA_TIMES));
+    m_nativeAccountTimesPending=true; Send(&msg,0);
+}
+void RealmConnection::RequestRealmSplitInfo() {
+    NativeSession::CheckOwner();
+    if (!m_authenticated) throw std::logic_error("Realm split query requires world authentication");
+    if (m_nativeSplitPending) return;
+    CDataStore msg; msg.Put(uint32_t(CMSG_REALM_SPLIT)).Put(uint32_t(0xffffffff));
+    m_nativeSplitPending=true; Send(&msg,0);
+}
+int32_t RealmConnection::HandleAccountDataTimes(CDataStore* msg) {
+    if (!m_authenticated || !m_nativeAccountTimesPending || msg->m_read>msg->m_size || msg->m_size-msg->m_read<9) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    uint32_t time=0,mask=0; uint8_t mode=0;
+    msg->Get(time).Get(mode).Get(mask);
+    unsigned count=0; for (unsigned i=0;i<8;++i) count+=(mask>>i)&1;
+    if (mode>1 || (mask&~uint32_t(0xff)) || msg->m_size-msg->m_read!=count*4) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    uint32_t times[8]{};
+    for (unsigned i=0;i<8;++i) if (mask&(1u<<i)) msg->Get(times[i]);
+    m_nativeAccountTime=time; m_nativeAccountMask=mask;
+    for (unsigned i=0;i<8;++i) if (mask&(1u<<i)) m_nativeAccountTimes[i]=times[i];
+    m_nativeAccountTimesPending=false; m_nativeAccountTimesReceived=true;
+    return 1;
+}
+int32_t RealmConnection::HandleRealmSplit(CDataStore* msg) {
+    if (!m_authenticated || !m_nativeSplitPending || msg->m_read>msg->m_size ||
+        msg->m_size-msg->m_read<9 || msg->m_size-msg->m_read>72) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    uint32_t choice=0,state=0; char date[64]{};
+    msg->Get(choice).Get(state).GetString(date,sizeof(date));
+    if (!msg->IsRead() || state>2 || msg->m_size==0 || msg->m_data[msg->m_size-1]!=0) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    m_nativeSplitChoice=choice; m_nativeSplitState=state;
+    SStrCopy(m_nativeSplitDate,date,sizeof(m_nativeSplitDate));
+    m_nativeSplitPending=false; m_nativeSplitChanged=true;
+    return 1;
+}
+#endif
 
 // VERIFY: b88b6288 auto
 // OFFSET: 0x00464460

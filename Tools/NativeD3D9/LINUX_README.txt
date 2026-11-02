@@ -36,9 +36,10 @@ integrity requirements are implemented. Packaging does not enable gameplay.
 TEST-SERVER packages are separately compiled and labelled. Their ordinary
 Play WoW launcher leaves test login disabled. Only explicitly choosing
 Play WoW TEST-SERVER.desktop / Launch TEST-SERVER.sh, or passing
---test-server-login, activates isolated auth/realm-list testing. This requires
+--test-server-login, activates isolated character-selection testing. This requires
 an externally configured isolated server; integrity and Warden are unavailable.
-It stops after SRP verification and realm-list parsing; no character/world entry.
+It targets original SRP, advertised realm selection, world authentication and the
+character screen. Operator qualification remains open; world entry is unavailable.
 Never use this profile with a production endpoint. Strict packages keep all
 ASan/UBSan/leak detectors enabled; driver leak failures remain failures.
 

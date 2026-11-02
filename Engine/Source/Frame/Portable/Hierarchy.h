@@ -24,6 +24,17 @@ void RequireVisibilityMutation(CSimpleFrame*, bool showing);
 // Only lazy width invalidation of an existing hidden sibling decoration during
 // the selected Button transition. Other layout methods retain their guards.
 void RequireRegionWidthMutation(CScriptRegion*);
+using ControlRootQuery = bool (*)(CScriptRegion*);
+void SetControlRootQuery(ControlRootQuery);
+bool IsControlRegion(CScriptRegion*);
+bool ControlScriptContext();
+class ControlPublication final {
+public:
+    ControlPublication();
+    ~ControlPublication();
+    ControlPublication(const ControlPublication&)=delete;
+    ControlPublication& operator=(const ControlPublication&)=delete;
+};
 void RequireSliderInput(CSimpleFrame*);
 class SliderValueEdits final {
 public:

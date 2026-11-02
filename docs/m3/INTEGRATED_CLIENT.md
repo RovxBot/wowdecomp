@@ -50,6 +50,11 @@ collection, render, reentry and owner guards. This admits the unchanged account
 field's empty-text hint without permitting arbitrary callback mutations.
 Original dialog texture updates and redundant OnShow raising use the
 [texture](FRAME_TEXTURES.md) and [stacking](FRAME_STACKING.md) contracts.
+The TEST-SERVER realm/character continuation additionally admits selected existing
+control methods on its authenticated original roots. Admission is per protected
+method call and is suspended for unrelated targets/methods. Tab construction stays
+outside callbacks; hierarchy/deletion, input reentry and traversal guards remain.
+The live realm-dialog failure and ongoing qualification are tracked in [#99](https://github.com/RovxBot/wowdecomp/issues/99).
 
 Native model startup loads unchanged `Model2.wfx` and `Particle.wfx` through the
 authenticated retained SFile adapter before constructing a scene. Files are

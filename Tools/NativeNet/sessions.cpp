@@ -790,6 +790,23 @@ void CheckNativeTestServerExchange(void (*pump)(),
                     "Original UI did not request characters after AUTH_OK");
                 send(SMSG_ADDON_INFO,Bytes(4));
                 send(SMSG_ENUM_CHARACTERS_RESULT,Bytes{0});
+                auto controls=Receive(world,pump,16);
+                SARC4ProcessBuffer(controls.data(),6,&receiveCipher,&receiveCipher);
+                SARC4ProcessBuffer(controls.data()+6,6,&receiveCipher,&receiveCipher);
+                Require(controls==Bytes({0,4,uint8_t(CMSG_READY_FOR_ACCOUNT_DATA_TIMES),uint8_t(CMSG_READY_FOR_ACCOUNT_DATA_TIMES>>8),0,0,
+                    0,8,uint8_t(CMSG_REALM_SPLIT),uint8_t(CMSG_REALM_SPLIT>>8),0,0,255,255,255,255}),
+                    "Original character OnShow metadata requests changed");
+                CDataStore times;
+                times.Put(uint32_t(60)).Put(uint8_t(1)).Put(uint32_t(0x15)).Put(uint32_t(11)).Put(uint32_t(22)).Put(uint32_t(33));
+                send(SMSG_ACCOUNT_DATA_TIMES,Wire(times));
+                CDataStore split; split.Put(uint32_t(0xffffffff)).Put(uint32_t(0)).PutString("01/01/01");
+                send(SMSG_REALM_SPLIT,Wire(split));
+                Until(pump,[&] { auto* client=ClientServices::Connection(); return client->m_nativeAccountTimesReceived && client->m_nativeSplitDate[0]; },
+                    "Actual account-time/realm-split responses were not retained");
+                const auto* client=ClientServices::Connection();
+                Require(client->m_nativeAccountTime==60 && client->m_nativeAccountMask==0x15 &&
+                    client->m_nativeAccountTimes[2]==22 && client->m_nativeSplitState==0 && !strcmp(client->m_nativeSplitDate,"01/01/01"),
+                    "Server character-screen metadata changed");
             }
         }
     }
@@ -839,7 +856,7 @@ SARC4Key PeerCipher(const LoginData& data, const char* seedText) {
     return cipher;
 }
 void WorldLifecycle(void (*pump)(), LoginData& handoff) {
-    for (unsigned scenario = 0; scenario < 10; ++scenario) {
+    for (unsigned scenario = 0; scenario < 13; ++scenario) {
         Peer peer;
         ClientRealmResponseAdapter response;
         ClientConnection client(&response);
@@ -912,6 +929,27 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
         send(SMSG_AUTH_RESPONSE,scenario==0 ? Bytes{12} : Bytes{12,0,0,0,0,0,0,0,0,0,2});
         Until(pump,[&] { return client.m_authenticated!=0; },"World AUTH_OK missing");
         Require(client.m_nativeBillingReceived && client.m_accountExpansion==2,"Queue completion lost actual server expansion");
+        if (scenario==10) {
+            client.RequestAccountDataTimes();
+            (void)Receive(peer,pump,6); // Failure path ends this encrypted stream.
+            CDataStore truncated; truncated.Put(uint32_t(60)).Put(uint8_t(1)).Put(uint32_t(1));
+            send(SMSG_ACCOUNT_DATA_TIMES,Wire(truncated));
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Truncated account-time response was accepted");
+            Require(!client.m_nativeAccountTimesReceived,"Truncated account times published metadata");
+            continue;
+        }
+        if (scenario==11) {
+            client.RequestRealmSplitInfo(); (void)Receive(peer,pump,10);
+            send(SMSG_REALM_SPLIT,Bytes(8));
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Truncated realm-split response was accepted");
+            Require(!client.m_nativeSplitChanged,"Truncated realm split published state");
+            continue;
+        }
+        if (scenario==12) {
+            send(SMSG_ACCOUNT_DATA_TIMES,Bytes(9));
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Unsolicited account-time response was accepted");
+            continue;
+        }
         CDataStore banned;
         banned.Put(uint32_t(1));
         if (scenario!=8) {
