@@ -282,6 +282,9 @@ static int32_t Script_GetWidth(lua_State* L) {
 // OFFSET: 0x0049D480
 static int32_t Script_SetWidth(lua_State* L) {
     CScriptRegion* region = static_cast<CScriptRegion*>(FrameScript_GetObjectThis(L, CScriptRegion::GetObjectType()));
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    Frame::Native::RequireRegionWidthMutation(region);
+#endif
 
     if (!region->ProtectedFunctionsAllowed()) {
         if (CSimpleTop::s_instance->m_actionBlockedCallback) {
@@ -779,7 +782,7 @@ static FrameScript_Method s_ScriptMethods[] = {
     { "GetTop", &Frame::Native::ScriptMethod<&Script_GetTop, true, false> },
     { "GetBottom", &Frame::Native::ScriptMethod<&Script_GetBottom, true, false> },
     { "GetWidth", &Frame::Native::ScriptMethod<&Script_GetWidth, true, false> },
-    { "SetWidth", &Frame::Native::ScriptMethod<&Script_SetWidth, true, false, true> },
+    { "SetWidth", &Frame::Native::ScriptMethod<&Script_SetWidth, true, false> },
     { "GetHeight", &Frame::Native::ScriptMethod<&Script_GetHeight, true, false> },
     { "SetHeight", &Frame::Native::ScriptMethod<&Script_SetHeight, true, false, true> },
     { "SetSize", &Frame::Native::ScriptMethod<&Script_SetSize, true, false, true> },

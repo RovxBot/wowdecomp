@@ -16,6 +16,9 @@ void CheckNativeSessions(void (*pump)());
 #include "Engine/Source/Frame/CSimpleButton.h"
 #include "Engine/Source/Frame/CSimpleTexture.h"
 #include "Engine/Source/Frame/CSimpleEditBox.h"
+#include "Engine/Source/Frame/CSimpleSlider.h"
+#include "Engine/Source/Frame/CSimpleScrollFrame.h"
+#include "Engine/Source/Frame/Portable/LoginWidgets.h"
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Services/Portable/Texture.h"
 #include <SDL3/SDL.h>
@@ -25,6 +28,8 @@ void CheckNativeSessions(void (*pump)());
 #include <thread>
 #include "ShaderSource.h"
 #include "OptionsChecks.h"
+#include "AgreementInputChecks.h"
+#include "SliderNumericChecks.h"
 
 using Bytes = std::vector<uint8_t>;
 void CheckNativeScanServices();
@@ -100,6 +105,7 @@ void DialogRaise(OsNative::Window& window) {
         throw std::runtime_error("Fixture has no images");
     });
     Frame::Native::Scripts scripts;
+    Frame::Native::LoginWidgets widgets;
     CoordinateSetAspectRatio(4.0f / 3.0f);
     CSimpleTop root;
     const auto errors = FrameScript::Native::ScriptErrorCount();
@@ -201,6 +207,8 @@ void DialogRaise(OsNative::Window& window) {
     std::cout << "native-original-dialog-update-textures-retain-regions-reject-ownership-changes=passed\n";
     std::cout << "native-original-login-text-change-hint-control-state-pinned-guards=passed\n";
     OptionsChecks::Run(root, window);
+    SliderNumericChecks::Run();
+    AgreementInputChecks::Run(root, window);
 }
 void Pixel(CGxDeviceD3d& device, EGxTexFormat format, EGxTexFormat dataFormat) {
     TextureSource source;

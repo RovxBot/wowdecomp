@@ -241,6 +241,34 @@ static void WheelInputGuards() {
     thread.join(); Check(foreign,"foreign wheel dispatch admitted");
     std::cout<<"layout-wheel-input-state-lifetime-reentry-resize-guards=passed\n";
 }
+static void MotionInputGuards() {
+    CLayoutFrame target, other;
+    {
+        MouseMotionInput input(&target);
+        Check(IsMouseMotionInput() && IsMouseTrackingInput(&target) && !IsMouseTrackingInput(&other),"motion selected wrong capture");
+        Check(!IsMouseButtonInput() && !IsMouseButtonClick(&target),"motion granted Button click admission");
+        Reject([] { RequireTreeMutable(); }); Reject([] { RequireDestroyable(); });
+        Reject([] { RequireNoObjects(); });
+        Reject([&] { MouseMotionInput nested(&target); });
+        Reject([&] { MouseButtonInput nested(&target); });
+        Reject([] { MouseWheelInput nested; });
+        { CallbackScope callback; Check(!IsMouseTrackingInput(&target),"callback acquired Slider input admission"); }
+        { ResizeScope resize; Reject([] { RequireStateMutable(true); });
+          Check(!IsMouseTrackingInput(&target),"resize acquired Slider input admission"); }
+    }
+    try { MouseMotionInput input(&target); throw std::runtime_error("authored motion failure"); }
+    catch (const std::runtime_error&) {}
+    Check(!IsMouseMotionInput(),"motion exception retained pin");
+    RequireTreeMutable(); RequireDestroyable();
+    { MouseButtonInput input(&target); Reject([&] { MouseMotionInput motion(&target); }); }
+    { MouseWheelInput input; Reject([&] { MouseMotionInput motion(&target); }); }
+    { CallbackScope callback; Reject([&] { MouseMotionInput input(&target); }); }
+    { ResizeScope resize; Reject([&] { MouseMotionInput input(&target); }); }
+    bool foreign=false;
+    std::thread thread([&] { try { MouseMotionInput input(&target); } catch(const std::logic_error&) { foreign=true; } });
+    thread.join(); Check(foreign,"foreign motion pin admitted");
+    std::cout<<"layout-motion-selected-capture-lifetime-callback-resize-reentry-recovery=passed\n";
+}
 static void ButtonInputGuards() {
     CLayoutFrame target, other;
     Check(!IsMouseButtonInput(),"button input active before dispatch");
@@ -280,7 +308,7 @@ int main() {
             { Frame::Native::Runtime integrated(512); Check(MaximumFrameLevel()==512,"explicit Frame level budget lost"); }
             { Frame::Native::Runtime layout;
               Check(MaximumFrameLevel()==128,"default Frame level budget changed after owner recreation");
-              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();WheelInputGuards();ButtonInputGuards();CLayoutFrame::ResizePending();RequireNoObjects(); }
+              Anchors();Dependencies();InvalidInputs();XML();Capacity();CachedRectangleDuringRender();WheelInputGuards();ButtonInputGuards();MotionInputGuards();CLayoutFrame::ResizePending();RequireNoObjects(); }
             FrameXML::Native::RequireNoConsumers();
             Check(CFramePoint::s_framePointHeap.m_dataUsed==0 && !CFramePoint::s_framePointHeap.m_blockList,"layout pool not cleared");
             std::cout<<"Original layout/anchor/XML cycle "<<cycle+1<<" passed\n";

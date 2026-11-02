@@ -9,6 +9,14 @@ context or fallback. [Build/run contract and limits](DXVK_NATIVE.md#original-cli
 current original-data acceptance and blockers stay in [#133](https://github.com/RovxBot/wowdecomp/issues/133).
 All compilation runs in Actions; Windows remains a separate regression target.
 
+[Slider press/captured motion #130](https://github.com/RovxBot/wowdecomp/issues/130)
+uses the existing input owner to pin the selected consumer. Only the original
+Slider value/scroll notification admits control state; base mouse/drag and cursor
+scripts retain their guards. Press geometry is checked before tracking is set,
+and release, hide and cancellation retire tracking through the original owners.
+The DXVK authored input fixture covers both complete agreement sequences and
+failure recovery; physical operator acceptance remains separate in #130/#128.
+
 The native ScanDLL Lua bindings use the existing Glue script-service owner.
 `ScanDLLStart` validates the original two-string API and queues one unavailable
 `SCANDLL_ERROR` for the outer Event idle phase; repeated pending starts cannot duplicate

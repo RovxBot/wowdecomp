@@ -21,6 +21,8 @@ bool updating = false, collecting = false;
 bool scrollRangeEdits = false;
 bool mouseWheelEdits = false;
 bool buttonClickEdits = false;
+CSimpleFrame* buttonClickFrame = nullptr;
+bool sliderValueEdits = false;
 bool textChangedEdits = false;
 CSimpleFrame* showCallbackFrame = nullptr;
 CSimpleFrame* visibilityRaiseFrame = nullptr;
@@ -78,7 +80,7 @@ void RequireTreeMutation() {
 }
 void RequireStateMutation(bool scrollCallback) {
     RequireRegions();
-    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits);
+    const bool admitted = scrollCallback && (scrollRangeEdits || mouseWheelEdits || buttonClickEdits || textChangedEdits || sliderValueEdits);
     RequireStateMutable(admitted);
     if ((updating && !admitted) || collecting) throw std::logic_error("Defer Frame state edits until traversal completes");
 }
@@ -105,8 +107,36 @@ ButtonClickEdits::ButtonClickEdits(CSimpleFrame* frame) {
     if (!IsMouseButtonClick(frame) || updating || collecting || scrollRangeEdits || mouseWheelEdits || buttonClickEdits)
         throw std::logic_error("Nested or unselected Button click callback");
     buttonClickEdits = active = true;
+    buttonClickFrame = frame;
 }
-ButtonClickEdits::~ButtonClickEdits() { if (active) buttonClickEdits = false; }
+ButtonClickEdits::~ButtonClickEdits() { if (active) { buttonClickEdits = false; buttonClickFrame = nullptr; } }
+void RequireSliderInput(CSimpleFrame* frame) {
+    RequireSimpleFrame(frame);
+    if (!IsMouseButtonInput() && !IsMouseMotionInput()) { RequireTreeMutation(); return; }
+    RequireStateMutable(true);
+    if (!IsMouseTrackingInput(frame) || updating || collecting || scrollRangeEdits ||
+        mouseWheelEdits || buttonClickEdits || textChangedEdits || sliderValueEdits)
+        throw std::logic_error("Nested or unselected Slider tracking");
+}
+SliderValueEdits::SliderValueEdits(CSimpleFrame* frame) {
+    RequireSliderInput(frame);
+    if (IsMouseButtonInput() || IsMouseMotionInput()) sliderValueEdits = active = true;
+}
+SliderValueEdits::~SliderValueEdits() { if (active) sliderValueEdits = false; }
+void RequireRegionWidthMutation(CScriptRegion* region) {
+    RequireRegions(); RequireFrame(region);
+    if (buttonClickEdits && buttonClickFrame && region->IsA(CSimpleTexture::GetObjectType())) {
+        auto* texture = static_cast<CSimpleTexture*>(region);
+        // Resize(0) only invalidates the pinned dependency graph; it runs no
+        // callbacks and changes no anchors, parentage, event queues or capture.
+        if (texture->m_parent && texture->m_parent == buttonClickFrame->m_parent &&
+            !texture->m_visible && !texture->m_animating && !texture->m_parent->m_isVisible) {
+            RequireStateMutation(true);
+            return;
+        }
+    }
+    RequireStateMutation();
+}
 TextChangedEdits::TextChangedEdits() {
     RequireRegions();
     // Key/mouse callers can also flush dirty text while their existing lifetime
@@ -120,7 +150,7 @@ TextChangedEdits::TextChangedEdits() {
 TextChangedEdits::~TextChangedEdits() { if (active) textChangedEdits = false; }
 void RequireVisibilityMutation(CSimpleFrame* target, bool showing) {
     RequireStateMutation(true);
-    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits) return;
+    if (!scrollRangeEdits && !mouseWheelEdits && !buttonClickEdits && !textChangedEdits && !sliderValueEdits) return;
     RequireSimpleFrame(target);
     // Movement unflattening retains its stricter guard. Admit only one top-level
     // root through a selected Button click, never a subtree of top-level roots.

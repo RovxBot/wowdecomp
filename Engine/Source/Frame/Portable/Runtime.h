@@ -66,6 +66,15 @@ struct MouseButtonInput final {
     MouseButtonInput(const MouseButtonInput&) = delete;
     MouseButtonInput& operator=(const MouseButtonInput&) = delete;
 };
+// Motion pins the captured consumer without granting Button click admission.
+bool IsMouseMotionInput();
+bool IsMouseTrackingInput(const CLayoutFrame*);
+struct MouseMotionInput final {
+    explicit MouseMotionInput(CLayoutFrame*);
+    ~MouseMotionInput();
+    MouseMotionInput(const MouseMotionInput&) = delete;
+    MouseMotionInput& operator=(const MouseMotionInput&) = delete;
+};
 struct CallbackScope final {
     CallbackScope();
     ~CallbackScope();
