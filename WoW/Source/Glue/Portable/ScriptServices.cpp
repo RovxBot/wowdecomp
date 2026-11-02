@@ -200,13 +200,14 @@ void PollTestLogin() {
         if (!testWorld->m_statusComplete && int32_t(OsGetAsyncTimeMs() - testWorldDeadline) >= 0) {
             RetireTestSession(); TestDialog("OKAY", "TEST SERVER: world connection/character enumeration timed out."); return;
         }
-        if (testWorld->m_statusOp == COP_WAIT_QUEUE) {
+        if (testWorld->m_statusOp == COP_WAIT_QUEUE && !testWorld->m_statusComplete) {
             if (testQueuePosition != testWorld->m_queuePosition) {
                 testQueuePosition = testWorld->m_queuePosition;
                 testWorldDeadline = OsGetAsyncTimeMs() + 120000;
                 TestDialog("CANCEL", ("TEST SERVER: server queue position " + std::to_string(testWorld->m_queuePosition)).c_str());
             }
-        } else if (testWorld->m_statusOp == COP_AUTHENTICATE && testWorld->m_statusComplete && testWorld->m_authenticated) {
+        } else if ((testWorld->m_statusOp == COP_AUTHENTICATE || testWorld->m_statusOp == COP_WAIT_QUEUE) &&
+                   testWorld->m_statusComplete && testWorld->m_authenticated) {
             // Original CGlueMgr::Idle 0x004DAB40 refuses an account expansion the
             // authenticated client data cannot support, before enumeration.
             if (testWorld->m_accountExpansion > clientExpansionLevel) {

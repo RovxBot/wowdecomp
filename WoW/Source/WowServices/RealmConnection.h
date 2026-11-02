@@ -24,6 +24,7 @@ class RealmConnection : public NetClient {
     public:
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     bool m_nativeAuthSent = false, m_nativeEnumPending = false;
+    bool m_nativeBillingReceived = false;
     uint32_t m_nativeCacheVersion = 0;
     struct NativeBannedAddon {
         uint32_t id;

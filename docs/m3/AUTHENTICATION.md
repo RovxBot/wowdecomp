@@ -124,7 +124,9 @@ The selected `RealmConnection` constructs original 12340 `CMSG_AUTH_SESSION`
 SHA1 account/seed/session-key digest), then enables original header encryption.
 Actual server rejection, billing/expansion records, queue updates and character
 responses drive the original owners/UI. Only AUTH_OK admits character requests;
-bounded enumeration accepts up to ten complete original records and its optional
+short queue-completion AUTH_OK retains the preceding actual billing/expansion
+record, and an initial short AUTH_OK without that record is refused.
+Bounded enumeration accepts up to ten complete original records and its optional
 race restrictions. Malformed/unsolicited messages fail closed. No credentials,
 keys, character names or private packet contents are logged.
 

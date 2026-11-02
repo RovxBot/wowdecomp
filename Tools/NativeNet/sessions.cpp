@@ -778,7 +778,10 @@ void CheckNativeTestServerExchange(void (*pump)(),
         };
         if (scenario==5) send(SMSG_AUTH_RESPONSE,Bytes{13});
         else {
-            send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,uint8_t(scenario==7 ? 3 : 2)});
+            if (scenario==6) {
+                send(SMSG_AUTH_RESPONSE,Bytes{27,0,0,0,0,0,0,0,0,0,2,1,0,0,0,0});
+                send(SMSG_AUTH_RESPONSE,Bytes{12}); // Actual server's queue-complete form.
+            } else send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,3});
             if (scenario==6) {
                 auto request=Receive(world,pump,6);
                 auto receiveCipher=PeerCipher(data,"c2b3723cc6aed9b5343c53ee2f4367ce");
@@ -836,7 +839,7 @@ SARC4Key PeerCipher(const LoginData& data, const char* seedText) {
     return cipher;
 }
 void WorldLifecycle(void (*pump)(), LoginData& handoff) {
-    for (unsigned scenario = 0; scenario < 9; ++scenario) {
+    for (unsigned scenario = 0; scenario < 10; ++scenario) {
         Peer peer;
         ClientRealmResponseAdapter response;
         ClientConnection client(&response);
@@ -896,11 +899,19 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
                 "Server world rejection became success");
             continue;
         }
+        if (scenario==9) {
+            send(SMSG_AUTH_RESPONSE,Bytes{12});
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Initial short AUTH_OK invented billing/expansion state");
+            Require(!client.m_authenticated,"Initial short AUTH_OK authenticated without actual billing record");
+            continue;
+        }
+        if (scenario==0) send(SMSG_AUTH_RESPONSE,Bytes{27,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0});
         send(SMSG_AUTH_RESPONSE,Bytes{27,1,0,0,0,0});
         Until(pump,[&] { return client.m_statusOp==COP_WAIT_QUEUE; },"World queue response missing");
         Require(!client.m_authenticated && client.m_queuePosition==1,"Queue authenticated early");
-        send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,2});
+        send(SMSG_AUTH_RESPONSE,scenario==0 ? Bytes{12} : Bytes{12,0,0,0,0,0,0,0,0,0,2});
         Until(pump,[&] { return client.m_authenticated!=0; },"World AUTH_OK missing");
+        Require(client.m_nativeBillingReceived && client.m_accountExpansion==2,"Queue completion lost actual server expansion");
         CDataStore banned;
         banned.Put(uint32_t(1));
         if (scenario!=8) {

@@ -93,6 +93,7 @@ void LoadCharacterServices() {
     rollback.committed = true;
 }
 void CloseCharacterServices() {
+    CCharacterSelection::ClearScriptRequests();
     if (characterOpen) {
         CCharacterSelection::Shutdown();
         CCharacterComponent::Destroy();

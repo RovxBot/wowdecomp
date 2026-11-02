@@ -243,6 +243,9 @@ RealmConnection::RealmConnection(RealmResponse* realmResponse) : m_realmResponse
 // VERIFY: a4dc8cc2 auto
 // OFFSET: 0x00464350
 int32_t RealmConnection::HandleConnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    m_nativeBillingReceived = false;
+#endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "Connected", nullptr, nullptr);
     }
@@ -259,6 +262,7 @@ int32_t RealmConnection::HandleDisconnect() {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     m_authenticated = 0;
     m_nativeAuthSent = m_nativeEnumPending = false;
+    m_nativeBillingReceived = false;
     m_characterList.Clear();
     m_nativeBannedAddons.Clear();
 #endif
@@ -343,9 +347,9 @@ int32_t RealmConnection::HandleAuthResponse(uint32_t msgId, uint32_t time, CData
     }
     const uint32_t bytes = msg->m_size - msg->m_read;
     const uint8_t code = msg->m_data[msg->m_read];
-    // AUTH_OK billing record; initial queue has billing + position/migration,
-    // later queue updates may contain only position/migration. Failures: code only.
-    if ((code == 12 && bytes != 11) ||
+    // Original 0x00464640 accepts a short AUTH_OK after the initial queue's
+    // billing/expansion record. Do not invent that record for an initial short OK.
+    if ((code == 12 && bytes != 11 && !(bytes == 1 && m_nativeBillingReceived)) ||
         (code == 27 && bytes != 6 && bytes != 16) ||
         (code != 12 && code != 27 && bytes != 1)) {
         m_serverConnection->Disconnect(); return 0;
@@ -368,6 +372,9 @@ int32_t RealmConnection::HandleAuthResponse(uint32_t msgId, uint32_t time, CData
             msg->Get(this->m_billingFlags);
             msg->Get(this->m_billingTimeRested);
             msg->Get(this->m_accountExpansion);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+            m_nativeBillingReceived = true;
+#endif
         }
 
         if (result == 27) {
@@ -380,6 +387,12 @@ int32_t RealmConnection::HandleAuthResponse(uint32_t msgId, uint32_t time, CData
     }
 
     this->m_realmResponse->HandleAuthResponse(this, result);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (result != 12 && result != 27) {
+        m_nativeAuthSent = m_nativeBillingReceived = false;
+        m_serverConnection->Disconnect();
+    }
+#endif
 
     return 1;
 }
