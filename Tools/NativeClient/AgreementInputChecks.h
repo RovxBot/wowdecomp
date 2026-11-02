@@ -160,7 +160,8 @@ static void Run(CSimpleTop& root, OsNative::Window& window) {
         Check(FrameScript::Native::ScriptErrorCount()==errors,"Agreement setup reset failed");
     };
     root.OnLayerUpdate(.016f);
-    auto [sx,sy]=point(slider);
+    const auto sliderPoint=point(slider);
+    const int sx=sliderPoint.first, sy=sliderPoint.second;
     deliver(OS_INPUT_MOUSE_MOVE,sx,sy);
     Check(root.m_mouseFocus==slider,"Slider was not selected by actual input");
     deliver(OS_INPUT_MOUSE_DOWN,sx,sy,MOUSE_BUTTON_LEFT);
@@ -191,7 +192,8 @@ static void Run(CSimpleTop& root, OsNative::Window& window) {
     Check(!slider->m_buttonDown && slider->m_value==0,"Rejected Slider geometry changed value/tracking");
     cancel(); thumb->SetHeight(oldHeight); root.OnLayerUpdate(.016f);
     // Full wheel-to-bottom -> actual Button release -> next agreement transition.
-    auto [wx,wy]=point(scroll); auto [bx,by]=point(button);
+    const auto wheelPoint=point(scroll), buttonPoint=point(button);
+    const int wx=wheelPoint.first, wy=wheelPoint.second, bx=buttonPoint.first, by=buttonPoint.second;
     auto wheelToBottom = [&] {
         reset(); lua("InputOrder={}");
         deliver(OS_INPUT_MOUSE_MOVE,wx,wy);
