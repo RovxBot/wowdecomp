@@ -109,7 +109,7 @@ def desktop_entry(test_build=False, activate=False):
     return ('[Desktop Entry]\nType=Application\nVersion=1.0\nName=' + name +
             '\nComment=Launch the native 3.3.5a Linux client with original data\n'
             'Icon=applications-games\nTerminal=true\nCategories=Game;\n'
-            'Exec=python3 -I -c "' + bootstrap + '" %k --desktop' +
+            'Exec=python3 -I -B -c "' + bootstrap + '" %k --desktop' +
             (' --test-server-login' if activate else '') + '\n')
 
 
@@ -127,7 +127,7 @@ def stage_launchers(output, root, test_build):
              '  printf "%s\\n" "WoW Native requires Python 3.10 or newer. Install python3 and try again." >&2\n'
              '  if [ -t 0 ]; then read -r reply; fi\n'
              '  exit 1\nfi\n'
-             'exec python3 "$package_dir/launch.py" --desktop "$@"\n')
+             'exec python3 -B "$package_dir/launch.py" --desktop "$@"\n')
     scripts = [('Launch WoW.sh', False), ('Play WoW.desktop', False)]
     if test_build:
         scripts += [('Launch TEST-SERVER.sh', True), ('Play WoW TEST-SERVER.desktop', True)]

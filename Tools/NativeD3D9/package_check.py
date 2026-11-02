@@ -30,6 +30,7 @@ def main():
         directories = [p for p in game.iterdir() if p.name.startswith('WoW-Native-Linux')]
         assert len(directories) == 1
         artifact = directories[0]
+        package_files = {p.relative_to(artifact).as_posix() for p in artifact.rglob('*')}
         manifest = json.loads((artifact / 'manifest.json').read_text())
         environment = os.environ.copy()
         environment.update(XDG_CONFIG_HOME=str(root / 'config'), XDG_CACHE_HOME=str(root / 'cache'),
@@ -53,6 +54,8 @@ def main():
             plan = json.loads(checked.stdout)
             assert plan['data'] == str(data.parent)
             assert plan['test_server_login'] is False
+        subprocess.run(['python3', str(artifact / 'launch.py'), '--check'], cwd=root,
+                       env=environment, check=True, capture_output=True)
         test = artifact / 'Play WoW TEST-SERVER.desktop'
         assert test.exists() == manifest['test_server_login']
         if test.exists():
@@ -78,6 +81,7 @@ def main():
         assert original == {p.relative_to(game).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                             for p in (game / 'Data').rglob('*') if p.is_file()}
         assert not any((game / name).exists() for name in ['WTF', 'Cache', 'Logs'])
+        assert package_files == {p.relative_to(artifact).as_posix() for p in artifact.rglob('*')}, 'Launch wrote into the installed package'
         # Relocate the package: identity follows Data, never the extraction folder.
         relocated = game / 'another package folder'
         artifact.rename(relocated)

@@ -12,6 +12,9 @@ import subprocess
 import sys
 import tempfile
 
+# The package may live inside a read-only original installation. Imports must
+# not create __pycache__ beside the launcher, including direct diagnostic use.
+sys.dont_write_bytecode = True
 from run_native_client import dxvk_library_path, require_test_server_artifact, validate_paths, verify_artifact
 
 
