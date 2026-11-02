@@ -60,7 +60,9 @@ ScanState scanState = ScanState::NotStarted;
 bool scanDispatching = false;
 bool unavailableDialog = false;
 const char* pendingDialog = nullptr;
-constexpr const char* scanUnavailable = "Sign-in is unavailable: this native client cannot verify and run the Windows Scan.dll detector. No scan approval has been granted.";
+constexpr const char* scanUnavailable =
+    "Sign-in is unavailable: native platform identity, executable version proof and integrity "
+    "services are unsupported. Sign-in has not been approved.";
 bool ServicesOpen() {
     return registered && CVar::m_initialized &&
         CVar::LookupRegistered("accountName") == g_accountNameVar &&

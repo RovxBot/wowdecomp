@@ -23,7 +23,7 @@ def audit(targets, mode, target_os, cpu):
         expected |= {'WowNativePackets', 'NativePacketCheck'}
     if mode == 'connections':
         expected |= {'WowNativeNet', 'NativeConnectionCheck', 'NativeSessionCheck'}
-    if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
+    if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout', 'connections'}:
         expected |= {'WowNativeFiles', 'FileServicesCheck'}
     if mode in {'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'}:
         expected |= {'WowAssetCodecs', 'WowNativeAssets', 'PackageServicesCheck', 'AssetDecodersCheck', 'NativeAssetCheck'}
@@ -68,7 +68,7 @@ def audit(targets, mode, target_os, cpu):
                 if ((target_os != 'WINDOWS' and '.lib' in fragment['fragment'])
                         or '/ENTRY:' in fragment['fragment']):
                     errors.append(f"{target['name']}: Windows link flags in core")
-        if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout'} and target['name'] in {'WowNativeFiles', 'FileServicesCheck'}:
+        if mode in {'files', 'assets', 'async', 'window', 'gl', 'framescript', 'xml', 'layout', 'connections'} and target['name'] in {'WowNativeFiles', 'FileServicesCheck'}:
             expected_sources = (
                 {'Engine/Source/BlizzardCore/Portable/File.cpp',
                  'Engine/Source/BlizzardCore/Portable/FilePaths.cpp',
@@ -196,6 +196,8 @@ def audit(targets, mode, target_os, cpu):
                 'WoW/Source/WowServices/Portable/WowConnection.cpp',
                 'WoW/Source/WowServices/Portable/WowConnectionNet.cpp',
                 'Engine/Source/Os/Portable/NetAddress.cpp',
+                'Engine/Source/Os/Portable/OsVersionHash.cpp',
+                'WoW/Source/WowSvcs/WowSvcsClient/ChecksumExecutables.cpp',
                 'Engine/Source/Storm/Source/MD5.cpp', 'Engine/Source/Storm/Source/SBig.cpp'] +
                 ['WoW/Source/WowServices/' + name + '.cpp' for name in
                  ['BigInteger', 'SRP6_Client', 'SRP6_Random', 'Login', 'Grunt', 'GruntLogin', 'Portable/Session']] +
