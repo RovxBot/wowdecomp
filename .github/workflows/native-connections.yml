@@ -42,6 +42,12 @@ jobs:
             preset: linux-connections-asan
           - runner: macos-15
             preset: macos-arm64-connections
+          - runner: ubuntu-24.04
+            preset: linux-connections
+            test_server: true
+          - runner: ubuntu-24.04
+            preset: linux-connections-asan
+            test_server: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -52,12 +58,16 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1
-        run: python3 Tools/Porting/run_connection_checks.py --preset ${{ matrix.preset }}
+          TEST_SERVER: ${{ matrix.test_server || false }}
+        run: |
+          args=()
+          if [ "$TEST_SERVER" = true ]; then args+=(--test-server-login); fi
+          python3 Tools/Porting/run_connection_checks.py --preset ${{ matrix.preset }} "${args[@]}"
       - name: Preserve source, binary identities and logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: native-${{ matrix.preset }}-${{ github.sha }}
-          path: artifacts/${{ matrix.preset }}/
+          name: native-${{ matrix.preset }}${{ matrix.test_server && '-test-server' || '' }}-${{ github.sha }}
+          path: artifacts/${{ matrix.preset }}${{ matrix.test_server && '-test-server' || '' }}/
           if-no-files-found: error
           retention-days: 14

@@ -53,6 +53,10 @@ Durable references: [runtime foundations](docs/m1/RUNTIME_DESIGN.md),
 and [integrated original-client startup](docs/m3/INTEGRATED_CLIENT.md).
 Native audio/movie playback and applied graphics options remain separate open
 requirements. No native authentication or gameplay result is established.
+An explicitly built and activated [isolated test-server login profile](docs/m3/AUTHENTICATION.md#isolated-test-server-profile)
+connects the original login UI to Grunt/SRP and realm lists with truthful Linux
+identity and visible unavailable integrity services. Normal builds remain closed;
+interactive server validation and world entry are still open in #98.
 
 ## Getting builds and running diagnostics
 

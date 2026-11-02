@@ -56,6 +56,11 @@ def verify_artifact(artifact, sanitizers, renderer="opengl"):
     return manifest, binary
 
 
+def require_test_server_artifact(manifest, renderer):
+    if renderer != 'dxvk' or manifest.get('test_server_login') is not True:
+        raise ValueError('--test-server-login requires a signature-enabled TEST-SERVER DXVK artifact')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['artifact', 'data', 'settings', 'cache', 'output']:
@@ -65,6 +70,7 @@ def main():
     parser.add_argument('--hidden', action='store_true')
     parser.add_argument('--renderer', choices=['opengl', 'dxvk'], default='opengl')
     parser.add_argument('--sanitizers', action='store_true')
+    parser.add_argument('--test-server-login', action='store_true', help='Explicitly activate a separately built TEST-SERVER DXVK artifact')
     args = parser.parse_args()
     if platform.system() != 'Linux' or platform.machine() != 'x86_64':
         parser.error('The integrated startup target requires Linux x86-64')
@@ -72,6 +78,11 @@ def main():
         parser.error('Invalid frame limit/timeout')
     validate_paths(args.data, args.settings, args.cache, args.output)
     manifest, binary = verify_artifact(args.artifact.resolve(), args.sanitizers, args.renderer)
+    if args.test_server_login:
+        try:
+            require_test_server_artifact(manifest, args.renderer)
+        except ValueError as error:
+            parser.error(str(error))
     if args.output.resolve().is_relative_to(args.artifact.resolve()):
         parser.error('Write reports outside the verified artifact')
     binary.chmod(0o755)
@@ -96,6 +107,8 @@ def main():
         command += ['--renderer', 'dxvk', '--snapshot', str(runtime / 'first-frame.ppm')]
     if args.hidden:
         command.append('--hidden')
+    if args.test_server_login:
+        command.append('--test-server-login')
     started = datetime.now(timezone.utc).isoformat()
     timed_out = False
     try:
@@ -107,6 +120,7 @@ def main():
         process = subprocess.CompletedProcess(command, 124, text(error.stdout), text(error.stderr) + '\nNative client timed out; this is not clean shutdown.\n')
     report = dict(schema_version=1, source_commit=manifest['source_commit'], workflow_run=manifest['workflow_run'],
                   preset=manifest['preset'], binary_sha256=manifest['binaries']['WowNativeClient'],
+                  test_server_login=args.test_server_login,
                   started_at=started, completed_at=datetime.now(timezone.utc).isoformat(),
                   scope='integrated original Glue startup; completion/rendering must be established from observed stages',
                   exit_code=process.returncode, timed_out=timed_out, stdout=process.stdout.splitlines(), stderr=process.stderr.splitlines(),

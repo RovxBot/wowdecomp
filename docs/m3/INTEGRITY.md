@@ -39,7 +39,7 @@ when the original UI revisits agreements.
 `ScanDLLContinueAnyway` leaves that failure and `IsScanDLLFinished()==nil` intact.
 The original error handler may finish displaying its controls. The owner then
 opens the original OKAY dialog with the actual unavailable reason.
-`DefaultServerLogin` refuses every request before reading or retaining credential
+In normal builds, `DefaultServerLogin` refuses every request before reading or retaining credential
 bytes, including direct Lua calls, pre-start calls and calls after acknowledgement
 or repeated continuation. Refusal notices are deferred to outer idle, after input
 callbacks and the original login action's password-field clearing. Repeated
@@ -52,7 +52,11 @@ replacement detector policy has been established. A later implementation must
 provide source-backed platform requirements and actual supported checks before
 adding an approval state or connecting sign-in. Do not relabel a data digest as
 the detector result, pretend to be another platform, omit a version proof or
-ignore a Warden request to obtain a session.
+ignore a Warden request to obtain a session. The explicitly authorized isolated
+[test-server profile](AUTHENTICATION.md#isolated-test-server-profile) is compiled
+separately and discloses those capabilities as unavailable; it never adds a scan
+approval state or qualifies production integrity. It requires runtime opt-in and
+external relaxed test-server policy, and stops after auth/realm-list parsing.
 
 ## Server compatibility limits
 
@@ -79,7 +83,10 @@ The refreshed running identity and allowlisted settings are evidence under
 cannot establish the exact compiled tree or negotiated session behavior. Under
 these contracts, Linux production authentication/world entry cannot be qualified
 by choosing a new fourCC, hashing an ELF file, using the Mac identity or ignoring
-Warden. Keep sign-in refused and the compatibility requirement open.
+Warden. Normal sign-in remains refused and the production compatibility requirement
+stays open. The isolated profile uses a truthful nonstandard Linux identity and
+an explicitly unavailable checksum placeholder only under its documented gates;
+the client neither changes nor attests the server's test configuration.
 
 ## Supported native checksum subset
 

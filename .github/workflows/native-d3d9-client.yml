@@ -8,6 +8,10 @@ on:
         type: choice
         default: both
         options: [both, release, strict]
+      test_server_login:
+        description: 'TEST ONLY: compile optional Linux isolated-server login (requires runtime opt-in)'
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'CMakeLists.txt'
@@ -62,15 +66,17 @@ jobs:
       - name: Build pinned dependencies and build original Gx client and execute contracts
         env:
           PROTOTYPE_SANITIZERS: ${{ matrix.sanitizers }}
+          TEST_SERVER_LOGIN: ${{ inputs.test_server_login || false }}
         run: |
           args=(--software-driver)
           if [ "$PROTOTYPE_SANITIZERS" = true ]; then args+=(--sanitizers); fi
+          if [ "$TEST_SERVER_LOGIN" = true ]; then args+=(--test-server-login); fi
           python3 Tools/NativeD3D9/build.py --client "${args[@]}"
       - name: Preserve exact-source binaries, libraries, notices, pixels and logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: native-client-d3d9-sanitizers-${{ matrix.sanitizers }}-${{ github.sha }}
+          name: native-client-d3d9-${{ inputs.test_server_login && 'TEST-SERVER-' || '' }}sanitizers-${{ matrix.sanitizers }}-${{ github.sha }}
           path: artifacts/linux-client-d3d9*/
           if-no-files-found: error
           retention-days: 14
