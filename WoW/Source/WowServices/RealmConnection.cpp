@@ -340,14 +340,14 @@ void RealmConnection::RequestAccountDataTimes() {
     if (!m_authenticated) throw std::logic_error("Account times require world authentication");
     if (m_nativeAccountTimesPending) return;
     CDataStore msg; msg.Put(uint32_t(CMSG_READY_FOR_ACCOUNT_DATA_TIMES));
-    m_nativeAccountTimesPending=true; Send(&msg,0);
+    msg.Finalize(); m_nativeAccountTimesPending=true; Send(&msg);
 }
 void RealmConnection::RequestRealmSplitInfo() {
     NativeSession::CheckOwner();
     if (!m_authenticated) throw std::logic_error("Realm split query requires world authentication");
     if (m_nativeSplitPending) return;
     CDataStore msg; msg.Put(uint32_t(CMSG_REALM_SPLIT)).Put(uint32_t(0xffffffff));
-    m_nativeSplitPending=true; Send(&msg,0);
+    msg.Finalize(); m_nativeSplitPending=true; Send(&msg);
 }
 int32_t RealmConnection::HandleAccountDataTimes(CDataStore* msg) {
     if (!m_authenticated || !m_nativeAccountTimesPending || msg->m_read>msg->m_size || msg->m_size-msg->m_read<9) {
