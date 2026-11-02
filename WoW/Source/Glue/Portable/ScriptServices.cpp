@@ -1217,6 +1217,7 @@ void PollScriptServices() {
     if (testServerProfile) {
         struct Dispatch { Dispatch() { scanDispatching = true; } ~Dispatch() { scanDispatching = false; } } dispatch;
         PollTestLogin();
+        if (testWorld && testWorld->m_authenticated) CCharacterSelection::PollScriptRequests();
     }
 #endif
     const bool scanFailed = scanState == ScanState::ErrorPending;

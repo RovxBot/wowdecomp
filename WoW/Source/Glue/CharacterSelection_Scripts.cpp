@@ -4,6 +4,10 @@
 #include "Engine/Source/Frame/Portable/Scripts.h"
 #include "Engine/Source/FrameScript/Portable/Runtime.h"
 #include <cmath>
+#include <vector>
+#include <string>
+#include <utility>
+#include <cstring>
 #endif
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
 #include "Engine/Source/Frame/CScriptObject.h"
@@ -24,6 +28,41 @@
 #include "WoW/Source/Glue/CharacterSelectionDisplay.h"
 #include "WoW/Source/Glue/Types.h"
 #include "WoW/Source/Object/ObjectClient/Unit_C.h"
+
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+namespace {
+enum class CharacterAction { Background, Select, Facing, Customize };
+struct CharacterRequest { CharacterAction action; std::string path; int32_t index=0; float facing=0; };
+std::vector<CharacterRequest> characterRequests;
+void QueueCharacterRequest(CharacterRequest request) {
+    if (characterRequests.size()>=128) throw std::length_error("Too many deferred character controls");
+    characterRequests.push_back(std::move(request));
+}
+}
+void CCharacterSelection::ClearScriptRequests() { characterRequests.clear(); }
+void CCharacterSelection::PollScriptRequests() {
+    FrameScript::Native::RequireOwner();
+    if (characterRequests.empty()) return;
+    // OnShow/OnEvent/button/OnUpdate callers only retain scalar requests. Apply
+    // them after Frame callbacks/traversal, without relaxing any Frame guards.
+    if (m_modelFrame) Frame::Native::RequireStateMutation();
+    auto requests=std::exchange(characterRequests,{});
+    for (const auto& request:requests) switch (request.action) {
+    case CharacterAction::Background: SetBackgroundModel(request.path.c_str()); break;
+    case CharacterAction::Select:
+        s_selectionIndex=request.index>=0 && uint32_t(request.index)<s_characterList.Count() ? request.index : 0;
+        ShowCharacter();
+        FrameScript_SignalEvent(GLUE_EVENT_UPDATE_SELECTED_CHARACTER,"%d",s_selectionIndex+1);
+        break;
+    case CharacterAction::Facing: CharacterSelectionDisplay::SetCharacterFacing(request.facing); break;
+    case CharacterAction::Customize:
+        if (s_selectionIndex>=0 && uint32_t(s_selectionIndex)<s_characterList.Count() &&
+            s_characterList[s_selectionIndex].m_component)
+            s_characterList[s_selectionIndex].m_component->RenderPrep(0);
+        break;
+    }
+}
+#endif
 
 // VERIFY: 769d9898 auto
 // OFFSET: 0x004E2F60
@@ -58,6 +97,9 @@ static int32_t Script_GetNumCharacters(lua_State* L) {
 // VERIFY: c24567ba auto
 // OFFSET: 0x004E2FD0
 static int32_t Script_UpdateSelectionCustomizationScene(lua_State* L) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    QueueCharacterRequest({CharacterAction::Customize,{}});
+#else
     if (static_cast<uint32_t>(CCharacterSelection::s_selectionIndex) < CCharacterSelection::s_characterList.Count()) {
         CCharacterComponent* component = CCharacterSelection::s_characterList[CCharacterSelection::s_selectionIndex].m_component;
 
@@ -65,6 +107,7 @@ static int32_t Script_UpdateSelectionCustomizationScene(lua_State* L) {
             component->RenderPrep(0);
         }
     }
+#endif
 
     return 0;
 }
@@ -84,7 +127,13 @@ static int32_t Script_SetCharacterSelectFacing(lua_State* L) {
         return 0;
     }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    const float facing=lua_tonumber(L,1)*0.017453292f;
+    QueueCharacterRequest({CharacterAction::Facing,{},0,facing});
+    CCharacterSelection::s_charFacing=facing;
+#else
     CharacterSelectionDisplay::SetCharacterFacing(lua_tonumber(L, 1) * 0.017453292f);
+#endif
     return 1;
 }
 
@@ -314,7 +363,13 @@ static int32_t Script_SetCharSelectBackground(lua_State* L) {
         return 0;
     }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    size_t length=0; const char* path=lua_tolstring(L,1,&length);
+    if (length>=260 || length!=std::strlen(path)) return luaL_error(L,"Invalid character background path");
+    QueueCharacterRequest({CharacterAction::Background,path});
+#else
     CCharacterSelection::SetBackgroundModel(lua_tolstring(L, 1, nullptr));
+#endif
     return 0;
 }
 
@@ -322,10 +377,12 @@ static int32_t Script_SetCharSelectBackground(lua_State* L) {
 // OFFSET: 0x004E4530
 static int32_t Script_GetCharacterListUpdate(lua_State* L) {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
-    CCharacterSelection::s_characterList.Clear();
+    // Original OnShow requests a refresh inside a Frame callback. Retirement
+    // and publication belong to the existing outer Glue/session poll.
+    CGlueMgr::GetCharacterList();
+    return 0;
 #else
     CCharacterSelection::s_characterList.SetCount(0);
-#endif
 
     if (CCharacterSelection::m_modelFrame && CCharacterSelection::m_modelFrame->m_model) {
         CCharacterSelection::m_modelFrame->m_model->DetachAllChildrenById(0);
@@ -337,6 +394,7 @@ static int32_t Script_GetCharacterListUpdate(lua_State* L) {
 
     CGlueMgr::GetCharacterList();
     return 0;
+#endif
 }
 
 // VERIFY: 4842f40a auto
@@ -360,8 +418,12 @@ static int32_t Script_SelectCharacter(lua_State* L) {
     }
 
     CCharacterSelection::s_selectionIndex = index;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    QueueCharacterRequest({CharacterAction::Select,{},index});
+#else
     CCharacterSelection::ShowCharacter();
     FrameScript_SignalEvent(GLUE_EVENT_UPDATE_SELECTED_CHARACTER, "%d", CCharacterSelection::s_selectionIndex + 1);
+#endif
     return 0;
 }
 
@@ -374,10 +436,15 @@ template<int32_t (*Method)(lua_State*)> int32_t NativeCharacterMethod(lua_State*
             return luaL_error(L,"Character arguments must be bounded finite numbers");
     }
     if constexpr (Method == Script_GetNumCharacters || Method == Script_GetCharacterInfo ||
-                  Method == Script_GetSelectBackgroundModel || Method == Script_GetCharacterSelectFacing)
-        return Method(L);
-    if constexpr (Method == Script_UpdateSelectionCustomizationScene)
-        return Frame::Native::ScriptMethod<Method,true,false,false>(L);
+                  Method == Script_GetSelectBackgroundModel || Method == Script_GetCharacterSelectFacing ||
+                  Method == Script_GetCharacterListUpdate || Method == Script_SetCharSelectBackground ||
+                  Method == Script_SelectCharacter || Method == Script_SetCharacterSelectFacing ||
+                  Method == Script_UpdateSelectionCustomizationScene) {
+        char failure[512]{};
+        try { return Method(L); }
+        catch (const std::exception& error) { std::snprintf(failure,sizeof(failure),"%s",error.what()); }
+        return luaL_error(L,"Native character control rejected: %s",failure);
+    }
     return Frame::Native::ScriptMethod<Method,true,false,true>(L);
 }
 #define CHARACTER_METHOD(method) NativeCharacterMethod<method>
@@ -413,6 +480,7 @@ void CharSelectRegisterScriptFunctions() {
 // OFFSET: 0x004E25A0
 void CharSelectUnregisterScriptFunctions() {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    CCharacterSelection::ClearScriptRequests();
     CCharacterSelection::m_modelFrame = nullptr;
 #endif
     for (uint32_t i = 0; i < sizeof(s_scriptFunctions) / sizeof(s_scriptFunctions[0]); i++) {

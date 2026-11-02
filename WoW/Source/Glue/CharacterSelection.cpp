@@ -75,6 +75,7 @@ void CCharacterSelection::Initialize() {
 // OFFSET: 0x004E38F0
 void CCharacterSelection::Shutdown() {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    ClearScriptRequests();
     OnHide();
     s_characterList.Clear();
     s_selectionIndex = -1;

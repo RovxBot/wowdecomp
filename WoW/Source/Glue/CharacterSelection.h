@@ -36,6 +36,10 @@ class CCharacterSelection {
     static void UpdateCharacterName(WOWGUID guid, const char* name);
     static void UpdateCharacterInfo(WOWGUID guid, const char* name, uint8_t sexID, uint8_t skinColorID, uint8_t faceID, uint8_t hairStyleID, uint8_t hairColorID, uint8_t facialHairStyleID, uint8_t raceID);
     static void UpdateCharacterNameDeclension(WOWGUID guid);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    static void PollScriptRequests();
+    static void ClearScriptRequests();
+#endif
 };
 
 extern const int32_t g_scriptSexIndex[3];

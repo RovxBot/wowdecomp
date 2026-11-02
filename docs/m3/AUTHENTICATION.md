@@ -132,6 +132,9 @@ Original character-screen scripts, scalar component assembly, authenticated DBC/
 texture/model reads and display release are selected only in this profile. Rows
 and model data come from the actual server and unchanged data. Attached resources
 retire before their frame/scene owners; screen hide unregisters original idle.
+Original character OnShow/button/update scripts retain bounded scalar requests;
+the outer Glue poll applies model changes after Frame callbacks/traversal. Session
+retirement discards pending controls before releasing their rows and resources.
 Ghost lighting/effects and guild-tabard query/cache paths remain explicitly
 unavailable. Native addon producers are not loaded: the auth-session field encodes
 an empty loaded inventory, and actual server banned-addon records are bounded and

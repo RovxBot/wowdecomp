@@ -137,6 +137,7 @@ void CheckNativeTestLoginUI() {
             else testTerminal='received 2 advertised realm'; testDone=true; end;
         elseif event=='SET_GLUE_SCREEN' then
             local screen=...; SetCurrentScreen(screen);
+            if screen=='charselect' then GetCharacterListUpdate(); end;
         elseif event=='CHARACTER_LIST_UPDATE' then
             assert(GetNumCharacters()==0 and IsConnectedToServer());
             testTerminal='empty character selection'; testDone=true;
@@ -200,7 +201,14 @@ void CheckNativeTestLoginUI() {
                 auto* pending=TextureCacheCreateTexture("pending-row.blp");
                 row->m_component->m_section[0].m_layerTex[0]=pending;
                 (void)TextureCacheGetInfo(pending,info,0);
+                {
+                    Frame::Native::CallbackScope callback;
+                    execute("GetCharacterListUpdate(); SelectCharacter(1); SetCharacterSelectFacing(90); UpdateSelectionCustomizationScene(); SetCharSelectBackground('')");
+                    Check(row->m_component && held->m_refCount==2,
+                        "Character callback retired a resource before outer poll");
+                }
                 CCharacterSelection::Shutdown();
+                CCharacterSelection::PollScriptRequests(); // Retired controls cannot touch the released row.
                 Check(CCharacterSelection::s_characterList.Count()==0 && held->m_refCount==1 && !CGlueMgr::m_characterInfo,
                     "Original row shutdown retained resources or selected info");
                 TextureCacheDestroyTexture(held);
