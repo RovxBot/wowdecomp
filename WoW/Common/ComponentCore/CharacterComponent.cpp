@@ -5156,8 +5156,15 @@ bool CCharacterComponent::RenderPrep(int32_t wait) {
 // OFFSET: 0x004F16C0
 void CCharacterComponent::FreeComponent(CCharacterComponent* component) {
     uint32_t* heap = s_componentHeap;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    const uint32_t index = component->m_heapIndex;
+#endif
     component->~CCharacterComponent();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    ObjectFree(*heap, index);
+#else
     ObjectFree(*heap, component->m_heapIndex);
+#endif
 }
 
 // VERIFY: 6daa984b auto

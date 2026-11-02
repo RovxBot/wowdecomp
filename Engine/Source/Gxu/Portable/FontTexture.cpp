@@ -29,7 +29,12 @@ CTexture* TextureCreate(EGxTexTarget target, uint32_t width, uint32_t height,
     uint32_t depth, EGxTexFormat format, EGxTexFormat dataFormat, CGxTexFlags flags,
     void* user, GxTexUserFunc callback, const char* name, int32_t defaultFilter) {
     Gxu::Native::RequireFontOwner();
-    if (defaultFilter || !width || !height || width > UINT16_MAX || height > UINT16_MAX || !callback)
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (defaultFilter) flags.m_filter = static_cast<EGxTexFilter>(Services::Native::DefaultTextureFilter());
+#else
+    if (defaultFilter) throw std::invalid_argument("Unavailable native callback texture default filtering");
+#endif
+    if (!width || !height || width > UINT16_MAX || height > UINT16_MAX || !callback)
         throw std::invalid_argument("Unavailable native callback texture dimensions or filtering");
     auto texture = std::make_unique<CTexture>();
     if (!GxTexCreate(target, width, height, depth, format, dataFormat, flags, user, callback,

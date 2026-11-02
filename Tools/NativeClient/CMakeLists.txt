@@ -25,6 +25,7 @@ target_sources(WowNativeStartup PRIVATE
     ${PROJECT_SOURCE_DIR}/Engine/Source/Services/Portable/LegacyFiles.cpp)
 target_link_libraries(WowNativeStartup PUBLIC WowNativeFrameRegions WowNativeNet)
 if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    target_compile_definitions(WowNativeGxu PRIVATE WOWDECOMP_NATIVE_TEST_SERVER_LOGIN=1)
     target_sources(WowNativeStartup PRIVATE
         ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/RealmList.cpp
         ${PROJECT_SOURCE_DIR}/WoW/Source/Glue/RealmList_Scripts.cpp
@@ -44,6 +45,7 @@ if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
         ${PROJECT_SOURCE_DIR}/WoW/Common/TextureCache.cpp
         ${PROJECT_SOURCE_DIR}/WoW/Source/Game/GameClient/CDrawBowString.cpp
         ${PROJECT_SOURCE_DIR}/Engine/Source/BLPFile/blp.cpp)
+    target_sources(WowNativeStartup PRIVATE ${PROJECT_SOURCE_DIR}/Engine/Source/Images/MippedImg.cpp)
     target_compile_options(WowNativeStartup PRIVATE -fms-extensions)
     target_compile_definitions(WowNativeStartup PRIVATE raw_name=name _alloca=alloca _vsnprintf=vsnprintf)
     set(character_records CharHairGeosets CharSections CharacterFacialHairStyles ChrRaces ChrClasses

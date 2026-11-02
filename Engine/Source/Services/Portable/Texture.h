@@ -30,6 +30,7 @@ public:
     bool Cancel(CTexture*);
     void EnableAtlas(bool);
     void SetFilter(uint32_t);
+    uint32_t Filter() const;
     struct State;
 private:
     std::unique_ptr<State> state;
@@ -40,5 +41,6 @@ private:
 CTexture* CreateFileTexture(const char*, CGxTexFlags, CStatus*, uint32_t);
 void ReleaseFileTexture(CTexture*);
 CGxTex* GetFileTexture(CTexture*, int32_t wait, CStatus*);
+uint32_t DefaultTextureFilter();
 }}
 #endif

@@ -260,6 +260,8 @@ void TextureService::RequireIdle() const {
     Check();
     if (!state->handles.empty()) throw std::logic_error("Close file texture handles before image services");
 }
+uint32_t TextureService::Filter() const { Check(); return state->filter; }
+uint32_t DefaultTextureFilter() { return Owner().Filter(); }
 size_t TextureService::Poll() { Check(); auto count = state->queue.Poll(); state->Prune(); return count; }
 bool TextureService::Cancel(CTexture* texture) {
     Check();

@@ -165,7 +165,10 @@ int32_t STORMAPI SFile::OpenEx(SArchive* archive, const char* name, uint32_t fla
     auto& s = Current();
     if (!output) return s.Error("Missing SFile output");
     *output = nullptr;
-    if (archive || !name || !*name || flags > 1) return s.Error("Only local package SFile opens are available");
+    // 0x20000 is original SFile's eager memory-open flag. This adapter already
+    // retains the complete authenticated local member in memory.
+    if (archive || !name || !*name || (flags & ~uint32_t(0x20001)))
+        return s.Error("Only local package SFile opens are available");
     auto path = Blizzard::Mopaq::Native::Name(name);
     auto result = std::make_shared<ReadResult>();
     auto reader = s.reader;

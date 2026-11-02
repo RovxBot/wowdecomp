@@ -20,6 +20,8 @@
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "Engine/Source/Event/Portable/Loop.h"
 #include "Tools/NativeNet/test_server_peer.h"
+#include "Engine/Source/Services/Portable/LegacyFiles.h"
+#include "Engine/Source/Base/CDataStore.h"
 #endif
 
 namespace {
@@ -40,6 +42,23 @@ void CheckNativeTestLoginUI() {
     struct Console { ~Console() { CVar::Destroy(); ConsoleCommandDestroy(); } } console;
     EventInitialize(1,0);
     struct Events { ~Events() { EventDestroy(); } } events;
+    Services::Native::FileQueue files;
+    Services::Native::LegacyFiles legacy(files,[](const std::string& path, const Services::Native::Cancellation&) {
+        Services::Native::ReadResult result;
+        const bool categories=path==Blizzard::Mopaq::Native::Name("DBFilesClient\\Cfg_Categories.dbc");
+        const bool configs=path==Blizzard::Mopaq::Native::Name("DBFilesClient\\Cfg_Configs.dbc");
+        if (!categories && !configs) { result.status=Services::Native::ReadStatus::Failed; return result; }
+        CDataStore dbc;
+        const char names[]="\0Authored category\0";
+        const uint32_t fields=categories ? 21 : 4;
+        dbc.Put(uint32_t(0x43424457)).Put(uint32_t(1)).Put(fields).Put(fields*4);
+        dbc.Put(uint32_t(categories ? sizeof(names) : 1));
+        for (uint32_t i=0;i<fields;++i)
+            dbc.Put(uint32_t(categories ? (i<3 || i==4 ? 1 : 0) : (i==1 || i==2 ? 1 : 0)));
+        dbc.PutData(names,categories ? sizeof(names) : 1);
+        result.file.bytes.assign(dbc.m_data,dbc.m_data+dbc.m_size);
+        return result;
+    });
     const auto execute = [](const char* code) { FrameScript_Execute(code,"authored test-server UI",nullptr); };
     auto* endpoint = CVar::Register("realmlist", "Authored endpoint", 0, "", nullptr, CATEGORY_NET, false, nullptr, false);
     bool rejected=false;
@@ -68,10 +87,18 @@ void CheckNativeTestLoginUI() {
                 or string.find(reason,'realm list failed') or string.find(reason,'unsupported')) then
                 testTerminal=reason; testDone=true;
             end;
+        elseif event=='GET_PREFERRED_REALM_INFO' or event=='OPEN_REALM_LIST' then
+            assert(GetNumRealms()==2);
+            local name,count,locked,down=GetRealmInfo(1);
+            assert(name=='Fixture One' and count==3 and not locked and not down);
+            assert(not pcall(GetRealmInfo,0/0));
+            assert(not pcall(ChangeRealm,1e100));
+            testTerminal='received 2 advertised realm'; testDone=true;
         elseif event~='CLOSE_STATUS_DIALOG' then error('Unexpected test login event') end;
     )",nullptr);
     Check(listener.m_onEvent.m_luaRef>0,"Test login listener compilation failed");
-    for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG"})
+    for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG",
+                            "GET_PREFERRED_REALM_INFO","OPEN_REALM_LIST"})
         Check(listener.RegisterScriptEvent(event),"Test login event registration failed");
     for (int scenario=0; scenario<5; ++scenario) {
         const auto errors=FrameScript::Native::ScriptErrorCount();
@@ -103,6 +130,7 @@ void CheckNativeTestLoginUI() {
         const std::string terminal=lua_tostring(s_context,-1); lua_pop(s_context,1);
         const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported"};
         Check(terminal.find(expected[scenario])!=std::string::npos,"UI hid or changed authentication outcome");
+        if (!scenario) execute("RealmListDialogCancelled()");
         execute("assert(IsScanDLLFinished()==nil and scanSuccess==0); StatusDialogClick()");
         GlueNative::PollScriptServices();
         Check(!CGlueMgr::m_authenticated,"Realm-only test profile entered character/world state");

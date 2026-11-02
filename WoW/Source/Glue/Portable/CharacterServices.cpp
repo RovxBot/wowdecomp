@@ -9,6 +9,9 @@
 #include "Engine/Source/FFX/FFX.h"
 #include "Engine/Source/Os/OsFile.h"
 #include <stdexcept>
+#include "Engine/Source/Images/MippedImg.h"
+#include "Engine/Source/Services/Texture.h"
+#include "Engine/Source/Tempest/C2iVector.h"
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 WowClientDB<AreaTableRec> g_areaTableDB;
 WowClientDB<CharHairGeosetsRec> g_charHairGeosetsDB;
@@ -309,4 +312,23 @@ DayNight::CurrentLight::CurrentLight() {
     this->m_waterDeepAlpha = 0.0f;
     this->m_oceanShallowAlpha = 0.0f;
     this->m_oceanDeepAlpha = 0.0f;
+}
+
+// Original 0x004B5510 mip count and uncached 0x004B7220/0x004B7300
+// allocation path. Native ownership avoids the legacy global mip-cache lifetime.
+int32_t TextureCalcMipCount(uint32_t width, uint32_t height) {
+    if (!width || !height || width>16384 || height>16384)
+        throw std::out_of_range("Invalid native character texture extent");
+    int32_t count=1;
+    while (width>1 || height>1) { width=width>1 ? width>>1 : 1; height=height>1 ? height>>1 : 1; ++count; }
+    return count;
+}
+MipBits* TextureAllocMippedImg(PIXEL_FORMAT format, uint32_t width, uint32_t height) {
+    (void)TextureCalcMipCount(width,height);
+    if ((format!=PIXEL_ARGB8888 && format!=PIXEL_DXT1) || width>512 || height>512)
+        throw std::invalid_argument("Unavailable native component mip allocation");
+    return MippedImgAllocA(format,width,height,__FILE__,__LINE__);
+}
+void TextureFreeMippedImg(MipBits* bits, PIXEL_FORMAT, uint32_t, uint32_t) {
+    SMemFree(bits,__FILE__,__LINE__,0);
 }
