@@ -64,7 +64,7 @@ void ClientConnection::Disconnect() {
     NetClient::Disconnect();
 }
 void ClientConnection::Connect() {
-    if (!m_statusComplete || !ClientServices::s_loginObj || !ClientServices::s_loginObj->IsLoggedOn() ||
+    if (!m_statusComplete || !ClientServices::s_loginObj ||
         ClientServices::s_loginObj->m_logonStatus != 0)
         throw std::logic_error("Realm connection requires verified live login");
     m_realmConnectPending = 0;
@@ -103,7 +103,7 @@ void ClientServices::JoinRealmResult(uint32_t, int32_t, int32_t, int32_t, int32_
 void ClientServices::LoginServerStatus(LOGIN_STATE state, LOGIN_RESULT, const char*, const char*, const char*, uint16_t) {
     NativeSession::CheckOwner();
     if (state != LOGIN_STATE_AUTHENTICATED) return;
-    if (!s_loginObj || !s_loginObj->IsLoggedOn() || s_loginObj->m_logonStatus != 0 || !s_currentConnection)
+    if (!s_loginObj || s_loginObj->m_logonStatus != 0 || !s_currentConnection)
         throw std::logic_error("Session handoff requires verified SRP and live connection owner");
     LoginData data{};
     SStrCopy(data.m_account, s_loginObj->m_username, sizeof(data.m_account));
@@ -111,6 +111,9 @@ void ClientServices::LoginServerStatus(LOGIN_STATE state, LOGIN_RESULT, const ch
     data.m_loginServerType = s_loginObj->GetLoginServerType();
     std::memcpy(data.m_sessionKey, s_loginObj->m_sessionKey, sizeof(data.m_sessionKey));
     s_currentConnection->SetLoginData(&data);
+    // The verified session survives a later auth-socket close. Original Grunt
+    // OnlineIdle normally marks this on its timer; Event can observe EOF first.
+    s_loginObj->OnlineIdle();
     SStrCopy(s_accountName, data.m_account, sizeof(s_accountName));
     volatile uint8_t* bytes = reinterpret_cast<volatile uint8_t*>(&data);
     for (size_t i = 0; i < sizeof(data); ++i) bytes[i] = 0;
@@ -148,7 +151,7 @@ bool ClientServices::SelectRealm(const char* name) {
 }
 void ClientServices::ConnectToSelectedServer() {
     NativeSession::CheckOwner();
-    if (!m_selectRealmInfoValid || !s_currentConnection || !s_loginObj || !s_loginObj->IsLoggedOn() || s_loginObj->m_logonStatus != 0)
+    if (!m_selectRealmInfoValid || !s_currentConnection || !s_loginObj || s_loginObj->m_logonStatus != 0)
         throw std::logic_error("No authenticated advertised realm selected");
     auto& realm = m_selectRealmInfo;
     NativeTestServer::ValidateEndpoint(realm.m_realmAddress);

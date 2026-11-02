@@ -15,9 +15,13 @@
 // VERIFY: b6048102 manual
 // OFFSET: 0x007EA9B0
 void CDrawBowString::DrawBowString(CM2Model* model, const CM2Lighting* lighting, CGUnit_C* unit) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (unit) throw std::logic_error("World unit bow-string ownership is unavailable");
+#else
     if (unit && !unit->m_worldModel) {
         return;
     }
+#endif
 
     CGxBuf* vertexBuf = g_theGxDevicePtr->BufStream(GxPoolTarget_Vertex, sizeof(CGxVertexPC), 3);
     CGxVertexPC* vertices = reinterpret_cast<CGxVertexPC*>(g_theGxDevicePtr->BufLock(vertexBuf));
@@ -123,5 +127,9 @@ bool GuildGetGuildTabard(WOWGUID guid, int32_t guildID, void (*callback)(int32_t
 // VERIFY: 76d7eb0b auto
 // OFFSET: 0x007EAD70
 void CDrawBowString::UnitDrawBowStringCB(CM2Model* model, const CM2Lighting* lighting, void* arg) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    throw std::logic_error("World unit bow-string callback is outside character selection");
+#else
     CDrawBowString::DrawBowString(model, lighting, static_cast<CGUnit_C*>(arg));
+#endif
 }

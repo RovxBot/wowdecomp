@@ -128,6 +128,9 @@ endif()
 
 if(WOWDECOMP_BUILD_NATIVE_D3D9)
     add_executable(NativeD3d9ClientCheck d3d9_check.cpp scan_check.cpp)
+    if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        target_sources(NativeD3d9ClientCheck PRIVATE character_check.cpp)
+    endif()
     target_link_libraries(NativeD3d9ClientCheck PRIVATE WowNativeStartup)
     set_target_properties(WowNativeClient NativeD3d9ClientCheck PROPERTIES
         BUILD_WITH_INSTALL_RPATH ON INSTALL_RPATH "$ORIGIN/lib")

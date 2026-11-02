@@ -9,3 +9,5 @@ const auto ExpectedK = Hex("3234a540f859d199754eb6bcfd2b01d873f11d85a1320c8b25bc
 const auto ExpectedM = Hex("703971179572a1f7656166cf02ca29fecf6bc125");
 const auto ExpectedM2 = Hex("3146ef050304eee5f3131a4335f7909b62553769");
 const auto ExpectedVersionChecksum = Hex("422c9515b729fc524e8eba181936e2a1c1c91da4");
+const auto ExpectedWorldWork = Hex("b901000000000000");
+const auto ExpectedWorldDigest = Hex("245b5e63fb6285bb5358e3b6ffb9145f8de3dbef");

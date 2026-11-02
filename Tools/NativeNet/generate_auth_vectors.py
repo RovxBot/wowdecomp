@@ -11,6 +11,11 @@ shared=L(S).lstrip(b'\0');shared=shared[len(shared)%2:];even=H(shared[::2]);odd=
 M=H(bytes(a^b for a,b in zip(H(L(N)),H(bytes([g]))))+H(b'FIXTURE')+salt+L(A)+L(B)+K);M2=H(L(A)+M+K)
 vals={'Prime':L(N),'Salt':salt,'ServerPrivate':L(b),'Verifier':L(v),'ServerPublic':L(B),'ExpectedA':L(A),'ExpectedK':K,'ExpectedM':M,'ExpectedM2':M2}
 vals['ExpectedVersionChecksum']=hmac.digest(bytes(range(0xa0,0xb0)),b'authored-exe','sha1')
+world_prefix=b'FIXTURE'+b''.join(i.to_bytes(4,'little') for i in range(8))
+world_nonce=0
+while H(world_prefix+world_nonce.to_bytes(8,'little'))[0]:world_nonce+=1
+vals['ExpectedWorldWork']=world_nonce.to_bytes(8,'little')
+vals['ExpectedWorldDigest']=H(b'FIXTURE'+bytes(4)+(0x11223344).to_bytes(4,'little')+(0x12345678).to_bytes(4,'little')+K)
 text='// Authored SRP fixture vectors generated with Python hashlib/pow; no account or game data.\n'
 for key,val in vals.items():text+=f'const auto {key} = Hex("{val.hex()}");\n'
 Path('Tools/NativeNet/auth_vectors.h').write_text(text)

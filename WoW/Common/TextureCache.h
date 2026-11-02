@@ -19,7 +19,13 @@ class CACHEENTRY : public TSHashObject<CACHEENTRY, HASHKEY_NONE> {
     /* 00A4 */ int32_t m_refCount;
     /* 00A8 */ uint32_t m_memHandle;
     /* 00AC */ BLPHeader* m_data;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    // Runtime ownership size, not a wire field. Retain the complete allocation
+    // rather than truncating a file above the original 20-bit cache extent.
+    uint32_t m_size;
+#else
     /* 00B0 */ uint32_t m_size : 20;
+#endif
     /* 00B0 */ uint32_t m_loadFailed : 1;
     /* 00B0 */ uint32_t m_unused : 11;
 

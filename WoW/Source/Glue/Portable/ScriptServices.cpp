@@ -144,9 +144,14 @@ void TestDialog(const char* kind, const char* message) {
     testDialog = true;
     FrameScript_SignalEvent(GLUE_EVENT_OPEN_STATUS_DIALOG, "%s%s", kind, message);
 }
+void RetireTestSession() {
+    const bool returnToLogin = !SStrCmpI(CGlueMgr::m_currentScreen,"charselect",STORM_MAX_STR);
+    ResetTestLogin();
+    if (returnToLogin) FrameScript_SignalEvent(GLUE_EVENT_SET_GLUE_SCREEN,"%s","login");
+}
 void PollTestLogin() {
     if (testCancelPending) {
-        ResetTestLogin(); testDialog = false;
+        RetireTestSession(); testDialog = false;
         FrameScript_SignalEvent(GLUE_EVENT_CLOSE_STATUS_DIALOG, nullptr);
         return;
     }
@@ -164,7 +169,7 @@ void PollTestLogin() {
         const auto count = testResponse.m_realmList.Count();
         testResponse.realms = false;
         if (!valid) {
-            ResetTestLogin(); TestDialog("OKAY", "TEST SERVER: realm list failed. No world session was started."); return;
+            RetireTestSession(); TestDialog("OKAY", "TEST SERVER: realm list failed. No world session was started."); return;
         }
         testRealmsReady = true;
         std::printf("native-test-server=srp-verified advertised-realms=%u integrity=unavailable\n", count);
@@ -188,12 +193,12 @@ void PollTestLogin() {
     if (testWorldStarted) {
         if (testWorld->m_statusComplete && !testWorld->m_statusResult) {
             const int error = testWorld->m_errorCode;
-            ResetTestLogin();
+            RetireTestSession();
             TestDialog("OKAY", ("TEST SERVER: world connection failed (server/status code " + std::to_string(error) + ").").c_str());
             return;
         }
         if (!testWorld->m_statusComplete && int32_t(OsGetAsyncTimeMs() - testWorldDeadline) >= 0) {
-            ResetTestLogin(); TestDialog("OKAY", "TEST SERVER: world connection/character enumeration timed out."); return;
+            RetireTestSession(); TestDialog("OKAY", "TEST SERVER: world connection/character enumeration timed out."); return;
         }
         if (testWorld->m_statusOp == COP_WAIT_QUEUE) {
             if (testQueuePosition != testWorld->m_queuePosition) {
@@ -240,12 +245,16 @@ void PollTestLogin() {
         return;
     case LOGIN_STATE_PIN: case LOGIN_STATE_MATRIX: case LOGIN_STATE_TOKEN:
     case LOGIN_STATE_DOWNLOADFILE: case LOGIN_STATE_SURVEY:
-        ResetTestLogin();
+        RetireTestSession();
         TestDialog("OKAY", "TEST SERVER: requested security challenge or download is unsupported. Sign-in stopped.");
         return;
-    case LOGIN_STATE_FAILED: case LOGIN_STATE_DISCONNECTED: {
+    case LOGIN_STATE_DISCONNECTED:
+        if (testRealmsReady && testLogin->m_logonStatus == 0 && testResponse.result == LOGIN_OK)
+            return; // Auth EOF does not invalidate the already handed-off verified key.
+        [[fallthrough]];
+    case LOGIN_STATE_FAILED: {
         const std::string name = testResponse.resultName;
-        ResetTestLogin();
+        RetireTestSession();
         TestDialog("OKAY", ("TEST SERVER: sign-in failed (" + name + "). No world session was started.").c_str());
         return;
     }
@@ -1128,6 +1137,10 @@ void CGlueMgr::GetRealmList(int32_t) {
     if (!testServerProfile || !testLogin || testLogin->m_logonStatus != 0)
         throw std::logic_error("Realm list requires verified test-server authentication");
     if (testConnectPending || (testWorldStarted && !testWorld->m_statusComplete)) return;
+    if (!testLogin->IsLoggedOn()) {
+        pendingDialog = "TEST SERVER: login connection expired. Sign in again to refresh realms; reconnect is unavailable.";
+        return;
+    }
     testRealmRequestPending = true;
 }
 void CancelRealmListQuery() {

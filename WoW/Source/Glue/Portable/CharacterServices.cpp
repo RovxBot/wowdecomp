@@ -46,6 +46,10 @@ namespace GlueNative {
 namespace { bool characterOpen = false; }
 void LoadCharacterServices() {
     if (characterOpen) return;
+    struct Rollback {
+        bool committed = false;
+        ~Rollback() { if (!committed) CloseCharacterServices(); }
+    } rollback;
     (void)ReadGlueDbc(AreaTableRec::GetFilename(), AreaTableRec::s_numColumns);
     g_areaTableDB.Load(__FILE__, __LINE__);
     (void)ReadGlueDbc(CharHairGeosetsRec::GetFilename(), CharHairGeosetsRec::s_numColumns);
@@ -86,6 +90,7 @@ void LoadCharacterServices() {
     uint32_t seed; OsSecureRandom(reinterpret_cast<uint8_t*>(&seed),sizeof(seed));
     g_rndSeed.SetSeed(seed);
     characterOpen = true;
+    rollback.committed = true;
 }
 void CloseCharacterServices() {
     if (characterOpen) {
@@ -93,7 +98,6 @@ void CloseCharacterServices() {
         CCharacterComponent::Destroy();
         characterOpen = false;
     }
-    CCharacterSelection::m_modelFrame = nullptr;
     if (g_spellVisualKitDB.m_loaded) g_spellVisualKitDB.Free();
     g_spellVisualKitDB.Reset();
     if (g_spellVisualEffectNameDB.m_loaded) g_spellVisualEffectNameDB.Free();

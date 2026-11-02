@@ -237,7 +237,10 @@ void Run(const Blizzard::File::Native::Paths& paths, uint32_t frameLimit, bool h
         // Components, asynchronous textures and borrowed model frames retire
         // before the original root/frame/model owners, including exceptions.
         struct CharacterServices {
-            ~CharacterServices() { GlueNative::CloseCharacterServices(); }
+            ~CharacterServices() {
+                GlueNative::CloseCharacterServices();
+                CCharacterSelection::m_modelFrame = nullptr;
+            }
         } characterServices;
 #endif
         GlueScriptEventsInitialize();

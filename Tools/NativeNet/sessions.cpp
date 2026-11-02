@@ -301,13 +301,13 @@ Bytes Challenge() {
     p.Put(uint8_t(0));
     return Wire(p);
 }
-Bytes RealmPacket(bool malformed = false) {
+Bytes RealmPacket(bool malformed = false, const char* firstAddress = nullptr) {
     CDataStore p;
     p.Put(uint8_t(0x10)).Put(uint16_t(0)).Put(uint32_t(0)).Put(uint16_t(2));
     for (unsigned i = 0; i < 2; ++i) {
         p.Put(uint8_t(1)).Put(uint8_t(i)).Put(uint8_t(i ? 4 : 0));
         p.PutString(i ? "Fixture Two" : "Fixture/One. ");
-        p.PutString(i ? "127.0.0.1:23456" : "127.0.0.1:12345");
+        p.PutString(i ? "127.0.0.1:23456" : firstAddress ? firstAddress : "127.0.0.1:12345");
         p.Put(1.5f).Put(uint8_t(3)).Put(uint8_t(1)).Put(uint8_t(7 + i));
         if (i)
             p.Put(uint8_t(3)).Put(uint8_t(3)).Put(uint8_t(5)).Put(uint16_t(12340));
@@ -332,6 +332,10 @@ void Vectors() {
                 !memcmp(client.m_sessionKey, ExpectedK.data(), 40),
             "Independent Python SRP vector mismatch");
     Require(client.VerifyServerProof(ExpectedM2.data(), 20) == 0, "Known server proof rejected");
+    CDataStore worldDigest;
+    worldDigest.PutData("FIXTURE",7).Put(uint32_t(0)).Put(uint32_t(0x11223344));
+    worldDigest.Put(uint32_t(0x12345678)).PutData(ExpectedK.data(),40);
+    Require(Hash(Wire(worldDigest))==ExpectedWorldDigest,"Independent Python world-session digest mismatch");
     Require(client.CalculateProof(nullptr, 32, &g, 1, Salt.data(), 32, ServerPublic.data(), 32,
                                   random) != 0,
             "Null SRP modulus accepted");
@@ -685,12 +689,15 @@ void FailurePaths(void (*pump)()) {
                 "Throwing handler retained queue payload/reference");
     }
 }
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+SARC4Key PeerCipher(const LoginData&, const char*);
+#endif
 } // namespace
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 void CheckNativeTestServerExchange(void (*pump)(),
     const std::function<void(const char*)>& begin,
     const std::function<bool()>& finished, int scenario) {
-    Peer peer;
+    Peer peer, world;
     begin(peer.Address().c_str());
     Until(pump, [&] { peer.Accept(); return peer.stream.n >= 0; }, "Test profile did not connect");
     auto hello = Receive(peer, pump, 41);
@@ -738,8 +745,38 @@ void CheckNativeTestServerExchange(void (*pump)(),
         return;
     }
     Require(Receive(peer,pump,5)==Bytes({0x10,0,0,0,0}), "Original realm request changed");
-    peer.Put(RealmPacket(scenario == 3));
+    const auto worldAddress=world.Address();
+    peer.Put(RealmPacket(scenario == 3,scenario==5 ? worldAddress.c_str() : nullptr));
+    if (scenario==5) {
+        peer.stream.Close(); // Verified key/advertised realms outlive the auth socket.
+        Until(pump,[&] { world.Accept(); return world.stream.n>=0; },"Original realm UI did not use advertised endpoint");
+        CDataStore challenge;
+        challenge.Put(uint16_t(SMSG_AUTH_CHALLENGE)).Put(uint32_t(3)).Put(uint32_t(0x12345678));
+        for (uint32_t i=0;i<8;++i) challenge.Put(i);
+        Bytes frame{0,uint8_t(challenge.m_size)}; Append(frame,Wire(challenge));
+        Fragment(world,pump,frame);
+        auto packet=Receive(world,pump,74);
+        CDataStore auth(packet.data()+2,packet.size()-2);
+        uint32_t opcode=0,build=0,id=0,type=0,seed=0,region=0,group=0,realm=0,addons=1;
+        uint64_t work=0; uint8_t digest[20]; char account[1280];
+        auth.Get(opcode).Get(build).Get(id).GetString(account,sizeof(account));
+        auth.Get(type).Get(seed).Get(region).Get(group).Get(realm).Get(work).GetData(digest,20).Get(addons);
+        Require(auth.IsRead() && opcode==CMSG_AUTH_SESSION && build==12340 && realm==7 &&
+                !strcmp(account,"FIXTURE") && addons==0,"Original Lua-to-world auth-session fields changed");
+        CDataStore proof; proof.PutData(account,7).Put(uint32_t(0)).Put(seed).Put(uint32_t(0x12345678)).PutData(key.data(),40);
+        Require(!memcmp(digest,Hash(Wire(proof)).data(),20),"Original UI lost its verified SRP session-key handoff");
+        CDataStore workProof; workProof.PutData(account,7);
+        for (uint32_t i=0;i<8;++i) workProof.Put(i);
+        workProof.Put(work);
+        Require(!(Hash(Wire(workProof))[0]&7),"Original UI emitted an invalid world work proof");
+        LoginData data{}; memcpy(data.m_sessionKey,key.data(),40);
+        auto cipher=PeerCipher(data,"cc98ae04e897eaca12ddc09342915357");
+        Bytes rejection{0,3,uint8_t(SMSG_AUTH_RESPONSE),uint8_t(SMSG_AUTH_RESPONSE>>8),13};
+        SARC4ProcessBuffer(rejection.data(),4,&cipher,&cipher);
+        Fragment(world,pump,rejection);
+    }
     Until(pump,finished,"Test profile realm completion/failure missing");
+    if (scenario==5) Require(world.Read().empty(),"Rejected world authentication requested characters");
 }
 namespace {
 void TestServerProfiles(void (*pump)()) {
@@ -824,6 +861,9 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
         for (uint32_t i=0;i<8;++i) workInput.Put(i);
         workInput.Put(proof);
         Require(Hash(Wire(workInput))[0]==0, "Nonzero world proof-of-work is invalid");
+        uint64_t expectedWork=0;
+        for (unsigned i=0;i<8;++i) expectedWork |= uint64_t(ExpectedWorldWork[i])<<(8*i);
+        Require(proof==expectedWork,"World proof-of-work differs from independent Python nonce search");
         auto sendCipher=PeerCipher(handoff,"cc98ae04e897eaca12ddc09342915357");
         auto receiveCipher=PeerCipher(handoff,"c2b3723cc6aed9b5343c53ee2f4367ce");
         const auto send = [&](uint16_t id, const Bytes& payload) {

@@ -1,6 +1,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <new>
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+#include "Engine/Source/BlizzardCore/Portable/Assets.h"
+#include <cstring>
+#include <stdexcept>
+#endif
 #include "WoW/Common/TextureCache.h"
 #include "Engine/Source/Base/ObjectAlloc.h"
 #include "Engine/Source/BLPFile/blp.h"
@@ -38,7 +43,27 @@ static void LoadSuccessCallback(void* param) {
     AsyncFileReadDestroyObject(entry->m_asyncObject);
     BLPHeader* header = entry->m_data;
     entry->m_asyncObject = nullptr;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    try {
+        if (!header->m_width || !header->m_height ||
+            uint64_t(header->m_width) * header->m_height > 2 * 1024 * 1024)
+            throw std::runtime_error("Character texture exceeds native retained pixel extent");
+        const auto* begin = reinterpret_cast<const uint8_t*>(entry->m_data);
+        Blizzard::Assets::Bytes bytes(begin,begin+entry->m_size);
+        const auto levels = Blizzard::Assets::DecodeBlp(bytes);
+        if (levels.empty() || levels.front().width > UINT16_MAX || levels.front().height > UINT16_MAX ||
+            levels.size() != size_t(TextureCalcMipCount(levels.front().width,levels.front().height)))
+            throw std::runtime_error("Original character texture requires a complete mip chain");
+    } catch (...) { entry->m_loadFailed = 1; throw; }
+#endif
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (!CBLPFile::ValidateHeader(*header)) {
+        entry->m_loadFailed = 1;
+        throw std::runtime_error("Invalid original character texture header");
+    }
+#else
     CBLPFile::ValidateHeader(*header);
+#endif
 
     entry->m_info.m_alphaSize = header->m_alphaSize;
     entry->m_info.m_opaque = header->m_alphaSize == 0;
@@ -46,6 +71,16 @@ static void LoadSuccessCallback(void* param) {
     entry->m_info.m_height = header->m_height;
     entry->m_info.m_mipCount = TextureCalcMipCount(entry->m_info.m_width, entry->m_info.m_height);
 }
+
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+static void LoadFailureCallback(void* param) {
+    auto* entry = static_cast<CACHEENTRY*>(param);
+    auto* object = entry->m_asyncObject;
+    entry->m_asyncObject = nullptr;
+    entry->m_loadFailed = 1;
+    AsyncFileReadDestroyObject(object);
+}
+#endif
 
 // VERIFY: ca8c7168 manual
 // OFFSET: 0x004F2BE0
@@ -67,8 +102,18 @@ int32_t CACHEENTRY::LoadTexture() {
     this->m_asyncObject = AsyncFileReadAllocObject();
     this->m_asyncObject->m_userArg = this;
     this->m_asyncObject->m_userPostloadCallback = reinterpret_cast<void*>(&LoadSuccessCallback);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    this->m_asyncObject->m_userPostUnloadCallback = reinterpret_cast<void*>(&LoadFailureCallback);
+#endif
     this->m_asyncObject->m_file = file;
     this->m_asyncObject->m_size = SFileGetFileSize(file, nullptr);
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (m_asyncObject->m_size < 148 || m_asyncObject->m_size > 32 * 1024 * 1024) {
+        m_loadFailed = 1;
+        AsyncFileReadDestroyObject(m_asyncObject); m_asyncObject = nullptr;
+        return 0;
+    }
+#endif
     this->m_asyncObject->m_priority = 130;
     this->m_size = this->m_asyncObject->m_size;
     this->m_data = static_cast<BLPHeader*>(SMemAlloc(this->m_size, __FILE__, __LINE__, 0));
@@ -190,6 +235,9 @@ int32_t TextureCacheGetInfo(HTEXTURECACHE handle, TCTEXTUREINFO& info, int32_t w
         }
     }
 
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (entry->m_loadFailed || !entry->m_info.m_width || !entry->m_info.m_height) return 0;
+#endif
     info = entry->m_info;
 
     return 1;
@@ -263,14 +311,25 @@ void TextureCacheDestroyTexture(HTEXTURECACHE handle) {
     if (--entry->m_refCount <= 0) {
         s_cacheTable.Unlink(entry);
         uint32_t* heap = s_entryHeap;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        const auto index = entry->m_memHandle;
+#endif
         entry->~CACHEENTRY();
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+        ObjectFree(*heap, index);
+#else
         ObjectFree(*heap, entry->m_memHandle);
+#endif
     }
 }
 
 // VERIFY: 1e1d17fd auto
 // OFFSET: 0x004F3930
 HTEXTURECACHE TextureCacheCreateTexture(const char* fileName) {
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    if (!fileName || !*fileName || std::strlen(fileName) >= sizeof(CACHEENTRY::m_fileName))
+        throw std::invalid_argument("Character texture path exceeds original cache storage");
+#endif
     uint32_t hashval = SStrHash(fileName, 0, 0);
     CACHEENTRY* entry = s_cacheTable.Ptr(hashval, s_cacheKey);
 

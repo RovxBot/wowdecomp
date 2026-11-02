@@ -84,7 +84,8 @@ void CheckNativeTestLoginUI() {
             local kind,reason=...;
             assert(not string.find(reason,'authored%-password') and not string.find(reason,'fixture'));
             if kind=='OKAY' and (string.find(reason,'advertised realm') or string.find(reason,'sign%-in failed')
-                or string.find(reason,'realm list failed') or string.find(reason,'unsupported')) then
+                or string.find(reason,'realm list failed') or string.find(reason,'unsupported')
+                or string.find(reason,'world connection failed')) then
                 testTerminal=reason; testDone=true;
             end;
         elseif event=='GET_PREFERRED_REALM_INFO' or event=='OPEN_REALM_LIST' then
@@ -93,20 +94,23 @@ void CheckNativeTestLoginUI() {
             assert(name=='Fixture One' and count==3 and not locked and not down);
             assert(not pcall(GetRealmInfo,0/0));
             assert(not pcall(ChangeRealm,1e100));
-            testTerminal='received 2 advertised realm'; testDone=true;
+            if testWantWorld then ChangeRealm(1,1);
+            else testTerminal='received 2 advertised realm'; testDone=true; end;
         elseif event~='CLOSE_STATUS_DIALOG' then error('Unexpected test login event') end;
     )",nullptr);
     Check(listener.m_onEvent.m_luaRef>0,"Test login listener compilation failed");
     for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG",
                             "GET_PREFERRED_REALM_INFO","OPEN_REALM_LIST"})
         Check(listener.RegisterScriptEvent(event),"Test login event registration failed");
-    for (int scenario=0; scenario<5; ++scenario) {
+    for (int scenario=0; scenario<6; ++scenario) {
         const auto errors=FrameScript::Native::ScriptErrorCount();
         CheckNativeTestServerExchange(+[] { EventNative::Tick(0,0); GlueNative::PollScriptServices(); },
         [&](const char* address) {
             endpoint->Set(address,true,false,false,true);
             GlueNative::InitializeScriptServices(2,true); GlueScriptEventsRegisterFunctions();
             scriptsOpen=true;
+            execute("SetCurrentScreen('login')");
+            execute(scenario==5 ? "testWantWorld=true" : "testWantWorld=false");
             // Only authored fixtures accept agreements here; product startup never does.
             execute(R"(
                 testDone=false; testTerminal=''; scanSuccess=0;
@@ -128,7 +132,7 @@ void CheckNativeTestLoginUI() {
         },scenario);
         lua_getglobal(s_context,"testTerminal");
         const std::string terminal=lua_tostring(s_context,-1); lua_pop(s_context,1);
-        const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported"};
+        const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported", "world connection failed (server/status code 13)"};
         Check(terminal.find(expected[scenario])!=std::string::npos,"UI hid or changed authentication outcome");
         if (!scenario) execute("RealmListDialogCancelled()");
         execute("assert(IsScanDLLFinished()==nil and scanSuccess==0); StatusDialogClick()");

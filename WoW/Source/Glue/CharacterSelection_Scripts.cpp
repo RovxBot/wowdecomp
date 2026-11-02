@@ -33,13 +33,13 @@ static int32_t Script_SetCharSelectModelFrame(lua_State* L) {
         return 0;
     }
 
-    CSimpleModelFFX* frame =
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
-        dynamic_cast<CSimpleModelFFX*>
+    auto* object = CScriptObject::GetScriptObjectByName(lua_tostring(L,1), CSimpleModel::GetObjectType());
+    auto* frame = dynamic_cast<CSimpleModelFFX*>(object);
+    if (object && !frame) return luaL_error(L,"SetCharSelectModelFrame requires an original ModelFFX frame");
 #else
-        static_cast<CSimpleModelFFX*>
+    CSimpleModelFFX* frame = static_cast<CSimpleModelFFX*>(CScriptObject::GetScriptObjectByName(lua_tolstring(L, 1, nullptr), CSimpleModel::GetObjectType()));
 #endif
-    (CScriptObject::GetScriptObjectByName(lua_tolstring(L, 1, nullptr), CSimpleModel::GetObjectType()));
 
     if (frame) {
         CCharacterSelection::m_modelFrame = frame;

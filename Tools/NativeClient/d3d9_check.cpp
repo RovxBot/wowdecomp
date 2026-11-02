@@ -35,6 +35,7 @@ using Bytes = std::vector<uint8_t>;
 void CheckNativeScanServices();
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 void CheckNativeTestLoginUI();
+void CheckNativeCharacterCache();
 #endif
 namespace {
 void Require(bool yes, const char* message) { if (!yes) throw std::runtime_error(message); }
@@ -274,6 +275,7 @@ int main() {
         CheckNativeScanServices();
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
         CheckNativeTestLoginUI();
+        CheckNativeCharacterCache();
 #endif
         using Services::Native::ReadStatus;
         Services::Native::ReadResult read;
