@@ -13,6 +13,7 @@
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "WoW/Source/WowServices/Portable/TestServerLogin.h"
 #include "test_server_peer.h"
+#include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
 #endif
 #include <arpa/inet.h>
 #include <chrono>
@@ -770,6 +771,110 @@ void TestServerProfiles(void (*pump)()) {
     }
     std::cout << "native-test-server-linux-identity-srp-placeholder-realms-failures=passed\n";
 }
+SARC4Key PeerCipher(const LoginData& data, const char* seedText) {
+    const auto seed = Hex(seedText);
+    HMAC<SHA1> hmac;
+    hmac.Init(seed.data(), seed.size()); hmac.Process(data.m_sessionKey, 40);
+    SHA1::Digest digest; hmac.Finish(digest);
+    SARC4Key cipher{};
+    SARC4PrepareKey(digest.m_data, 20, &cipher);
+    uint8_t discard[1024] = {};
+    SARC4ProcessBuffer(discard, sizeof(discard), &cipher, &cipher);
+    return cipher;
+}
+void WorldLifecycle(void (*pump)(), LoginData& handoff) {
+    for (unsigned scenario = 0; scenario < 8; ++scenario) {
+        Peer peer;
+        ClientRealmResponseAdapter response;
+        ClientConnection client(&response);
+        client.SetLoginData(&handoff);
+        client.SetSelectedRealm(0, 0, 7);
+        client.NetClient::Connect(peer.Address().c_str());
+        Until(pump, [&] { peer.Accept(); return client.m_netState == NS_CONNECTED; }, "Realm connect failed");
+        CDataStore challenge;
+        challenge.Put(uint16_t(SMSG_AUTH_CHALLENGE)).Put(uint32_t(scenario >= 4 ? 160 : 8));
+        challenge.Put(uint32_t(0x12345678));
+        for (uint32_t i = 0; i < 8; ++i) challenge.Put(i);
+        Bytes wire{0, uint8_t(challenge.m_size)}; Append(wire, Wire(challenge));
+        Fragment(peer, pump, wire);
+        if (scenario >= 4) {
+            Until(pump, [&] { return client.m_nativeAuthWork.pending; }, "World work did not start");
+            if (scenario == 4) client.Disconnect();
+            if (scenario == 5) client.m_nativeAuthWork.started -= 30001;
+            if (scenario == 6) peer.stream.Close();
+            if (scenario == 7) peer.Put(wire); // duplicate challenge while work is pending
+            if (scenario != 4) Until(pump, [&] { return client.m_netState == NS_INITIALIZED; }, "World work did not cancel/timeout/disconnect");
+            Require(!client.m_nativeAuthWork.pending && peer.Read().empty(), "Cancelled challenge emitted authentication");
+            continue;
+        }
+        const auto packet = Receive(peer, pump, 74);
+        CDataStore auth(const_cast<uint8_t*>(packet.data() + 2), packet.size() - 2);
+        uint32_t opcode=0, build=0, serverId=0, type=0, seed=0, region=0, group=0, realm=0, addons=1;
+        uint64_t proof=0; uint8_t digest[20]; char account[1280];
+        auth.Get(opcode).Get(build).Get(serverId).GetString(account,sizeof(account));
+        auth.Get(type).Get(seed).Get(region).Get(group).Get(realm).Get(proof).GetData(digest,20).Get(addons);
+        Require(auth.IsRead() && opcode==CMSG_AUTH_SESSION && build==12340 &&
+            serverId==uint32_t(handoff.m_loginServerID) && type==uint32_t(handoff.m_loginServerType) &&
+            !strcmp(account,handoff.m_account) && region==0 && group==0 && realm==7 && addons==0,
+            "Original CMSG_AUTH_SESSION fields changed");
+        CDataStore hashInput; hashInput.PutString(account); --hashInput.m_size;
+        hashInput.Put(uint32_t(0)).Put(seed).Put(uint32_t(0x12345678)).PutData(handoff.m_sessionKey,40);
+        Require(!memcmp(digest,Hash(Wire(hashInput)).data(),20), "World session proof lost verified SRP key");
+        CDataStore workInput; workInput.PutString(account); --workInput.m_size;
+        for (uint32_t i=0;i<8;++i) workInput.Put(i);
+        workInput.Put(proof);
+        Require(Hash(Wire(workInput))[0]==0, "Nonzero world proof-of-work is invalid");
+        auto sendCipher=PeerCipher(handoff,"cc98ae04e897eaca12ddc09342915357");
+        auto receiveCipher=PeerCipher(handoff,"c2b3723cc6aed9b5343c53ee2f4367ce");
+        const auto send = [&](uint16_t id, const Bytes& payload) {
+            const auto length=payload.size()+2;
+            Bytes message{uint8_t(length>>8),uint8_t(length),uint8_t(id),uint8_t(id>>8)};
+            SARC4ProcessBuffer(message.data(),4,&sendCipher,&sendCipher);
+            Append(message,payload); Fragment(peer,pump,message);
+        };
+        if (scenario==1) {
+            send(SMSG_AUTH_RESPONSE,Bytes{13});
+            Until(pump,[&] { return client.m_statusComplete; },"World rejection missing");
+            Require(!client.m_authenticated && !client.m_statusResult && client.m_errorCode==13,
+                "Server world rejection became success");
+            continue;
+        }
+        send(SMSG_AUTH_RESPONSE,Bytes{27,1,0,0,0,0});
+        Until(pump,[&] { return client.m_statusOp==COP_WAIT_QUEUE; },"World queue response missing");
+        Require(!client.m_authenticated && client.m_queuePosition==1,"Queue authenticated early");
+        send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,2});
+        Until(pump,[&] { return client.m_authenticated!=0; },"World AUTH_OK missing");
+        if (scenario==3) {
+            send(SMSG_WARDEN_DATA,Bytes{0});
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Unsupported Warden was ignored");
+            Require(!client.m_authenticated,"Warden disconnect retained authentication");
+            continue;
+        }
+        client.GetCharacterList();
+        auto request=Receive(peer,pump,6);
+        SARC4ProcessBuffer(request.data(),6,&receiveCipher,&receiveCipher);
+        Require(request==Bytes({0,4,uint8_t(CMSG_ENUM_CHARACTERS),uint8_t(CMSG_ENUM_CHARACTERS>>8),0,0}),
+            "Encrypted character enumeration changed");
+        CDataStore rows;
+        rows.Put(uint8_t(1)).Put(uint64_t(123)).PutString("Fixture");
+        for (uint8_t value : {1,8,0,0,0,0,0,0,80}) rows.Put(value);
+        rows.Put(uint32_t(12)).Put(uint32_t(0)).Put(1.0f).Put(2.0f).Put(3.0f);
+        for (unsigned i=0;i<4;++i) rows.Put(uint32_t(0)); // guild, flags, customize, first-login below
+        // first-login is uint8; remove the last uint32 above.
+        rows.m_size-=4;
+        rows.Put(uint8_t(0));
+        for (unsigned i=0;i<3;++i) rows.Put(uint32_t(0));
+        for (unsigned i=0;i<23;++i) rows.Put(uint32_t(0)).Put(uint8_t(0)).Put(uint32_t(0));
+        auto bytes=Wire(rows); if (scenario==2) bytes.pop_back();
+        send(SMSG_ENUM_CHARACTERS_RESULT,bytes);
+        Until(pump,[&] { return client.m_statusComplete; },"Character response missing");
+        Require(bool(client.m_statusResult)==(scenario==0),"Malformed character response became success");
+        if (!scenario) Require(client.m_characterList.Count()==1 &&
+            !strcmp(client.m_characterList[0].m_name,"Fixture") && client.m_characterList[0].m_experienceLevel==80,
+            "Original character row was not delivered");
+    }
+    std::cout << "native-world-auth-session-pow-encryption-queue-characters-negative-lifetimes=passed\n";
+}
 }
 #endif
 void CheckNativeSessions(void (*pump)()) {
@@ -783,6 +888,7 @@ void CheckNativeSessions(void (*pump)()) {
     FailurePaths(pump);
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
     TestServerProfiles(pump);
+    WorldLifecycle(pump, handoff);
 #endif
 }
 #ifndef WOWDECOMP_SESSION_FIXTURE_EMBEDDED

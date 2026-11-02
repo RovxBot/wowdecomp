@@ -18,7 +18,10 @@ add_library(WowNativeNet STATIC
     ../../../WoW/Source/Net/NetClient/NetClient.cpp)
 target_compile_definitions(WowNativeNet PUBLIC WOWDECOMP_NATIVE_CONNECTION=1)
 if(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
-    target_sources(WowNativeNet PRIVATE ../../../WoW/Source/WowServices/Portable/TestServerLogin.cpp)
+    target_sources(WowNativeNet PRIVATE
+        ../../../WoW/Source/WowServices/Portable/TestServerLogin.cpp
+        ../../../WoW/Source/WowServices/RealmConnection.cpp
+        ../../../WoW/Source/WowSvcs/WowSvcsClient/Portable/ClientServices.cpp)
     target_compile_definitions(WowNativeNet PUBLIC WOWDECOMP_NATIVE_TEST_SERVER_LOGIN=1)
 endif()
 if(NOT TARGET WowNativeFiles)

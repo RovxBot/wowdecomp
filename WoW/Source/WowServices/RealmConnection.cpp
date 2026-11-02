@@ -3,9 +3,17 @@
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/Tempest/CRandom.h"
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/DB/DBClient/DBCacheInstances.h"
 #include "WoW/Source/UIUtil/AddOns.h"
 #include "WoW/Source/WowServices/WDataStore.h"
+#else
+#include "Engine/Source/Os/OsSecureRandom.h"
+#include "WoW/Source/WowServices/Portable/Session.h"
+#include <cmath>
+#include <cstring>
+#include <stdexcept>
+#endif
 #include "GameVersion.h"
 
 // STATIC: 0x00AB953C
@@ -23,6 +31,12 @@ RealmConnection::REALMCONNECTIONNODE::REALMCONNECTIONNODE() {
 // VERIFY: ec31eb67 manual
 // OFFSET: 0x00464C10
 int32_t RealmConnection::HandleCharEnum(uint32_t msgId, uint32_t time, CDataStore* msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!m_authenticated || !m_nativeEnumPending || msg->m_read >= msg->m_size) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    m_nativeEnumPending = false;
+#endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "SMSG_CHAR_ENUM", nullptr, nullptr);
     }
@@ -39,6 +53,9 @@ int32_t RealmConnection::HandleCharEnum(uint32_t msgId, uint32_t time, CDataStor
 
     this->m_characterList.Clear();
     this->m_characterList.SetCount(count);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (count) std::memset(m_characterList.m_data, 0, count * sizeof(CHARACTER_INFO));
+#endif
 
     for (uint8_t i = 0; i < count; i++) {
         CHARACTER_INFO* info = &this->m_characterList.m_data[i];
@@ -105,6 +122,18 @@ int32_t RealmConnection::HandleCharEnum(uint32_t msgId, uint32_t time, CDataStor
         this->m_characterList.Clear();
     }
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    for (uint32_t i = 0; i < m_characterList.Count(); ++i) {
+        const auto& row = m_characterList[i];
+        if (!row.m_guid.m_guid || !row.m_name[0] || row.m_sexID > 2 ||
+            !std::isfinite(row.m_position.x) || !std::isfinite(row.m_position.y) ||
+            !std::isfinite(row.m_position.z)) success = 0;
+        for (uint32_t j = 0; j < i; ++j)
+            if (row.m_guid == m_characterList[j].m_guid) success = 0;
+    }
+    if (!success) { m_characterList.Clear(); m_serverConnection->Disconnect(); }
+#endif
+
     this->m_realmResponse->CharacterListReceived(this, this->m_characterList, success);
 
     return 1;
@@ -114,6 +143,13 @@ int32_t RealmConnection::HandleCharEnum(uint32_t msgId, uint32_t time, CDataStor
 // OFFSET: 0x00464F50
 int32_t RealmConnection::MessageHandler(void* param, NETMESSAGE msgId, uint32_t time, CDataStore* msg) {
     RealmConnection* connection = static_cast<RealmConnection*>(param);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // Character mutation/gameplay remains outside this TEST-SERVER target.
+    if (msgId != SMSG_AUTH_RESPONSE && msgId != SMSG_ADDON_INFO &&
+        msgId != SMSG_ENUM_CHARACTERS_RESULT && msgId != SMSG_CACHE_VERSION) {
+        connection->m_serverConnection->Disconnect(); return 0;
+    }
+#endif
     int32_t result = 0;
 
     switch (msgId) {
@@ -180,6 +216,10 @@ int32_t RealmConnection::MessageHandler(void* param, NETMESSAGE msgId, uint32_t 
 // VERIFY: 0d14ec4d manual
 // OFFSET: 0x004650E0
 RealmConnection::RealmConnection(RealmResponse* realmResponse) : m_realmResponse(realmResponse), m_authenticated(0), m_queuePosition(0), m_freeCharacterMigration(0), m_billingTimeRemaining(0), m_billingTimeRested(0), m_billingFlags(0), m_accountExpansion(0), m_regionId(0), m_battlegroupId(0), m_realmId(0) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    m_restrictHuman = m_restrictDwarf = m_restrictGnome = m_restrictNightElf = m_restrictDraenei = 0;
+    m_restrictOrc = m_restrictTroll = m_restrictTauren = m_restrictUndead = m_restrictBloodElf = 0;
+#endif
     this->Initialize();
 
     this->SetMessageHandler(SMSG_AUTH_CHALLENGE, RealmConnection::MessageHandler, this);
@@ -216,6 +256,11 @@ int32_t RealmConnection::HandleConnect() {
 // VERIFY: 2bad756d auto
 // OFFSET: 0x00464390
 int32_t RealmConnection::HandleDisconnect() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    m_authenticated = 0;
+    m_nativeAuthSent = m_nativeEnumPending = false;
+    m_characterList.Clear();
+#endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "Disconnected", nullptr, nullptr);
     }
@@ -244,7 +289,18 @@ int32_t RealmConnection::HandleAddonInfo(uint32_t msgId, uint32_t time, CDataSto
         this->m_realmResponse->GameServerResult(this, "SMSG_ADDON_INFO", nullptr, nullptr);
     }
 
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // No addon producer is loaded in this character-selection profile. Accept
+    // only the actual empty server addon/banned-list response, never approve an addon.
+    uint32_t banned = 1;
+    if (!m_authenticated || msg->m_size - msg->m_read != 4) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    msg->Get(banned);
+    if (banned) { m_serverConnection->Disconnect(); return 0; }
+#else
     SetAddOnInfoRequest(msg);
+#endif
     this->m_realmResponse->AddOnListReceived(this);
 
     return 1;
@@ -271,6 +327,20 @@ void RealmConnection::SetSelectedRealm(uint32_t regionId, uint32_t battlegroupId
 // VERIFY: b87ab906 auto
 // OFFSET: 0x00464640
 int32_t RealmConnection::HandleAuthResponse(uint32_t msgId, uint32_t time, CDataStore* msg) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!m_nativeAuthSent || m_authenticated || msg->m_read >= msg->m_size) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    const uint32_t bytes = msg->m_size - msg->m_read;
+    const uint8_t code = msg->m_data[msg->m_read];
+    // AUTH_OK billing record; initial queue has billing + position/migration,
+    // later queue updates may contain only position/migration. Failures: code only.
+    if ((code == 12 && bytes != 11) ||
+        (code == 27 && bytes != 6 && bytes != 16) ||
+        (code != 12 && code != 27 && bytes != 1)) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+#endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "SMSG_AUTH_RESPONSE", nullptr, nullptr);
     }
@@ -313,7 +383,14 @@ int32_t RealmConnection::HandleClientCacheVersion(uint32_t msgId, uint32_t time,
 
     uint32_t version;
     msg->Get(version);
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    if (!m_authenticated || msg->m_read != msg->m_size) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    m_nativeCacheVersion = version;
+#else
     SetClientCacheVersion(version);
+#endif
 
     return 1;
 }
@@ -354,24 +431,40 @@ int32_t RealmConnection::HandleLogoutResponse(uint32_t msgId, uint32_t time, CDa
 // VERIFY: a1616851 manual
 // OFFSET: 0x00464830
 void RealmConnection::HandleAuthChallenge(AuthenticationChallenge* challenge) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+    if (m_nativeAuthSent || !challenge || !m_loginData.m_account[0]) {
+        m_serverConnection->Disconnect(); return;
+    }
+    m_nativeAuthSent = true;
+#endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "SMSG_AUTH_CHALLENGE", nullptr, nullptr);
     }
 
     this->m_authenticated = 0;
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     CRndSeed seed;
     seed.SetSeed(0);
     seed.SetSeed(OsGetAsyncTimeMs());
 
     WDataStore msg;
+#else
+    CDataStore msg;
+#endif
     msg.Put(static_cast<uint32_t>(CMSG_AUTH_SESSION));
     msg.Put(static_cast<uint32_t>(GAME_BUILD));
     msg.Put(static_cast<uint32_t>(this->m_loginData.m_loginServerID));
     msg.PutString(this->m_loginData.m_account);
     msg.Put(static_cast<uint32_t>(this->m_loginData.m_loginServerType));
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     uint32_t clientSeed = CRandom::uint32_(seed);
+#else
+    uint32_t clientSeed;
+    OsSecureRandom(reinterpret_cast<uint8_t*>(&clientSeed), sizeof(clientSeed));
+#endif
     msg.Put(clientSeed);
     msg.Put(this->m_regionId);
     msg.Put(this->m_battlegroupId);
@@ -383,16 +476,31 @@ void RealmConnection::HandleAuthChallenge(AuthenticationChallenge* challenge) {
     SHA1_CONTEXT context;
     SHA1_Init(&context);
     SHA1_Update(&context, reinterpret_cast<const uint8_t*>(this->m_loginData.m_account), SStrLen(this->m_loginData.m_account));
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     SHA1_Update(&context, reinterpret_cast<const uint8_t*>(&zero), sizeof(zero));
     SHA1_Update(&context, reinterpret_cast<const uint8_t*>(&clientSeed), sizeof(clientSeed));
     SHA1_Update(&context, reinterpret_cast<const uint8_t*>(&challenge->m_serverSeed), sizeof(challenge->m_serverSeed));
+#else
+    uint8_t scalars[12] = {};
+    for (unsigned i = 0; i < 4; ++i) {
+        scalars[4 + i] = uint8_t(clientSeed >> (i * 8));
+        scalars[8 + i] = uint8_t(challenge->m_serverSeed >> (i * 8));
+    }
+    SHA1_Update(&context, scalars, sizeof(scalars));
+#endif
     SHA1_Update(&context, this->m_loginData.m_sessionKey, sizeof(this->m_loginData.m_sessionKey));
 
     uint8_t digest[20];
     SHA1_Final(digest, &context);
     msg.PutData(digest, sizeof(digest));
 
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
     GetAddOnInfoRequest(&msg);
+#else
+    // Explicit empty *loaded* addon inventory, not a signature/approval result.
+    // AzerothCore 12340 ReadAddonsInfo accepts the original zero-size encoding.
+    msg.Put(uint32_t(0));
+#endif
     msg.Finalize();
     this->Send(&msg);
 }
@@ -400,6 +508,12 @@ void RealmConnection::HandleAuthChallenge(AuthenticationChallenge* challenge) {
 // VERIFY: 43999034 manual
 // OFFSET: 0x00464A40
 void RealmConnection::RequestCharacterEnum() {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    NativeSession::CheckOwner();
+    if (!m_authenticated || m_nativeEnumPending)
+        throw std::logic_error("Character enumeration requires authenticated idle realm");
+    m_nativeEnumPending = true;
+#endif
     CDataStore msg;
     msg.Put(static_cast<uint32_t>(CMSG_ENUM_CHARACTERS));
     msg.Finalize();
@@ -409,11 +523,15 @@ void RealmConnection::RequestCharacterEnum() {
 // VERIFY: 490618f4 manual
 // OFFSET: 0x00464AB0
 void RealmConnection::RequestCharacterLogin(WOWGUID guid, int32_t a2) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    throw std::logic_error("World entry is outside the native character-selection profile");
+#else
     CDataStore msg;
     msg.Put(static_cast<uint32_t>(CMSG_PLAYER_LOGIN));
     msg.Put(guid.m_guid);
     msg.Finalize();
     this->Send(&msg);
+#endif
 }
 
 // VERIFY: 1d949124 auto

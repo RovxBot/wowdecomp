@@ -99,6 +99,12 @@ void NetClient::WCMessageReady(WowConnection* connection, uint32_t timeStamp, CD
     msg->Get(msgId);
 
     switch (msgId) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+        case SMSG_WARDEN_DATA:
+            this->m_nativeAuthWork.pending = false;
+            connection->Disconnect();
+            return; // Warden is unavailable; no request is ignored or approved.
+#endif
         case SMSG_CONNECT_TO:
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
             connection->Disconnect();
@@ -259,6 +265,9 @@ int32_t NetClient::Initialize() {
 // VERIFY: 22bd59ed auto
 // OFFSET: 0x00631E10
 int32_t NetClient::ConnectInternal(const char* host, uint16_t port) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->CancelNativeAuthWork();
+#endif
     if (this->m_netState != NS_INITIALIZED) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
         throw std::logic_error("NetClient connection requires NS_INITIALIZED");
@@ -566,6 +575,9 @@ void NetClient::EnableEncryption(WowConnection* connection, const uint8_t* seed,
 // VERIFY: 08d8deb0 auto
 // OFFSET: 0x006326D0
 void NetClient::WCDisconnected(WowConnection* connection, uint32_t timeStamp, const NETCONNADDR* addr) {
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    this->m_nativeAuthWork.pending = false;
+#endif
     this->m_pingLock.Enter();
     OsGetAsyncTimeMs();
 
@@ -585,15 +597,8 @@ void NetClient::WCDisconnected(WowConnection* connection, uint32_t timeStamp, co
 // OFFSET: 0x00632730
 void NetClient::HandleAuthChallenge(WowConnection* connection, CDataStore* msg) {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
-    // Proof-of-work must not block the Event owner without a qualified work budget.
-    if (msg->m_read > msg->m_size || msg->m_size - msg->m_read != 40) {
-        connection->Disconnect(); return;
-    }
-    uint32_t nativeDifficulty = 0;
-    const uint32_t begin = msg->m_read;
-    msg->Get(nativeDifficulty); msg->m_read = begin;
-    if (nativeDifficulty != 0) { connection->Disconnect(); return; }
-#endif
+    this->BeginNativeAuthChallenge(connection, msg);
+#else
     AuthenticationChallenge* challenge = static_cast<AuthenticationChallenge*>(SMemAlloc(sizeof(AuthenticationChallenge), __FILE__, __LINE__,
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
         SMEM_FLAG_ZEROMEMORY
@@ -654,6 +659,7 @@ void NetClient::HandleAuthChallenge(WowConnection* connection, CDataStore* msg) 
     if (challenge) {
         SMemFree(challenge, "delete", SLOG_FUNCTION, 0);
     }
+#endif
 }
 
 // VERIFY: 1f76bddf manual
@@ -778,6 +784,7 @@ void NetClient::HandleIdle() {
 void NetClient::Disconnect() {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     NativeSession::CheckOwner();
+    this->CancelNativeAuthWork();
 #endif
     if (this->m_redirectConnection) {
         this->m_redirectConnection->SetResponse(nullptr, false);

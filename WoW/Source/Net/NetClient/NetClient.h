@@ -13,6 +13,9 @@
 #include "WoW/Source/Object/ObjectClient/Object_C.h"
 #endif
 #include "WoW/Source/WowServices/WowConnection.h"
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+#include "Engine/Source/BlizzardCore/Source/Packages/Util/SHA1.h"
+#endif
 
 class CGObject_C;
 class CHashKeyGUID;
@@ -81,6 +84,20 @@ class NETEVENTQUEUE {
 
 class NetClient : public WowConnectionResponse {
     public:
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    // Event-owned continuation of original 12340 ComputeProofOfWork. No worker
+    // captures the session/key or survives cancellation/destruction.
+    struct NativeAuthWork {
+        bool pending = false, challenged = false;
+        uint32_t difficulty = 0, started = 0;
+        uint64_t nonce = 0;
+        SHA1_CONTEXT context{};
+        AuthenticationChallenge challenge{};
+    } m_nativeAuthWork;
+    void BeginNativeAuthChallenge(WowConnection*, CDataStore*);
+    void PollNativeAuthWork();
+    void CancelNativeAuthWork();
+#endif
     static uint32_t s_clientCount;
 
     struct HELDMESSAGE : public TSLinkedNode<NetClient::HELDMESSAGE> {

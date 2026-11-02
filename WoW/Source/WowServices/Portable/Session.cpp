@@ -47,8 +47,10 @@ void Poll() {
             e.first->Pump();
     const std::vector<ClientEntry> clientSnapshot(clients.begin(), clients.end());
     for (const auto &e : clientSnapshot)
-        if (std::find(clients.begin(), clients.end(), e) != clients.end())
+        if (std::find(clients.begin(), clients.end(), e) != clients.end()) {
+            e.first->PollNativeAuthWork();
             e.first->PollEventQueue();
+        }
 }
 } // namespace NativeSession
 Grunt::Timer::Timer() : m_event(0, 0) {
@@ -100,6 +102,7 @@ void NetClient::Destroy() {
     if (this->m_netState == NS_UNINITIALIZED)
         return;
     NativeSession::CheckOwner();
+    this->CancelNativeAuthWork();
     if (this->m_netEventQueue->m_polling)
         throw std::logic_error("Use DelayedDelete during network event dispatch");
     NativeSession::Detach(this);
@@ -127,6 +130,78 @@ void NETEVENTQUEUE::Clear() {
         SMemFree(node->m_data, __FILE__, __LINE__, 0);
         this->m_eventQueue.DeleteNode(node);
         this->m_client->m_refCount.Decrement();
+    }
+}
+
+void NetClient::CancelNativeAuthWork() {
+    NativeSession::CheckOwner();
+    m_nativeAuthWork = NativeAuthWork{};
+}
+void NetClient::BeginNativeAuthChallenge(WowConnection* connection, CDataStore* msg) {
+    NativeSession::CheckOwner();
+    auto& work = m_nativeAuthWork;
+    if (connection != m_serverConnection || work.challenged || connection->m_encrypt ||
+        msg->m_read > msg->m_size || msg->m_size - msg->m_read != 40 || !m_loginData.m_account[0]) {
+        work.pending = false;
+        connection->Disconnect();
+        return;
+    }
+    work.challenged = true;
+    msg->Get(work.difficulty).Get(work.challenge.m_serverSeed);
+    if (work.difficulty > 160) { connection->Disconnect(); return; }
+    SHA1_Init(&work.context);
+    SHA1_Update(&work.context, reinterpret_cast<const uint8_t*>(m_loginData.m_account),
+                SStrLen(m_loginData.m_account));
+    // Hash original wire bytes: eight LE uint32 seeds, independent of host ABI.
+    SHA1_Update(&work.context, msg->m_data + msg->m_read, 32);
+    msg->m_read += 32;
+    work.started = OsGetAsyncTimeMs();
+    work.pending = true;
+}
+void NetClient::PollNativeAuthWork() {
+    NativeSession::CheckOwner();
+    auto& work = m_nativeAuthWork;
+    if (!work.pending) return;
+    if (m_deleteMe || m_netState != NS_CONNECTED) {
+        // A connect event can still be queued from this same socket poll.
+        if (m_netState == NS_CONNECTING && !m_deleteMe) return;
+        work.pending = false;
+        return;
+    }
+    const uint32_t start = OsGetAsyncTimeMs();
+    if (uint32_t(start - work.started) >= 30000) {
+        work.pending = false;
+        m_serverConnection->Disconnect();
+        return;
+    }
+    // Same nonce search and low-bit count as 0x006321B0, with bounded Event
+    // slices (1024 attempts / 2 ms) and an overall cancellable 30-second budget.
+    for (unsigned attempt = 0; attempt < 1024; ++attempt) {
+        SHA1_CONTEXT context = work.context;
+        uint8_t nonce[8];
+        for (unsigned i = 0; i < 8; ++i) nonce[i] = uint8_t(work.nonce >> (i * 8));
+        SHA1_Update(&context, nonce, sizeof(nonce));
+        uint8_t digest[20];
+        SHA1_Final(digest, &context);
+        unsigned bits = 0;
+        for (uint8_t byte : digest) {
+            if (!byte) { bits += 8; continue; }
+            while (!(byte & 1)) { ++bits; byte >>= 1; }
+            break;
+        }
+        if (bits >= work.difficulty) {
+            work.challenge.m_proof = work.nonce;
+            work.pending = false;
+            m_netEventQueue->AddEvent(EVENT_ID_NET_AUTH_CHALLENGE, m_serverConnection, this,
+                                     &work.challenge, sizeof(work.challenge));
+            return;
+        }
+        if (++work.nonce == 0) {
+            work.pending = false;
+            m_serverConnection->Disconnect();
+            return;
+        }
+        if (uint32_t(OsGetAsyncTimeMs() - start) >= 2) return;
     }
 }
 NETEVENTQUEUE::~NETEVENTQUEUE() { this->Clear(); }
@@ -196,6 +271,7 @@ void NETEVENTQUEUE::Poll() {
 
 int32_t NetClient::DelayedDelete() {
     NativeSession::CheckOwner();
+    this->CancelNativeAuthWork();
     if (this->m_netState == NS_UNINITIALIZED)
         return 0;
     if (this->m_serverConnection)

@@ -6,7 +6,11 @@
 #include "Engine/Source/Tempest/C3Vector.h"
 #include "Engine/Source/Storm/H/stpl.h"
 #include "WoW/Source/Net/NetClient/NetClient.h"
+#if !defined(WOWDECOMP_NATIVE_CONNECTION)
 #include "WoW/Source/Object/ObjectClient/Object_C.h"
+#else
+#include "WoW/Source/Object/WGUID.h"
+#endif
 #include "WoW/Source/WowServices/Types.h"
 #include "WoW/Source/WowServices/CharacterInfo.h"
 
@@ -18,6 +22,10 @@ struct REALM_INFO;
 
 class RealmConnection : public NetClient {
     public:
+#if defined(WOWDECOMP_NATIVE_CONNECTION)
+    bool m_nativeAuthSent = false, m_nativeEnumPending = false;
+    uint32_t m_nativeCacheVersion = 0;
+#endif
     struct REALMCONNECTIONNODE : public TSLinkedNode<RealmConnection::REALMCONNECTIONNODE> {
         /* 0008 */ RealmConnection* m_connection;
 
