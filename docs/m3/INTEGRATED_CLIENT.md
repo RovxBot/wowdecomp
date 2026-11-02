@@ -39,8 +39,9 @@ The [integrity contract](INTEGRITY.md) distinguishes these gates and the unresol
 native requirement in [#131](https://github.com/RovxBot/wowdecomp/issues/131).
 The separately built [isolated test-server profile](AUTHENTICATION.md#isolated-test-server-profile)
 requires explicit runtime activation, retains failed/unavailable scan state and
-connects the original login action only through auth/realm-list completion. It
-does not enable character/world callers or change normal release behavior.
+connects the original login action through verified session handoff, the original
+realm dialog and world-auth/character-screen owners. Runtime acceptance and
+unsupported resource paths remain #98/#99; normal release behavior stays closed.
 
 Original deferred EditBox `OnTextChanged` notifications may change qualified
 existing control state and hint visibility during update. Their scope pins
@@ -186,9 +187,10 @@ AddonList's pre-authentication `GetNumCharacters` reads the original
 `CCharacterSelection::s_characterList`; a focused fixture changes the list and
 checks the count and reset. The fixed-width `CHARACTER_INFO` declaration is
 separated from socket/client headers without changing its fields or signatures.
-This selects list state and its count query only. Native model/component producers,
-display release, character enumeration and other character-selection callbacks
-remain unavailable; a resource-bearing row cannot silently pass native teardown.
+Normal builds select list state and its count query only. The separately compiled
+TEST-SERVER profile selects original enumeration, character scripts, scalar
+components and checked display release; see the [session/resource contract](AUTHENTICATION.md#isolated-test-server-profile).
+Resource-bearing runtime acceptance remains #99; unsupported paths fail explicitly.
 
 ## Downloaded execution
 
@@ -449,8 +451,10 @@ their original number/nil and result-count contracts. Warning strings are owned
 until acknowledgement/close, bounded at 256 and tested through Lua collection.
 `IsSystemSupported` retains its original SSE-only meaning on Linux x86-64.
 `SetCurrentScreen` keeps the original 64-byte state and actual
-`AsyncFileReadWaitAll` barrier. Character screens reject transition until their
-real OnHide/Idle lifecycle is available.
+`AsyncFileReadWaitAll` barrier. Normal builds reject character transitions. The
+TEST-SERVER profile admits original charselect only after actual world AUTH_OK,
+registers/unregisters its original idle on transitions, and retires components
+before frame/scene shutdown. Character creation/world entry remain refused.
 
 `SetGamma` and `SetTerrainMip` now admit refreshes of the unchanged preference;
 changes fail explicitly while display/world application remains unavailable.

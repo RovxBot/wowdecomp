@@ -260,6 +260,7 @@ int32_t RealmConnection::HandleDisconnect() {
     m_authenticated = 0;
     m_nativeAuthSent = m_nativeEnumPending = false;
     m_characterList.Clear();
+    m_nativeBannedAddons.Clear();
 #endif
     if (this->m_realmResponse) {
         this->m_realmResponse->GameServerResult(this, "Disconnected", nullptr, nullptr);
@@ -290,14 +291,23 @@ int32_t RealmConnection::HandleAddonInfo(uint32_t msgId, uint32_t time, CDataSto
     }
 
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
-    // No addon producer is loaded in this character-selection profile. Accept
-    // only the actual empty server addon/banned-list response, never approve an addon.
-    uint32_t banned = 1;
-    if (!m_authenticated || msg->m_size - msg->m_read != 4) {
+    // No addon producer is loaded here. Consume the original trailing banned
+    // records (UIUtil::SetAddOnInfoRequest) without inventing addon approval or
+    // writing a cache into the data tree. Retain actual server records in-session.
+    uint32_t count = 0;
+    if (!m_authenticated || msg->m_read > msg->m_size || msg->m_size - msg->m_read < 4) {
         m_serverConnection->Disconnect(); return 0;
     }
-    msg->Get(banned);
-    if (banned) { m_serverConnection->Disconnect(); return 0; }
+    msg->Get(count);
+    if (uint64_t(count) * 44 != uint64_t(msg->m_size - msg->m_read)) {
+        m_serverConnection->Disconnect(); return 0;
+    }
+    m_nativeBannedAddons.SetCount(count);
+    for (uint32_t i=0;i<count;++i) {
+        auto& addon=m_nativeBannedAddons[i];
+        msg->Get(addon.id).GetData(addon.nameMd5,16).GetData(addon.versionMd5,16);
+        msg->Get(addon.timestamp).Get(addon.banned);
+    }
 #else
     SetAddOnInfoRequest(msg);
 #endif

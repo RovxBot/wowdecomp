@@ -25,6 +25,12 @@ class RealmConnection : public NetClient {
 #if defined(WOWDECOMP_NATIVE_CONNECTION)
     bool m_nativeAuthSent = false, m_nativeEnumPending = false;
     uint32_t m_nativeCacheVersion = 0;
+    struct NativeBannedAddon {
+        uint32_t id;
+        uint8_t nameMd5[16], versionMd5[16];
+        uint32_t timestamp, banned;
+    };
+    TSFixedArray<NativeBannedAddon> m_nativeBannedAddons;
 #endif
     struct REALMCONNECTIONNODE : public TSLinkedNode<RealmConnection::REALMCONNECTIONNODE> {
         /* 0008 */ RealmConnection* m_connection;

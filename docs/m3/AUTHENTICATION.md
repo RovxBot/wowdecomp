@@ -2,8 +2,11 @@
 
 Current work and execution evidence live in [#98](https://github.com/RovxBot/wowdecomp/issues/98),
 with transport [#97](https://github.com/RovxBot/wowdecomp/issues/97) and the
-[integrity prerequisites](INTEGRITY.md). No live native authentication, realm
-observation, Warden response or gameplay is qualified by the controlled fixtures.
+[integrity prerequisites](INTEGRITY.md). The operator has physically observed
+verified live SRP and one advertised realm with a merged TEST-SERVER release;
+[exact artifact and retained launch/shutdown provenance](https://github.com/RovxBot/wowdecomp/issues/98#issuecomment-6571573207).
+That live result is separate from controlled fixtures. Live world authentication,
+character selection, Warden handling and gameplay remain acceptance requirements.
 
 ## Original callers and ownership
 
@@ -48,11 +51,14 @@ consumer; saved CVars do not replace advertised endpoints.
 
 Native NetClient receives original framed world messages, queues connect/data/
 disconnect/auth-challenge events and dispatches original opcode handlers on Event.
-It checks short opcodes and complete challenge bodies before processing. A nonzero
-proof-of-work difficulty currently disconnects: unbounded work on the Event owner
-is unsupported. Unqualified redirect/suspend/resume controls disconnect. World object-manager
-context remains explicitly unavailable.
-This is not a completed `RealmConnection`/`ClientServices`/Warden world session.
+It checks short opcodes and complete challenge bodies before processing. Original
+12340 proof-of-work searches LE uint64 nonces in bounded Event slices (at most
+1,024 attempts / 2 ms per poll), with a 30-second deadline. Invalid difficulty,
+duplicate challenges, timeout, cancellation and disconnect retire pending work;
+no worker retains the session. Unqualified redirect/suspend/resume controls and
+Warden requests disconnect. World object-manager context remains unavailable.
+The TEST-SERVER-only original `ClientServices`/`RealmConnection` selection below
+extends this boundary through world authentication and character enumeration.
 
 ## Integrity gates and unsupported paths
 
@@ -72,9 +78,8 @@ Lua, startup options or the product sign-in path.
 
 Reconnect and file-transfer authentication commands remain unavailable natively;
 reconnect entry rejects instead of using the original zero-checksum path. Warden,
-required native platform/integrity behavior, actual world auth-session construction,
-nonzero world proof-of-work scheduling and the full session lifecycle remain work
-under #98. External DNS shutdown limitations remain in [CONNECTIONS.md](CONNECTIONS.md).
+required production native platform/integrity behavior and the remaining
+redirect/reconnect/full world lifecycle remain work under #98. External DNS shutdown limitations remain in [CONNECTIONS.md](CONNECTIONS.md).
 No server/cluster/Warden policy, agreement, archive/interface key or signature gate
 is changed by this integration. The separately compiled, explicitly activated
 [isolated test-server profile](#isolated-test-server-profile) has a narrower,
@@ -108,11 +113,31 @@ requirements justify a session. Never embed a test hostname in client code.
 
 This **test-only Linux x86-64** profile is tracked in [#98](https://github.com/RovxBot/wowdecomp/issues/98).
 It connects the original `DefaultServerLogin` Lua API to the original
-`GruntLogin`/SRP6/realm-list callers and Event transport. It stops after verifying
-the auth server's SRP proof and parsing the advertised realm list. The original
-status dialog reports the realm count; it does not select a realm, mark Glue's
-world session authenticated, connect a world socket or enter character selection.
-Those callers remain #98/#99. No credentials or session contents are logged.
+`GruntLogin`/SRP6/realm-list callers and Event transport. Verified authentication
+hands the original session key to `ClientServices`/`ClientConnection`; a later auth
+socket EOF does not invalidate that verified handoff. The original realm dialog
+uses advertised names, addresses and flags. Saved realm preferences never supply
+an endpoint. Refresh after auth EOF requires a new sign-in; reconnect stays refused.
+
+The selected `RealmConnection` constructs original 12340 `CMSG_AUTH_SESSION`
+(build/server identity, account, client seed, selected realm, work proof and
+SHA1 account/seed/session-key digest), then enables original header encryption.
+Actual server rejection, billing/expansion records, queue updates and character
+responses drive the original owners/UI. Only AUTH_OK admits character requests;
+bounded enumeration accepts up to ten complete original records and its optional
+race restrictions. Malformed/unsolicited messages fail closed. No credentials,
+keys, character names or private packet contents are logged.
+
+Original character-screen scripts, scalar component assembly, authenticated DBC/
+texture/model reads and display release are selected only in this profile. Rows
+and model data come from the actual server and unchanged data. Attached resources
+retire before their frame/scene owners; screen hide unregisters original idle.
+Ghost lighting/effects and guild-tabard query/cache paths remain explicitly
+unavailable. Native addon producers are not loaded: the auth-session field encodes
+an empty loaded inventory, and actual server banned-addon records are bounded and
+retained in-session without addon approval or data-tree writes. Character mutation,
+creation and world entry remain refused. Runtime/resource acceptance remains #99;
+source selection and fixtures do not establish a complete observed character screen.
 
 Both gates are required:
 
@@ -147,7 +172,8 @@ inventory/hash. This requires the isolated auth server's external
 failure. SRP client proof, complete server-proof verification and bounded realm
 parsing remain required. PIN/matrix/token, patch/survey downloads and reconnect are
 unsupported and stop sign-in. Warden is unavailable; no Warden request is ignored
-or answered with fabricated success. This profile starts no world session.
+or answered with fabricated success. Only an actual worldserver AUTH_OK establishes
+world authentication; reaching character selection grants no world-entry capability.
 
 ### Build and interactive test requirements
 
@@ -192,10 +218,12 @@ python3 Tools/Porting/run_native_client.py --renderer dxvk --test-server-login \
 Use `--sanitizers` with the matching strict artifact. Accept original agreements
 interactively if required, read/dismiss the capability notice, enter the test
 account in the original fields and click Login. Cancel must retire the connection;
-bad credentials/version/server proof must fail; success must report verified SRP
-and the received realm count before stopping. It is not world-entry success.
+bad credentials/version/server proof must fail. Select an actual advertised realm
+in the original dialog and record world-auth responses, character enumeration and
+the original character screen separately. Enter World remains unavailable.
 Record exact artifact/source/server/OS/GPU identities, visible outcome, cancellation
 and release/strict shutdown separately in #98, without account, password, session
 key or private packet captures. The external-DNS shutdown bound (#97) and hardware
-strict exit-leak gap (#147) remain separate requirements. Interactive execution
-against GrimGuzzler is not established by controlled fixtures.
+strict exit-leak gap (#147) remain separate requirements. The recorded operator
+SRP/one-realm observation does not establish live world authentication or character
+selection; those require the updated matching packages and further operator input.

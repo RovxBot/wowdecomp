@@ -207,6 +207,14 @@ void PollTestLogin() {
                 TestDialog("CANCEL", ("TEST SERVER: server queue position " + std::to_string(testWorld->m_queuePosition)).c_str());
             }
         } else if (testWorld->m_statusOp == COP_AUTHENTICATE && testWorld->m_statusComplete && testWorld->m_authenticated) {
+            // Original CGlueMgr::Idle 0x004DAB40 refuses an account expansion the
+            // authenticated client data cannot support, before enumeration.
+            if (testWorld->m_accountExpansion > clientExpansionLevel) {
+                const auto expansion = testWorld->m_accountExpansion;
+                RetireTestSession();
+                FrameScript_SignalEvent(GLUE_EVENT_CLIENT_ACCOUNT_MISMATCH, "%d%d", expansion, clientExpansionLevel);
+                return;
+            }
             std::printf("native-test-server=world-authenticated integrity=unavailable warden=unavailable\n");
             testWorld->GetCharacterList();
             testWorldDeadline = OsGetAsyncTimeMs() + 30000;
@@ -681,8 +689,8 @@ static int32_t Script_SetCurrentScreen(lua_State* L) {
     const char* screen = lua_tostring(L, 1);
     if (CharacterScreen(screen) || CharacterScreen(CGlueMgr::m_currentScreen)) {
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
-        if (!testServerProfile || !testWorld || !testWorld->m_authenticated ||
-            !SStrCmpI(screen,"charcreate",STORM_MAX_STR))
+        if (!testServerProfile || (CharacterScreen(screen) &&
+            (!testWorld || !testWorld->m_authenticated || !SStrCmpI(screen,"charcreate",STORM_MAX_STR))))
 #endif
             return luaL_error(L, "Native character screen lifecycle unavailable");
     }

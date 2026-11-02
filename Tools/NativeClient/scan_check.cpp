@@ -17,11 +17,16 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include <cstring>
 #if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
 #include "Engine/Source/Event/Portable/Loop.h"
 #include "Tools/NativeNet/test_server_peer.h"
 #include "Engine/Source/Services/Portable/LegacyFiles.h"
 #include "Engine/Source/Base/CDataStore.h"
+#include "WoW/Source/Glue/Portable/RealmData.h"
+#include "WoW/Source/Glue/CharacterSelection.h"
+#include "WoW/Common/ComponentCore/CharacterComponent.h"
+#include <unordered_map>
 #endif
 
 namespace {
@@ -43,10 +48,42 @@ void CheckNativeTestLoginUI() {
     EventInitialize(1,0);
     struct Events { ~Events() { EventDestroy(); } } events;
     Services::Native::FileQueue files;
-    Services::Native::LegacyFiles legacy(files,[](const std::string& path, const Services::Native::Cancellation&) {
+    // Single authored records exercise the original DBC reader/component owner
+    // for the empty-screen transition. They are not original data or characters.
+    std::unordered_map<std::string,uint32_t> characterFields;
+#define CHARACTER_TABLE(T) characterFields.emplace(Blizzard::Mopaq::Native::Name(T::GetFilename()),T::s_numColumns)
+    CHARACTER_TABLE(AreaTableRec); CHARACTER_TABLE(CharHairGeosetsRec); CHARACTER_TABLE(CharSectionsRec);
+    CHARACTER_TABLE(CharacterFacialHairStylesRec); CHARACTER_TABLE(ChrClassesRec); CHARACTER_TABLE(ChrRacesRec);
+    CHARACTER_TABLE(CreatureDisplayInfoRec); CHARACTER_TABLE(CreatureFamilyRec); CHARACTER_TABLE(CreatureModelDataRec);
+    CHARACTER_TABLE(HelmetGeosetVisDataRec); CHARACTER_TABLE(ItemDisplayInfoRec); CHARACTER_TABLE(ItemVisualEffectsRec);
+    CHARACTER_TABLE(ItemVisualsRec); CHARACTER_TABLE(LightParamsRec); CHARACTER_TABLE(ParticleColorRec);
+    CHARACTER_TABLE(SpellVisualEffectNameRec); CHARACTER_TABLE(SpellVisualKitRec);
+#undef CHARACTER_TABLE
+    Services::Native::LegacyFiles legacy(files,[&](const std::string& path, const Services::Native::Cancellation&) {
         Services::Native::ReadResult result;
         const bool categories=path==Blizzard::Mopaq::Native::Name("DBFilesClient\\Cfg_Categories.dbc");
         const bool configs=path==Blizzard::Mopaq::Native::Name("DBFilesClient\\Cfg_Configs.dbc");
+        if (path=="ROW.BLP" || path=="PENDING-ROW.BLP") {
+            result.file.bytes.resize(152);
+            auto& bytes=result.file.bytes;
+            const auto put=[&](unsigned at,uint32_t value) {
+                for (unsigned i=0;i<4;++i) bytes[at+i]=uint8_t(value>>(i*8));
+            };
+            put(0,0x32504c42); put(4,1); bytes[8]=3; bytes[9]=8; bytes[11]=1;
+            put(12,1); put(16,1); put(20,148); put(84,4);
+            return result;
+        }
+        const auto table=characterFields.find(path);
+        if (table!=characterFields.end()) {
+            CDataStore dbc;
+            const uint32_t fields=table->second;
+            dbc.Put(uint32_t(0x43424457)).Put(uint32_t(1)).Put(fields).Put(fields*4).Put(uint32_t(1));
+            for (uint32_t i=0;i<fields;++i)
+                dbc.Put(uint32_t(i==0 || (i==1 && path==Blizzard::Mopaq::Native::Name(CharSectionsRec::GetFilename()))));
+            dbc.Put(uint8_t(0));
+            result.file.bytes.assign(dbc.m_data,dbc.m_data+dbc.m_size);
+            return result;
+        }
         if (!categories && !configs) { result.status=Services::Native::ReadStatus::Failed; return result; }
         CDataStore dbc;
         const char names[]="\0Authored category\0";
@@ -67,6 +104,8 @@ void CheckNativeTestLoginUI() {
     bool scriptsOpen=false;
     struct Scripts { bool& open; ~Scripts() { if (open) GlueScriptEventsUnregisterFunctions(); } } scripts{scriptsOpen};
     GlueScriptEventsInitialize(); FrameScript_CreateEvents(g_glueScriptEvents,NUM_GLUE_SCRIPT_EVENTS);
+    CharSelectRegisterScriptFunctions();
+    struct CharacterScripts { ~CharacterScripts() { CharSelectUnregisterScriptFunctions(); } } characterScripts;
     const int meta=FrameScript_Object::CreateScriptMetaTable(s_context,+[](lua_State*) {});
     struct Meta { int ref; ~Meta() { luaL_unref(s_context,LUA_REGISTRYINDEX,ref); } } release{meta};
     struct Listener final : FrameScript_Object {
@@ -96,13 +135,24 @@ void CheckNativeTestLoginUI() {
             assert(not pcall(ChangeRealm,1e100));
             if testWantWorld then ChangeRealm(1,1);
             else testTerminal='received 2 advertised realm'; testDone=true; end;
+        elseif event=='SET_GLUE_SCREEN' then
+            local screen=...; SetCurrentScreen(screen);
+        elseif event=='CHARACTER_LIST_UPDATE' then
+            assert(GetNumCharacters()==0 and IsConnectedToServer());
+            testTerminal='empty character selection'; testDone=true;
+        elseif event=='UPDATE_SELECTED_CHARACTER' then
+            assert(GetNumCharacters()==0);
+        elseif event=='CLIENT_ACCOUNT_MISMATCH' then
+            local account,client=...; assert(account==3 and client==2);
+            testTerminal='expansion mismatch'; testDone=true;
         elseif event~='CLOSE_STATUS_DIALOG' then error('Unexpected test login event') end;
     )",nullptr);
     Check(listener.m_onEvent.m_luaRef>0,"Test login listener compilation failed");
     for (const char* event : {"SCANDLL_ERROR","SCANDLL_FINISHED","OPEN_STATUS_DIALOG","CLOSE_STATUS_DIALOG",
-                            "GET_PREFERRED_REALM_INFO","OPEN_REALM_LIST"})
+                            "GET_PREFERRED_REALM_INFO","OPEN_REALM_LIST","SET_GLUE_SCREEN",
+                            "CHARACTER_LIST_UPDATE","UPDATE_SELECTED_CHARACTER","CLIENT_ACCOUNT_MISMATCH"})
         Check(listener.RegisterScriptEvent(event),"Test login event registration failed");
-    for (int scenario=0; scenario<6; ++scenario) {
+    for (int scenario=0; scenario<8; ++scenario) {
         const auto errors=FrameScript::Native::ScriptErrorCount();
         CheckNativeTestServerExchange(+[] { EventNative::Tick(0,0); GlueNative::PollScriptServices(); },
         [&](const char* address) {
@@ -110,7 +160,7 @@ void CheckNativeTestLoginUI() {
             GlueNative::InitializeScriptServices(2,true); GlueScriptEventsRegisterFunctions();
             scriptsOpen=true;
             execute("SetCurrentScreen('login')");
-            execute(scenario==5 ? "testWantWorld=true" : "testWantWorld=false");
+            execute(scenario>=5 ? "testWantWorld=true" : "testWantWorld=false");
             // Only authored fixtures accept agreements here; product startup never does.
             execute(R"(
                 testDone=false; testTerminal=''; scanSuccess=0;
@@ -132,8 +182,34 @@ void CheckNativeTestLoginUI() {
         },scenario);
         lua_getglobal(s_context,"testTerminal");
         const std::string terminal=lua_tostring(s_context,-1); lua_pop(s_context,1);
-        const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported", "world connection failed (server/status code 13)"};
+        const char* expected[]={"received 2 advertised realm", "LOGIN_FAILED", "LOGIN_BADVERSION", "sign-in failed", "unsupported", "world connection failed (server/status code 13)", "empty character selection", "expansion mismatch"};
         Check(terminal.find(expected[scenario])!=std::string::npos,"UI hid or changed authentication outcome");
+        if (scenario==6) {
+            Check(CCharacterComponent::s_bComponentThread==0 && CCharacterComponent::s_bComponentCompression==0,
+                "Character profile enabled unqualified worker/compression");
+            // Resources are authored and explicitly attached by this fixture,
+            // never represented as server characters or observed appearance.
+            for (unsigned cycle=0;cycle<3;++cycle) {
+                auto* held=TextureCacheCreateTexture("row.blp");
+                TCTEXTUREINFO info{};
+                Check(TextureCacheGetInfo(held,info,1),"Authored row texture did not load");
+                auto* row=CCharacterSelection::s_characterList.New();
+                row->m_component=CCharacterComponent::AllocComponent();
+                Check(row->m_component!=nullptr,"Original component allocation failed");
+                row->m_component->m_baseVariation[0].m_texture[0]=TextureCacheCopyTexture(held);
+                auto* pending=TextureCacheCreateTexture("pending-row.blp");
+                row->m_component->m_section[0].m_layerTex[0]=pending;
+                (void)TextureCacheGetInfo(pending,info,0);
+                CCharacterSelection::Shutdown();
+                Check(CCharacterSelection::s_characterList.Count()==0 && held->m_refCount==1 && !CGlueMgr::m_characterInfo,
+                    "Original row shutdown retained resources or selected info");
+                TextureCacheDestroyTexture(held);
+                files.Poll(); legacy.CheckCanClose();
+            }
+            execute("assert(GetAccountExpansionLevel()==2); DisconnectFromServer()");
+            GlueNative::PollScriptServices();
+            Check(!strcmp(CGlueMgr::m_currentScreen,"login"),"Character disconnect did not return to original login");
+        }
         if (!scenario) execute("RealmListDialogCancelled()");
         execute("assert(IsScanDLLFinished()==nil and scanSuccess==0); StatusDialogClick()");
         GlueNative::PollScriptServices();

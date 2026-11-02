@@ -206,6 +206,13 @@ bool CCharacterComponent::Initialize() {
     uint32_t mipLevels = CCharacterComponent::g_componentTextureLevelVar->m_intValue;
     int32_t useThread = CCharacterComponent::g_componentThreadVar->m_intValue;
     int32_t useCompression = CCharacterComponent::g_componentCompressVar->m_intValue;
+#if defined(WOWDECOMP_NATIVE_TEST_SERVER_LOGIN)
+    // Keep original scalar assembly on Event. The original worker/compressor
+    // has no qualified native callback/Gx ownership contract.
+    useThread = useCompression = 0;
+    g_componentThreadVar->Set("0",true,false,false,true);
+    g_componentCompressVar->Set("0",true,false,false,true);
+#endif
 
     if (OsGetNumberOfProcessors() < 2) {
         useThread = 0;

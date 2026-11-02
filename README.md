@@ -31,7 +31,7 @@ stated scope.
 
 | Platform | Demonstrated progress | Available testing |
 | --- | --- | --- |
-| **Linux x86-64** | Original signed login UI and textured animated scene through original D3D9 → DXVK Native → Vulkan; desktop packaging and external settings/logs | Experimental login-screen package below. Separate TEST-SERVER builds support auth/realm-list testing only. |
+| **Linux x86-64** | Original signed login UI and textured animated scene through original D3D9 → DXVK Native → Vulkan; desktop packaging and external settings/logs | Experimental login-screen package below. Separate TEST-SERVER builds target authentication and character-selection testing; live character-screen acceptance remains open. |
 | **macOS ARM64 / Apple silicon** | Actual ARM64 execution of core, file/asset, packet, networking, Lua, XML and layout component tests in Actions | Component artifacts. An integrated native game application and renderer are still pending [#102](https://github.com/RovxBot/wowdecomp/issues/102). |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 runtime passes | Reference client. Reproducible scene captures and a complete recorded runtime baseline remain open in [#107](https://github.com/RovxBot/wowdecomp/issues/107). |
 
@@ -54,17 +54,18 @@ stated scope.
   outside the game installation. Release launcher execution has reached original
   startup and exited cleanly with no remaining engine workers.
   [Package evidence](https://github.com/RovxBot/wowdecomp/issues/164#issuecomment-6568107608).
-- **Networking in controlled tests:** original socket, Grunt/SRP authentication
-  and realm-list code runs against test peers, including failure/cancellation
-  cases. Interactive server authentication remains an outstanding test in
-  [#98](https://github.com/RovxBot/wowdecomp/issues/98).
+- **Authentication:** the operator has physically verified live SRP server proof
+  and received one actual advertised realm using a merged TEST-SERVER release.
+  This is separate from controlled socket/SRP/world-protocol fixtures; live world
+  authentication and character-screen acceptance remain open.
+  [Observation and artifact provenance](https://github.com/RovxBot/wowdecomp/issues/98#issuecomment-6571573207).
 
 ## What does not work yet
 
 | Area | Current limitation |
 | --- | --- |
 | Normal native sign-in | **Disabled.** Native executable-integrity, detector and applicable Warden requirements are incomplete. Normal packages refuse credentials. [#98](https://github.com/RovxBot/wowdecomp/issues/98), [integrity contract](docs/m3/INTEGRITY.md) |
-| Character selection and world entry | Required original session/screen callers remain gated. Native realm selection, character enumeration, movement, combat and logout have not been established. [#99](https://github.com/RovxBot/wowdecomp/issues/99), [#100](https://github.com/RovxBot/wowdecomp/issues/100) |
+| Character selection and world entry | The TEST-SERVER profile connects original realm/world-authentication and character-screen owners, with explicit unsupported paths. Live character selection remains unqualified; world entry, movement, combat and logout are unavailable. [#99](https://github.com/RovxBot/wowdecomp/issues/99), [#100](https://github.com/RovxBot/wowdecomp/issues/100) |
 | Some UI controls | Agreement-scrollbar dragging and opening an Options category have recorded callback failures. The main Options menu working does not establish its subpages. [#130](https://github.com/RovxBot/wowdecomp/issues/130), [#158](https://github.com/RovxBot/wowdecomp/issues/158) |
 | Applied graphics settings | Saving a preference does not prove the renderer applied it. Gamma, terrain and other options still need implementation/validation. [#105](https://github.com/RovxBot/wowdecomp/issues/105) |
 | Native sound and movies | Playback is unavailable. [#103](https://github.com/RovxBot/wowdecomp/issues/103), [#104](https://github.com/RovxBot/wowdecomp/issues/104) |
@@ -224,9 +225,10 @@ More configuration: [Linux launcher and DXVK guide](docs/m3/DXVK_NATIVE.md#linux
 ## Optional isolated test-server authentication
 
 The separately compiled **TEST-SERVER** Linux profile connects the original login
-action to Grunt/SRP and realm-list parsing. Controlled tests pass; interactive
-server authentication is still unobserved. **Success stops at verified SRP
-and a reported realm count. It does not open character selection or enter the world.**
+action to Grunt/SRP, the original realm dialog, world authentication and character
+enumeration. Live SRP verification and one actual realm are operator-observed;
+updated character-screen integration still needs operator qualification in
+[#99](https://github.com/RovxBot/wowdecomp/issues/99). **World entry remains unavailable.**
 
 Use your own isolated 12340 test server, or one whose operator has explicitly
 authorized your testing. The endpoint must already have
@@ -250,9 +252,10 @@ It is unsuitable for production servers.
    or use `Launch TEST-SERVER.sh` / `Play WoW TEST-SERVER.desktop` when the
    package sits beside `Data`. Accept agreements and dismiss the notice
    interactively, then enter your test account yourself.
-4. Record the visible result, received realm count, cancellation/error behavior
-   and shutdown outcome in [#98](https://github.com/RovxBot/wowdecomp/issues/98).
-   Keep credentials and session contents private.
+4. Select an actual advertised realm. Record the visible world-authentication
+   result, character-screen outcome, cancellation/errors and release/strict shutdown
+   in [#98](https://github.com/RovxBot/wowdecomp/issues/98) and
+   [#99](https://github.com/RovxBot/wowdecomp/issues/99). Keep credentials and session contents private.
 
 The ordinary launcher in a test-capable package leaves login disabled. Normal
 packages exclude the allowance and reject `--test-server-login`.

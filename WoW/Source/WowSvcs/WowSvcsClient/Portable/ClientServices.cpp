@@ -61,6 +61,7 @@ void ClientConnection::Disconnect() {
     m_connected = m_authenticated = 0;
     m_nativeAuthSent = m_nativeEnumPending = false;
     m_characterList.Clear();
+    m_nativeBannedAddons.Clear();
     NetClient::Disconnect();
 }
 void ClientConnection::Connect() {

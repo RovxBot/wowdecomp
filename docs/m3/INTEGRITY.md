@@ -56,7 +56,8 @@ ignore a Warden request to obtain a session. The explicitly authorized isolated
 [test-server profile](AUTHENTICATION.md#isolated-test-server-profile) is compiled
 separately and discloses those capabilities as unavailable; it never adds a scan
 approval state or qualifies production integrity. It requires runtime opt-in and
-external relaxed test-server policy, and stops after auth/realm-list parsing.
+external relaxed test-server policy. Its original realm/world-authentication and
+character-screen callers grant no integrity approval; world entry stays refused.
 
 ## Server compatibility limits
 

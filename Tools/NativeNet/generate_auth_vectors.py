@@ -15,6 +15,10 @@ world_prefix=b'FIXTURE'+b''.join(i.to_bytes(4,'little') for i in range(8))
 world_nonce=0
 while H(world_prefix+world_nonce.to_bytes(8,'little'))[0]:world_nonce+=1
 vals['ExpectedWorldWork']=world_nonce.to_bytes(8,'little')
+world_lower_prefix=b'fixture'+world_prefix[7:]
+world_lower_nonce=0
+while H(world_lower_prefix+world_lower_nonce.to_bytes(8,'little'))[0]:world_lower_nonce+=1
+vals['ExpectedWorldWorkLowerCase']=world_lower_nonce.to_bytes(8,'little')
 vals['ExpectedWorldDigest']=H(b'FIXTURE'+bytes(4)+(0x11223344).to_bytes(4,'little')+(0x12345678).to_bytes(4,'little')+K)
 text='// Authored SRP fixture vectors generated with Python hashlib/pow; no account or game data.\n'
 for key,val in vals.items():text+=f'const auto {key} = Hex("{val.hex()}");\n'

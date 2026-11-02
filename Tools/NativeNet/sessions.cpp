@@ -746,8 +746,8 @@ void CheckNativeTestServerExchange(void (*pump)(),
     }
     Require(Receive(peer,pump,5)==Bytes({0x10,0,0,0,0}), "Original realm request changed");
     const auto worldAddress=world.Address();
-    peer.Put(RealmPacket(scenario == 3,scenario==5 ? worldAddress.c_str() : nullptr));
-    if (scenario==5) {
+    peer.Put(RealmPacket(scenario == 3,scenario>=5 ? worldAddress.c_str() : nullptr));
+    if (scenario>=5) {
         peer.stream.Close(); // Verified key/advertised realms outlive the auth socket.
         Until(pump,[&] { world.Accept(); return world.stream.n>=0; },"Original realm UI did not use advertised endpoint");
         CDataStore challenge;
@@ -762,7 +762,7 @@ void CheckNativeTestServerExchange(void (*pump)(),
         auth.Get(opcode).Get(build).Get(id).GetString(account,sizeof(account));
         auth.Get(type).Get(seed).Get(region).Get(group).Get(realm).Get(work).GetData(digest,20).Get(addons);
         Require(auth.IsRead() && opcode==CMSG_AUTH_SESSION && build==12340 && realm==7 &&
-                !strcmp(account,"FIXTURE") && addons==0,"Original Lua-to-world auth-session fields changed");
+                !strcmp(account,"fixture") && addons==0,"Original Lua-to-world auth-session fields changed");
         CDataStore proof; proof.PutData(account,7).Put(uint32_t(0)).Put(seed).Put(uint32_t(0x12345678)).PutData(key.data(),40);
         Require(!memcmp(digest,Hash(Wire(proof)).data(),20),"Original UI lost its verified SRP session-key handoff");
         CDataStore workProof; workProof.PutData(account,7);
@@ -771,12 +771,28 @@ void CheckNativeTestServerExchange(void (*pump)(),
         Require(!(Hash(Wire(workProof))[0]&7),"Original UI emitted an invalid world work proof");
         LoginData data{}; memcpy(data.m_sessionKey,key.data(),40);
         auto cipher=PeerCipher(data,"cc98ae04e897eaca12ddc09342915357");
-        Bytes rejection{0,3,uint8_t(SMSG_AUTH_RESPONSE),uint8_t(SMSG_AUTH_RESPONSE>>8),13};
-        SARC4ProcessBuffer(rejection.data(),4,&cipher,&cipher);
-        Fragment(world,pump,rejection);
+        const auto send=[&](uint16_t opcode,const Bytes& body) {
+            Bytes message{0,uint8_t(body.size()+2),uint8_t(opcode),uint8_t(opcode>>8)};
+            SARC4ProcessBuffer(message.data(),4,&cipher,&cipher);
+            Append(message,body); Fragment(world,pump,message);
+        };
+        if (scenario==5) send(SMSG_AUTH_RESPONSE,Bytes{13});
+        else {
+            send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,uint8_t(scenario==7 ? 3 : 2)});
+            if (scenario==6) {
+                auto request=Receive(world,pump,6);
+                auto receiveCipher=PeerCipher(data,"c2b3723cc6aed9b5343c53ee2f4367ce");
+                SARC4ProcessBuffer(request.data(),6,&receiveCipher,&receiveCipher);
+                Require(request==Bytes({0,4,uint8_t(CMSG_ENUM_CHARACTERS),uint8_t(CMSG_ENUM_CHARACTERS>>8),0,0}),
+                    "Original UI did not request characters after AUTH_OK");
+                send(SMSG_ADDON_INFO,Bytes(4));
+                send(SMSG_ENUM_CHARACTERS_RESULT,Bytes{0});
+            }
+        }
     }
     Until(pump,finished,"Test profile realm completion/failure missing");
-    if (scenario==5) Require(world.Read().empty(),"Rejected world authentication requested characters");
+    if (scenario==5 || scenario==7)
+        Require(world.Read().empty(),"Rejected world authentication/expansion requested characters");
 }
 namespace {
 void TestServerProfiles(void (*pump)()) {
@@ -820,7 +836,7 @@ SARC4Key PeerCipher(const LoginData& data, const char* seedText) {
     return cipher;
 }
 void WorldLifecycle(void (*pump)(), LoginData& handoff) {
-    for (unsigned scenario = 0; scenario < 8; ++scenario) {
+    for (unsigned scenario = 0; scenario < 9; ++scenario) {
         Peer peer;
         ClientRealmResponseAdapter response;
         ClientConnection client(&response);
@@ -829,12 +845,13 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
         client.NetClient::Connect(peer.Address().c_str());
         Until(pump, [&] { peer.Accept(); return client.m_netState == NS_CONNECTED; }, "Realm connect failed");
         CDataStore challenge;
-        challenge.Put(uint16_t(SMSG_AUTH_CHALLENGE)).Put(uint32_t(scenario >= 4 ? 160 : 8));
+        const bool cancelWork=scenario>=4 && scenario<=7;
+        challenge.Put(uint16_t(SMSG_AUTH_CHALLENGE)).Put(uint32_t(cancelWork ? 160 : 8));
         challenge.Put(uint32_t(0x12345678));
         for (uint32_t i = 0; i < 8; ++i) challenge.Put(i);
         Bytes wire{0, uint8_t(challenge.m_size)}; Append(wire, Wire(challenge));
         Fragment(peer, pump, wire);
-        if (scenario >= 4) {
+        if (cancelWork) {
             Until(pump, [&] { return client.m_nativeAuthWork.pending; }, "World work did not start");
             if (scenario == 4) client.Disconnect();
             if (scenario == 5) client.m_nativeAuthWork.started -= 30001;
@@ -862,7 +879,7 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
         workInput.Put(proof);
         Require(Hash(Wire(workInput))[0]==0, "Nonzero world proof-of-work is invalid");
         uint64_t expectedWork=0;
-        for (unsigned i=0;i<8;++i) expectedWork |= uint64_t(ExpectedWorldWork[i])<<(8*i);
+        for (unsigned i=0;i<8;++i) expectedWork |= uint64_t(ExpectedWorldWorkLowerCase[i])<<(8*i);
         Require(proof==expectedWork,"World proof-of-work differs from independent Python nonce search");
         auto sendCipher=PeerCipher(handoff,"cc98ae04e897eaca12ddc09342915357");
         auto receiveCipher=PeerCipher(handoff,"c2b3723cc6aed9b5343c53ee2f4367ce");
@@ -884,6 +901,21 @@ void WorldLifecycle(void (*pump)(), LoginData& handoff) {
         Require(!client.m_authenticated && client.m_queuePosition==1,"Queue authenticated early");
         send(SMSG_AUTH_RESPONSE,Bytes{12,0,0,0,0,0,0,0,0,0,2});
         Until(pump,[&] { return client.m_authenticated!=0; },"World AUTH_OK missing");
+        CDataStore banned;
+        banned.Put(uint32_t(1));
+        if (scenario!=8) {
+            uint8_t hashes[32] = {};
+            banned.Put(uint32_t(123)).PutData(hashes,32).Put(uint32_t(456)).Put(uint32_t(1));
+        }
+        send(SMSG_ADDON_INFO,Wire(banned));
+        if (scenario==8) {
+            Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Malformed addon record span was accepted");
+            Require(client.m_nativeBannedAddons.Count()==0,"Malformed addon response published records");
+            continue;
+        }
+        Until(pump,[&] { return client.m_nativeBannedAddons.Count()==1; },"Actual server addon bans were lost");
+        Require(client.m_nativeBannedAddons[0].id==123 && client.m_nativeBannedAddons[0].timestamp==456,
+            "Server addon record fields changed");
         if (scenario==3) {
             send(SMSG_WARDEN_DATA,Bytes{0});
             Until(pump,[&] { return client.m_netState==NS_INITIALIZED; },"Unsupported Warden was ignored");

@@ -85,9 +85,9 @@ void LoadCharacterServices() {
     (void)ReadGlueDbc(SpellVisualKitRec::GetFilename(), SpellVisualKitRec::s_numColumns);
     g_spellVisualKitDB.Load(__FILE__, __LINE__);
     g_lastCharacterIndexVar = CVar::Register("lastCharacterIndex", "Last selected character", 0, "0", nullptr, 0, false, nullptr, false);
-    if (!CCharacterComponent::Initialize(GxTex_Rgb565, 8, 0, 0))
-        throw std::runtime_error("Original scalar character component initialization failed");
     uint32_t seed; OsSecureRandom(reinterpret_cast<uint8_t*>(&seed),sizeof(seed));
+    if (!CCharacterComponent::Initialize())
+        throw std::runtime_error("Original scalar character component initialization failed");
     g_rndSeed.SetSeed(seed);
     characterOpen = true;
     rollback.committed = true;
@@ -174,7 +174,7 @@ CreatureModelDataRec* GetModelDataRec(uint32_t race, uint32_t gender) {
     CreatureDisplayInfoRec* displayRec = g_creatureDisplayInfoDB.GetRecord(displayID);
 
     if (!displayRec) {
-        DebugLog("Error, unknown displayInfo %d specified for player race %d sex %d!", displayID, race, gender);
+        throw std::runtime_error("Character race references an absent display record");
     }
 
     CreatureModelDataRec* modelRec = g_creatureModelDataDB.GetRecord(displayRec->m_modelID);
