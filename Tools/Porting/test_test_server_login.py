@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 import test_native_d3d9_client as packages
+from run_native_client import require_test_server_artifact, verify_artifact
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -19,13 +20,12 @@ class TestServerLoginPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
             packages.D3d9ClientPackageTests().package(root)
-            result=subprocess.run([sys.executable,str(ROOT/'Tools/Porting/run_native_client.py'),
-                '--artifact',str(root),'--data',str(root/'game/Data'),'--settings',str(root/'settings'),
-                '--cache',str(root/'cache'),'--output',str(root/'report.json'),
-                '--renderer','dxvk','--test-server-login'],capture_output=True,text=True)
-            self.assertNotEqual(result.returncode,0)
-            self.assertIn('requires a signature-enabled TEST-SERVER DXVK artifact',result.stderr)
-            self.assertFalse((root/'report.json').exists())
+            manifest,_=verify_artifact(root,False,'dxvk')
+            with self.assertRaisesRegex(ValueError,'requires a signature-enabled TEST-SERVER DXVK artifact'):
+                require_test_server_artifact(manifest,'dxvk')
+            manifest['test_server_login']=True
+            require_test_server_artifact(manifest,'dxvk')
+            with self.assertRaises(ValueError): require_test_server_artifact(manifest,'opengl')
 
     def test_test_build_drivers_refuse_local_compilation(self):
         env=os.environ.copy();env.pop('GITHUB_ACTIONS',None)

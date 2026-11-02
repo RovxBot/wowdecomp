@@ -56,6 +56,11 @@ def verify_artifact(artifact, sanitizers, renderer="opengl"):
     return manifest, binary
 
 
+def require_test_server_artifact(manifest, renderer):
+    if renderer != 'dxvk' or manifest.get('test_server_login') is not True:
+        raise ValueError('--test-server-login requires a signature-enabled TEST-SERVER DXVK artifact')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['artifact', 'data', 'settings', 'cache', 'output']:
@@ -73,8 +78,11 @@ def main():
         parser.error('Invalid frame limit/timeout')
     validate_paths(args.data, args.settings, args.cache, args.output)
     manifest, binary = verify_artifact(args.artifact.resolve(), args.sanitizers, args.renderer)
-    if args.test_server_login and (args.renderer != 'dxvk' or manifest.get('test_server_login') is not True):
-        parser.error('--test-server-login requires a signature-enabled TEST-SERVER DXVK artifact')
+    if args.test_server_login:
+        try:
+            require_test_server_artifact(manifest, args.renderer)
+        except ValueError as error:
+            parser.error(str(error))
     if args.output.resolve().is_relative_to(args.artifact.resolve()):
         parser.error('Write reports outside the verified artifact')
     binary.chmod(0o755)
