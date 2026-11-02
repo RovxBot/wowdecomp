@@ -43,7 +43,7 @@ class LinuxLauncherTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / 'Data').mkdir()
-            (root / 'data').mkdir()
+            (root / 'data').mkdir(exist_ok=True)
             if len(list(root.iterdir())) < 2:
                 self.skipTest('Case-insensitive filesystem')
             with self.assertRaisesRegex(ValueError, 'Ambiguous'):
@@ -85,7 +85,7 @@ class LinuxLauncherTests(unittest.TestCase):
             self.assertEqual(source.read_text(), 'set realmlist "new.invalid"\n')
             source.unlink()
             config.unlink()
-            (data.parent / 'realmlist.wtf').write_text('\ufeffset realmlist "root.invalid"\n')
+            (data.parent / 'realmlist.wtf').write_text('\ufeffset realmlist "root.invalid"\n', encoding='utf-8')
             seed_realmlist(data, settings)
             self.assertEqual(read_endpoint(config), 'root.invalid')
 
