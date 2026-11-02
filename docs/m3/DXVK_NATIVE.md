@@ -67,6 +67,67 @@ RADV exit leak [#147](https://github.com/RovxBot/wowdecomp/issues/147).
 
 ## Build and execution
 
+### Linux desktop package
+
+The original-client workflow also produces a `linux-desktop-d3d9-*` artifact
+containing a permission-preserving `WoW-Native-Linux*.tar.gz` and SHA256 file.
+Verify the enclosing Actions ZIP digest and tarball checksum before extraction.
+Extract into the original clean WoW directory, keeping the native package folder
+beside `Data`; direct extraction beside `Data` is also supported. Double-click
+`Play WoW.desktop` or `Launch WoW.sh`. Desktop trust/executable prompts depend on
+the file manager. A terminal shows settings/log locations and retains startup
+errors. The package can be moved within the same installation without resetting
+its external state. No source checkout is required.
+
+`Tools/NativeD3D9/package.py` resolves the built ELF dependency closure and bundles
+SDL3/DXVK, the dynamically opened Vulkan loader, C++ and display libraries with
+distribution package versions, hashes and copyright notices in the manifest.
+The host supplies glibc 2.39+ (Ubuntu 24.04 baseline), Python 3.10+, a terminal,
+X11/Xwayland and a DXVK-compatible Vulkan 1.3 GPU/ICD. GPU drivers and CI lavapipe
+are not distributed. The desktop package manifest hashes all included files;
+the existing diagnostic ZIP and CLI remain available.
+Pinned SDL/DXVK/ASan remain in private `lib/`; distribution dependencies are
+bundled in `runtime/` as fallbacks after installed system libraries. This avoids
+masking a newer GPU driver's Wayland/C++ dependencies with older bundled versions.
+Both directories retain mandatory hash/ELF admission, including rejection of
+unrecorded libraries. Hosted closure checks also exercise the complete bundled
+runtime explicitly, separately from normal host-preferred launch.
+
+Discovery checks `Data` beside the launcher, then beside its containing package
+directory, with case-ambiguity refusal. Only the integrated target's currently
+supported clean 12340/enUS locale is admitted. `--data` selects an explicit Data
+path. Settings/cache/logs default to `$XDG_CONFIG_HOME`, `$XDG_CACHE_HOME` and
+`$XDG_STATE_HOME` (respectively `~/.config`, `~/.cache`, `~/.local/state`) under
+`wowdecomp/<profile>/<hash-of-resolved-data-path>`. Release, TEST-SERVER and strict
+profiles remain separate. `--settings`, `--cache` and `--logs` override those
+roots; paths inside the installation/package, overlapping data/settings/cache
+and escaped settings-file symlinks are refused before writes.
+
+On first use, only `SET realmlist` is seeded from `Data/enUS/realmlist.wtf`, or
+the installation's root `realmlist.wtf` if the locale file is absent. Quoted and
+unquoted `host[:port]` are accepted; other original configuration is not imported.
+Any existing external `SET realmlist` takes precedence, including an empty value.
+Subsequent endpoint changes belong in the external `WTF/Config.wtf`; the original
+file is never updated. No original agreement state is copied or auto-accepted.
+
+`python3 launch.py --check` verifies the package and prints paths without writes
+or execution. Interactive launch has no diagnostic timeout/frame cap or automatic
+capture; client/DXVK logs and source/exit identity are retained per session outside
+the installation. The packaged `run_native_client.py` retains the existing
+explicit-path diagnostics, frame limits, timeout and captures.
+
+TEST-SERVER desktop archives and build directories are separately named and exist
+only with explicit workflow input `test_server_login=true`. Their ordinary
+launcher leaves login disabled; only `Play WoW TEST-SERVER.desktop`,
+`Launch TEST-SERVER.sh` or explicit `--test-server-login` activates the profile.
+Normal packages ship neither activation launcher and reject that flag. Original
+signatures, agreements and [authentication limits](AUTHENTICATION.md#isolated-test-server-profile)
+remain binding. Packaging does not enable production sign-in or world entry.
+Strict packages keep ASan/UBSan/leak detection enabled. Current packaging
+acceptance and Actions evidence are tracked in [#164](https://github.com/RovxBot/wowdecomp/issues/164).
+
+### Standalone prototype
+
 All compilation runs in [Native D3D9 DXVK prototype](../../.github/workflows/native-d3d9.yml).
 The independent `Tools/NativeD3D9/CMakeLists.txt` selects Linux x86-64, SDL3 and
 native D3D9 explicitly. No Wine, Windows DLL, GL context or backend fallback is
