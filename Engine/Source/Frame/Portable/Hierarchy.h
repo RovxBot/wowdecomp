@@ -7,6 +7,7 @@ class CSimpleTexture;
 class CSimpleScrollFrame;
 class CSimpleButton;
 class CSimpleEditBox;
+class CSimpleSlider;
 namespace Frame { namespace Native {
 // Frames are owned by their parent/root. Heap and selected pool allocations may
 // coexist. Borrow until destruction; XML/Lua factory registration is separate.
@@ -20,6 +21,20 @@ void RequireScriptTextMutation();
 // construction/deletion, resize, collection and render remain pinned.
 void RequireTextureContentMutation();
 void RequireVisibilityMutation(CSimpleFrame*, bool showing);
+// Only lazy width invalidation of an existing hidden sibling decoration during
+// the selected Button transition. Other layout methods retain their guards.
+void RequireRegionWidthMutation(CScriptRegion*);
+void RequireSliderInput(CSimpleFrame*);
+class SliderValueEdits final {
+public:
+    ~SliderValueEdits();
+    SliderValueEdits(const SliderValueEdits&) = delete;
+    SliderValueEdits& operator=(const SliderValueEdits&) = delete;
+private:
+    friend class ::CSimpleSlider;
+    explicit SliderValueEdits(CSimpleFrame*);
+    bool active = false;
+};
 // Only the original scroll-range notification may update qualified existing
 // controls while layer traversal is pinned. No tree/layout/deletion capability.
 struct ScrollRangeEdits final {

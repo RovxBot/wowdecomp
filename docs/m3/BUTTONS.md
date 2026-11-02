@@ -1,5 +1,11 @@
 # Original Button widgets
 
+The [full agreement transition](https://github.com/RovxBot/wowdecomp/issues/128)
+also needs its existing hidden sibling Texture's width to follow the next title.
+Selected Button callbacks may queue that lazy width invalidation while the parent
+is hidden. Other dimensions, visible/foreign regions, hierarchy, active resize,
+cursor callbacks and traversal retain their existing guards.
+
 The native Frame graph now selects original 12340 `CSimpleButton` state, text,
 texture, click, hover and Lua/XML consumers. `CreateFrame('Button', ...)` and
 `Create_SimpleButton` use the original aligned class pool. Windows keeps its

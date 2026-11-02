@@ -1,6 +1,7 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
 #include <exception>
+#include <optional>
 #define FRAME_TREE_CHECK() Frame::Native::RequireRegions()
 #else
 #define FRAME_TREE_CHECK() ((void)0)
@@ -575,7 +576,7 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
         nativeTop->MoveOrResizeFrame(event);
         return 0;
     }
-    Frame::Native::ResizeScope inputGuard;
+    Frame::Native::MouseMotionInput inputGuard(nativeTop->m_mouseCapture);
 #endif
 
     const EVENT_DATA_MOUSE* mouseData = static_cast<const EVENT_DATA_MOUSE*>(data);
@@ -624,9 +625,16 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
         return 0;
     }
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    if (callback) {
+        Frame::Native::ResizeScope callbackGuard;
+        if (callback(&evt)) return 0;
+    }
+#else
     if (callback && callback(&evt)) {
         return 0;
     }
+#endif
 
     if (top->m_mouseCapture) {
         top->m_mouseCapture->OnLayerTrackUpdate(evt);
@@ -649,6 +657,10 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
 
             CSimpleFrame* frame = (*priority)->m_frame;
 
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            std::optional<Frame::Native::ResizeScope> callbackGuard;
+            if (!Frame::Native::IsMouseTrackingInput(frame)) callbackGuard.emplace();
+#endif
             if (frame->OnLayerTrackUpdate(evt)) {
                 newFocus = frame;
                 break;
@@ -660,10 +672,16 @@ int32_t CSimpleTop::OnMouseMove(const void* data, void* param) {
         top->m_mouseFocus = newFocus;
 
         if (oldFocus) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::ResizeScope callbackGuard;
+#endif
             oldFocus->OnLayerCursorExit(motion, 0);
         }
 
         if (newFocus) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+            Frame::Native::ResizeScope callbackGuard;
+#endif
             newFocus->OnLayerCursorEnter(motion);
         }
     }

@@ -1,6 +1,7 @@
 #ifdef WOWDECOMP_PORTABLE_RUNTIME
 #include "Engine/Source/Frame/Portable/Storage.h"
 #include "Engine/Source/Frame/Portable/Hierarchy.h"
+#include <exception>
 #endif
 #include <algorithm>
 #include <cfloat>
@@ -51,6 +52,21 @@ void NativePreflightRange(float base, float range, float step) {
     // a new range/step or running its callbacks. No temporary live-state edits.
     NativeSnapValue(base, base, step);
     NativeSnapValue(base + range, base, step);
+}
+float NativeTrackValue(CSimpleSlider* slider, const CMouseEvent& event) {
+    auto* thumb = slider->m_thumbTexture;
+    Frame::Native::RequireFrame(thumb);
+    const bool vertical = slider->m_orientation != ORIENTATION_HORIZONTAL;
+    const float size = vertical ? thumb->GetHeight() : thumb->GetWidth();
+    const float length = vertical ? slider->m_rect.maxY - slider->m_rect.minY - size
+                                  : slider->m_rect.maxX - slider->m_rect.minX - size;
+    const float offset = vertical ? slider->m_rect.maxY - size * .5f - event.m_data.m_mousePosition.y
+                                  : event.m_data.m_mousePosition.x - (size * .5f + slider->m_rect.minX);
+    Frame::Native::RequireFinite(length); Frame::Native::RequireFinite(offset);
+    if (length <= 0) throw std::invalid_argument("Slider thumb leaves no tracking span");
+    const float value = (slider->m_range + slider->m_baseValue - slider->m_baseValue) * (offset / length) + slider->m_baseValue;
+    Frame::Native::RequireFinite(value);
+    return value;
 }
 }
 #endif
@@ -380,6 +396,12 @@ void CSimpleSlider::OnLayerUpdate(float elapsedSec) {
 // OFFSET: 0x0096C320
 int32_t CSimpleSlider::OnLayerTrackUpdate(const CMouseEvent& evt) {
     if (this->m_buttonDown && this->m_thumbTexture) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+        // Admit only the original value/scroll notification chain. The base
+        // tracking/drag script below runs after this capability has unwound.
+        Frame::Native::SliderValueEdits edits(this);
+        this->SetValue(NativeTrackValue(this, evt));
+#else
         float length;
         float offset;
 
@@ -392,6 +414,7 @@ int32_t CSimpleSlider::OnLayerTrackUpdate(const CMouseEvent& evt) {
         }
 
         this->SetValue((this->m_range + this->m_baseValue - this->m_baseValue) * (offset / length) + this->m_baseValue);
+#endif
     }
 
     return CSimpleFrame::OnLayerTrackUpdate(evt);
@@ -400,6 +423,17 @@ int32_t CSimpleSlider::OnLayerTrackUpdate(const CMouseEvent& evt) {
 // VERIFY: 4a17f296 auto
 // OFFSET: 0x0096C400
 int32_t CSimpleSlider::OnLayerMouseDown(const CMouseEvent& evt, const char* btn) {
+#ifdef WOWDECOMP_PORTABLE_RUNTIME
+    // Reject before publishing tracking, even when the virtual track consumer
+    // or the later mouse script fails. Capture is retired by the input owner.
+    Frame::Native::RequireSliderInput(this);
+    struct RestoreOnFailure {
+        CSimpleSlider* slider;
+        int exceptions = std::uncaught_exceptions();
+        ~RestoreOnFailure() { if (std::uncaught_exceptions() > exceptions) slider->m_buttonDown = 0; }
+    } restore{this};
+    if (!(this->m_frameFlags & 0x400) && this->m_thumbTexture) NativeTrackValue(this, evt);
+#endif
     if (!(this->m_frameFlags & 0x400)) {
         this->m_buttonDown = 1;
         this->OnLayerTrackUpdate(evt);
