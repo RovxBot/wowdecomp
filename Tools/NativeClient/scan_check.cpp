@@ -51,7 +51,7 @@ void CheckNativeTestLoginUI() {
     // Single authored records exercise the original DBC reader/component owner
     // for the empty-screen transition. They are not original data or characters.
     std::unordered_map<std::string,uint32_t> characterFields;
-#define CHARACTER_TABLE(T) characterFields.emplace(Blizzard::Mopaq::Native::Name(T::GetFilename()),T::s_numColumns)
+#define CHARACTER_TABLE(T) characterFields.emplace(Blizzard::Mopaq::Native::Name(T::GetFilename()),uint32_t(T::s_numColumns))
     CHARACTER_TABLE(AreaTableRec); CHARACTER_TABLE(CharHairGeosetsRec); CHARACTER_TABLE(CharSectionsRec);
     CHARACTER_TABLE(CharacterFacialHairStylesRec); CHARACTER_TABLE(ChrClassesRec); CHARACTER_TABLE(ChrRacesRec);
     CHARACTER_TABLE(CreatureDisplayInfoRec); CHARACTER_TABLE(CreatureFamilyRec); CHARACTER_TABLE(CreatureModelDataRec);
