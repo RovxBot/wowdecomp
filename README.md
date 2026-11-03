@@ -93,6 +93,13 @@ These are validation gaps, not claims that every case is broken:
 
 ## Getting builds and running diagnostics
 
+The separate [full Linux client target](Tools/LinuxClient/README.md) adapts the
+pinned RosemyneH client and produces one AppImage through
+[Full Linux x64 application — Actions](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
+Its integration and runtime qualification remain tracked in
+[#170](https://github.com/RovxBot/wowdecomp/issues/170). The instructions below
+describe the existing DXVK diagnostic/desktop target.
+
 **All client and dependency compilation runs in GitHub Actions.** No local compiler
 or source checkout is needed for the Linux desktop package. These are experimental
 builds, with artifacts retained for 14 days.

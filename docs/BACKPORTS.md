@@ -4,6 +4,37 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-027 — Separate complete Linux client integration
+
+- Source: RosemyneH/wowdecomp at
+  `cb54f58119b88c8a3cfda6ad8d64e747dc65df7d` (12340), explicitly selected by the
+  user as the full Linux integration reference. [Pinned archive/runtime identities](../Tools/LinuxClient/upstream.json).
+- Import boundary: the complete source is fetched into an isolated build tree;
+  `Tools/LinuxClient/prepare.py` adapts the full `WowClient` CMake graph. Existing
+  product Windows/macOS/native diagnostic sources are not overwritten. Actual
+  adapted files and before/after hashes are recorded in packaged `source-audit.json`.
+- Benefit/dependencies: original character/world/gameplay callers together with
+  SDL3 Linux platform services, direct Vulkan Gx and native FMOD/ALSA audio. Keep
+  original 12340 shader/data formats; no 15595 assets or address claims. Embedded
+  Vulkan shaders retain donor source/provenance. Distribution runtime libraries
+  carry package versions, hashes and notices; AppImage runtime is hash-pinned.
+  FMOD Sound System / Firelight Technologies and bundled codec notices are retained.
+- Adaptations: external state and resolved write boundaries; truthful Linux/x64
+  identity; mandatory original signatures and ordered post-creation Glue digest;
+  normal credential refusal; separately compiled/runtime-activated isolated
+  server profile; disconnect on unsupported Warden/bot requests; no reconnect or
+  Battle.net login. Remove donor autologin/agreement automation and injected
+  options/addon-panel Lua. Optional WASM runtime is disabled. Main-thread startup
+  uses an adequate native stack instead of untracked ucontext stack switching.
+- Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
+  files. No new original-address verification is claimed. No game data, credentials,
+  server-policy changes or OpenGL development.
+- [Build/run contract](../Tools/LinuxClient/README.md); comparison, source/Actions
+  identities, failures and runtime acceptance belong in
+  [#170](https://github.com/RovxBot/wowdecomp/issues/170). User-reported donor gameplay
+  is distinct from qualification of our adapted application. Renderer selection
+  and Windows visual parity remain #101/#107; authentication/world #98–#100.
+
 ## NP-026 — Linux native D3D9 ABI/WSI prototype
 
 - References: original 12340 `CGxDeviceD3d`/`CGxDeviceD3d9Ex`; Arlyon's
