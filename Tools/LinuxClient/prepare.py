@@ -112,7 +112,7 @@ def prepare(destination, archive):
 
     def grunt(text):
         text = replace(text, 'void GruntLogin::Logon(const char* loginServer, const char* portal) {',
-                       'void GruntLogin::Logon(const char* loginServer, const char* portal) {\n    if (!RovNative::TestServerEnabled()) {\n        this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, RovNative::IntegrityUnavailable, 0);\n        return;\n    }')
+                       'void GruntLogin::Logon(const char* loginServer, const char* portal) {\n    if (!RovNative::TestServerEnabled() || !RovNative::ExplicitEndpoint(loginServer)) {\n        this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, RovNative::IntegrityUnavailable, 0);\n        return;\n    }')
         text = function(text, 'void GruntLogin::GetVersionProof(', '''    if (!RovNative::TestServerEnabled() || this->IsReconnect()) {
         this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, RovNative::IntegrityUnavailable, 0);
         return;
@@ -199,8 +199,41 @@ def prepare(destination, archive):
     return ClientMain();''')
         return '#include <sys/resource.h>\n' + text
     edit('WoW/Source/Linux/WinMain.cpp', entry)
+
+    # These donor declarations have no implementation or concrete construction.
+    # Express the interfaces as abstract instead of inventing working services or
+    # suppressing UBSan vptr checks to hide their missing RTTI key functions.
+    edit('Engine/Source/Gx/Gx.h', lambda t: replace(replace(t,
+         'virtual ~GxuDrawListState();', 'virtual ~GxuDrawListState() = default;'),
+         'virtual ~GxuDrawListItem();', 'virtual ~GxuDrawListItem() = default;'))
+    edit('Engine/Source/Gxu/GxuScene.h', lambda t: re.sub(
+         r'(virtual (?:void|bool) (?:Unk00|Release|IsAlive|Update|Render)\([^;]*\));', r'\1 = 0;', t))
+    def gui_interfaces(text):
+        start = text.index('class COsControl {')
+        end = text.index('class COsEditBox', start)
+        section = text[start:end].replace('virtual ~COsControl();', 'virtual ~COsControl() = default;')
+        section = re.sub(r'(virtual [^;\n]+\([^;\n]*\));', r'\1 = 0;', section)
+        text = text[:start] + section + text[end:]
+        return replace(text, 'virtual void SetSize(int32_t width, int32_t height);',
+                       'virtual void SetSize(int32_t width, int32_t height) = 0;')
+    edit('Engine/Source/Os/Gui.h', gui_interfaces)
+    edit('Engine/Source/Storm/Source/IOUnit/IOFileUnit.h', lambda t: replace(t,
+         'virtual ~IORefcount();', 'virtual ~IORefcount() = default;'))
+
+    # Keep the original signed-relative model representation and reject wide
+    # extents before the donor's page rounding/address additions can overflow.
+    def near_memory(text):
+        text = replace(text, '    uintptr_t granularity = static_cast<uintptr_t>(sysconf(_SC_PAGESIZE));',
+                       '''    long page = sysconf(_SC_PAGESIZE);
+    if (!anchor || page <= 0) return nullptr;
+    uintptr_t granularity = static_cast<uintptr_t>(page);
+    if ((granularity & (granularity - 1)) || size > INT32_MAX - s_headerSize - granularity ||
+        reinterpret_cast<uintptr_t>(anchor) > UINTPTR_MAX - s_nearRange) return nullptr;''')
+        return text
+    edit('Engine/Source/Os/Linux/OsMemory.cpp', near_memory)
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
+    shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -214,10 +247,13 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 add_executable(RovNativePolicyCheck RovNativePolicyCheck.cpp)
 target_include_directories(RovNativePolicyCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_native_policy COMMAND RovNativePolicyCheck)
+add_executable(RovNativeNearCheck RovNativeNearCheck.cpp Engine/Source/Os/Linux/OsMemory.cpp)
+target_include_directories(RovNativeNearCheck PRIVATE ${CMAKE_SOURCE_DIR})
+add_test(NAME rov_native_near_memory COMMAND RovNativeNearCheck)
 '''
     edit('CMakeLists.txt', lambda t: t + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 

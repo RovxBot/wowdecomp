@@ -24,6 +24,15 @@ int main() {
     fs::create_directory_symlink(game, state / "WTF/escape");
     Check(!RovNative::AllowedWrite((state / "WTF/escape/new").c_str()));
     Check(!RovNative::TestServerEnabled());
+    Check(!RovNative::ExplicitEndpoint(nullptr));
+    Check(!RovNative::ExplicitEndpoint("127.0.0.1:3724"));
+    setenv("WOWDECOMP_ISOLATED_ENDPOINT", "127.0.0.1:3724", 1);
+    Check(RovNative::ExplicitEndpoint("127.0.0.1:3724"));
+    Check(!RovNative::ExplicitEndpoint("other.example:3724"));
+    setenv("WOWDECOMP_ISOLATED_ENDPOINT", "host:65536", 1);
+    Check(!RovNative::ExplicitEndpoint("host:65536"));
+    setenv("WOWDECOMP_ISOLATED_ENDPOINT", "host:0", 1);
+    Check(!RovNative::ExplicitEndpoint("host:0"));
     setenv("WOWDECOMP_ISOLATED_SERVER_LOGIN", "1", 1);
     Check(RovNative::TestServerEnabled() == bool(WOWDECOMP_ISOLATED_SERVER_BUILD));
     setenv("WOWDECOMP_ISOLATED_SERVER_LOGIN", "true", 1);

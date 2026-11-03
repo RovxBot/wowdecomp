@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 spec = importlib.util.spec_from_file_location('full_linux_launcher', Path(__file__).with_name('launch.py'))
 launcher = importlib.util.module_from_spec(spec)
@@ -58,6 +60,26 @@ class LauncherTests(unittest.TestCase):
         self.assertNotEqual(launcher.paths(self.data, normal, env), launcher.paths(self.data, test, env))
         with self.assertRaises(ValueError):
             launcher.paths(self.data, normal, dict(XDG_CONFIG_HOME='relative'))
+
+    def test_runtime_does_not_mask_private_host_dependencies(self):
+        package, session = self.root / 'package', self.root / 'session'
+        (package / 'lib').mkdir(parents=True)
+        (package / 'runtime').mkdir()
+        session.mkdir()
+        (package / 'runtime/libmissing.so.1').write_text('fixture')
+        (package / 'runtime/libpulsecommon-17.0.so').write_text('must not shadow host')
+        calls = []
+        def run(command, **kwargs):
+            calls.append(command)
+            if command[0] == 'ldconfig':
+                return SimpleNamespace(returncode=0, stdout='libvulkan.so.1 (libc6,x86-64) => /host/libvulkan.so.1', stderr='')
+            missing = not (session / 'runtime/libmissing.so.1').exists()
+            return SimpleNamespace(returncode=0, stdout='libmissing.so.1 => not found\n' if missing else 'libpulsecommon-17.0.so => /host/private/libpulsecommon-17.0.so\n', stderr='')
+        with patch.object(launcher.subprocess, 'run', side_effect=run):
+            result = launcher.runtime_path(package, session, {})
+        self.assertEqual(result, str(package / 'lib') + os.pathsep + str(session / 'runtime'))
+        self.assertEqual((session / 'runtime/libmissing.so.1').resolve(), package / 'runtime/libmissing.so.1')
+        self.assertFalse((session / 'runtime/libpulsecommon-17.0.so').exists())
 
 
 if __name__ == '__main__':

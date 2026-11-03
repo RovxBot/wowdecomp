@@ -22,6 +22,26 @@ inline constexpr const char* IntegrityUnavailable =
     "Native executable integrity, ScanDLL and Warden are unavailable. "
     "Normal sign-in is disabled. Isolated TEST-SERVER testing requires a separate build and runtime opt-in.";
 
+inline bool ExplicitEndpoint(const char* value) {
+    const char* expected = std::getenv("WOWDECOMP_ISOLATED_ENDPOINT");
+    if (!value || !expected || !*value || std::strlen(value) > 255 || std::strcmp(value, expected)) return false;
+    const char* colon = std::strchr(value, ':');
+    const char* end = colon ? colon : value + std::strlen(value);
+    if (end == value) return false;
+    for (const char* p = value; p != end; ++p)
+        if (!((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z') ||
+              (*p >= '0' && *p <= '9') || *p == '.' || *p == '-')) return false;
+    if (colon) {
+        unsigned port = 0;
+        for (const char* p = colon + 1; *p; ++p) {
+            if (*p < '0' || *p > '9' || port > 6553) return false;
+            port = port * 10 + unsigned(*p - '0');
+        }
+        if (!port || port > 65535) return false;
+    }
+    return true;
+}
+
 inline bool Within(const std::filesystem::path& path, const std::filesystem::path& root) {
     auto p = path.begin();
     for (auto r = root.begin(); r != root.end(); ++r, ++p)

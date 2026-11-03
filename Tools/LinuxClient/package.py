@@ -45,7 +45,7 @@ def package(source, binary, output, metadata):
             if name in helpers.HOST_LIBRARIES:
                 continue
             # SDL must match the compiled client. Other libraries are fallbacks.
-            directory = 'lib' if name.startswith('libSDL3') else 'runtime'
+            directory = 'lib' if name.startswith(('libSDL3', 'libasan.', 'libubsan.')) else 'runtime'
             target = app / directory / name
             if target.exists():
                 if digest(library) != digest(target):

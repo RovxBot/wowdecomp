@@ -91,6 +91,20 @@ def seed_endpoint(data, settings):
         config.write_text('SET realmlist "' + endpoint + '"\nSET locale "enUS"\n')
 
 
+def configured_endpoint(settings):
+    config = settings / 'WTF/Config.wtf'
+    if not config.is_file() or config.stat().st_size > 1024 * 1024:
+        raise ValueError('TEST-SERVER requires an explicit external SET realmlist host[:port]')
+    endpoint = None
+    for line in config.read_text(encoding='utf-8-sig').splitlines():
+        match = re.fullmatch(r'\s*set\s+realmlist\s+"?([A-Za-z0-9.-]+(?::[0-9]{1,5})?)"?\s*', line, re.I)
+        if match:
+            endpoint = match[1]
+    if not endpoint:
+        raise ValueError('TEST-SERVER requires an explicit external SET realmlist host[:port]')
+    return endpoint
+
+
 def prepare_state(data, settings, cache, logs):
     for root in [settings, cache, logs]:
         root.mkdir(parents=True, exist_ok=True)
@@ -131,6 +145,40 @@ def verify(package):
     return metadata
 
 
+def runtime_path(package, session, environment):
+    """Expose only missing distribution libraries, preserving host RUNPATHs.
+
+    A flat directory of every fallback overrides private dependencies such as
+    libpulsecommon in a host libpulse RUNPATH. Resolve the actual host closure
+    first, adding a verified fallback only for an unresolved SONAME.
+    """
+    fallback = session / 'runtime'
+    fallback.mkdir()
+    environment = environment.copy()
+    environment['LD_LIBRARY_PATH'] = os.pathsep.join(map(str, [package / 'lib', fallback]))
+    binaries = [package / 'WowClient64', *sorted((package / 'lib').glob('*'))]
+    loader = subprocess.run(['ldconfig', '-p'], text=True, capture_output=True, check=True).stdout
+    if not re.search(r'\blibvulkan\.so\.1 \(.*x86-64', loader):
+        link(fallback / 'libvulkan.so.1', package / 'runtime/libvulkan.so.1')
+        binaries.append(package / 'runtime/libvulkan.so.1')
+    for unused in range(len(list((package / 'runtime').glob('*'))) + 1):
+        missing = set()
+        for binary in binaries:
+            result = subprocess.run(['ldd', str(binary)], env=environment, text=True, capture_output=True)
+            if result.returncode:
+                raise ValueError('Cannot resolve native runtime: ' + result.stdout + result.stderr)
+            missing.update(re.findall(r'^\s*(\S+) => not found$', result.stdout, re.M))
+        if not missing:
+            return environment['LD_LIBRARY_PATH']
+        for name in missing:
+            source = package / 'runtime' / name
+            if not source.is_file() or '/' in name or (fallback / name).exists():
+                raise ValueError('Unresolved host dependency: ' + name)
+            link(fallback / name, source)
+            binaries.append(source)
+    raise ValueError('Native dependency closure did not converge')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--data', type=Path)
@@ -158,20 +206,17 @@ def main():
         prepare_state(data, settings, cache, logs)
         session = Path(tempfile.mkdtemp(prefix=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-'), dir=logs))
         environment = os.environ.copy()
-        for key in ['LD_PRELOAD', 'LD_AUDIT', 'LSAN_OPTIONS', 'WOWDECOMP_AUTOLOGIN', 'WOWDECOMP_ISOLATED_SERVER_LOGIN',
+        for key in ['LD_PRELOAD', 'LD_AUDIT', 'LSAN_OPTIONS', 'WOWDECOMP_AUTOLOGIN', 'WOWDECOMP_ISOLATED_SERVER_LOGIN', 'WOWDECOMP_ISOLATED_ENDPOINT',
                     'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'PYTHONPATH', 'PYTHONHOME']:
             environment.pop(key, None)
-        # Host distribution libraries precede bundled fallbacks, preserving the
-        # host ICD's ABI requirements. SDL is the private Actions-built runtime.
-        environment['LD_LIBRARY_PATH'] = ':'.join(map(str, [package / 'lib', Path('/usr/lib/x86_64-linux-gnu'),
-                                                             Path('/lib/x86_64-linux-gnu'), Path('/usr/lib64'),
-                                                             Path('/usr/lib'), Path('/lib64'), Path('/lib'), package / 'runtime']))
+        environment['LD_LIBRARY_PATH'] = runtime_path(package, session, environment)
         environment.update(WOWDECOMP_GAME_ROOT=str(data.parent), WOWDECOMP_SETTINGS=str(settings),
                            WOWDECOMP_CACHE=str(cache), WOWDECOMP_LOGS=str(logs), XDG_CONFIG_HOME=str(settings),
                            XDG_CACHE_HOME=str(cache), XDG_STATE_HOME=str(logs),
                            MESA_SHADER_CACHE_DIR=str(cache / 'mesa'))
         if args.test_server_login:
             environment['WOWDECOMP_ISOLATED_SERVER_LOGIN'] = '1'
+            environment['WOWDECOMP_ISOLATED_ENDPOINT'] = configured_endpoint(settings)
             print('TEST-SERVER: executable integrity, ScanDLL and Warden are unavailable. '
                   'The server must already have StrictVersionCheck=0 and Warden.Enabled=0.', flush=True)
         if metadata['strict']:
