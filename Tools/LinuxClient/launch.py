@@ -164,7 +164,8 @@ def main():
         # Host distribution libraries precede bundled fallbacks, preserving the
         # host ICD's ABI requirements. SDL is the private Actions-built runtime.
         environment['LD_LIBRARY_PATH'] = ':'.join(map(str, [package / 'lib', Path('/usr/lib/x86_64-linux-gnu'),
-                                                             Path('/lib/x86_64-linux-gnu'), package / 'runtime']))
+                                                             Path('/lib/x86_64-linux-gnu'), Path('/usr/lib64'),
+                                                             Path('/usr/lib'), Path('/lib64'), Path('/lib'), package / 'runtime']))
         environment.update(WOWDECOMP_GAME_ROOT=str(data.parent), WOWDECOMP_SETTINGS=str(settings),
                            WOWDECOMP_CACHE=str(cache), WOWDECOMP_LOGS=str(logs), XDG_CONFIG_HOME=str(settings),
                            XDG_CACHE_HOME=str(cache), XDG_STATE_HOME=str(logs),

@@ -31,6 +31,7 @@ def main():
     output = root / 'artifacts/full-linux' / suffix
     output.mkdir(parents=True)
     source = prepare(work / 'source', work / 'upstream.tar.gz')
+    shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     build = work / 'build'
     run(['python3', HERE / 'test_source.py', source])
     flags = '-O1 -g1 -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all' if args.strict else '-O3 -DNDEBUG'
@@ -38,7 +39,6 @@ def main():
          '-DCMAKE_C_FLAGS_RELEASE=' + flags, '-DCMAKE_CXX_FLAGS_RELEASE=' + flags,
          '-DWOWDECOMP_DISABLE_SIGNATURE_CHECKS=OFF', '-DWOWDECOMP_ENABLE_VULKAN=ON',
          '-DWOWDECOMP_WASM_ADDONS=OFF', '-DWOWDECOMP_ISOLATED_SERVER_BUILD=' + ('ON' if args.test_server else 'OFF')])
-    environment = os.environ.copy()
     if args.strict:
         os.environ.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
     run(['cmake', '--build', build, '--target', 'WowClient', 'RovNativePolicyCheck', 'job_exit_repro', 'job_lifecycle_test', '-j', '3'])

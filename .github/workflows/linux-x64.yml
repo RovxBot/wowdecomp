@@ -43,6 +43,7 @@ jobs:
           FULL_STRICT: ${{ matrix.strict }}
           FULL_PROFILE: ${{ matrix.profile }}
         run: |
+          set -euo pipefail
           args=()
           if [ "$FULL_STRICT" = true ]; then args+=(--strict); fi
           if [ "$FULL_PROFILE" = test-server ]; then args+=(--test-server); fi

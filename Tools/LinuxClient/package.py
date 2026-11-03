@@ -79,7 +79,8 @@ def package(source, binary, output, metadata):
                               'exec python3 -I -B "$app_dir/launch.py" "$@"\n')
     (app / 'AppRun').chmod(0o755)
     (app / 'WowClient64').chmod(0o755)
-    metadata.update(dependencies=dependencies, minimum_glibc='2.43', python='3.10+',
+    metadata.update(dependencies=dependencies,
+                    build_glibc=subprocess.check_output(['getconf', 'GNU_LIBC_VERSION'], text=True).strip(), python='3.10+',
                     host_libraries=sorted(helpers.HOST_LIBRARIES),
                     files={p.relative_to(app).as_posix(): digest(p) for p in sorted(app.rglob('*')) if p.is_file()})
     (app / 'manifest.json').write_text(json.dumps(metadata, indent=2) + '\n')

@@ -50,7 +50,8 @@ def prepare(destination, archive):
             raise ValueError('Adaptation changed no source: ' + name)
         # A donor VERIFY claim cannot certify an adapted source body.
         after = re.sub(r'^// VERIFY:.*\n', '', after, flags=re.M)
-        after = '// RovxBot adaptation of pinned 12340 source; see source-audit.json.\n' + after
+        prefix = '#' if path.name == 'CMakeLists.txt' else '//'
+        after = prefix + ' RovxBot adaptation of pinned 12340 source; see source-audit.json.\n' + after
         changes[name] = dict(upstream_sha256=digest(path))
         path.write_text(after)
         changes[name]['adapted_sha256'] = digest(path)
