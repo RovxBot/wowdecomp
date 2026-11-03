@@ -43,9 +43,9 @@ stated scope.
 The separate full-client source graph includes original character/world callers,
 SDL3 Linux services, direct Vulkan and native audio. Operator sign-in has reached
 character selection and gameplay with unchanged clean 12340/enUS data and required
-signatures. Download the [Linux alpha archive](https://github.com/RovxBot/wowdecomp/releases),
-extract directly into your clean WoW folder beside `Data`, and double-click
-`Play WoW TEST-SERVER.desktop`. This experimental build requires glibc 2.43+
+signatures. Download the [Linux AppImage](https://github.com/RovxBot/wowdecomp/releases),
+place it in your clean WoW folder beside `Data`, mark it executable if needed,
+and double-click it. This experimental build requires glibc 2.43+
 (Ubuntu 26.04 or a sufficiently recent distribution), Python 3.10+ and Vulkan.
 The labelled build enables interactive sign-in for compatible isolated servers;
 normal production integrity remains unavailable. Original WTF preferences are

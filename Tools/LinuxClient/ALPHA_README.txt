@@ -1,10 +1,7 @@
 WoW native Linux alpha 1 — TEST-SERVER
 
-Extract the entire archive directly into your clean WoW 3.3.5a (12340) folder.
-Data, the AppImage and Play WoW TEST-SERVER.desktop should be beside each other.
-Double-click Play WoW TEST-SERVER.desktop. Your desktop may ask you to allow
-launching this downloaded launcher once. Alternatively run the executable
-Launch WoW-Linux-x86_64-TEST-SERVER.sh. No FUSE installation is needed.
+Place the AppImage in your clean WoW 3.3.5a (12340) folder beside Data, mark it
+executable if needed, and double-click it to play.
 
 Requires Linux x86-64, glibc 2.43+ (Ubuntu 26.04 or a sufficiently recent
 distribution), Python 3.10+, Vulkan-capable graphics and a working desktop.
@@ -42,4 +39,4 @@ https://github.com/RovxBot/wowdecomp
 https://github.com/RovxBot/wowdecomp/issues/174
 https://github.com/RovxBot/wowdecomp/issues/172
 Embedded notices, dependency versions/hashes and adapted-source identities are
-inside the AppImage; the release also supplies exact adapted source separately.
+inside the AppImage. Developer evidence is retained in Actions and issues.

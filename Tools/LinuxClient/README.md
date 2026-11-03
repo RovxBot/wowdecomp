@@ -21,12 +21,10 @@ the host supplies Python 3.10+, Vulkan GPU/ICD and a
 working X11 or Wayland session. The AppImage runtime needs FUSE, or use
 `APPIMAGE_EXTRACT_AND_RUN=1` for its built-in temporary extraction.
 
-For the alpha, download the archive from [Releases](https://github.com/RovxBot/wowdecomp/releases),
-extract its contents directly into your clean WoW folder beside `Data`, and
-double-click `Play WoW TEST-SERVER.desktop`. Your desktop may require allowing
-the downloaded launcher once. The executable `Launch WoW-Linux-x86_64-TEST-SERVER.sh`
-also launches it from any working directory. Both use automatic temporary
-extraction, without requiring FUSE. See [runtime requirements and limitations](ALPHA_README.txt).
+Public [releases](https://github.com/RovxBot/wowdecomp/releases) contain only the
+AppImage and its SHA256 file. Place the AppImage in your WoW folder beside
+`Data`, mark it executable if needed, and double-click it. Keep developer
+evidence in Actions artifacts and tracking issues.
 
 For the standalone AppImage, place it beside the original clean `Data` directory,
 verify the checksum and enable execution:
