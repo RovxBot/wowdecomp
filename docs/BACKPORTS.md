@@ -40,6 +40,8 @@ and source inspection are different evidence levels.
   saving partial CVars or running teardown for the uninitialized engine.
   Packed MPQ attribute reads copy into aligned values and validate sizes with
   wide count arithmetic; strict original-data qualification remains in #172.
+  Signature-file locale/record tags also use aligned copies after original
+  signature authentication, retaining their original four-byte comparisons.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,

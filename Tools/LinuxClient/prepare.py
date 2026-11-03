@@ -93,6 +93,9 @@ def prepare(destination, archive):
     edit('WoW/Source/Glue/CGlueMgr.cpp', glue)
 
     def client(text):
+        for value in ['locale', 'record']:
+            text = replace(text, '*reinterpret_cast<const uint32_t*>(' + value + ')',
+                           'RovNative::PackedAttribute<uint32_t>(reinterpret_cast<const uint8_t*>(' + value + '))')
         text = function(text, 'void SetPaths()', '''    SFile::DisableSFileCheckDisk();
     SFile::EnableDirectAccess(0);
     const char* state = std::getenv("WOWDECOMP_SETTINGS");
@@ -129,7 +132,7 @@ def prepare(destination, archive):
         text = replace(text,
                        '    qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);',
                        '    if (count > 1) qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);')
-        return header + text
+        return '#include "RovPackedAttributes.h"\n' + header + text
     edit('WoW/Source/Client.cpp', client)
 
     def grunt(text):
