@@ -62,6 +62,73 @@ class LauncherTests(unittest.TestCase):
         launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
         self.assertEqual((directory / 'cache-9').read_text(), 'native library cache')
 
+    def test_original_preferences_are_imported_once_without_approval_or_credentials(self):
+        original = self.game / 'wtf'
+        account = original / 'account/TEST/Realm/Character'
+        account.mkdir(parents=True)
+        source = original / 'config.WTF'
+        source.write_bytes(b'\xef\xbb\xbfSET gxResolution "1920x1080"\r\nSET Sound_MasterVolume "0.3"\r\n'
+                           b'SET readEULA "1"\nSET readTOS "1"\nSET readScanning "1"\n'
+                           b'SET accountName "private"\nSET password "private"\nSET gxApi "opengl"\n')
+        bindings = account / 'bindings-cache.wtf'
+        bindings.write_text('bind W MOVEFORWARD\n')
+        saved = account / 'SavedVariables'
+        saved.mkdir()
+        (saved / 'Example.lua').write_text('Example = { scale = 0.8 }\n')
+        (original / 'RunOnce.wtf').write_text('do not execute\n')
+        (self.data / 'enUS/realmlist.wtf').write_text('set realmlist "127.0.0.1:3724"\n')
+        before = {p: p.read_bytes() for p in original.rglob('*') if p.is_file()}
+        launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        config = self.settings / 'WTF/Config.wtf'
+        contents = config.read_text()
+        self.assertIn('SET gxResolution "1920x1080"', contents)
+        self.assertIn('SET Sound_MasterVolume "0.3"', contents)
+        self.assertIn('SET realmlist "127.0.0.1:3724"', contents)
+        for excluded in ['readEULA', 'readTOS', 'readScanning', 'accountName', 'password', 'gxApi']:
+            self.assertNotIn(excluded, contents)
+        self.assertEqual((self.settings / 'WTF/Account/TEST/Realm/Character/bindings-cache.wtf').read_bytes(), bindings.read_bytes())
+        self.assertEqual((self.settings / 'WTF/Account/TEST/Realm/Character/SavedVariables/Example.lua').read_bytes(), (saved / 'Example.lua').read_bytes())
+        self.assertFalse((self.settings / 'WTF/RunOnce.wtf').exists())
+        config.write_text('SET gxResolution "1280x720"\nSET readEULA "1"\n')
+        launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        self.assertIn('SET gxResolution "1280x720"', config.read_text())
+        self.assertIn('SET readEULA "1"', config.read_text())
+        self.assertEqual(before, {p: p.read_bytes() for p in original.rglob('*') if p.is_file()})
+
+    def test_migration_backs_up_existing_config_and_preserves_native_account_files(self):
+        original = self.game / 'WTF'
+        (original / 'Account').mkdir(parents=True)
+        (original / 'Config.wtf').write_text('SET gxResolution "1920x1080"\nSET readEULA "1"\n')
+        (original / 'Account/config-cache.wtf').write_text('SET uiScale "0.8"\n')
+        (self.settings / 'WTF/Account').mkdir(parents=True)
+        current = b'SET gxResolution "800x600"\nSET readTOS "1"\n'
+        (self.settings / 'WTF/Config.wtf').write_bytes(current)
+        native = self.settings / 'WTF/Account/config-cache.wtf'
+        native.write_text('SET uiScale "0.7"\n')
+        launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        config = (self.settings / 'WTF/Config.wtf').read_text()
+        self.assertIn('1920x1080', config)
+        self.assertIn('SET readTOS "1"', config)
+        self.assertNotIn('readEULA', config)
+        self.assertEqual((self.settings / 'WTF/Config.before-import.wtf').read_bytes(), current)
+        self.assertIn('0.7', native.read_text())
+
+    def test_ambiguous_or_symlinked_original_wtf_is_rejected_before_import(self):
+        original = self.game / 'WTF'
+        original.mkdir()
+        config = original / 'Config.wtf'
+        config.write_text('SET gxResolution "1920x1080"\n')
+        other = original / 'config.wtf'
+        other.write_text('ambiguous')
+        with self.assertRaises(ValueError):
+            launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        self.assertFalse((self.settings / 'WTF/Config.wtf').exists())
+        other.unlink()
+        (original / 'escape').symlink_to(self.root, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        self.assertFalse((self.settings / 'WTF/Config.wtf').exists())
+
     def test_profile_identity_and_absolute_xdg(self):
         normal = dict(test_server_login=False, strict=False)
         test = dict(test_server_login=True, strict=False)

@@ -38,6 +38,8 @@ and source inspection are different evidence levels.
   avoid sorting a null empty RunOnce list during first startup.
   Missing-archive cleanup releases initialized command/CVar/string owners without
   saving partial CVars or running teardown for the uninitialized engine.
+  Packed MPQ attribute reads copy into aligned values and validate sizes with
+  wide count arithmetic; strict original-data qualification remains in #172.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,

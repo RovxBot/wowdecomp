@@ -12,7 +12,8 @@ and qualification are tracked in [#170](https://github.com/RovxBot/wowdecomp/iss
 All compilation runs in the
 [Full Linux x64 application workflow](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
 The matrix builds normal/TEST-SERVER release and strict ASan/UBSan/leak variants.
-Choose `linux-x64-<profile>-release-<sha>` for the application and checksum;
+Choose `linux-x64-test-server-release-<sha>` for the extract-and-launch archive,
+application and checksums;
 `full-linux-evidence-*` separately retains manifests, adapted sources and logs.
 Game data and credentials are never packaged. Distribution library versions and
 hashes are recorded. The Ubuntu 26.04 runtime baseline requires glibc 2.43+;
@@ -20,7 +21,14 @@ the host supplies Python 3.10+, Vulkan GPU/ICD and a
 working X11 or Wayland session. The AppImage runtime needs FUSE, or use
 `APPIMAGE_EXTRACT_AND_RUN=1` for its built-in temporary extraction.
 
-Place the selected application beside the original clean `Data` directory,
+For the alpha, download the archive from [Releases](https://github.com/RovxBot/wowdecomp/releases),
+extract its contents directly into your clean WoW folder beside `Data`, and
+double-click `Play WoW TEST-SERVER.desktop`. Your desktop may require allowing
+the downloaded launcher once. The executable `Launch WoW-Linux-x86_64-TEST-SERVER.sh`
+also launches it from any working directory. Both use automatic temporary
+extraction, without requiring FUSE. See [runtime requirements and limitations](ALPHA_README.txt).
+
+For the standalone AppImage, place it beside the original clean `Data` directory,
 verify the checksum and enable execution:
 
 ```sh
@@ -40,9 +48,14 @@ chmod +x WoW-Linux-x86_64-TEST-SERVER.AppImage
 
 `--data /path/to/WoW/Data` supports a separately located application. Launch is
 independent of the working directory. Writable state lives under XDG config,
-cache and state roots, separated by data path and build profile. Existing game
-settings, accounts and agreement decisions are not imported. Only the enUS
-realmlist endpoint seeds a new external configuration. Original addons are
+cache and state roots, separated by data path and build profile. On first launch,
+original WTF preferences and account/character bindings and SavedVariables are
+copied into external state. Original preferences take precedence once; any older
+external Config.wtf is backed up as Config.before-import.wtf. Later Linux saves
+persist and existing external account/character files win. Login credential
+CVars, agreement/scanner approvals and Windows renderer selection are excluded;
+agreement decisions remain interactive. The enUS realmlist supplies a missing endpoint.
+Original addons are
 available read-only; optional WASM addons are off. Failures and session metadata
 are retained in the printed external log directory.
 
