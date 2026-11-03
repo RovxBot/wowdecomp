@@ -2,12 +2,20 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <limits>
+#include <sys/mman.h>
 
-static void Check(bool condition) { if (!condition) std::abort(); }
+static void Require(bool condition, int line) {
+    if (!condition) { std::fprintf(stderr, "near-memory contract failed at line %d\n", line); std::abort(); }
+}
+#define Check(condition) Require(bool(condition), __LINE__)
 int main() {
-    void* anchor = std::malloc(4096);
-    Check(anchor);
+    // ASan reserves large malloc regions, which can truthfully leave no nearby
+    // address space. Use an explicitly mapped owner for the successful case;
+    // the allocator must never fall back to an out-of-range malloc allocation.
+    void* anchor = mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    Check(anchor != MAP_FAILED);
     Check(!OsAllocNear(nullptr, 1024));
     Check(!OsAllocNear(anchor, std::numeric_limits<size_t>::max()));
     Check(!OsAllocNear(anchor, INT32_MAX));
@@ -21,5 +29,5 @@ int main() {
     std::memset(payload, 0x5a, 65536);
     Check(static_cast<unsigned char*>(payload)[65535] == 0x5a);
     OsFreeNear(payload);
-    std::free(anchor);
+    Check(munmap(anchor, 4096) == 0);
 }

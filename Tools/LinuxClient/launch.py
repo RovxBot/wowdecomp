@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import platform
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -159,8 +160,8 @@ def runtime_path(package, session, environment):
     binaries = [package / 'WowClient64', *sorted((package / 'lib').glob('*'))]
     loader = subprocess.run(['ldconfig', '-p'], text=True, capture_output=True, check=True).stdout
     if not re.search(r'\blibvulkan\.so\.1 \(.*x86-64', loader):
-        link(fallback / 'libvulkan.so.1', package / 'runtime/libvulkan.so.1')
-        binaries.append(package / 'runtime/libvulkan.so.1')
+        shutil.copy2(package / 'runtime/libvulkan.so.1', fallback / 'libvulkan.so.1')
+        binaries.append(fallback / 'libvulkan.so.1')
     for unused in range(len(list((package / 'runtime').glob('*'))) + 1):
         missing = set()
         for binary in binaries:
@@ -174,8 +175,8 @@ def runtime_path(package, session, environment):
             source = package / 'runtime' / name
             if not source.is_file() or '/' in name or (fallback / name).exists():
                 raise ValueError('Unresolved host dependency: ' + name)
-            link(fallback / name, source)
-            binaries.append(source)
+            shutil.copy2(source, fallback / name)
+            binaries.append(fallback / name)
     raise ValueError('Native dependency closure did not converge')
 
 

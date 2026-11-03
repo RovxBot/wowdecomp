@@ -33,6 +33,22 @@ def main():
         test = subprocess.run([str(application), '--data', str(game / 'Data'), '--check', '--test-server-login'],
                               cwd=root, env=environment, text=True, capture_output=True)
         assert (test.returncode == 0) == metadata['test_server_login'], test.stdout + test.stderr
+        # Run the actual complete executable as well as --check. Authored Data
+        # deliberately lacks all MPQs; startup must fail visibly and write only
+        # external state. This is not original-data or rendering qualification.
+        environment.update(SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
+        failed = subprocess.run([str(application), '--data', str(game / 'Data')],
+                                cwd=root, env=environment, text=True, capture_output=True, timeout=45)
+        assert failed.returncode != 0, failed.stdout + failed.stderr
+        reports = list((root / 'state').rglob('session.json'))
+        assert len(reports) == 1, failed.stdout + failed.stderr
+        report = json.loads(reports[0].read_text())
+        assert report['exit_code'] != 0 and not report['test_server_login']
+        log = (reports[0].parent / 'client.log').read_text()
+        assert 'symbol lookup error' not in log, log
+        assert 'runtime error:' not in log and 'ERROR: AddressSanitizer' not in log, log
+        assert not (game / 'WTF').exists() and not (game / 'Cache').exists() and not (game / 'Logs').exists()
+        print('full-linux-missing-data-stop=' + str(report['exit_code']) + '\n' + log[-1800:])
         assert hashlib.sha256(application.read_bytes()).hexdigest() in (application.parent / (application.name + '.sha256')).read_text()
         print('full-linux-application=passed: actual AppImage extraction/execution, paths, no check writes, explicit test profile, hash')
 

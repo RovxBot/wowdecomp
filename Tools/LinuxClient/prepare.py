@@ -250,6 +250,7 @@ add_test(NAME rov_native_policy COMMAND RovNativePolicyCheck)
 add_executable(RovNativeNearCheck RovNativeNearCheck.cpp Engine/Source/Os/Linux/OsMemory.cpp)
 target_include_directories(RovNativeNearCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_native_near_memory COMMAND RovNativeNearCheck)
+set_tests_properties(rov_native_policy rov_native_near_memory PROPERTIES TIMEOUT 45)
 '''
     edit('CMakeLists.txt', lambda t: t + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,

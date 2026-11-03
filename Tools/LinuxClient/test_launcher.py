@@ -78,7 +78,8 @@ class LauncherTests(unittest.TestCase):
         with patch.object(launcher.subprocess, 'run', side_effect=run):
             result = launcher.runtime_path(package, session, {})
         self.assertEqual(result, str(package / 'lib') + os.pathsep + str(session / 'runtime'))
-        self.assertEqual((session / 'runtime/libmissing.so.1').resolve(), package / 'runtime/libmissing.so.1')
+        self.assertEqual((session / 'runtime/libmissing.so.1').read_bytes(), (package / 'runtime/libmissing.so.1').read_bytes())
+        self.assertFalse((session / 'runtime/libmissing.so.1').is_symlink())
         self.assertFalse((session / 'runtime/libpulsecommon-17.0.so').exists())
 
 
