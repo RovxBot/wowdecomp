@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace RovNative {
+inline bool failedStartupCleanup = false;
 inline void* volatile allocationWitness = nullptr;
 inline void CheckAllocationRoutes() {
     void* scalar = ::operator new(31);

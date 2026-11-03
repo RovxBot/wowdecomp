@@ -64,6 +64,8 @@ def main():
         assert 'symbol lookup error' not in log, log
         assert 'runtime error:' not in log and 'Sanitizer' not in log, log
         assert 'Failed to open archive ' in log, log
+        configs = list((root / 'config').rglob('WTF/Config.wtf'))
+        assert len(configs) == 1 and configs[0].read_text() == 'SET realmlist "127.0.0.1:3724"\nSET locale "enUS"\n', configs
         assert not (game / 'WTF').exists() and not (game / 'Cache').exists() and not (game / 'Logs').exists()
         print('full-linux-missing-data-stop=' + str(report['exit_code']) + '\n' + log[-1800:])
         assert hashlib.sha256(application.read_bytes()).hexdigest() in (application.parent / (application.name + '.sha256')).read_text()

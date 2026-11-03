@@ -115,8 +115,14 @@ def prepare(destination, archive):
                 std::fprintf(stderr, "%s\\n", message);
                 OsGuiMessageBox(OsGuiGetWindow(OSGUI_WINDOW_TYPE_FRONT), OSGUI_MESSAGE_STYLE_OK, message, title);
                 Job::Shutdown();
+                RovNative::failedStartupCleanup = true;
+                CVar::Destroy();
+                ConsoleCommandDestroy();
+                SCmdDestroy();
+                CloseAllArchives();
+                CStringManager::DestroyManager();
                 StormExit(startupError ? startupError : 1);''')
-        text = '#include "Engine/Source/Base/Job/JobSystem.h"\n' + text
+        text = '#include "Engine/Source/Base/Job/JobSystem.h"\n#include "Engine/Source/Base/RCString.h"\n' + text
         text = replace(text,
                        '    qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);',
                        '    if (count > 1) qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);')
@@ -327,6 +333,11 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     edit('Engine/Source/Base/RCString.cpp', lambda t: replace(t,
          '    uint32_t bytes = (SStrLen(str) + sizeof(char*) + 4) & ~3;',
          '    size_t bytes = (SStrLen(str) + sizeof(char*) + alignof(char*)) & ~(alignof(char*) - 1);'))
+    # Missing archives terminate before engine/Event/Base initialization. Release
+    # only the initialized settings owners and preserve the existing config.
+    edit('Engine/Source/ConsoleBase/ConsoleVar.cpp', lambda t: header + replace(t,
+         '    CVar::m_initialized = false;\n    CVar::SaveAll();',
+         '    CVar::m_initialized = false;\n    if (!RovNative::failedStartupCleanup) CVar::SaveAll();'))
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
