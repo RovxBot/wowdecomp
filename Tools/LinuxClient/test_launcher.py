@@ -53,6 +53,15 @@ class LauncherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             launcher.validate(self.data, self.root / 'package', [self.settings, self.settings / 'cache', self.logs])
 
+    def test_repeat_launch_accepts_internal_fontconfig_alias(self):
+        launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        directory = self.cache / 'fontconfig'
+        directory.mkdir()
+        (directory / 'cache-12').write_text('native library cache')
+        (directory / 'cache-9').symlink_to('cache-12')
+        launcher.prepare_state(self.data, self.settings, self.cache, self.logs)
+        self.assertEqual((directory / 'cache-9').read_text(), 'native library cache')
+
     def test_profile_identity_and_absolute_xdg(self):
         normal = dict(test_server_login=False, strict=False)
         test = dict(test_server_login=True, strict=False)

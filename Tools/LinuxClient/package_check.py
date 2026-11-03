@@ -30,6 +30,20 @@ def main():
         assert not (root / 'config').exists(), '--check wrote settings'
         assert not (game / 'WTF').exists()
         metadata = json.loads((application.parent / 'manifest.json').read_text())
+        # Query the actual login/Glue translation units. A fixture compiled in
+        # the CMake root cannot prove definitions reached child directories.
+        app_dir = application.parent / 'AppDir'
+        native_environment = os.environ.copy()
+        native_environment['LD_LIBRARY_PATH'] = str(app_dir / 'lib') + ':' + str(app_dir / 'runtime')
+        for active in [False, True]:
+            native_environment['WOWDECOMP_ISOLATED_SERVER_LOGIN'] = '1' if active else '0'
+            actual = subprocess.run([str(app_dir / 'WowClient64'), '--native-profile'], env=native_environment,
+                                    check=True, text=True, capture_output=True)
+            compiled = json.loads(actual.stdout)
+            assert bool(compiled['login_build']) == metadata['test_server_login'], compiled
+            assert bool(compiled['glue_build']) == metadata['test_server_login'], compiled
+            assert bool(compiled['login_active']) == (active and metadata['test_server_login']), compiled
+            assert bool(compiled['glue_active']) == (active and metadata['test_server_login']), compiled
         test = subprocess.run([str(application), '--data', str(game / 'Data'), '--check', '--test-server-login'],
                               cwd=root, env=environment, text=True, capture_output=True)
         assert (test.returncode == 0) == metadata['test_server_login'], test.stdout + test.stderr
@@ -46,7 +60,7 @@ def main():
         assert report['exit_code'] != 0 and not report['test_server_login']
         log = (reports[0].parent / 'client.log').read_text()
         assert 'symbol lookup error' not in log, log
-        assert 'runtime error:' not in log and 'ERROR: AddressSanitizer' not in log, log
+        assert 'runtime error:' not in log and 'AddressSanitizer' not in log and 'UndefinedBehaviorSanitizer' not in log, log
         assert not (game / 'WTF').exists() and not (game / 'Cache').exists() and not (game / 'Logs').exists()
         print('full-linux-missing-data-stop=' + str(report['exit_code']) + '\n' + log[-1800:])
         assert hashlib.sha256(application.read_bytes()).hexdigest() in (application.parent / (application.name + '.sha256')).read_text()

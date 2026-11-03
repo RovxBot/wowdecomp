@@ -89,7 +89,7 @@ def prepare(destination, archive):
         text = replace(text, signature, signature + '\n    if (!RovNative::TestServerEnabled()) {\n        FrameScript_SignalEvent(GLUE_EVENT_OPEN_STATUS_DIALOG, "%s%s", "OKAY", RovNative::IntegrityUnavailable);\n        return;\n    }')
         text = replace(text, '!CGlueMgr::m_scandllOkayToLogIn || !CGlueMgr::m_acceptedTOS',
                        '(!CGlueMgr::m_scandllOkayToLogIn && !RovNative::TestServerEnabled()) || !CGlueMgr::m_acceptedTOS')
-        return header + text
+        return header + text + '\nextern "C" int RovNativeGlueProfile(int runtime) { return runtime ? RovNative::TestServerEnabled() : bool(WOWDECOMP_ISOLATED_SERVER_BUILD); }\n'
     edit('WoW/Source/Glue/CGlueMgr.cpp', glue)
 
     def client(text):
@@ -123,7 +123,7 @@ def prepare(destination, archive):
     uint8_t unavailableExecutableProof[20] = {};
     this->ProveVersion(unavailableExecutableProof);''')
         text = function(text, 'void GruntLogin::Reconnect()', '''    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, "Native reconnect integrity is unavailable", 0);''')
-        return header + text
+        return header + text + '\nextern "C" int RovNativeLoginProfile(int runtime) { return runtime ? RovNative::TestServerEnabled() : bool(WOWDECOMP_ISOLATED_SERVER_BUILD); }\n'
     edit('WoW/Source/WowServices/GruntLogin.cpp', grunt)
     edit('WoW/Source/WowServices/BattlenetLogin.cpp', lambda t: header + function(t, 'void BattlenetLogin::Logon(', '''    this->m_loginResponse->UpdateLoginStatus(LOGIN_STATE_FAILED, LOGIN_FAILED, "Native Battle.net login is unavailable", 0);'''))
 
@@ -197,7 +197,14 @@ def prepare(destination, archive):
     }
     StormRtlInitialize();
     return ClientMain();''')
-        return '#include <sys/resource.h>\n' + text
+        text = replace(text, 'int main(int argc, char** argv) {', '''int main(int argc, char** argv) {
+    if (argc == 2 && !std::strcmp(argv[1], "--native-profile")) {
+        std::printf("{\\"login_build\\":%d,\\"glue_build\\":%d,\\"login_active\\":%d,\\"glue_active\\":%d}\\n",
+            RovNativeLoginProfile(0), RovNativeGlueProfile(0), RovNativeLoginProfile(1), RovNativeGlueProfile(1));
+        return 0;
+    }''')
+        return ('#include <sys/resource.h>\n#include <cstring>\n'
+                'extern "C" int RovNativeLoginProfile(int runtime);\nextern "C" int RovNativeGlueProfile(int runtime);\n' + text)
     edit('WoW/Source/Linux/WinMain.cpp', entry)
 
     # These donor declarations have no implementation or concrete construction.
@@ -231,9 +238,27 @@ def prepare(destination, archive):
         reinterpret_cast<uintptr_t>(anchor) > UINTPTR_MAX - s_nearRange) return nullptr;''')
         return text
     edit('Engine/Source/Os/Linux/OsMemory.cpp', near_memory)
+    def sound_angle(text):
+        text = function(text, 'static FMOD_INLINE int FMOD_Cart2Angle(', '''    // Preserve the fixed-point approximation without signed left-shift UB.
+    // Public int inputs fit every intermediate in int64_t, including INT_MIN.
+    const int64_t sx = int64_t(x) * 1024;
+    const int64_t sy = int64_t(y) * 1024;
+    if (!sx && !sy) return 0;
+    const int64_t pi = int(3.1415926535897932384626433832795f * 1024.0f);
+    const int64_t coefficient = pi / 4;
+    const int64_t abs_y = (sy < 0 ? -sy : sy) + 1;
+    const int64_t ratio = sx >= 0 ? (sx - abs_y) / ((sx + abs_y) >> 10)
+                                 : (sx + abs_y) / ((abs_y - sx) >> 10);
+    int64_t angle = (sx >= 0 ? coefficient : 3 * coefficient) - ((coefficient * ratio) >> 10);
+    if (sy < 0) angle = -angle;
+    angle = angle * 180 / pi;
+    return int(angle < 0 ? angle + 360 : angle >= 360 ? angle - 360 : angle);''')
+        return '#include <cstdint>\n' + text
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_3d.h', sound_angle)
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
+    shutil.copy2(HERE / 'angle_check.cpp', root / 'RovNativeAngleCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -242,8 +267,6 @@ endif()
 if(WOWDECOMP_DISABLE_SIGNATURE_CHECKS)
     message(FATAL_ERROR "Original archive and interface signatures are mandatory")
 endif()
-option(WOWDECOMP_ISOLATED_SERVER_BUILD "Explicit isolated test server profile" OFF)
-add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLATED_SERVER_BUILD}>)
 add_executable(RovNativePolicyCheck RovNativePolicyCheck.cpp)
 target_include_directories(RovNativePolicyCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_native_policy COMMAND RovNativePolicyCheck)
@@ -251,10 +274,19 @@ add_executable(RovNativeNearCheck RovNativeNearCheck.cpp Engine/Source/Os/Linux/
 target_include_directories(RovNativeNearCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_native_near_memory COMMAND RovNativeNearCheck)
 set_tests_properties(rov_native_policy rov_native_near_memory PROPERTIES TIMEOUT 45)
+add_executable(RovNativeAngleCheck RovNativeAngleCheck.cpp)
+target_link_libraries(RovNativeAngleCheck PRIVATE fmodex)
+add_test(NAME rov_native_audio_angle COMMAND RovNativeAngleCheck)
+set_tests_properties(rov_native_audio_angle PROPERTIES TIMEOUT 45)
 '''
-    edit('CMakeLists.txt', lambda t: t + cmake)
+    early_profile = '''
+# Must precede add_subdirectory: child directories snapshot these definitions.
+option(WOWDECOMP_ISOLATED_SERVER_BUILD "Explicit isolated test server profile" OFF)
+add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLATED_SERVER_BUILD}>)
+'''
+    edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 

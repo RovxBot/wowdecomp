@@ -113,6 +113,10 @@ def prepare_state(data, settings, cache, logs):
     for root in [settings, cache, logs]:
         for path in root.rglob('*'):
             if path.is_symlink():
+                # Fontconfig and other native libraries keep versioned cache
+                # aliases. A link confined to the same external root is safe.
+                if path.resolve().is_relative_to(root):
+                    continue
                 allowed = {settings / 'Data': data, settings / 'Cache': cache, settings / 'Logs': logs}
                 addons = child(data.parent, 'Interface')
                 if addons is not None:

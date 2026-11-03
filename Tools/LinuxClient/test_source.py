@@ -7,6 +7,8 @@ import sys
 def audit(root):
     receipt = json.loads((root / 'source-audit.json').read_text())
     assert (root / 'CMakeLists.txt').read_text().startswith('# ')
+    cmake = (root / 'CMakeLists.txt').read_text()
+    assert cmake.index('add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=') < cmake.index('add_subdirectory(ThirdParty)')
     assert receipt['upstream']['commit'] == 'cb54f58119b88c8a3cfda6ad8d64e747dc65df7d'
     glue = (root / 'WoW/Source/Glue/CGlueMgr.cpp').read_text()
     assert 'AutoLoginPrepareGlue' not in glue and 'MaybeAutoLogin' not in glue
