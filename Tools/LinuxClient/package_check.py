@@ -59,10 +59,11 @@ def main():
         reports = list((root / 'state').rglob('session.json'))
         assert len(reports) == 1, failed.stdout + failed.stderr
         report = json.loads(reports[0].read_text())
-        assert report['exit_code'] != 0 and not report['test_server_login']
+        assert report['exit_code'] > 0 and not report['test_server_login'], report
         log = (reports[0].parent / 'client.log').read_text()
         assert 'symbol lookup error' not in log, log
-        assert 'runtime error:' not in log and 'AddressSanitizer' not in log and 'UndefinedBehaviorSanitizer' not in log, log
+        assert 'runtime error:' not in log and 'Sanitizer' not in log, log
+        assert 'Failed to open archive ' in log, log
         assert not (game / 'WTF').exists() and not (game / 'Cache').exists() and not (game / 'Logs').exists()
         print('full-linux-missing-data-stop=' + str(report['exit_code']) + '\n' + log[-1800:])
         assert hashlib.sha256(application.read_bytes()).hexdigest() in (application.parent / (application.name + '.sha256')).read_text()

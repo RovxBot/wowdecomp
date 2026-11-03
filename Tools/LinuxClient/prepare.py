@@ -107,6 +107,16 @@ def prepare(destination, archive):
         start = text.index('    {\n        const char* autoLogin = CmdLineGetString(CMD_AUTOLOGIN);')
         end = text.index('\n    }', start) + len('\n    }')
         text = text[:start] + text[end:]
+        # OpenArchives runs on the main thread before any job dispatch. Retire
+        # the idle pool on this specific failed-startup exit before std::exit
+        # destroys its joinable std::thread owners. Retain the real failure.
+        text = replace(text, '''                OsGuiMessageBox(OsGuiGetWindow(OSGUI_WINDOW_TYPE_FRONT), OSGUI_MESSAGE_STYLE_OK, message, title);
+                StormExit(SErrGetLastError());''', '''                const int32_t startupError = SErrGetLastError();
+                std::fprintf(stderr, "%s\\n", message);
+                OsGuiMessageBox(OsGuiGetWindow(OSGUI_WINDOW_TYPE_FRONT), OSGUI_MESSAGE_STYLE_OK, message, title);
+                Job::Shutdown();
+                StormExit(startupError ? startupError : 1);''')
+        text = '#include "Engine/Source/Base/Job/JobSystem.h"\n' + text
         return header + text
     edit('WoW/Source/Client.cpp', client)
 
