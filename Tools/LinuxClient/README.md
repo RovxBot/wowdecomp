@@ -12,9 +12,11 @@ and qualification are tracked in [#170](https://github.com/RovxBot/wowdecomp/iss
 All compilation runs in the
 [Full Linux x64 application workflow](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
 The matrix builds normal/TEST-SERVER release and strict ASan/UBSan/leak variants.
-Artifacts include one `.AppImage`, its SHA256, manifests, adapted sources and logs.
+Choose `linux-x64-<profile>-release-<sha>` for the application and checksum;
+`full-linux-evidence-*` separately retains manifests, adapted sources and logs.
 Game data and credentials are never packaged. Distribution library versions and
-hashes are recorded; the host supplies glibc, Python 3.10+, Vulkan GPU/ICD and a
+hashes are recorded. The Ubuntu 26.04 runtime baseline requires glibc 2.43+;
+the host supplies Python 3.10+, Vulkan GPU/ICD and a
 working X11 or Wayland session. The AppImage runtime needs FUSE, or use
 `APPIMAGE_EXTRACT_AND_RUN=1` for its built-in temporary extraction.
 
@@ -26,6 +28,14 @@ sha256sum -c WoW-Linux-x86_64.AppImage.sha256
 chmod +x WoW-Linux-x86_64.AppImage
 ./WoW-Linux-x86_64.AppImage --check
 ./WoW-Linux-x86_64.AppImage
+```
+
+For the separately labelled isolated-server application, after checking the
+server prerequisites below:
+
+```sh
+chmod +x WoW-Linux-x86_64-TEST-SERVER.AppImage
+./WoW-Linux-x86_64-TEST-SERVER.AppImage --test-server-login
 ```
 
 `--data /path/to/WoW/Data` supports a separately located application. Launch is
@@ -54,9 +64,9 @@ is truthful. Donor `OFFSET` provenance is retained; adapted files lose donor
 `VERIFY` claims until independently revalidated.
 
 The donor includes broader Vulkan, threading and gameplay changes. Their presence
-is not an exact Windows visual/protocol parity claim. A successful build or
-source/fixture check does not establish authentication, character appearance,
-gameplay, physical input, audio output, strict hardware shutdown or macOS support.
+is not an exact Windows visual/protocol parity claim. The adapted TEST-SERVER
+release has operator-observed character selection and gameplay. Broader physical
+input, audio, strict hardware shutdown and macOS acceptance remain separate.
 Use #170 and the existing acceptance issues for actual observed results.
 
 ## Source preparation and checks
@@ -66,5 +76,7 @@ separate source directory. `source-audit.json` records before/after file hashes;
 the exact adapted source is retained with the application. Source preparation,
 Python launcher tests and source audits may run locally. `build.py` refuses local
 compilation. The Actions build uses upstream's full `WowClient` CMake target,
-focused job-lifecycle checks and the native policy boundary test. Package checks
-execute the real AppImage without game data.
+focused job-lifecycle, allocation, near-memory and audio-angle checks. Package
+checks query compile/runtime gates in the actual login and Glue modules and start
+the real executable without game data, retaining failures. Host distribution
+libraries resolve first; only missing fallback SONAMEs enter the external session.

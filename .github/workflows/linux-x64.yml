@@ -48,17 +48,29 @@ jobs:
           if [ "$FULL_STRICT" = true ]; then args+=(--strict); fi
           if [ "$FULL_PROFILE" = test-server ]; then args+=(--test-server); fi
           python3 -B Tools/LinuxClient/build.py "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/full-linux-build.log"
-      - name: Retain application, exact source, notices, manifests and failures
+      - name: Retain the single application and checksum
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: linux-x64-${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}-${{ github.sha }}
+          path: artifacts/full-linux/${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}/WoW-*.AppImage*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stage build log including failures
+        if: always()
+        run: |
+          mkdir -p artifacts/full-linux/evidence
+          if [ -f "$RUNNER_TEMP/full-linux-build.log" ]; then cp "$RUNNER_TEMP/full-linux-build.log" artifacts/full-linux/evidence/build.log; fi
+      - name: Retain exact source, manifests and evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: full-linux-x64-${{ matrix.profile }}-strict-${{ matrix.strict }}-${{ github.sha }}
+          name: full-linux-evidence-${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}-${{ github.sha }}
           path: |
-            artifacts/full-linux/**/WoW-*.AppImage*
             artifacts/full-linux/**/manifest.json
             artifacts/full-linux/**/source-audit.json
             artifacts/full-linux/**/adapted-source.tar.gz
             artifacts/full-linux/**/CMakeCache.txt
-            ${{ runner.temp }}/full-linux-build.log
+            artifacts/full-linux/**/build.log
           if-no-files-found: error
           retention-days: 14

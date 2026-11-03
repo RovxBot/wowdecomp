@@ -26,6 +26,12 @@ and source inspection are different evidence levels.
   Battle.net login. Remove donor autologin/agreement automation and injected
   options/addon-panel Lua. Optional WASM runtime is disabled. Main-thread startup
   uses an adequate native stack instead of untracked ucontext stack switching.
+- Reached strict corrections: bound near-allocation extents before page/address
+  arithmetic; express unimplemented donor interfaces as abstract with valid
+  empty-base destruction; preserve FMOD speaker-angle behavior with wide signed
+  arithmetic instead of shifting negative values; complete standard C++17
+  scalar/array/sized/aligned/nothrow allocation pairs through the existing SMem
+  ownership boundary. Do not suppress vptr, shift or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
   server-policy changes or OpenGL development.

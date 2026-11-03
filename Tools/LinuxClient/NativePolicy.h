@@ -5,11 +5,34 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
 #include <filesystem>
+#include <new>
 #include <string>
 #include <vector>
 
 namespace RovNative {
+inline void* volatile allocationWitness = nullptr;
+inline void CheckAllocationRoutes() {
+    void* scalar = ::operator new(31);
+    allocationWitness = scalar;
+    static_cast<volatile unsigned char*>(scalar)[30] = 1;
+    ::operator delete(scalar, size_t(31));
+    void* array = ::operator new[](47);
+    allocationWitness = array;
+    static_cast<volatile unsigned char*>(array)[46] = 2;
+    ::operator delete[](array, size_t(47));
+    void* aligned = ::operator new(128, std::align_val_t(64));
+    allocationWitness = aligned;
+    if (reinterpret_cast<uintptr_t>(aligned) % 64) std::abort();
+    static_cast<volatile unsigned char*>(aligned)[127] = 3;
+    ::operator delete(aligned, size_t(128), std::align_val_t(64));
+    array = ::operator new[](128, std::align_val_t(64), std::nothrow);
+    if (!array || reinterpret_cast<uintptr_t>(array) % 64) std::abort();
+    allocationWitness = array;
+    ::operator delete[](array, std::align_val_t(64), std::nothrow);
+    allocationWitness = nullptr;
+}
 inline bool TestServerEnabled() {
 #if WOWDECOMP_ISOLATED_SERVER_BUILD
     const char* value = std::getenv("WOWDECOMP_ISOLATED_SERVER_LOGIN");

@@ -38,7 +38,9 @@ def main():
         for active in [False, True]:
             native_environment['WOWDECOMP_ISOLATED_SERVER_LOGIN'] = '1' if active else '0'
             actual = subprocess.run([str(app_dir / 'WowClient64'), '--native-profile'], env=native_environment,
-                                    check=True, text=True, capture_output=True)
+                                    text=True, capture_output=True)
+            if actual.returncode:
+                raise RuntimeError('Actual login-module capability probe failed (exit ' + str(actual.returncode) + '):\n' + actual.stdout + actual.stderr)
             compiled = json.loads(actual.stdout)
             assert bool(compiled['login_build']) == metadata['test_server_login'], compiled
             assert bool(compiled['glue_build']) == metadata['test_server_login'], compiled

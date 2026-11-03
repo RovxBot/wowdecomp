@@ -199,11 +199,12 @@ def prepare(destination, archive):
     return ClientMain();''')
         text = replace(text, 'int main(int argc, char** argv) {', '''int main(int argc, char** argv) {
     if (argc == 2 && !std::strcmp(argv[1], "--native-profile")) {
+        RovNative::CheckAllocationRoutes();
         std::printf("{\\"login_build\\":%d,\\"glue_build\\":%d,\\"login_active\\":%d,\\"glue_active\\":%d}\\n",
             RovNativeLoginProfile(0), RovNativeGlueProfile(0), RovNativeLoginProfile(1), RovNativeGlueProfile(1));
         return 0;
     }''')
-        return ('#include <sys/resource.h>\n#include <cstring>\n'
+        return ('#include <sys/resource.h>\n#include <cstring>\n#include "RovNativePolicy.h"\n'
                 'extern "C" int RovNativeLoginProfile(int runtime);\nextern "C" int RovNativeGlueProfile(int runtime);\n' + text)
     edit('WoW/Source/Linux/WinMain.cpp', entry)
 
@@ -255,6 +256,53 @@ def prepare(destination, archive):
     return int(angle < 0 ? angle + 360 : angle >= 360 ? angle - 360 : angle);''')
         return '#include <cstdint>\n' + text
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_3d.h', sound_angle)
+    def allocation_routes(text):
+        text = '#include <new>\n#include <limits>\n' + text
+        text = replace(text, '    size_t size = (bytes + 7) & ~static_cast<size_t>(7);\n    void* ptr =',
+                       '''    if (bytes > std::numeric_limits<size_t>::max() - 7) {
+        FatalError(bytes, filename, linenumber);
+        return nullptr;
+    }
+    size_t size = ((bytes ? bytes : 1) + 7) & ~static_cast<size_t>(7);
+    void* ptr =''')
+        text = replace(text, '    return SMemAlloc(bytes, "new", SLOG_FUNCTION, 0);',
+                       '    void* ptr = SMemAlloc(bytes, "new", SLOG_FUNCTION, 0);\n    if (!ptr) throw std::bad_alloc();\n    return ptr;')
+        text += '''
+// Complete C++17 allocation/deallocation pairs. The original replacement new
+// uses malloc through SMem; libasan/libstdc++ sized/array delete must not take
+// ownership of those pointers. No mismatch detector is disabled.
+void* operator new[](size_t bytes) { return ::operator new(bytes); }
+void operator delete(void* ptr, size_t) noexcept { ::operator delete(ptr); }
+void operator delete[](void* ptr, size_t) noexcept { ::operator delete[](ptr); }
+void* operator new(size_t bytes, std::align_val_t alignment) {
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, static_cast<size_t>(alignment), bytes ? bytes : 1)) throw std::bad_alloc();
+    return ptr;
+}
+void* operator new[](size_t bytes, std::align_val_t alignment) { return ::operator new(bytes, alignment); }
+void operator delete(void* ptr, std::align_val_t) noexcept { ::operator delete(ptr); }
+void operator delete[](void* ptr, std::align_val_t) noexcept { ::operator delete[](ptr); }
+void operator delete(void* ptr, size_t, std::align_val_t alignment) noexcept { ::operator delete(ptr, alignment); }
+void operator delete[](void* ptr, size_t, std::align_val_t alignment) noexcept { ::operator delete[](ptr, alignment); }
+void* operator new(size_t bytes, const std::nothrow_t&) noexcept {
+    try { return ::operator new(bytes); } catch (...) { return nullptr; }
+}
+void* operator new[](size_t bytes, const std::nothrow_t&) noexcept {
+    try { return ::operator new[](bytes); } catch (...) { return nullptr; }
+}
+void operator delete(void* ptr, const std::nothrow_t&) noexcept { ::operator delete(ptr); }
+void operator delete[](void* ptr, const std::nothrow_t&) noexcept { ::operator delete[](ptr); }
+void* operator new(size_t bytes, std::align_val_t alignment, const std::nothrow_t&) noexcept {
+    try { return ::operator new(bytes, alignment); } catch (...) { return nullptr; }
+}
+void* operator new[](size_t bytes, std::align_val_t alignment, const std::nothrow_t&) noexcept {
+    try { return ::operator new[](bytes, alignment); } catch (...) { return nullptr; }
+}
+void operator delete(void* ptr, std::align_val_t alignment, const std::nothrow_t&) noexcept { ::operator delete(ptr, alignment); }
+void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow_t&) noexcept { ::operator delete[](ptr, alignment); }
+'''
+        return text
+    edit('Engine/Source/Storm/Source/SMem.cpp', allocation_routes)
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
