@@ -3,11 +3,14 @@
 Bringing the World of Warcraft **3.3.5a client (build 12340)** to **Linux x86-64**
 and **macOS ARM64**, with Windows x64 retained as the reference client.
 
-**Linux now renders the original Wrath login scene using DXVK Native and Vulkan.**
-The original artwork, animated dragon, snow, UI textures and effects are visible,
-and an experimental desktop package is available for testing. Native server
-sign-in, character selection and gameplay are still being connected and validated.
-There is no playable native release yet.
+**The full Linux client now has operator-observed character selection and gameplay
+in its explicit TEST-SERVER profile.** It adapts the pinned RosemyneH client with
+SDL3, direct Vulkan and external writable state, and ships as one experimental
+AppImage. [Build/run instructions](Tools/LinuxClient/README.md) and
+[qualification/gaps](https://github.com/RovxBot/wowdecomp/issues/170).
+Normal native sign-in remains blocked pending executable-integrity and Warden
+compatibility; this is not a production-integrity-qualified release.
+The existing original D3D9/DXVK diagnostic target remains available separately.
 
 This is a C++ reconstruction based on
 [SatyPardus/wowdecomp](https://github.com/SatyPardus/wowdecomp), using the original
@@ -25,17 +28,27 @@ implementation references, without changing the 12340 baseline.
 
 ## Where we are
 
-Status reviewed **2 November 2026**. Issues hold the current acceptance criteria
+Status reviewed **3 November 2026**. Issues hold the current acceptance criteria
 and detailed evidence; successful builds and component tests cover only their
 stated scope.
 
 | Platform | Demonstrated progress | Available testing |
 | --- | --- | --- |
-| **Linux x86-64** | Original signed login UI and textured animated scene through original D3D9 → DXVK Native → Vulkan; desktop packaging and external settings/logs | Experimental login-screen package below. Separate TEST-SERVER builds support auth/realm-list testing only. |
+| **Linux x86-64** | Full direct-Vulkan client: operator-observed original UI, character selection and gameplay on the isolated server. Existing D3D9/DXVK target: signed login rendering and component diagnostics. | [Full-client AppImage](Tools/LinuxClient/README.md), with explicit TEST-SERVER activation; older DXVK packages below. Broader play/input/audio/strict acceptance remains open. |
 | **macOS ARM64 / Apple silicon** | Actual ARM64 execution of core, file/asset, packet, networking, Lua, XML and layout component tests in Actions | Component artifacts. An integrated native game application and renderer are still pending [#102](https://github.com/RovxBot/wowdecomp/issues/102). |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 runtime passes | Reference client. Reproducible scene captures and a complete recorded runtime baseline remain open in [#107](https://github.com/RovxBot/wowdecomp/issues/107). |
 
-### What works today on Linux
+### Full Linux application
+
+The separate full-client source graph includes original character/world callers,
+SDL3 Linux services, direct Vulkan and native audio. Operator sign-in has reached
+character selection and gameplay with unchanged clean 12340/enUS data and required
+signatures. Download the application from
+[Full Linux x64 application — Actions](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
+The [integration issue](https://github.com/RovxBot/wowdecomp/issues/170) distinguishes
+that observed release result from unqualified behavior and strict checks.
+
+### Existing DXVK diagnostic target
 
 - **Original-data startup:** authenticated MPQ reads, all 60 ordered original
   GlueXML visits, mandatory post-creation digest verification and login activation.
@@ -64,10 +77,10 @@ stated scope.
 | Area | Current limitation |
 | --- | --- |
 | Normal native sign-in | **Disabled.** Native executable-integrity, detector and applicable Warden requirements are incomplete. Normal packages refuse credentials. [#98](https://github.com/RovxBot/wowdecomp/issues/98), [integrity contract](docs/m3/INTEGRITY.md) |
-| Character selection and world entry | Required original session/screen callers remain gated. Native realm selection, character enumeration, movement, combat and logout have not been established. [#99](https://github.com/RovxBot/wowdecomp/issues/99), [#100](https://github.com/RovxBot/wowdecomp/issues/100) |
+| Character selection and world entry | Operator-observed in the **full Linux TEST-SERVER application**; broader gameplay and strict coverage remain open in [#170](https://github.com/RovxBot/wowdecomp/issues/170)/[#100](https://github.com/RovxBot/wowdecomp/issues/100). The existing bounded DXVK target remains unqualified for these paths. |
 | Some UI controls | Agreement-scrollbar dragging and opening an Options category have recorded callback failures. The main Options menu working does not establish its subpages. [#130](https://github.com/RovxBot/wowdecomp/issues/130), [#158](https://github.com/RovxBot/wowdecomp/issues/158) |
 | Applied graphics settings | Saving a preference does not prove the renderer applied it. Gamma, terrain and other options still need implementation/validation. [#105](https://github.com/RovxBot/wowdecomp/issues/105) |
-| Native sound and movies | Playback is unavailable. [#103](https://github.com/RovxBot/wowdecomp/issues/103), [#104](https://github.com/RovxBot/wowdecomp/issues/104) |
+| Native sound and movies | Full-client implementations are included but playback/lifetime acceptance remains open. The existing DXVK diagnostic target has unavailable playback. [#103](https://github.com/RovxBot/wowdecomp/issues/103), [#104](https://github.com/RovxBot/wowdecomp/issues/104) |
 | Strict shutdown on the tested RADV driver | Engine shutdown completes, then LeakSanitizer reports a **128-byte driver leak** on RADV 26.2.5. This remains a failed strict hardware check, separate from passing hosted tests. [#147](https://github.com/RovxBot/wowdecomp/issues/147) |
 | External DNS shutdown | An active system DNS lookup can delay shutdown; bounded cancellation remains open. [#97](https://github.com/RovxBot/wowdecomp/issues/97) |
 
@@ -92,6 +105,13 @@ These are validation gaps, not claims that every case is broken:
   original macOS application, graphics, desktop input or gameplay.
 
 ## Getting builds and running diagnostics
+
+The separate [full Linux client target](Tools/LinuxClient/README.md) adapts the
+pinned RosemyneH client and produces one AppImage through
+[Full Linux x64 application — Actions](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
+Its integration and runtime qualification remain tracked in
+[#170](https://github.com/RovxBot/wowdecomp/issues/170). The instructions below
+describe the existing DXVK diagnostic/desktop target.
 
 **All client and dependency compilation runs in GitHub Actions.** No local compiler
 or source checkout is needed for the Linux desktop package. These are experimental

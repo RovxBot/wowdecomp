@@ -73,6 +73,14 @@ milestone; full native startup/login/gameplay remain unestablished.
 
 ### Implementation approach
 
+The user-approved separate full Linux client path adapts the pinned RosemyneH
+12340 source graph through [Tools/LinuxClient](Tools/LinuxClient/README.md),
+including its existing direct Vulkan backend. Preserve product Windows/macOS and
+the existing DXVK diagnostics separately; qualify the complete original client
+together under [#170](https://github.com/RovxBot/wowdecomp/issues/170). This is a
+cohesive Linux integration path, not permission to relax signatures, data safety,
+agreements or server/integrity policy. General renderer comparison remains #101.
+
 - Connect the original startup, CVar/settings, Event loop, resource Services,
   Frame/FrameXML/FrameScript and Glue callers through the existing native services
   and engine-facing interfaces. Select broader coherent source groups where
