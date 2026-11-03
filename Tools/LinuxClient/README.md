@@ -35,7 +35,7 @@ server prerequisites below:
 
 ```sh
 chmod +x WoW-Linux-x86_64-TEST-SERVER.AppImage
-./WoW-Linux-x86_64-TEST-SERVER.AppImage --test-server-login
+./WoW-Linux-x86_64-TEST-SERVER.AppImage
 ```
 
 `--data /path/to/WoW/Data` supports a separately located application. Launch is
@@ -50,8 +50,9 @@ are retained in the printed external log directory.
 
 Normal native sign-in remains unavailable until the existing executable-integrity,
 ScanDLL/detector and applicable Warden requirements are met (#98). The separate
-TEST-SERVER application accepts `--test-server-login` only when the operator's
-isolated server already has `StrictVersionCheck=0` and `Warden.Enabled=0`.
+TEST-SERVER application enables interactive sign-in by default; no extra flag is
+needed. Use it with an isolated server that already has `StrictVersionCheck=0`
+and `Warden.Enabled=0`. The old `--test-server-login` flag remains a compatibility alias.
 The client changes no server policy, claims no successful scan and disconnects
 on unsupported Warden/bot-check requests. Sign-in and original agreement decisions
 remain interactive. Reconnect and Battle.net authentication are unavailable.

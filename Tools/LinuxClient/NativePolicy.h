@@ -52,7 +52,7 @@ inline bool TestServerEnabled() {
 }
 inline constexpr const char* IntegrityUnavailable =
     "Native executable integrity, ScanDLL and Warden are unavailable. "
-    "Normal sign-in is disabled. Isolated TEST-SERVER testing requires a separate build and runtime opt-in.";
+    "Normal sign-in is disabled. Use the labelled TEST-SERVER application on a compatible isolated server.";
 
 inline bool ExplicitEndpoint(const char* value) {
     const char* expected = std::getenv("WOWDECOMP_ISOLATED_ENDPOINT");

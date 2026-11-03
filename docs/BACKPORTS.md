@@ -21,8 +21,9 @@ and source inspection are different evidence levels.
   FMOD Sound System / Firelight Technologies and bundled codec notices are retained.
 - Adaptations: external state and resolved write boundaries; truthful Linux/x64
   identity; mandatory original signatures and ordered post-creation Glue digest;
-  normal credential refusal; separately compiled/runtime-activated isolated
-  server profile; disconnect on unsupported Warden/bot requests; no reconnect or
+  normal credential refusal; separately compiled isolated-server application
+  enables interactive sign-in without an extra flag, per the user's instruction;
+  disconnect on unsupported Warden/bot requests; no reconnect or
   Battle.net login. Remove donor autologin/agreement automation and injected
   options/addon-panel Lua. Optional WASM runtime is disabled. Main-thread startup
   uses an adequate native stack instead of untracked ucontext stack switching.
