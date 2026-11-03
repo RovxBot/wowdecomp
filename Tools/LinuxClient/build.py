@@ -10,6 +10,7 @@ import tarfile
 
 from prepare import HERE, LOCK, digest, prepare
 from package import package
+from distribute import distribution
 
 
 def run(command):
@@ -41,8 +42,8 @@ def main():
          '-DWOWDECOMP_WASM_ADDONS=OFF', '-DWOWDECOMP_ISOLATED_SERVER_BUILD=' + ('ON' if args.test_server else 'OFF')])
     if args.strict:
         os.environ.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
-    run(['cmake', '--build', build, '--target', 'WowClient', 'RovNativePolicyCheck', 'RovNativeNearCheck', 'RovNativeAngleCheck', 'job_exit_repro', 'job_lifecycle_test', '-j', '3'])
-    run(['ctest', '--test-dir', build, '--output-on-failure', '-R', '^(rov_native_policy|rov_native_near_memory|rov_native_audio_angle|job_lifecycle_test|job_exit_shutdown)$'])
+    run(['cmake', '--build', build, '--target', 'WowClient', 'RovNativePolicyCheck', 'RovNativeNearCheck', 'RovNativeAngleCheck', 'RovNativeAttributesCheck', 'job_exit_repro', 'job_lifecycle_test', '-j', '3'])
+    run(['ctest', '--test-dir', build, '--output-on-failure', '-R', '^(rov_native_policy|rov_native_near_memory|rov_native_audio_angle|rov_native_packed_attributes|job_lifecycle_test|job_exit_shutdown)$'])
     metadata = dict(source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
                     upstream_commit=LOCK['commit'], test_server_login=args.test_server, strict=args.strict,
                     workflow_run='https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID'],
@@ -58,6 +59,9 @@ def main():
         archive.add(source, arcname='wowdecomp-full-linux', filter=source_only)
     application = package(source, source / 'bin/Linux/WowClient64', output, metadata)
     run(['python3', HERE / 'package_check.py', application])
+    if args.test_server and not args.strict:
+        archive = distribution(application)
+        run(['python3', HERE / 'package_check.py', application, '--archive', archive])
     print('application=' + str(application) + ' sha256=' + digest(application), flush=True)
 
 

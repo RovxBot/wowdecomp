@@ -73,8 +73,9 @@ def link(path, target):
 
 def seed_endpoint(data, settings):
     config = settings / 'WTF/Config.wtf'
-    if config.exists():
-        return  # Never change existing user CVars or agreement/account decisions.
+    existing = config.read_bytes() if config.exists() else b''
+    if re.search(rb'(?im)^\s*set\s+realmlist\s+', existing):
+        return
     locale = child(data, 'enUS')
     source = child(locale, 'realmlist.wtf')
     if source is None:
@@ -89,7 +90,88 @@ def seed_endpoint(data, settings):
     if endpoint is not None:
         if ':' in endpoint and not 1 <= int(endpoint.rsplit(':', 1)[1]) <= 65535:
             raise ValueError('Invalid realmlist port')
-        config.write_text('SET realmlist "' + endpoint + '"\nSET locale "enUS"\n')
+        with config.open('ab') as output:
+            output.write((b'\n' if existing and not existing.endswith(b'\n') else b'') +
+                         ('SET realmlist "' + endpoint + '"\n').encode())
+            if not re.search(rb'(?im)^\s*set\s+locale\s+', existing):
+                output.write(b'SET locale "enUS"\n')
+
+
+# Preferences are local user data. Never transfer login secrets, agreement or
+# scanner approval, or a Windows renderer selection into a native profile.
+EXCLUDED_CVARS = {b'accountname', b'accountlist', b'password', b'username',
+                  b'readeula', b'readtos', b'readtermination', b'readscanning',
+                  b'acceptedtos', b'scandllokaytologin', b'gxapi'}
+
+
+def preference_lines(contents):
+    result = []
+    for line in contents.splitlines(keepends=True):
+        match = re.match(rb'\s*SET\s+([A-Za-z0-9_]+)\s+', line, re.I)
+        if match and match[1].lower() not in EXCLUDED_CVARS:
+            result.append((match[1].lower(), line.rstrip(b'\r\n') + b'\n'))
+    return result
+
+
+def import_settings(data, settings):
+    """Snapshot original WTF once; all later saves belong to the native profile."""
+    marker = settings / 'wtf-import.json'
+    if marker.exists():
+        return False
+    original = child(data.parent, 'WTF')
+    copied = 0
+    if original is not None:
+        # Do not follow source links or accept case-colliding paths on Linux.
+        # Validate the complete snapshot before making any changes.
+        entries = []
+        def collect(directory, relative=Path()):
+            names = set()
+            for source in sorted(directory.iterdir()):
+                key = source.name.lower()
+                if key in names:
+                    raise ValueError('Ambiguous original WTF path: ' + str(directory))
+                names.add(key)
+                if source.is_symlink():
+                    raise ValueError('Original WTF symlinks cannot be imported: ' + str(source))
+                name = 'Config.wtf' if not relative.parts and key == 'config.wtf' else source.name
+                if not relative.parts and key == 'account':
+                    name = 'Account'
+                target = relative / name
+                if source.is_dir():
+                    collect(source, target)
+                elif source.is_file() and (target == Path('Config.wtf') or
+                        (target.parts[0] == 'Account' and key.endswith(('.wtf', '.lua', '.lua.bak', '.txt')))):
+                    if source.stat().st_size > 64 * 1024 * 1024:
+                        raise ValueError('Original WTF file exceeds 64 MiB: ' + str(source))
+                    entries.append((source, settings / 'WTF' / target))
+        if original.is_symlink() or not original.is_dir():
+            raise ValueError('Original WTF must be a directory without symlinks')
+        collect(original)
+        for source, target in entries:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target == settings / 'WTF/Config.wtf':
+                imported = preference_lines(source.read_bytes().removeprefix(b'\xef\xbb\xbf'))
+                current = target.read_bytes() if target.exists() else b''
+                keys = {key for key, line in imported}
+                # Preserve native agreement decisions and other native-only CVars.
+                retained = [line for line in current.splitlines(keepends=True)
+                            if not (match := re.match(rb'\s*SET\s+([A-Za-z0-9_]+)\s+', line, re.I))
+                            or match[1].lower() not in keys]
+                backup = target.with_name('Config.before-import.wtf')
+                if current and not backup.exists():
+                    backup.write_bytes(current)
+                target.write_bytes(b''.join(retained) + b'\n' + b''.join(line for key, line in imported))
+                copied += 1
+            elif not target.exists():
+                contents = source.read_bytes()
+                if source.suffix.lower() == '.wtf':
+                    contents = b''.join(line for line in contents.splitlines(keepends=True)
+                                        if not (match := re.match(rb'\s*SET\s+([A-Za-z0-9_]+)\s+', line, re.I))
+                                        or match[1].lower() not in EXCLUDED_CVARS)
+                target.write_bytes(contents)
+                copied += 1
+    marker.write_text(json.dumps(dict(version=1, files_copied=copied)) + '\n')
+    return True
 
 
 def configured_endpoint(settings):
@@ -133,7 +215,8 @@ def prepare_state(data, settings, cache, logs):
         addons = child(interface, 'AddOns')
         if addons is not None:
             link(settings / 'Interface/AddOns', addons)
-    seed_endpoint(data, settings)
+    if import_settings(data, settings) or not (settings / 'WTF/Config.wtf').exists():
+        seed_endpoint(data, settings)
 
 
 def verify(package):

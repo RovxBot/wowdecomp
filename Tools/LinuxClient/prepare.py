@@ -93,6 +93,9 @@ def prepare(destination, archive):
     edit('WoW/Source/Glue/CGlueMgr.cpp', glue)
 
     def client(text):
+        for value in ['locale', 'record']:
+            text = replace(text, '*reinterpret_cast<const uint32_t*>(' + value + ')',
+                           'RovNative::PackedAttribute<uint32_t>(reinterpret_cast<const uint8_t*>(' + value + '))')
         text = function(text, 'void SetPaths()', '''    SFile::DisableSFileCheckDisk();
     SFile::EnableDirectAccess(0);
     const char* state = std::getenv("WOWDECOMP_SETTINGS");
@@ -129,7 +132,7 @@ def prepare(destination, archive):
         text = replace(text,
                        '    qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);',
                        '    if (count > 1) qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);')
-        return header + text
+        return '#include "RovPackedAttributes.h"\n' + header + text
     edit('WoW/Source/Client.cpp', client)
 
     def grunt(text):
@@ -343,10 +346,26 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     edit('Engine/Source/ConsoleBase/ConsoleVar.cpp', lambda t: header + replace(t,
          '    CVar::m_initialized = false;\n    CVar::SaveAll();',
          '    CVar::m_initialized = false;\n    if (!RovNative::failedStartupCleanup) CVar::SaveAll();'))
+    def packed_attributes(text):
+        text = replace(text, 'size > (count << 9) + 8', 'uint64_t(size) > uint64_t(count) * 512 + 8')
+        text = replace(text, '    const uint32_t* header = reinterpret_cast<const uint32_t*>(data.m_data);\n    uint32_t flags = header[1];',
+                       '    uint32_t flags = RovNative::PackedAttribute<uint32_t>(data.m_data + 4);')
+        start = text.index('    uint32_t remaining = size - 8;', text.index('bool System_SFile::ARCHIVEREC::ReadAdditionalAttributes()'))
+        end = text.index('    if (flags & 1) {\n        for', start)
+        text = text[:start] + '''    const uint8_t* p = data.m_data + 8;
+    if (!RovNative::ValidAttributeSize(count, size, flags)) return false;
+
+''' + text[end:]
+        for value in ['uint32_t', 'uint64_t', 'Blizzard::Util::Digest<16>']:
+            text = replace(text, '*reinterpret_cast<const ' + value + '*>(p)', 'RovNative::PackedAttribute<' + value + '>(p)')
+        return '#include "RovPackedAttributes.h"\n' + text
+    edit('Engine/Source/BlizzardCore/Source/Packages/Mopaq/SFileArchives.cpp', packed_attributes)
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
     shutil.copy2(HERE / 'angle_check.cpp', root / 'RovNativeAngleCheck.cpp')
+    shutil.copy2(HERE / 'PackedAttributes.h', root / 'RovPackedAttributes.h')
+    shutil.copy2(HERE / 'attributes_check.cpp', root / 'RovNativeAttributesCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -366,6 +385,10 @@ add_executable(RovNativeAngleCheck RovNativeAngleCheck.cpp)
 target_link_libraries(RovNativeAngleCheck PRIVATE fmodex)
 add_test(NAME rov_native_audio_angle COMMAND RovNativeAngleCheck)
 set_tests_properties(rov_native_audio_angle PROPERTIES TIMEOUT 45)
+add_executable(RovNativeAttributesCheck RovNativeAttributesCheck.cpp)
+target_include_directories(RovNativeAttributesCheck PRIVATE ${CMAKE_SOURCE_DIR})
+add_test(NAME rov_native_packed_attributes COMMAND RovNativeAttributesCheck)
+set_tests_properties(rov_native_packed_attributes PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -374,7 +397,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
