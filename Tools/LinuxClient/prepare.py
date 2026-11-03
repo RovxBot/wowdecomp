@@ -117,6 +117,9 @@ def prepare(destination, archive):
                 Job::Shutdown();
                 StormExit(startupError ? startupError : 1);''')
         text = '#include "Engine/Source/Base/Job/JobSystem.h"\n' + text
+        text = replace(text,
+                       '    qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);',
+                       '    if (count > 1) qsort(this->m_files.Ptr(), count, sizeof(char*), ForEveryRunOnceWTF::FileNameCompare);')
         return header + text
     edit('WoW/Source/Client.cpp', client)
 
@@ -286,7 +289,12 @@ void operator delete(void* ptr, size_t) noexcept { ::operator delete(ptr); }
 void operator delete[](void* ptr, size_t) noexcept { ::operator delete[](ptr); }
 void* operator new(size_t bytes, std::align_val_t alignment) {
     void* ptr = nullptr;
-    if (posix_memalign(&ptr, static_cast<size_t>(alignment), bytes ? bytes : 1)) throw std::bad_alloc();
+    const size_t requested = static_cast<size_t>(alignment);
+    if (!requested || (requested & (requested - 1))) throw std::bad_alloc();
+    // Explicit aligned-new callers (including LLVM) may request alignment 1,
+    // 2 or 4. POSIX requires at least sizeof(void*); greater alignment is valid.
+    const size_t nativeAlignment = requested < sizeof(void*) ? sizeof(void*) : requested;
+    if (posix_memalign(&ptr, nativeAlignment, bytes ? bytes : 1)) throw std::bad_alloc();
     return ptr;
 }
 void* operator new[](size_t bytes, std::align_val_t alignment) { return ::operator new(bytes, alignment); }

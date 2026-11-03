@@ -33,6 +33,8 @@ and source inspection are different evidence levels.
   scalar/array/sized/aligned/nothrow allocation pairs through the existing SMem
   ownership boundary; retain the product's native CStringMemory pointer alignment.
   Retire the idle job pool on the observed main-thread missing-archive exit.
+  Preserve valid small aligned-new requests when adapting POSIX allocation, and
+  avoid sorting a null empty RunOnce list during first startup.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,

@@ -32,6 +32,14 @@ inline void CheckAllocationRoutes() {
     allocationWitness = array;
     ::operator delete[](array, std::align_val_t(64), std::nothrow);
     allocationWitness = nullptr;
+    for (size_t alignment : {size_t(1), size_t(2), size_t(4), size_t(8), size_t(16), size_t(64)}) {
+        void* pointer = ::operator new(67, std::align_val_t(alignment), std::nothrow);
+        if (!pointer || reinterpret_cast<uintptr_t>(pointer) % alignment) std::abort();
+        allocationWitness = pointer;
+        static_cast<volatile unsigned char*>(pointer)[66] = 4;
+        ::operator delete(pointer, size_t(67), std::align_val_t(alignment));
+    }
+    allocationWitness = nullptr;
 }
 inline bool TestServerEnabled() {
 #if WOWDECOMP_ISOLATED_SERVER_BUILD
