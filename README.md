@@ -34,7 +34,7 @@ stated scope.
 
 | Platform | Demonstrated progress | Available testing |
 | --- | --- | --- |
-| **Linux x86-64** | Full direct-Vulkan client: operator-observed original UI, character selection and gameplay on the isolated server. Existing D3D9/DXVK target: signed login rendering and component diagnostics. | [Full-client AppImage](Tools/LinuxClient/README.md), with explicit TEST-SERVER activation; older DXVK packages below. Broader play/input/audio/strict acceptance remains open. |
+| **Linux x86-64** | Full direct-Vulkan client: operator-observed original UI, character selection and gameplay on the isolated server. Existing D3D9/DXVK target: signed login rendering and component diagnostics. | [Full-client AppImage](Tools/LinuxClient/README.md): the labelled TEST-SERVER application enables interactive sign-in by default. Older DXVK packages are below. Broader play/input/audio/strict acceptance remains open. |
 | **macOS ARM64 / Apple silicon** | Actual ARM64 execution of core, file/asset, packet, networking, Lua, XML and layout component tests in Actions | Component artifacts. An integrated native game application and renderer are still pending [#102](https://github.com/RovxBot/wowdecomp/issues/102). |
 | **Windows x64** | Full client compilation in Actions; operator-reported D3D9 runtime passes | Reference client. Reproducible scene captures and a complete recorded runtime baseline remain open in [#107](https://github.com/RovxBot/wowdecomp/issues/107). |
 
@@ -110,7 +110,8 @@ The separate [full Linux client target](Tools/LinuxClient/README.md) adapts the
 pinned RosemyneH client and produces one AppImage through
 [Full Linux x64 application — Actions](https://github.com/RovxBot/wowdecomp/actions/workflows/linux-x64.yml).
 Its integration and runtime qualification remain tracked in
-[#170](https://github.com/RovxBot/wowdecomp/issues/170). The instructions below
+[#170](https://github.com/RovxBot/wowdecomp/issues/170). The labelled TEST-SERVER
+AppImage enables interactive sign-in without an extra flag. The instructions below
 describe the existing DXVK diagnostic/desktop target.
 
 **All client and dependency compilation runs in GitHub Actions.** No local compiler
@@ -241,12 +242,13 @@ physical input, authentication or gameplay.
 
 More configuration: [Linux launcher and DXVK guide](docs/m3/DXVK_NATIVE.md#linux-desktop-package).
 
-## Optional isolated test-server authentication
+## Existing DXVK diagnostic test-server profile
 
-The separately compiled **TEST-SERVER** Linux profile connects the original login
-action to Grunt/SRP and realm-list parsing. Controlled tests pass; interactive
-server authentication is still unobserved. **Success stops at verified SRP
-and a reported realm count. It does not open character selection or enter the world.**
+This section describes the older D3D9/DXVK diagnostic profile. For the complete
+Linux application with character selection/gameplay and sign-in enabled by
+default in its labelled TEST-SERVER build, use the [full-client instructions](Tools/LinuxClient/README.md).
+The diagnostic profile below connects original Grunt/SRP and realm-list parsing;
+its observed result stops at authentication and realms, before character selection.
 
 Use your own isolated 12340 test server, or one whose operator has explicitly
 authorized your testing. The endpoint must already have

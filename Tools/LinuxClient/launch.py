@@ -188,7 +188,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--data', type=Path)
     parser.add_argument('--check', action='store_true', help='Verify the application and print paths without starting the client')
-    parser.add_argument('--test-server-login', action='store_true', help='Explicit isolated-server test activation; server must already allow native integrity-unavailable sessions')
+    parser.add_argument('--test-server-login', action='store_true', help='Compatibility alias; the labelled TEST-SERVER application already enables interactive sign-in')
     args = parser.parse_args()
     os.umask(0o077)
     try:
@@ -202,9 +202,10 @@ def main():
         validate(data, package, [settings, cache, logs])
         if args.test_server_login and not metadata['test_server_login']:
             raise ValueError('This is a normal build; use the separately labelled TEST-SERVER application')
+        login_enabled = bool(metadata['test_server_login'])
         plan = dict(source_commit=metadata['source_commit'], upstream_commit=metadata['upstream_commit'],
                     data=str(data), settings=str(settings), cache=str(cache), logs=str(logs),
-                    test_server_login=args.test_server_login, strict=metadata['strict'])
+                    test_server_login=login_enabled, strict=metadata['strict'])
         if args.check:
             print(json.dumps(plan, indent=2))
             return 0
@@ -219,7 +220,7 @@ def main():
                            WOWDECOMP_CACHE=str(cache), WOWDECOMP_LOGS=str(logs), XDG_CONFIG_HOME=str(settings),
                            XDG_CACHE_HOME=str(cache), XDG_STATE_HOME=str(logs),
                            MESA_SHADER_CACHE_DIR=str(cache / 'mesa'))
-        if args.test_server_login:
+        if login_enabled:
             environment['WOWDECOMP_ISOLATED_SERVER_LOGIN'] = '1'
             environment['WOWDECOMP_ISOLATED_ENDPOINT'] = configured_endpoint(settings)
             print('TEST-SERVER: executable integrity, ScanDLL and Warden are unavailable. '

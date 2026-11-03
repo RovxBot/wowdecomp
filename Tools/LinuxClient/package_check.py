@@ -26,10 +26,10 @@ def main():
         result = subprocess.run([str(application), '--data', str(game / 'Data'), '--check'],
                                 cwd=root, env=environment, check=True, text=True, capture_output=True)
         plan = json.loads(result.stdout)
-        assert plan['data'] == str(game / 'Data') and not plan['test_server_login']
+        metadata = json.loads((application.parent / 'manifest.json').read_text())
+        assert plan['data'] == str(game / 'Data') and plan['test_server_login'] == metadata['test_server_login']
         assert not (root / 'config').exists(), '--check wrote settings'
         assert not (game / 'WTF').exists()
-        metadata = json.loads((application.parent / 'manifest.json').read_text())
         # Query the actual login/Glue translation units. A fixture compiled in
         # the CMake root cannot prove definitions reached child directories.
         app_dir = application.parent / 'AppDir'
@@ -59,8 +59,10 @@ def main():
         reports = list((root / 'state').rglob('session.json'))
         assert len(reports) == 1, failed.stdout + failed.stderr
         report = json.loads(reports[0].read_text())
-        assert report['exit_code'] > 0 and not report['test_server_login'], report
+        assert report['exit_code'] > 0 and report['test_server_login'] == metadata['test_server_login'], report
         log = (reports[0].parent / 'client.log').read_text()
+        enabled = int(metadata['test_server_login'])
+        assert f'native-login-profile login_build={enabled} glue_build={enabled} login_active={enabled} glue_active={enabled}' in log, log
         assert 'symbol lookup error' not in log, log
         assert 'runtime error:' not in log and 'Sanitizer' not in log, log
         assert 'Failed to open archive ' in log, log
@@ -69,7 +71,7 @@ def main():
         assert not (game / 'WTF').exists() and not (game / 'Cache').exists() and not (game / 'Logs').exists()
         print('full-linux-missing-data-stop=' + str(report['exit_code']) + '\n' + log[-1800:])
         assert hashlib.sha256(application.read_bytes()).hexdigest() in (application.parent / (application.name + '.sha256')).read_text()
-        print('full-linux-application=passed: actual AppImage extraction/execution, paths, no check writes, explicit test profile, hash')
+        print('full-linux-application=passed: actual AppImage execution, paths, no check writes, labelled test profile defaults, real login modules, hash')
 
 
 if __name__ == '__main__':

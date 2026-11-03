@@ -156,6 +156,12 @@ those reports retain their original evidence and implementation identities.
 
 ## Build, data and server policy
 
+- The labelled full Linux **TEST-SERVER AppImage enables interactive sign-in by
+  default**, per the user's instruction. Do not restore an extra runtime opt-in
+  or blanket login block in that application. Retain original agreements,
+  signatures, server-proof checks and disconnects on unsupported Warden/bot
+  requests. Server policy stays unchanged; the normal build's integrity refusal
+  remains separate.
 - All client and dependency compilation, including experiments, runs in GitHub
   Actions. Source inspection, documentation checks, source-audit Python tests and
   execution of downloaded, hash-verified binaries may run locally.

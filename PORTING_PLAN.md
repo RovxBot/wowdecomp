@@ -68,8 +68,9 @@ in the complete original login UI, followed by native authentication, character
 selection and world entry. The earlier component work remains useful, but its
 widget-by-widget qualification sequence is no longer the default work queue.
 This direction supersedes historical next-caller ordering in old module
-handoffs. It changes planning, not the recorded completion or evidence of any
-milestone; full native startup/login/gameplay remain unestablished.
+handoffs. The separate full Linux TEST-SERVER release now has operator-observed
+startup, login, character selection and gameplay (#170). Production integrity,
+strict original-data execution (#172) and macOS acceptance remain separate.
 
 ### Implementation approach
 
@@ -80,6 +81,8 @@ the existing DXVK diagnostics separately; qualify the complete original client
 together under [#170](https://github.com/RovxBot/wowdecomp/issues/170). This is a
 cohesive Linux integration path, not permission to relax signatures, data safety,
 agreements or server/integrity policy. General renderer comparison remains #101.
+The labelled TEST-SERVER application enables interactive sign-in by default;
+the user does not need a second runtime activation flag.
 
 - Connect the original startup, CVar/settings, Event loop, resource Services,
   Frame/FrameXML/FrameScript and Glue callers through the existing native services

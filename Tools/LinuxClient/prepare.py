@@ -217,6 +217,8 @@ def prepare(destination, archive):
         limit.rlim_cur = minimum;
         if (setrlimit(RLIMIT_STACK, &limit)) return 1;
     }
+    std::fprintf(stderr, "native-login-profile login_build=%d glue_build=%d login_active=%d glue_active=%d\\n",
+        RovNativeLoginProfile(0), RovNativeGlueProfile(0), RovNativeLoginProfile(1), RovNativeGlueProfile(1));
     StormRtlInitialize();
     return ClientMain();''')
         text = replace(text, 'int main(int argc, char** argv) {', '''int main(int argc, char** argv) {
