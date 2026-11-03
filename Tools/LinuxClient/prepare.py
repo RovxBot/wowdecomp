@@ -119,6 +119,9 @@ def prepare(destination, archive):
                 CVar::Destroy();
                 ConsoleCommandDestroy();
                 SCmdDestroy();
+                // Only the published prefix (including this null failed slot)
+                // is initialized; the reserved tail is not an archive owner.
+                s_archiveHandles.SetCount(slot + 1);
                 CloseAllArchives();
                 CStringManager::DestroyManager();
                 StormExit(startupError ? startupError : 1);''')
