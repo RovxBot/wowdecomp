@@ -313,6 +313,12 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
 '''
         return text
     edit('Engine/Source/Storm/Source/SMem.cpp', allocation_routes)
+    # Reuse the product's native CStringMemory correction. Donor entries still
+    # round to four bytes, leaving their native pointer-chain links misaligned.
+    # The actual CVar/missing-data startup check exercises these pooled strings.
+    edit('Engine/Source/Base/RCString.cpp', lambda t: replace(t,
+         '    uint32_t bytes = (SStrLen(str) + sizeof(char*) + 4) & ~3;',
+         '    size_t bytes = (SStrLen(str) + sizeof(char*) + alignof(char*)) & ~(alignof(char*) - 1);'))
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')

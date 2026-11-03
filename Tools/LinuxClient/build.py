@@ -51,13 +51,14 @@ def main():
                     build_os=subprocess.check_output(['lsb_release', '-ds'], text=True).strip())
     shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     shutil.copy2(build / 'CMakeCache.txt', output / 'CMakeCache.txt')
+    # Retain exact adapted inputs even if executable/package qualification fails.
+    with tarfile.open(output / 'adapted-source.tar.gz', 'w:gz') as archive:
+        def source_only(info):
+            return None if info.name.startswith('wowdecomp-full-linux/bin/') else info
+        archive.add(source, arcname='wowdecomp-full-linux', filter=source_only)
     application = package(source, source / 'bin/Linux/WowClient64', output, metadata)
     run(['python3', HERE / 'package_check.py', application])
     print('application=' + str(application) + ' sha256=' + digest(application), flush=True)
-    # The retained source is the actual adapted build input, excluding outputs.
-    shutil.rmtree(source / 'bin', ignore_errors=True)
-    with tarfile.open(output / 'adapted-source.tar.gz', 'w:gz') as archive:
-        archive.add(source, arcname='wowdecomp-full-linux')
 
 
 if __name__ == '__main__':

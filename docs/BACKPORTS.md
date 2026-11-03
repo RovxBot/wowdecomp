@@ -4,7 +4,7 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
-## NP-027 — Separate complete Linux client integration
+## NP-030 — Separate complete Linux client integration
 
 - Source: RosemyneH/wowdecomp at
   `cb54f58119b88c8a3cfda6ad8d64e747dc65df7d` (12340), explicitly selected by the
@@ -31,7 +31,9 @@ and source inspection are different evidence levels.
   empty-base destruction; preserve FMOD speaker-angle behavior with wide signed
   arithmetic instead of shifting negative values; complete standard C++17
   scalar/array/sized/aligned/nothrow allocation pairs through the existing SMem
-  ownership boundary. Do not suppress vptr, shift or allocation-family detectors.
+  ownership boundary; retain the product's native CStringMemory pointer alignment.
+  Retire the idle job pool on the observed main-thread missing-archive exit.
+  Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
   server-policy changes or OpenGL development.

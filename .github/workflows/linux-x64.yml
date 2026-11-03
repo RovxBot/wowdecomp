@@ -56,6 +56,14 @@ jobs:
           path: artifacts/full-linux/${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}/WoW-*.AppImage*
           if-no-files-found: error
           retention-days: 14
+      - name: Retain failed application for diagnosis only
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: linux-x64-diagnostic-${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}-${{ github.sha }}
+          path: artifacts/full-linux/${{ matrix.profile }}-${{ matrix.strict && 'strict' || 'release' }}/WoW-*.AppImage*
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Stage build log including failures
         if: always()
         run: |
