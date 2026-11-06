@@ -99,6 +99,11 @@ not override the user's scope or standing compatibility, build and data-safety r
   only when its acceptance criteria are evidenced. A merged PR or passing build
   alone does not close runtime/input/gameplay requirements; avoid auto-closing
   references when the PR leaves required validation outstanding.
+- Link every implementation PR to its issue. After CI and required acceptance
+  pass, review and merge when authorized; do not leave completed PRs open
+  unnecessarily. Close completed issues with a short evidence comment, keeping
+  parent issues open until their full acceptance criteria pass. If permissions
+  or required review block merging, report the blocker and leave the PR open.
 
 ### Keep repository documentation durable and concise
 
