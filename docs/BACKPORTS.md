@@ -42,6 +42,10 @@ and source inspection are different evidence levels.
   wide count arithmetic; strict original-data qualification remains in #172.
   Signature-file locale/record tags also use aligned copies after original
   signature authentication, retaining their original four-byte comparisons.
+  FreeType's reached big-endian `NEXT_Long` scales the signed high byte by
+  multiplication, reusing the product native stream correction while preserving
+  the other bytes and unsigned wrapper casts; focused stream coverage and
+  original-data acceptance are tracked in [#177](https://github.com/RovxBot/wowdecomp/issues/177).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,

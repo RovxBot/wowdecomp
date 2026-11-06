@@ -360,12 +360,19 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
             text = replace(text, '*reinterpret_cast<const ' + value + '*>(p)', 'RovNative::PackedAttribute<' + value + '>(p)')
         return '#include "RovPackedAttributes.h"\n' + text
     edit('Engine/Source/BlizzardCore/Source/Packages/Mopaq/SFileArchives.cpp', packed_attributes)
+    # Reuse the product native ftstream.h correction for the reached BE long
+    # decoder (#177): signed high-byte scaling fits FT_Long even at -128.
+    # Preserve the other bytes, pointer advance and existing unsigned casts.
+    edit('ThirdParty/freetype/include/freetype/internal/ftstream.h', lambda t: replace(t,
+         '( (long)(signed   char)buffer[-4] << 24 )',
+         '( (long)(signed   char)buffer[-4] * 0x1000000L )'))
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
     shutil.copy2(HERE / 'angle_check.cpp', root / 'RovNativeAngleCheck.cpp')
     shutil.copy2(HERE / 'PackedAttributes.h', root / 'RovPackedAttributes.h')
     shutil.copy2(HERE / 'attributes_check.cpp', root / 'RovNativeAttributesCheck.cpp')
+    shutil.copy2(HERE / 'freetype_stream_check.cpp', root / 'RovNativeFreeTypeStreamCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -389,6 +396,10 @@ add_executable(RovNativeAttributesCheck RovNativeAttributesCheck.cpp)
 target_include_directories(RovNativeAttributesCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_native_packed_attributes COMMAND RovNativeAttributesCheck)
 set_tests_properties(rov_native_packed_attributes PROPERTIES TIMEOUT 45)
+add_executable(RovNativeFreeTypeStreamCheck RovNativeFreeTypeStreamCheck.cpp)
+target_link_libraries(RovNativeFreeTypeStreamCheck PRIVATE freetype)
+add_test(NAME rov_native_freetype_stream COMMAND RovNativeFreeTypeStreamCheck)
+set_tests_properties(rov_native_freetype_stream PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -397,7 +408,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
