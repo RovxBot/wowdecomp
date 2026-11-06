@@ -4,6 +4,8 @@
 #include "Engine/Source/lua-5.1/src/lfunc.h"
 #include "Engine/Source/lua-5.1/src/lgc.h"
 #include "Engine/Source/lua-5.1/src/lstate.h"
+#include "Engine/Source/Os/TimeManager.h"
+#include "Engine/Source/Storm/H/storm.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -60,6 +62,8 @@ static bool rooted(lua_State* L, UpVal* uv) {
 }
 
 int main() {
+    StormRtlInitialize();
+    OsTimeManagerCreate(OsTimeManager::BestAvailable); // Required by profiling VM.
     for (int profile : {0, 1}) {
         Allocations counts;
         lua_State* L = lua_newstate(allocate, &counts, profile);
@@ -143,5 +147,6 @@ int main() {
         lua_close(L);
         require(counts.live == 0);
     }
+    OsTimeManagerDestroy();
     std::puts("lua-upvalue=passed: empty/tail boundaries, ordering/reuse, resurrection, taint, close, closures/GC/shutdown");
 }
