@@ -49,6 +49,8 @@ and source inspection are different evidence levels.
   The paired big/little-endian short decoders use the same bounded signed-byte
   multiplication; [#180](https://github.com/RovxBot/wowdecomp/issues/180) tracks
   their stream and actual `FT_Read_Fields` coverage and original-data acceptance.
+  M2 cache seeding casts the first `rand()` result to uint32_t before shifting,
+  preserving both draws and random bits; boundary/startup acceptance is [#182](https://github.com/RovxBot/wowdecomp/issues/182).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
