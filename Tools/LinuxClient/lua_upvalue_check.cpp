@@ -4,15 +4,18 @@
 #include "Engine/Source/lua-5.1/src/lfunc.h"
 #include "Engine/Source/lua-5.1/src/lgc.h"
 #include "Engine/Source/lua-5.1/src/lstate.h"
-#include "Engine/Source/lua-5.1/src/lstring.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <initializer_list>
 
-static void require(bool condition) {
-    if (!condition) std::abort(); // Active in release/NDEBUG, too.
+static void check(bool condition, int line) {
+    if (!condition) {
+        std::fprintf(stderr, "Lua upvalue check failed at line %d\n", line);
+        std::abort(); // Active in release/NDEBUG, too.
+    }
 }
+#define require(condition) check((condition), __LINE__)
 
 struct Allocations { size_t live = 0, calls = 0, frees = 0; };
 static void* allocate(void* context, void* pointer, size_t, size_t size) {
@@ -90,7 +93,7 @@ int main() {
         require(!isdead(G(L), obj2gco(middle)) && counts.calls == calls);
         lists(L, {high, between, middle, low});
 
-        TString* tag = luaS_newliteral(L, "authored-upvalue-tag");
+        static const char tag[] = "authored-upvalue-tag";
         lua_tainted = tag;
         lua_gctag = tag;
         UpVal* tagged = luaF_findupval(L, base + 4);
