@@ -374,6 +374,11 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
                            f'( (signed   char)buffer[{high_byte}] * 0x100 )')
         return text
     edit('ThirdParty/freetype/include/freetype/internal/ftstream.h', freetype_stream)
+    # #184: check the null list terminator before forming &o->uv. Reuse the
+    # product native correction; keep find/close ordering and GC logic intact.
+    edit('Engine/Source/lua-5.1/src/lstate.h', lambda t: replace(t,
+         '#define ngcotouv(o) \\\n\tcheck_exp((o) == NULL || (o)->gch.tt == LUA_TUPVAL, &((o)->uv))',
+         '#define ngcotouv(o) ((o) == NULL ? NULL : gco2uv(o))'))
     # #182: cast before shifting, as in the product native path. Keep both
     # rand() calls, low-word truncation and the random-table initialization.
     edit('Engine/Source/Model2/M2Cache.cpp', lambda t: replace(t,
@@ -394,6 +399,7 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     shutil.copy2(HERE / 'attributes_check.cpp', root / 'RovNativeAttributesCheck.cpp')
     shutil.copy2(HERE / 'freetype_stream_check.cpp', root / 'RovNativeFreeTypeStreamCheck.cpp')
     shutil.copy2(HERE / 'm2_cache_seed_check.cpp', root / 'RovNativeM2CacheSeedCheck.cpp')
+    shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -424,6 +430,10 @@ set_tests_properties(rov_native_freetype_stream PROPERTIES TIMEOUT 45)
 add_executable(RovNativeM2CacheSeedCheck RovNativeM2CacheSeedCheck.cpp)
 add_test(NAME rov_native_m2_cache_seed COMMAND RovNativeM2CacheSeedCheck)
 set_tests_properties(rov_native_m2_cache_seed PROPERTIES TIMEOUT 45)
+add_executable(RovNativeLuaUpvalueCheck RovNativeLuaUpvalueCheck.cpp)
+target_link_libraries(RovNativeLuaUpvalueCheck PRIVATE "$<LINK_GROUP:RESCAN,lua,Base,Storm,Os,BlizzardCore>")
+add_test(NAME rov_native_lua_upvalue COMMAND RovNativeLuaUpvalueCheck)
+set_tests_properties(rov_native_lua_upvalue PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -432,7 +442,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
