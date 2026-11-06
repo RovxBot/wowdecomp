@@ -51,6 +51,9 @@ and source inspection are different evidence levels.
   their stream and actual `FT_Read_Fields` coverage and original-data acceptance.
   M2 cache seeding casts the first `rand()` result to uint32_t before shifting,
   preserving both draws and random bits; boundary/startup acceptance is [#182](https://github.com/RovxBot/wowdecomp/issues/182).
+  Lua's nullable upvalue conversion checks the list terminator before forming
+  a union-member address, reusing the product native correction without changing
+  lookup/close/GC logic; acceptance is [#184](https://github.com/RovxBot/wowdecomp/issues/184).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
