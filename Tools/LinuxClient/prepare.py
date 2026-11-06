@@ -363,9 +363,17 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     # Reuse the product native ftstream.h correction for the reached BE long
     # decoder (#177): signed high-byte scaling fits FT_Long even at -128.
     # Preserve the other bytes, pointer advance and existing unsigned casts.
-    edit('ThirdParty/freetype/include/freetype/internal/ftstream.h', lambda t: replace(t,
-         '( (long)(signed   char)buffer[-4] << 24 )',
-         '( (long)(signed   char)buffer[-4] * 0x1000000L )'))
+    def freetype_stream(text):
+        text = replace(text, '( (long)(signed   char)buffer[-4] << 24 )',
+                       '( (long)(signed   char)buffer[-4] * 0x1000000L )')
+        # #180: the same native correction for both short byte orders. The
+        # signed high byte times 256 fits int/short even at -128; retain the
+        # short cast, low byte, unsigned wrappers and two-byte cursor advance.
+        for high_byte in [-2, -1]:
+            text = replace(text, f'( (signed   char)buffer[{high_byte}] << 8 )',
+                           f'( (signed   char)buffer[{high_byte}] * 0x100 )')
+        return text
+    edit('ThirdParty/freetype/include/freetype/internal/ftstream.h', freetype_stream)
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
