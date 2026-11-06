@@ -48,7 +48,7 @@ int main() {
             const FT_ULong unsignedValue = static_cast<FT_ULong>(vector.value);
             require(NEXT_ULong(p) == unsignedValue && p == begin + 4, "NEXT_ULong value/advance");
 
-            FT_StreamRec record = {};
+            struct FT_StreamRec_ record = {};
             FT_Stream stream = &record; // GET_* macros use this name.
             record.cursor = begin;
             record.limit = begin + 4;
