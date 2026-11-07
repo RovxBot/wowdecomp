@@ -54,6 +54,10 @@ and source inspection are different evidence levels.
   Lua's nullable upvalue conversion checks the list terminator before forming
   a union-member address, reusing the product native correction without changing
   lookup/close/GC logic; acceptance is [#184](https://github.com/RovxBot/wowdecomp/issues/184).
+  The FMOD factory constructs the concrete ALSA callback owner in its zeroed
+  pool allocation and ends that lifetime on virtual release, including pre-init
+  output replacement; the original mixer/ALSA callbacks and shutdown order stay
+  intact. Type/callback/failure/teardown acceptance is [#186](https://github.com/RovxBot/wowdecomp/issues/186).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
