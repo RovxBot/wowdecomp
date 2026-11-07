@@ -67,6 +67,9 @@ and source inspection are different evidence levels.
 - Merged character submissions invalidate the ordinary batch cache so subsequent
   model draws restore their own index and vertex bindings; compact mesh offsets
   remain local to that mesh. Reproducer and qualification: [#192](https://github.com/RovxBot/wowdecomp/issues/192).
+- Offscreen depth layout transitions include stencil for combined depth/stencil
+  formats, retaining depth-only views and depth-only format transitions. Layouts,
+  render passes and resource owners are unchanged; qualification: [#191](https://github.com/RovxBot/wowdecomp/issues/191).
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
   server-policy changes or OpenGL development.

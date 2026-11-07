@@ -34,6 +34,18 @@ def audit(root):
     image_end = vk.index('VkStaging VkContext::Stage(', image_begin)
     assert (root / 'RovNativeVulkanMemorySelect.inc').read_text() == vk[begin:end] + vk[image_begin:image_end]
     assert 'add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)' in cmake
+    framebuffer = (root / 'RovNativeVulkanFramebuffer.inc').read_text()
+    device = (root / 'Engine/Source/Gx/CGxDeviceVulkan/CGxDeviceVulkan.cpp').read_text()
+    for source, signature in [(device, 'VkFramebuffer CGxDeviceVulkan::ITexFramebuffer('),
+                              (vk, 'void VkContext::Barrier(')]:
+        start = source.index(signature)
+        opening = source.index('{', start)
+        depth, end = 1, opening + 1
+        while depth:
+            depth += (source[end] == '{') - (source[end] == '}')
+            end += 1
+        assert source[start:end] in framebuffer
+    assert 'add_test(NAME rov_native_vulkan_framebuffer COMMAND RovNativeVulkanFramebufferCheck)' in cmake
     scene = (root / 'Engine/Source/Model2/CM2SceneRender.cpp').read_text()
     batch = (root / 'RovNativeM2Batch.inc').read_text()
     for signature in ['void CM2SceneRender::SetBatchVertices(', 'void CM2SceneRender::DrawBatch()',

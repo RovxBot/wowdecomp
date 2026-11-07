@@ -447,6 +447,19 @@ void VkContext::ChooseHeaps() {''')
                        '            if ((requirements.memoryTypeBits & (1u << i)) && MemoryTypeEnabled(type) &&\n')
         return text
     edit('Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp', vulkan_memory_types)
+    # #191: a depth-only view does not limit the image layout transition.
+    # The device does not enable separateDepthStencilLayouts.
+    device_path = 'Engine/Source/Gx/CGxDeviceVulkan/CGxDeviceVulkan.cpp'
+    device_before = (root / device_path).read_text()
+    edit(device_path, lambda t: replace(t,
+         '        VkContext::Barrier(layoutCmd, this->m_offscreenDepth.image, VK_IMAGE_ASPECT_DEPTH_BIT, 1, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);',
+         '''        const VkImageAspectFlags aspects =
+            info.format == VK_FORMAT_D16_UNORM_S8_UINT ||
+            info.format == VK_FORMAT_D24_UNORM_S8_UINT ||
+            info.format == VK_FORMAT_D32_SFLOAT_S8_UINT
+                ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
+                : VK_IMAGE_ASPECT_DEPTH_BIT;
+        VkContext::Barrier(layoutCmd, this->m_offscreenDepth.image, aspects, 1, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);'''))
     # #192: a merged character run binds its own compact mesh. Its last
     # element cannot stand in for the ordinary model's cached buffer state.
     scene_path = 'Engine/Source/Model2/CM2SceneRender.cpp'
@@ -490,6 +503,16 @@ void VkContext::ChooseHeaps() {''')
     image_begin = vk.index('int32_t VkContext::CreateImage(')
     image_end = vk.index('VkStaging VkContext::Stage(', image_begin)
     (root / 'RovNativeVulkanMemorySelect.inc').write_text(vk[begin:end] + vk[image_begin:image_end])
+    device = (root / device_path).read_text()
+    device_header = (root / 'Engine/Source/Gx/CGxDeviceVulkan/CGxDeviceVulkan.h').read_text()
+    texture_start = device_header.index('struct VkTexture {')
+    texture_end = device_header.index('\n};', texture_start) + len('\n};')
+    (root / 'RovNativeVulkanFramebuffer.inc').write_text(
+        device_header[texture_start:texture_end] + '\n' +
+        source_function(vk, 'void VkContext::Barrier(') +
+        source_function(device, 'VkFramebuffer CGxDeviceVulkan::ITexFramebuffer(') +
+        source_function(device_before, 'VkFramebuffer CGxDeviceVulkan::ITexFramebuffer(').replace(
+            'CGxDeviceVulkan::ITexFramebuffer(', 'CGxDeviceVulkan::ITexFramebufferBeforeFix(', 1))
     # Exercise the actual adapted statements with controlled rand() results;
     # extracting them avoids adding a production helper solely for this test.
     cache = (root / 'Engine/Source/Model2/M2Cache.cpp').read_text()
@@ -508,6 +531,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
     shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
+    shutil.copy2(HERE / 'vulkan_framebuffer_check.cpp', root / 'RovNativeVulkanFramebufferCheck.cpp')
     shutil.copy2(HERE / 'm2_batch_check.cpp', root / 'RovNativeM2BatchCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
@@ -558,6 +582,11 @@ target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR
 target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
 add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)
 set_tests_properties(rov_native_vulkan_memory PROPERTIES TIMEOUT 45)
+add_executable(RovNativeVulkanFramebufferCheck RovNativeVulkanFramebufferCheck.cpp)
+target_include_directories(RovNativeVulkanFramebufferCheck PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(RovNativeVulkanFramebufferCheck PRIVATE volk)
+add_test(NAME rov_native_vulkan_framebuffer COMMAND RovNativeVulkanFramebufferCheck)
+set_tests_properties(rov_native_vulkan_framebuffer PROPERTIES TIMEOUT 45)
 add_executable(RovNativeM2BatchCheck RovNativeM2BatchCheck.cpp)
 add_test(NAME rov_native_m2_batch COMMAND RovNativeM2BatchCheck)
 set_tests_properties(rov_native_m2_batch PROPERTIES TIMEOUT 45)
@@ -569,7 +598,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
