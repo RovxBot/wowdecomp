@@ -64,6 +64,9 @@ and source inspection are different evidence levels.
   retain ordinary local/ReBAR/upload ranking and explicit failure. Source-backed
   allocation correction: [#190](https://github.com/RovxBot/wowdecomp/issues/190);
   visual artifact acceptance remains [#189](https://github.com/RovxBot/wowdecomp/issues/189).
+- Merged character submissions invalidate the ordinary batch cache so subsequent
+  model draws restore their own index and vertex bindings; compact mesh offsets
+  remain local to that mesh. Reproducer and qualification: [#192](https://github.com/RovxBot/wowdecomp/issues/192).
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
   server-policy changes or OpenGL development.
