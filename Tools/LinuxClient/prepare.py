@@ -283,6 +283,47 @@ def prepare(destination, archive):
     return int(angle < 0 ? angle + 360 : angle >= 360 ? angle - 360 : angle);''')
         return '#include <cstdint>\n' + text
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_3d.h', sound_angle)
+    # #186: a larger allocation does not construct the derived ALSA object.
+    # Keep the FMOD pool and zeroed state, but begin the actual callback owner's
+    # lifetime, as the factory already does for the built-in OpenAL output.
+    def alsa_factory(text):
+        text = replace(text, '#include "fmod_output_polled.h"',
+                       '#include "fmod_output_polled.h"\n#ifdef FMOD_SUPPORT_ALSA\n#include "fmod_output_alsa.h"\n#endif')
+        return replace(text, '    if (outputdesc->polling)\n', '''#ifdef FMOD_SUPPORT_ALSA
+    if (outputdesc->mType == FMOD_OUTPUTTYPE_ALSA)
+    {
+        void *storage = FMOD_Memory_Calloc(sizeof(OutputALSA));
+        newoutput = storage ? new (storage) OutputALSA : 0;
+    }
+    else
+#endif
+    if (outputdesc->polling)
+''')
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_pluginfactory.cpp', alsa_factory)
+    edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
+         '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',
+         '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();\n\n        FMOD_RESULT              release() override;'))
+    edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.cpp', lambda t: replace(t,
+         'void *OutputALSA::writerThread(void *param)', '''// SystemI stops the mixer and calls close before release. End the concrete
+// lifetime here, then return its original allocation to the same FMOD pool.
+FMOD_RESULT OutputALSA::release()
+{
+    void *storage = this;
+    this->~OutputALSA();
+    FMOD_Memory_Free(storage);
+    return FMOD_OK;
+}
+
+void *OutputALSA::writerThread(void *param)'''))
+    def output_replacement(text):
+        # Both pre-init selection APIs must honor the concrete release route.
+        # No callback/stop/close ordering is changed by output replacement.
+        if text.count('        FMOD_Memory_Free(mOutput);') != 2:
+            raise ValueError('Expected two pre-init output replacement paths')
+        text = text.replace('        FMOD_Memory_Free(mOutput);', '        mOutput->release();')
+        return replace(text, '        mOutput->release();\n    }',
+                       '        mOutput->release();\n        mOutput = 0;\n    }')
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_systemi.cpp', output_replacement)
     def allocation_routes(text):
         text = '#include <new>\n#include <limits>\n' + text
         text = replace(text, '    size_t size = (bytes + 7) & ~static_cast<size_t>(7);\n    void* ptr =',
@@ -400,6 +441,7 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     shutil.copy2(HERE / 'freetype_stream_check.cpp', root / 'RovNativeFreeTypeStreamCheck.cpp')
     shutil.copy2(HERE / 'm2_cache_seed_check.cpp', root / 'RovNativeM2CacheSeedCheck.cpp')
     shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
+    shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -434,6 +476,16 @@ add_executable(RovNativeLuaUpvalueCheck RovNativeLuaUpvalueCheck.cpp)
 target_link_libraries(RovNativeLuaUpvalueCheck PRIVATE "$<LINK_GROUP:RESCAN,lua,Base,Storm,Os,BlizzardCore>")
 add_test(NAME rov_native_lua_upvalue COMMAND RovNativeLuaUpvalueCheck)
 set_tests_properties(rov_native_lua_upvalue PROPERTIES TIMEOUT 45)
+add_executable(RovNativeALSAOutputCheck RovNativeALSAOutputCheck.cpp)
+target_include_directories(RovNativeALSAOutputCheck PRIVATE Engine/Source/SoundEngine/fmodex/linux/src)
+target_link_libraries(RovNativeALSAOutputCheck PRIVATE fmodex)
+# Failure injection/observation belongs only to the fixture. Successful calls
+# use the real ALSA null PCM, ring buffer, writer thread and pthread join.
+target_link_options(RovNativeALSAOutputCheck PRIVATE
+    -Wl,--wrap=snd_pcm_set_params -Wl,--wrap=snd_pcm_close -Wl,--wrap=snd_pcm_drop
+    -Wl,--wrap=snd_pcm_writei -Wl,--wrap=pthread_create -Wl,--wrap=pthread_join)
+add_test(NAME rov_native_alsa_output COMMAND RovNativeALSAOutputCheck)
+set_tests_properties(rov_native_alsa_output PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -442,7 +494,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
