@@ -19,6 +19,7 @@ enum { GxXform_View, GxXform_Projection, GxXform_Tex0, GxXform_Tex1, GxXform_Wor
        GxRs_DepthFunc, GxRs_PolygonOffset, GxRs_Lighting, GxRs_Fog, GxRs_MatSpecularExp,
        GxCmp_LEqual, GxApi_OpenGl, GxPrim_Triangles, GxSh_Vertex, GxVBF_PBNT2 };
 using M2PASS = int;
+using EGxXform = int;
 struct C44Matrix {
     float a0=1, b0=0, c0=0, d0=0, a1=0, b1=1, c1=0, d1=0,
           a2=0, b2=0, c2=1, d2=0, a3=0, b3=0, c3=0, d3=1;
