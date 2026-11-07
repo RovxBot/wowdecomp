@@ -59,6 +59,11 @@ and source inspection are different evidence levels.
   output replacement; the original mixer/ALSA callbacks and shutdown order stay
   intact. Type/callback/failure/teardown acceptance is [#186](https://github.com/RovxBot/wowdecomp/issues/186).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
+- Direct Vulkan memory selection excludes AMD device-coherent types because
+  that device feature is not enabled; preferred and image/generic fallbacks
+  retain ordinary local/ReBAR/upload ranking and explicit failure. Source-backed
+  allocation correction: [#190](https://github.com/RovxBot/wowdecomp/issues/190);
+  visual artifact acceptance remains [#189](https://github.com/RovxBot/wowdecomp/issues/189).
 - Provenance: retain original `OFFSET` tags, remove `VERIFY` claims from adapted
   files. No new original-address verification is claimed. No game data, credentials,
   server-policy changes or OpenGL development.

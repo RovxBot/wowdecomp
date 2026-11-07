@@ -425,6 +425,36 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     edit('Engine/Source/Model2/M2Cache.cpp', lambda t: replace(t,
          '    uint32_t high = rand() << 16;',
          '    uint32_t high = static_cast<uint32_t>(rand()) << 16;'))
+    # #190: the device does not enable VK_AMD_device_coherent_memory. Such
+    # types may still be advertised and must not enter preferred or fallback
+    # allocation paths (VUID-vkAllocateMemory-deviceCoherentMemory-02790).
+    def vulkan_memory_types(text):
+        text = replace(text, 'void VkContext::ChooseHeaps() {', '''// FinishCreateDevice does not enable VK_AMD_device_coherent_memory.
+static bool MemoryTypeEnabled(const VkMemoryType& type) {
+    return !(type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
+}
+
+void VkContext::ChooseHeaps() {''')
+        text = replace(text, '        VkMemoryPropertyFlags flags = type.propertyFlags;\n',
+                       '''        VkMemoryPropertyFlags flags = type.propertyFlags;
+        if (!MemoryTypeEnabled(type)) {
+            continue;
+        }
+''')
+        text = replace(text, '        if ((typeBits & (1u << i)) && (this->m_memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {',
+                       '        if ((typeBits & (1u << i)) && MemoryTypeEnabled(this->m_memoryProperties.memoryTypes[i]) && (this->m_memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {')
+        text = replace(text, '            if ((requirements.memoryTypeBits & (1u << i)) &&\n',
+                       '            if ((requirements.memoryTypeBits & (1u << i)) && MemoryTypeEnabled(type) &&\n')
+        return text
+    edit('Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp', vulkan_memory_types)
+    # Compile the actual adapted selection and image-fallback implementations
+    # in the focused hosted fixture, without linking the full Gx device.
+    vk = (root / 'Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp').read_text()
+    begin = vk.index('static bool MemoryTypeEnabled(')
+    end = vk.index('int32_t VkContext::AcquireBuffer(', begin)
+    image_begin = vk.index('int32_t VkContext::CreateImage(')
+    image_end = vk.index('VkStaging VkContext::Stage(', image_begin)
+    (root / 'RovNativeVulkanMemorySelect.inc').write_text(vk[begin:end] + vk[image_begin:image_end])
     # Exercise the actual adapted statements with controlled rand() results;
     # extracting them avoids adding a production helper solely for this test.
     cache = (root / 'Engine/Source/Model2/M2Cache.cpp').read_text()
@@ -442,6 +472,7 @@ void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow
     shutil.copy2(HERE / 'm2_cache_seed_check.cpp', root / 'RovNativeM2CacheSeedCheck.cpp')
     shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
     shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
+    shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -486,6 +517,11 @@ target_link_options(RovNativeALSAOutputCheck PRIVATE
     -Wl,--wrap=snd_pcm_writei -Wl,--wrap=pthread_create -Wl,--wrap=pthread_join)
 add_test(NAME rov_native_alsa_output COMMAND RovNativeALSAOutputCheck)
 set_tests_properties(rov_native_alsa_output PROPERTIES TIMEOUT 45)
+add_executable(RovNativeVulkanMemoryCheck RovNativeVulkanMemoryCheck.cpp)
+target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
+add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)
+set_tests_properties(rov_native_vulkan_memory PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -494,7 +530,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
