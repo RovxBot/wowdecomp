@@ -27,6 +27,13 @@ def audit(root):
     for name in ['WoW/Source/Game/GameClient/Linux/WardenClient.cpp', 'WoW/Source/Linux/BotCheck.cpp']:
         assert 'Connection()->Disconnect();' in (root / name).read_text()
     assert '#define DISABLE_SIGNATURE_CHECKS' not in (root / 'RovNativePolicy.h').read_text()
+    vk = (root / 'Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp').read_text()
+    begin = vk.index('static bool MemoryTypeEnabled(')
+    end = vk.index('int32_t VkContext::AcquireBuffer(', begin)
+    image_begin = vk.index('int32_t VkContext::CreateImage(')
+    image_end = vk.index('VkStaging VkContext::Stage(', image_begin)
+    assert (root / 'RovNativeVulkanMemorySelect.inc').read_text() == vk[begin:end] + vk[image_begin:image_end]
+    assert 'add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)' in cmake
     for name in receipt['adaptations']:
         assert '// VERIFY:' not in (root / name).read_text(), name
     print('full-linux-source-audit=passed: pinned source, mandatory signatures/digest, explicit test gate, '
