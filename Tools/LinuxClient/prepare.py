@@ -447,6 +447,41 @@ void VkContext::ChooseHeaps() {''')
                        '            if ((requirements.memoryTypeBits & (1u << i)) && MemoryTypeEnabled(type) &&\n')
         return text
     edit('Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp', vulkan_memory_types)
+    # #192: a merged character run binds its own compact mesh. Its last
+    # element cannot stand in for the ordinary model's cached buffer state.
+    scene_path = 'Engine/Source/Model2/CM2SceneRender.cpp'
+    scene_before = (root / scene_path).read_text()
+    edit(scene_path, lambda t: replace(t,
+         '                if (run > 1 && DrawCharacterRun(this, elements, indices, i, run)) {\n',
+         '''                if (run > 1 && DrawCharacterRun(this, elements, indices, i, run)) {
+                    // The merged mesh has private index/vertex buffers. Force
+                    // the next ordinary batch to reestablish its bindings.
+                    this->m_curType = -1;
+'''))
+    scene = (root / scene_path).read_text()
+
+    def source_function(text, signature):
+        start = text.index(signature)
+        opening = text.index('{', start)
+        depth, end = 1, opening + 1
+        while depth:
+            depth += (text[end] == '{') - (text[end] == '}')
+            end += 1
+        return text[start:end] + '\n'
+
+    # Exercise the actual dispatcher, merged submission and ordinary binding
+    # paths against recording services. The unchanged donor dispatcher is a
+    # negative control for the exact reached stale-buffer range.
+    dispatch = 'void CM2SceneRender::Draw(M2PASS '
+    functions = ['void CM2SceneRender::SetBatchVertices(',
+                 'void CM2SceneRender::DrawBatch()',
+                 'static int32_t DrawCharacterRun(', dispatch]
+    mesh_start = scene.index('struct CharacterMesh {')
+    mesh_end = scene.index('static CharacterMesh* CharacterMeshFor(', mesh_start)
+    (root / 'RovNativeM2Batch.inc').write_text(
+        scene[mesh_start:mesh_end] + ''.join(source_function(scene, s) for s in functions))
+    (root / 'RovNativeM2BatchBefore.inc').write_text(
+        source_function(scene_before, dispatch).replace('CM2SceneRender::Draw(', 'CM2SceneRender::DrawBeforeFix(', 1))
     # Compile the actual adapted selection and image-fallback implementations
     # in the focused hosted fixture, without linking the full Gx device.
     vk = (root / 'Engine/Source/Gx/CGxDeviceVulkan/VkContext.cpp').read_text()
@@ -473,6 +508,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
     shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
+    shutil.copy2(HERE / 'm2_batch_check.cpp', root / 'RovNativeM2BatchCheck.cpp')
     cmake = '''
 # Separate full Linux graph; no product Windows/macOS or OpenGL target is changed.
 if(NOT WOWDECOMP_LINUX OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
@@ -522,6 +558,9 @@ target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR
 target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
 add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)
 set_tests_properties(rov_native_vulkan_memory PROPERTIES TIMEOUT 45)
+add_executable(RovNativeM2BatchCheck RovNativeM2BatchCheck.cpp)
+add_test(NAME rov_native_m2_batch COMMAND RovNativeM2BatchCheck)
+set_tests_properties(rov_native_m2_batch PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -530,7 +569,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 

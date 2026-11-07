@@ -34,6 +34,19 @@ def audit(root):
     image_end = vk.index('VkStaging VkContext::Stage(', image_begin)
     assert (root / 'RovNativeVulkanMemorySelect.inc').read_text() == vk[begin:end] + vk[image_begin:image_end]
     assert 'add_test(NAME rov_native_vulkan_memory COMMAND RovNativeVulkanMemoryCheck)' in cmake
+    scene = (root / 'Engine/Source/Model2/CM2SceneRender.cpp').read_text()
+    batch = (root / 'RovNativeM2Batch.inc').read_text()
+    for signature in ['void CM2SceneRender::SetBatchVertices(', 'void CM2SceneRender::DrawBatch()',
+                      'static int32_t DrawCharacterRun(', 'void CM2SceneRender::Draw(M2PASS ']:
+        start = scene.index(signature)
+        opening = scene.index('{', start)
+        depth, end = 1, opening + 1
+        while depth:
+            depth += (scene[end] == '{') - (scene[end] == '}')
+            end += 1
+        assert scene[start:end] in batch
+    assert 'this->m_curType = -1;' in batch
+    assert 'add_test(NAME rov_native_m2_batch COMMAND RovNativeM2BatchCheck)' in cmake
     for name in receipt['adaptations']:
         assert '// VERIFY:' not in (root / name).read_text(), name
     print('full-linux-source-audit=passed: pinned source, mandatory signatures/digest, explicit test gate, '
