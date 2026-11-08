@@ -236,34 +236,60 @@ template<class T> static void run(FMOD_DSP_TYPE type) {
         dsp = nullptr; // Existing preconstructed-error contract frees this storage.
     }
     require(created == 2*desc->numparameters);
+    // Real connection pool and tree buffers, normally installed by SystemI::init.
+    // A fan-out to two consumers makes DSPI allocate its own mix buffer.
+    require(internal->mDSPConnectionPool.init(internal, 4, 2, 8) == FMOD_OK);
+    for (int i = 0; i < 2; ++i) {
+        require(!internal->mDSPMixBuff[i]);
+        internal->mDSPMixBuff[i] = (float*)FMOD_Memory_Calloc(
+            internal->mDSPBlockSize * std::max(internal->mMaxOutputChannels, internal->mMaxInputChannels) * sizeof(float) + 16);
+        require(internal->mDSPMixBuff[i]);
+    }
+    const int connectedBaseline = live;
     auto observed = *desc;
     observed.mSize = 0; observed.create = observeCreate<T>; observed.release = observeRelease<T>;
-    require(factory->createDSP(&observed, &dsp) == FMOD_OK && live == baseline+1);
+    require(factory->createDSP(&observed, &dsp) == FMOD_OK && live == connectedBaseline+1);
     auto* concrete = receiver<T>(dsp);
     require(dsp->instance == (FMOD_DSP*)dsp && dsp->mSystem == internal);
     defaults(dsp); parameters(dsp);
     for (int repeat = 0; repeat < 3; ++repeat) {
         failAfter = 0;
-        require(concrete->startBuffering(64) == FMOD_ERR_MEMORY && failAfter == -1 && live == baseline+1);
-        require(concrete->startBuffering(64) == FMOD_OK && live == baseline+2);
+        require(concrete->startBuffering(64) == FMOD_ERR_MEMORY && failAfter == -1 && live == connectedBaseline+1);
+        require(concrete->startBuffering(64) == FMOD_OK && live == connectedBaseline+2);
         float* history = nullptr; unsigned position = 99, length = 0;
         require(concrete->getHistoryBuffer(&history, &position, &length) == FMOD_OK && history && position == 0 && length == 64);
-        require(concrete->startBuffering(64) == FMOD_OK && live == baseline+2);
-        // Base-owned mix buffer must also be freed, independently of history.
-        dsp->mBufferMemory = (float*)FMOD_Memory_Calloc(128);
-        require(dsp->mBufferMemory && live == baseline+3);
-        require(dsp->release(false) == FMOD_OK && live == baseline+1 && released == 2*repeat+1);
+        require(concrete->startBuffering(64) == FMOD_OK && live == connectedBaseline+2);
+        FMOD::DSPI *sinks[2] = {};
+        auto sinkDescription = *desc;
+        sinkDescription.create = nullptr;
+        sinkDescription.read = nullptr;
+        for (auto& sink : sinks) {
+            require(factory->createDSP(&sinkDescription, &sink) == FMOD_OK);
+            require(sink->updateTreeLevel(0) == FMOD_OK);
+            require(sink->addInputInternal(dsp, false) == FMOD_OK);
+        }
+        int outputs = 0;
+        require(dsp->getNumOutputs(&outputs) == FMOD_OK && outputs == 2);
+        require(live == connectedBaseline+5); // Filter, history, two sinks, owned mix buffer.
+        require(dsp->release(false) == FMOD_OK && live == connectedBaseline+3 && released == 2*repeat+1);
+        require(dsp->getNumOutputs(&outputs) == FMOD_OK && outputs == 0);
+        for (auto* sink : sinks) require(sink->release() == FMOD_OK);
+        require(live == connectedBaseline+1);
         receiver<T>(dsp);
-        require(!dsp->mBufferMemory);
         require(concrete->getHistoryBuffer(&history, nullptr, nullptr) == FMOD_OK && !history);
-        require(dsp->release(false) == FMOD_OK && live == baseline+1 && released == 2*repeat+2);
+        require(dsp->release(false) == FMOD_OK && live == connectedBaseline+1 && released == 2*repeat+2);
         require(dsp->setParameter(0, 1000) == FMOD_OK);
         // Reinitialize the retained live object; preserve full Lowpass's inline
         // history retention, while the other owners reset their history.
         require(factory->createDSP(&observed, &dsp) == FMOD_OK && receiver<T>(dsp) == concrete);
         defaults(dsp);
     }
-    require(dsp->release() == FMOD_OK && live == baseline && released == 7);
+    require(dsp->release() == FMOD_OK && live == connectedBaseline && released == 7);
+    require(internal->mDSPConnectionPool.close() == FMOD_OK);
+    for (int i = 0; i < 2; ++i) {
+        FMOD_Memory_Free(internal->mDSPMixBuff[i]); internal->mDSPMixBuff[i] = nullptr;
+    }
+    require(live == baseline);
     FMOD::FMOD_DSP_DESCRIPTION_EX generic = {};
     generic.mCategory = FMOD::FMOD_DSP_CATEGORY_FILTER; generic.mFormat = FMOD_SOUND_FORMAT_PCMFLOAT;
     dsp = nullptr;
