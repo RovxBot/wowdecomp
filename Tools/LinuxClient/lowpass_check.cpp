@@ -117,6 +117,20 @@ int main() {
     require(FMOD::System_Create(&system) == FMOD_OK);
     FMOD::SystemI* internal = nullptr;
     require(FMOD::SystemI::validate(system, &internal) == FMOD_OK && internal);
+    require(internal->setUpPlugins() == FMOD_OK && internal->mPluginFactory);
+    // The isolated DSP fixture needs the real connection locks/queue normally
+    // installed by SystemI::init before any DSP release. Use the production
+    // pthread-backed services and embedded request nodes, without a fake mixer.
+    for (auto slot : {&internal->mDSPCrit, &internal->mDSPLockCrit,
+                      &internal->mDSPConnectionCrit, &internal->mDSPRequestCrit}) {
+        require(!*slot && FMOD_OS_CriticalSection_Create(slot) == FMOD_OK);
+    }
+    internal->mConnectionRequestUsedHead.initNode();
+    internal->mConnectionRequestFreeHead.initNode();
+    for (auto& request : internal->mConnectionRequest) {
+        request.initNode();
+        request.addBefore(&internal->mConnectionRequestFreeHead);
+    }
     auto* factory = internal->mPluginFactory;
     FMOD::FMOD_DSP_DESCRIPTION_EX* desc = nullptr;
     int count = 0;
@@ -188,6 +202,12 @@ int main() {
     require(factory->createDSP(&generic, &dsp) == FMOD_OK);
     require(typeid(*dsp) == typeid(FMOD::DSPFilter));
     require(dsp->release() == FMOD_OK && live == baseline);
+    require(internal->mConnectionRequestUsedHead.isEmpty());
+    for (auto slot : {&internal->mDSPCrit, &internal->mDSPLockCrit,
+                      &internal->mDSPConnectionCrit, &internal->mDSPRequestCrit}) {
+        require(FMOD_OS_CriticalSection_Free(*slot) == FMOD_OK);
+        *slot = nullptr;
+    }
     require(system->release() == FMOD_OK && live == 0);
     require(FMOD_Memory_Initialize(nullptr, 0, nullptr, nullptr, nullptr) == FMOD_OK);
     std::puts("native-lowpass=passed: registered factory/type, original RC filtering/reset/parameters, history cleanup, allocation/alloc/create failures, trivial lifetime and nonfree release");
