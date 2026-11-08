@@ -4,6 +4,7 @@
 #include "fmod_dsp_pitchshift.h"
 #include "fmod_dsp_lowpass_simple.h"
 #include "fmod_dsp_chorus.h"
+#include "fmod_dsp_echo.h"
 #include "fmod_memory.h"
 #include "fmod_pluginfactory.h"
 #include "fmod_systemi.h"
@@ -191,6 +192,8 @@ int main() {
             require(typeid(*instance) == typeid(FMOD::DSPLowPassSimple));
         else if (candidate->mType == FMOD_DSP_TYPE_CHORUS)
             require(typeid(*instance) == typeid(FMOD::DSPChorus));
+        else if (candidate->mType == FMOD_DSP_TYPE_ECHO)
+            require(typeid(*instance) == typeid(FMOD::DSPEcho));
         else require(typeid(*instance) == typeid(FMOD::DSPFilter));
         require(instance->release() == FMOD_OK);
     }
