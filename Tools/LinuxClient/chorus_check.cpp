@@ -135,12 +135,18 @@ static void delayProcessing(FMOD::DSPI* dsp, int rate, int channels, float delay
         require(dsp->mDescription.read(dsp, input.data() + i * channels,
                 output.data() + i * channels, count, channels, channels) == FMOD_OK);
     }
+    float maximum = 0;
     for (std::size_t i = 0; i < output.size(); ++i) {
-        if (!std::isfinite(output[i]) || std::fabs(output[i] - expected[i]) >= 0.000002f)
-            std::fprintf(stderr, "delay mismatch: rate=%d channels=%d delay=%g tap=%d feedback=%g sample=%zu actual=%.9g expected=%.9g delta=%.9g\n",
-                         rate, channels, delay, tap, feedback, i, output[i], expected[i], output[i]-expected[i]);
-        require(std::isfinite(output[i]) && std::fabs(output[i] - expected[i]) < 0.000002f);
+        require(std::isfinite(output[i]));
+        maximum = std::max(maximum, std::fabs(output[i] - expected[i]));
     }
+    // Each truncation contributes less than one int16 unit. Bound the two
+    // quantized recurrences by their feedback contraction, then the wet gain.
+    const float wetGain = tap == 0 ? 1.5f : 0.5f;
+    const float bound = (2 * wetGain / (1 - feedback * wetGain)) / 32767.0f + 0.000002f;
+    std::printf("sine-reference: rate=%d channels=%d delay=%g tap=%d feedback=%g maximum=%.9g quantization-bound=%.9g\n",
+                rate, channels, delay, tap, feedback, maximum, bound);
+    require(maximum < bound);
     // In-place processing preserves the dry-only original gain.
     require(dsp->setParameter(0, 1) == FMOD_OK);
     for (int i = 1; i <= 3; ++i) require(dsp->setParameter(i, 0) == FMOD_OK);
