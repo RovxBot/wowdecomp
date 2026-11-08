@@ -79,6 +79,11 @@ and source inspection are different evidence levels.
   concrete extent. Failed default-parameter creation releases its callback-owned
   float delay buffer before freeing object storage; original delay/decay/mixing,
   parameter, channel-limit and release behavior are retained under #200.
+  Full Lowpass, IT Lowpass, Highpass and ParamEQ begin their concrete FILTER
+  lifetimes with minimum concrete extents. Their coefficients/history stay inline;
+  original creation, parameter, processing and reset bodies are unchanged. They
+  register no release callback and retain DSPFilter/DSPI history/base-buffer pool
+  cleanup, including nonfree release. Individual actual-source acceptance is #200.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
