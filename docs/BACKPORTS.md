@@ -70,6 +70,11 @@ and source inspection are different evidence levels.
   interval rather than reading before the table at FFT sizes 2048/4096.
   [#198](https://github.com/RovxBot/wowdecomp/issues/198) tracks acceptance and the
   registered FILTER construction inventory.
+  The Chorus FILTER factory begins its concrete callback owner's lifetime with
+  a minimum concrete allocation size. A failed default parameter releases the
+  callback-owned delay buffer before the factory frees object storage. Original
+  modulation, dry/wet taps, feedback, parameter handling and release remain intact;
+  lifecycle and strict-startup acceptance continue in [#200](https://github.com/RovxBot/wowdecomp/issues/200).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
