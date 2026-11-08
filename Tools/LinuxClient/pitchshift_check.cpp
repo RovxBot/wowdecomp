@@ -5,6 +5,10 @@
 #include "fmod_dsp_lowpass_simple.h"
 #include "fmod_dsp_chorus.h"
 #include "fmod_dsp_echo.h"
+#include "fmod_dsp_lowpass.h"
+#include "fmod_dsp_lowpass2.h"
+#include "fmod_dsp_highpass.h"
+#include "fmod_dsp_parameq.h"
 #include "fmod_memory.h"
 #include "fmod_pluginfactory.h"
 #include "fmod_systemi.h"
@@ -194,6 +198,14 @@ int main() {
             require(typeid(*instance) == typeid(FMOD::DSPChorus));
         else if (candidate->mType == FMOD_DSP_TYPE_ECHO)
             require(typeid(*instance) == typeid(FMOD::DSPEcho));
+        else if (candidate->mType == FMOD_DSP_TYPE_LOWPASS)
+            require(typeid(*instance) == typeid(FMOD::DSPLowPass));
+        else if (candidate->mType == FMOD_DSP_TYPE_ITLOWPASS)
+            require(typeid(*instance) == typeid(FMOD::DSPLowPass2));
+        else if (candidate->mType == FMOD_DSP_TYPE_HIGHPASS)
+            require(typeid(*instance) == typeid(FMOD::DSPHighPass));
+        else if (candidate->mType == FMOD_DSP_TYPE_PARAMEQ)
+            require(typeid(*instance) == typeid(FMOD::DSPParamEq));
         else require(typeid(*instance) == typeid(FMOD::DSPFilter));
         require(instance->release() == FMOD_OK);
     }

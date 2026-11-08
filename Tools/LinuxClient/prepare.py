@@ -300,7 +300,7 @@ def prepare(destination, archive):
     if (outputdesc->polling)
 ''')
     # #188/#198/#200: allocating a callback owner's size and constructing
-    # DSPFilter does not begin the concrete lowpass/pitch-shift/chorus/echo lifetime.
+    # DSPFilter does not begin the concrete registered callback-owner lifetime.
     def filter_factory(text):
         text = replace(text, '#include "fmod_dsp_oscillator.h"',
                        '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"\n#include "fmod_dsp_pitchshift.h"\n#include "fmod_dsp_chorus.h"\n#include "fmod_dsp_echo.h"')
@@ -360,6 +360,36 @@ def prepare(destination, archive):
                 }
 #endif
                 size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
+        # #200: these four recursive filters keep coefficients/history inline,
+        # register no release callback and have trivial destruction. Only begin
+        # their lifetime here; preserve each original create/reset/parameter path.
+        construction = ''
+        for feature, kind, owner, header in [
+            ('LOWPASS', 'LOWPASS', 'DSPLowPass', 'lowpass'),
+            ('LOWPASS2', 'ITLOWPASS', 'DSPLowPass2', 'lowpass2'),
+            ('HIGHPASS', 'HIGHPASS', 'DSPHighPass', 'highpass'),
+            ('PARAMEQ', 'PARAMEQ', 'DSPParamEq', 'parameq'),
+        ]:
+            text = replace(text, '#include "fmod_dsp_oscillator.h"',
+                           '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_' + header + '.h"')
+            text = replace(text, '                size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;',
+                           f'''#ifdef FMOD_SUPPORT_{feature}
+                if (dspdesc->mType == FMOD_DSP_TYPE_{kind})
+                {{
+                    size = size < sizeof({owner}) ? sizeof({owner}) : size;
+                }}
+#endif
+                size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
+            construction += f'''#ifdef FMOD_SUPPORT_{feature}
+                if (dspdesc->mType == FMOD_DSP_TYPE_{kind})
+                {{
+                    new (newdsp) {owner};
+                }}
+                else
+#endif
+'''
+        text = replace(text, '                {\n                    new (newdsp) DSPFilter;\n                }',
+                       construction + '                {\n                    new (newdsp) DSPFilter;\n                }')
         # These concrete types have no destructor-owned resources. The existing
         # alloc/create failure frees and DSPFilter::release end its lifetime by
         # releasing pool storage; preserve them, including release(false).
@@ -641,6 +671,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'pitchshift_check.cpp', root / 'RovNativePitchShiftCheck.cpp')
     shutil.copy2(HERE / 'chorus_check.cpp', root / 'RovNativeChorusCheck.cpp')
     shutil.copy2(HERE / 'echo_check.cpp', root / 'RovNativeEchoCheck.cpp')
+    shutil.copy2(HERE / 'inline_filters_check.cpp', root / 'RovNativeInlineFiltersCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
     shutil.copy2(HERE / 'vulkan_framebuffer_check.cpp', root / 'RovNativeVulkanFramebufferCheck.cpp')
     shutil.copy2(HERE / 'm2_batch_check.cpp', root / 'RovNativeM2BatchCheck.cpp')
@@ -704,6 +735,12 @@ add_executable(RovNativeEchoCheck RovNativeEchoCheck.cpp)
 target_link_libraries(RovNativeEchoCheck PRIVATE fmodex)
 add_test(NAME rov_native_echo COMMAND RovNativeEchoCheck)
 set_tests_properties(rov_native_echo PROPERTIES TIMEOUT 45)
+add_executable(RovNativeInlineFiltersCheck RovNativeInlineFiltersCheck.cpp)
+target_link_libraries(RovNativeInlineFiltersCheck PRIVATE fmodex)
+foreach(filter lowpass_full itlowpass highpass parameq)
+    add_test(NAME rov_native_${filter} COMMAND RovNativeInlineFiltersCheck ${filter})
+    set_tests_properties(rov_native_${filter} PROPERTIES TIMEOUT 45)
+endforeach()
 add_executable(RovNativeVulkanMemoryCheck RovNativeVulkanMemoryCheck.cpp)
 target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
@@ -725,7 +762,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
