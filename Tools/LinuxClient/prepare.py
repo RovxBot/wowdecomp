@@ -299,11 +299,11 @@ def prepare(destination, archive):
 #endif
     if (outputdesc->polling)
 ''')
-    # #188/#198: allocating a callback owner's size and constructing DSPFilter
-    # does not begin the concrete lowpass/pitch-shift lifetime.
+    # #188/#198/#200: allocating a callback owner's size and constructing
+    # DSPFilter does not begin the concrete lowpass/pitch-shift/chorus lifetime.
     def filter_factory(text):
         text = replace(text, '#include "fmod_dsp_oscillator.h"',
-                       '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"\n#include "fmod_dsp_pitchshift.h"')
+                       '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"\n#include "fmod_dsp_pitchshift.h"\n#include "fmod_dsp_chorus.h"')
         text = replace(text, '                new (newdsp) DSPFilter;', '''#ifdef FMOD_SUPPORT_LOWPASS_SIMPLE
                 if (dspdesc->mType == FMOD_DSP_TYPE_LOWPASS_SIMPLE)
                 {
@@ -315,6 +315,13 @@ def prepare(destination, archive):
                 if (dspdesc->mType == FMOD_DSP_TYPE_PITCHSHIFT)
                 {
                     new (newdsp) DSPPitchShift;
+                }
+                else
+#endif
+#ifdef FMOD_SUPPORT_CHORUS
+                if (dspdesc->mType == FMOD_DSP_TYPE_CHORUS)
+                {
+                    new (newdsp) DSPChorus;
                 }
                 else
 #endif
@@ -331,6 +338,12 @@ def prepare(destination, archive):
                 if (dspdesc->mType == FMOD_DSP_TYPE_PITCHSHIFT)
                 {
                     size = size < sizeof(DSPPitchShift) ? sizeof(DSPPitchShift) : size;
+                }
+#endif
+#ifdef FMOD_SUPPORT_CHORUS
+                if (dspdesc->mType == FMOD_DSP_TYPE_CHORUS)
+                {
+                    size = size < sizeof(DSPChorus) ? sizeof(DSPChorus) : size;
                 }
 #endif
                 size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
@@ -361,6 +374,16 @@ def prepare(destination, archive):
                 }
                 float win_a''')
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_dsp_pitchshift.cpp', pitchshift_creation)
+    # #200: Chorus owns its delay buffer through releaseInternal, rather than a
+    # destructor. Unwind it if any default parameter fails after allocation;
+    # createDSP frees the object storage without invoking a release callback.
+    def chorus_creation(text):
+        start = text.index('FMOD_RESULT DSPChorus::createInternal()')
+        end = text.index('FMOD_RESULT DSPChorus::releaseInternal()', start)
+        creation = replace(text[start:end], '            return result;',
+                           '            releaseInternal();\n            return result;')
+        return text[:start] + creation + text[end:]
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_dsp_chorus.cpp', chorus_creation)
     edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();\n\n        FMOD_RESULT              release() override;'))
@@ -593,6 +616,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
     shutil.copy2(HERE / 'lowpass_check.cpp', root / 'RovNativeLowPassCheck.cpp')
     shutil.copy2(HERE / 'pitchshift_check.cpp', root / 'RovNativePitchShiftCheck.cpp')
+    shutil.copy2(HERE / 'chorus_check.cpp', root / 'RovNativeChorusCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
     shutil.copy2(HERE / 'vulkan_framebuffer_check.cpp', root / 'RovNativeVulkanFramebufferCheck.cpp')
     shutil.copy2(HERE / 'm2_batch_check.cpp', root / 'RovNativeM2BatchCheck.cpp')
@@ -648,6 +672,10 @@ add_executable(RovNativePitchShiftCheck RovNativePitchShiftCheck.cpp)
 target_link_libraries(RovNativePitchShiftCheck PRIVATE fmodex)
 add_test(NAME rov_native_pitchshift COMMAND RovNativePitchShiftCheck)
 set_tests_properties(rov_native_pitchshift PROPERTIES TIMEOUT 45)
+add_executable(RovNativeChorusCheck RovNativeChorusCheck.cpp)
+target_link_libraries(RovNativeChorusCheck PRIVATE fmodex)
+add_test(NAME rov_native_chorus COMMAND RovNativeChorusCheck)
+set_tests_properties(rov_native_chorus PROPERTIES TIMEOUT 45)
 add_executable(RovNativeVulkanMemoryCheck RovNativeVulkanMemoryCheck.cpp)
 target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
@@ -669,7 +697,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
