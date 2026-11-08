@@ -299,8 +299,8 @@ def prepare(destination, archive):
 #endif
     if (outputdesc->polling)
 ''')
-    # #188: the built-in lowpass callbacks access DSPLowPassSimple members;
-    # allocating its size and constructing DSPFilter does not begin that lifetime.
+    # #188/#198: allocating a callback owner's size and constructing DSPFilter
+    # does not begin the concrete lowpass/pitch-shift lifetime.
     def filter_factory(text):
         text = replace(text, '#include "fmod_dsp_oscillator.h"',
                        '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"\n#include "fmod_dsp_pitchshift.h"')
@@ -334,7 +334,7 @@ def prepare(destination, archive):
                 }
 #endif
                 size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
-        # This concrete type has no destructor-owned resources. The existing
+        # These concrete types have no destructor-owned resources. The existing
         # alloc/create failure frees and DSPFilter::release end its lifetime by
         # releasing pool storage; preserve them, including release(false).
         return text
@@ -348,7 +348,18 @@ def prepare(destination, archive):
         end = text.index('FMOD_RESULT DSPPitchShift::releaseInternal()', start)
         creation = replace(text[start:end], '            return result;',
                            '            releaseInternal();\n            return result;')
-        return text[:start] + creation + text[end:]
+        text = text[:start] + creation + text[end:]
+        # At FFT sizes 2048/4096 the mirrored final interval has a fractional
+        # table position below one. Its floor is zero, so the original -1
+        # neighbour reads before vwin1024. Use the first valid table interval;
+        # preserve every previously in-bounds interpolation and the FFT algorithm.
+        return replace(text, '                k_a = (int)ktabpos;\n                float win_a',
+                       '''                k_a = (int)ktabpos;
+                if (k_a == 0)
+                {
+                    k_next = 1;
+                }
+                float win_a''')
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_dsp_pitchshift.cpp', pitchshift_creation)
     edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',

@@ -66,6 +66,8 @@ and source inspection are different evidence levels.
   in the zeroed pool. Failed default-parameter creation releases its owned channel
   state before the factory frees the object. Original FFT/phase processing,
   parameter handling, callbacks and normal cleanup are retained;
+  fractional mirrored window positions below one use the first valid table
+  interval rather than reading before the table at FFT sizes 2048/4096.
   [#198](https://github.com/RovxBot/wowdecomp/issues/198) tracks acceptance and the
   registered FILTER construction inventory.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
