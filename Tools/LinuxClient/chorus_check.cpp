@@ -89,7 +89,7 @@ static void defaults(FMOD::DSPI* dsp) {
 }
 static void parameters(FMOD::DSPI* dsp) {
     require(dsp->setParameter(-1, 1) == FMOD_ERR_INVALID_PARAM);
-    require(dsp->setParameter(8, 1) == FMOD_ERR_INVALID_PARAM);
+    require(dsp->setParameter(9, 1) == FMOD_ERR_INVALID_PARAM);
     require(dsp->getParameter(9, nullptr, nullptr, 0) == FMOD_ERR_INVALID_PARAM);
     for (int i = 0; i < 8; ++i) {
         const auto& desc = dsp->mDescription.paramdesc[i];
