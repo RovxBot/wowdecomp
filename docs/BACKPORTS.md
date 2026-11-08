@@ -58,6 +58,10 @@ and source inspection are different evidence levels.
   pool allocation and ends that lifetime on virtual release, including pre-init
   output replacement; the original mixer/ALSA callbacks and shutdown order stay
   intact. Type/callback/failure/teardown acceptance is [#186](https://github.com/RovxBot/wowdecomp/issues/186).
+  The built-in simple-lowpass factory constructs its concrete callback owner;
+  its trivial lifetime ends through the existing pool cleanup on release or
+  allocation/creation failure. Filtering, callbacks and software mixing remain
+  unchanged; construction/lifetime acceptance is [#188](https://github.com/RovxBot/wowdecomp/issues/188).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
