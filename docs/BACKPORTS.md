@@ -84,6 +84,9 @@ and source inspection are different evidence levels.
   original creation, parameter, processing and reset bodies are unchanged. They
   register no release callback and retain DSPFilter/DSPI history/base-buffer pool
   cleanup, including nonfree release. Individual actual-source acceptance is #200.
+  Shared DSPI setter/getter indices must be below the registered parameter count,
+  matching getParameterInfo; valid clamping, callbacks and nullable output copying
+  remain unchanged. Product and pinned full-Linux acceptance: [#202](https://github.com/RovxBot/wowdecomp/issues/202).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
