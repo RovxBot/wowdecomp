@@ -301,13 +301,20 @@ def prepare(destination, archive):
 ''')
     # #188: the built-in lowpass callbacks access DSPLowPassSimple members;
     # allocating its size and constructing DSPFilter does not begin that lifetime.
-    def lowpass_factory(text):
+    def filter_factory(text):
         text = replace(text, '#include "fmod_dsp_oscillator.h"',
-                       '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"')
+                       '#include "fmod_dsp_oscillator.h"\n#include "fmod_dsp_lowpass_simple.h"\n#include "fmod_dsp_pitchshift.h"')
         text = replace(text, '                new (newdsp) DSPFilter;', '''#ifdef FMOD_SUPPORT_LOWPASS_SIMPLE
                 if (dspdesc->mType == FMOD_DSP_TYPE_LOWPASS_SIMPLE)
                 {
                     new (newdsp) DSPLowPassSimple;
+                }
+                else
+#endif
+#ifdef FMOD_SUPPORT_PITCHSHIFT
+                if (dspdesc->mType == FMOD_DSP_TYPE_PITCHSHIFT)
+                {
+                    new (newdsp) DSPPitchShift;
                 }
                 else
 #endif
@@ -320,13 +327,29 @@ def prepare(destination, archive):
                     size = size < sizeof(DSPLowPassSimple) ? sizeof(DSPLowPassSimple) : size;
                 }
 #endif
+#ifdef FMOD_SUPPORT_PITCHSHIFT
+                if (dspdesc->mType == FMOD_DSP_TYPE_PITCHSHIFT)
+                {
+                    size = size < sizeof(DSPPitchShift) ? sizeof(DSPPitchShift) : size;
+                }
+#endif
                 size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
         # This concrete type has no destructor-owned resources. The existing
         # alloc/create failure frees and DSPFilter::release end its lifetime by
         # releasing pool storage; preserve them, including release(false).
         return text
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_pluginfactory.cpp',
-         lambda t: lowpass_factory(alsa_factory(t)))
+         lambda t: filter_factory(alsa_factory(t)))
+    # #198: a later default-parameter failure can follow allocation of the
+    # per-channel pitch-shift state. The factory frees only the object on error;
+    # unwind these callback-owned resources here, before that trivial lifetime ends.
+    def pitchshift_creation(text):
+        start = text.index('FMOD_RESULT DSPPitchShift::createInternal()')
+        end = text.index('FMOD_RESULT DSPPitchShift::releaseInternal()', start)
+        creation = replace(text[start:end], '            return result;',
+                           '            releaseInternal();\n            return result;')
+        return text[:start] + creation + text[end:]
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_dsp_pitchshift.cpp', pitchshift_creation)
     edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();\n\n        FMOD_RESULT              release() override;'))
@@ -558,6 +581,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'lua_upvalue_check.cpp', root / 'RovNativeLuaUpvalueCheck.cpp')
     shutil.copy2(HERE / 'alsa_output_check.cpp', root / 'RovNativeALSAOutputCheck.cpp')
     shutil.copy2(HERE / 'lowpass_check.cpp', root / 'RovNativeLowPassCheck.cpp')
+    shutil.copy2(HERE / 'pitchshift_check.cpp', root / 'RovNativePitchShiftCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
     shutil.copy2(HERE / 'vulkan_framebuffer_check.cpp', root / 'RovNativeVulkanFramebufferCheck.cpp')
     shutil.copy2(HERE / 'm2_batch_check.cpp', root / 'RovNativeM2BatchCheck.cpp')
@@ -609,6 +633,10 @@ add_executable(RovNativeLowPassCheck RovNativeLowPassCheck.cpp)
 target_link_libraries(RovNativeLowPassCheck PRIVATE fmodex)
 add_test(NAME rov_native_lowpass COMMAND RovNativeLowPassCheck)
 set_tests_properties(rov_native_lowpass PROPERTIES TIMEOUT 45)
+add_executable(RovNativePitchShiftCheck RovNativePitchShiftCheck.cpp)
+target_link_libraries(RovNativePitchShiftCheck PRIVATE fmodex)
+add_test(NAME rov_native_pitchshift COMMAND RovNativePitchShiftCheck)
+set_tests_properties(rov_native_pitchshift PROPERTIES TIMEOUT 45)
 add_executable(RovNativeVulkanMemoryCheck RovNativeVulkanMemoryCheck.cpp)
 target_include_directories(RovNativeVulkanMemoryCheck PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(RovNativeVulkanMemoryCheck PRIVATE volk)
@@ -630,7 +658,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
