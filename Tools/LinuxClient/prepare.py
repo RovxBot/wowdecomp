@@ -321,23 +321,12 @@ def prepare(destination, archive):
                 }
 #endif
                 size = size < sizeof(DSPFilter) ? sizeof(DSPFilter) : size;''')
-        start = text.index('FMOD_RESULT PluginFactory::createDSP(')
-        end = text.index('FMOD_RESULT PluginFactory::createOutput(', start)
-        section = text[start:end]
-        if section.count('FMOD_Memory_Free(newdsp);') != 2:
-            raise ValueError('Expected alloc/create DSP failure cleanup')
-        # LinkedListNode already supplies a virtual destructor in this graph.
-        # Keep raw pool ownership; do not pair placement-new with delete.
-        section = re.sub(r'(?m)^( +)FMOD_Memory_Free\(newdsp\);',
-                         r'\1newdsp->~DSPI();\n\1FMOD_Memory_Free(newdsp);', section)
-        return text[:start] + section + text[end:]
+        # This concrete type has no destructor-owned resources. The existing
+        # alloc/create failure frees and DSPFilter::release end its lifetime by
+        # releasing pool storage; preserve them, including release(false).
+        return text
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_pluginfactory.cpp',
          lambda t: lowpass_factory(alsa_factory(t)))
-    edit('Engine/Source/SoundEngine/fmodex/src/fmod_dspi.cpp', lambda t: replace(t,
-         '        FMOD_Memory_Free(this);', '''        // Release callbacks above still see the concrete DSP. End its lifetime
-        // only after successful cleanup, before returning storage to the pool.
-        this->~DSPI();
-        FMOD_Memory_Free(this);'''))
     edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();\n\n        FMOD_RESULT              release() override;'))

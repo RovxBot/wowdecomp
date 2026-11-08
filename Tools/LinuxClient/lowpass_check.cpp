@@ -1,5 +1,5 @@
 // Actual registered FMOD factory, lowpass callbacks and pool ownership.
-// Failure injection and destructor observation are confined to this executable.
+// Failure injection and release observation are confined to this executable.
 #include "fmod.hpp"
 #include "fmod_dsp_lowpass_simple.h"
 #include "fmod_memory.h"
@@ -21,7 +21,7 @@ static void check(bool value, int line) {
 }
 #define require(value) check((value), __LINE__)
 
-static int live = 0, destroyed = 0, released = 0, rejected = 0;
+static int live = 0, released = 0, rejected = 0;
 static bool failAllocation = false;
 static void* F_CALLBACK allocate(unsigned size, FMOD_MEMORY_TYPE) {
     if (failAllocation) { failAllocation = false; return nullptr; }
@@ -46,17 +46,14 @@ static void F_CALLBACK deallocate(void* pointer, FMOD_MEMORY_TYPE) {
     std::free(pointer);
 }
 
-// The production pool release must invoke the existing virtual destructor,
-// including on an object supplied through the factory's preconstructed route.
-struct ObservedLowPass : FMOD::DSPLowPassSimple {
-    ~ObservedLowPass() override { ++destroyed; }
-};
-static_assert(std::has_virtual_destructor<FMOD::DSPI>::value,
-              "Pool cleanup requires the existing virtual destructor");
+// Release/strict use FMOD's non-DEBUG class layouts. Trivial destruction lets
+// the existing raw pool frees end the concrete lifetime after explicit cleanup.
+static_assert(std::is_trivially_destructible<FMOD::DSPLowPassSimple>::value,
+              "Reaudit pool cleanup if the lowpass acquires destructor-owned resources");
 
 static FMOD_RESULT F_CALLBACK releaseCallback(FMOD_DSP_STATE* state) {
-    auto* dsp = dynamic_cast<ObservedLowPass*>(static_cast<FMOD::DSPI*>(state));
-    require(dsp && destroyed == 0);
+    auto* dsp = dynamic_cast<FMOD::DSPLowPassSimple*>(static_cast<FMOD::DSPI*>(state));
+    require(dsp && typeid(*dsp) == typeid(FMOD::DSPLowPassSimple));
     float value = 0;
     char text[32] = {};
     require(dsp->getParameter(0, &value, text, sizeof(text)) == FMOD_OK);
@@ -166,24 +163,22 @@ int main() {
         const auto error = mode == 0 ? FMOD_ERR_INVALID_PARAM :
                            mode == 1 ? FMOD_ERR_TOOMANYCHANNELS : FMOD_ERR_INTERNAL;
         require(factory->createDSP(&bad, &dsp) == error && !dsp && live == baseline);
-        destroyed = 0;
-        dsp = FMOD_Object_Calloc(ObservedLowPass);
+        dsp = FMOD_Object_Calloc(FMOD::DSPLowPassSimple);
         require(dsp);
         require(factory->createDSP(&bad, &dsp) == error);
-        require(destroyed == 1 && live == baseline);
+        require(live == baseline);
         dsp = nullptr; // The factory's existing preconstructed contract frees on error.
     }
     require(rejected == 2 && released == 0);
 
     auto observed = *desc;
     observed.release = releaseCallback;
-    destroyed = 0;
-    dsp = FMOD_Object_Calloc(ObservedLowPass);
+    dsp = FMOD_Object_Calloc(FMOD::DSPLowPassSimple);
     require(dsp && factory->createDSP(&observed, &dsp) == FMOD_OK);
-    require(dynamic_cast<ObservedLowPass*>(dsp)->startBuffering(64) == FMOD_OK);
-    require(dsp->release(false) == FMOD_OK && destroyed == 0 && released == 1);
-    require(typeid(*dsp) == typeid(ObservedLowPass) && live == baseline + 1);
-    require(dsp->release() == FMOD_OK && destroyed == 1 && released == 2 && live == baseline);
+    require(dynamic_cast<FMOD::DSPLowPassSimple*>(dsp)->startBuffering(64) == FMOD_OK);
+    require(dsp->release(false) == FMOD_OK && released == 1);
+    require(typeid(*dsp) == typeid(FMOD::DSPLowPassSimple) && live == baseline + 1);
+    require(dsp->release() == FMOD_OK && released == 2 && live == baseline);
 
     // Generic filter/head units must keep their original base construction.
     FMOD::FMOD_DSP_DESCRIPTION_EX generic = {};
@@ -195,5 +190,5 @@ int main() {
     require(dsp->release() == FMOD_OK && live == baseline);
     require(system->release() == FMOD_OK && live == 0);
     require(FMOD_Memory_Initialize(nullptr, 0, nullptr, nullptr, nullptr) == FMOD_OK);
-    std::puts("native-lowpass=passed: registered factory/type, original RC filtering/reset/parameters, history cleanup, allocation/alloc/create failures, virtual destruction and nonfree release");
+    std::puts("native-lowpass=passed: registered factory/type, original RC filtering/reset/parameters, history cleanup, allocation/alloc/create failures, trivial lifetime and nonfree release");
 }
