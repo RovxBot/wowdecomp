@@ -120,7 +120,9 @@ static void delayProcessing(FMOD::DSPI* dsp, int rate, int channels, float delay
     for (int i = 0; i < frames; ++i) {
         for (int ch = 0; ch < channels; ++ch) {
             const int offset = i * channels + ch;
-            input[offset] = ch == 1 ? 0 : float(0.125 * std::sin(i * 0.1) / (ch + 1));
+            // Dyadic samples keep the pre-quantization arithmetic exact in the
+            // independent reference, including feedback, at -O1 and -O3.
+            input[offset] = ch == 1 ? 0 : float((i * 37) % 257 - 128) / (32768.0f * (1 << ch));
             float value = input[offset] * 0.25f * 32768.0f;
             const float wet = history[((i + ring / 2) % ring) * channels + ch];
             for (int t = 1; t <= 3; ++t)
@@ -135,8 +137,12 @@ static void delayProcessing(FMOD::DSPI* dsp, int rate, int channels, float delay
         require(dsp->mDescription.read(dsp, input.data() + i * channels,
                 output.data() + i * channels, count, channels, channels) == FMOD_OK);
     }
-    for (std::size_t i = 0; i < output.size(); ++i)
+    for (std::size_t i = 0; i < output.size(); ++i) {
+        if (!std::isfinite(output[i]) || std::fabs(output[i] - expected[i]) >= 0.000002f)
+            std::fprintf(stderr, "delay mismatch: rate=%d channels=%d delay=%g tap=%d feedback=%g sample=%zu actual=%.9g expected=%.9g\n",
+                         rate, channels, delay, tap, feedback, i, output[i], expected[i]);
         require(std::isfinite(output[i]) && std::fabs(output[i] - expected[i]) < 0.000002f);
+    }
     // In-place processing preserves the dry-only original gain.
     require(dsp->setParameter(0, 1) == FMOD_OK);
     for (int i = 1; i <= 3; ++i) require(dsp->setParameter(i, 0) == FMOD_OK);
