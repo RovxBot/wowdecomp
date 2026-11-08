@@ -75,6 +75,10 @@ and source inspection are different evidence levels.
   callback-owned delay buffer before the factory frees object storage. Original
   modulation, dry/wet taps, feedback, parameter handling and release remain intact;
   lifecycle and strict-startup acceptance continue in [#200](https://github.com/RovxBot/wowdecomp/issues/200).
+  The Echo FILTER factory likewise constructs its concrete owner with a minimum
+  concrete extent. Failed default-parameter creation releases its callback-owned
+  float delay buffer before freeing object storage; original delay/decay/mixing,
+  parameter, channel-limit and release behavior are retained under #200.
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
