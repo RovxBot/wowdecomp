@@ -2385,7 +2385,7 @@ FMOD_RESULT DSPI::reset()
 	[SEE_ALSO]
 ]
 */
-// VERIFY: 62f9d92b auto
+// Native correction (#202): parameter indices are strictly below the count.
 // OFFSET: 0x008DBA50
 FMOD_RESULT DSPI::setParameter(int index, float value)
 {
@@ -2398,7 +2398,7 @@ FMOD_RESULT DSPI::setParameter(int index, float value)
         return FMOD_ERR_UNSUPPORTED;
     }
 
-    if (index < 0 || index > mDescription.numparameters)
+    if (index < 0 || index >= mDescription.numparameters)
     {
         return FMOD_ERR_INVALID_PARAM;
     }
@@ -2452,7 +2452,7 @@ FMOD_RESULT DSPI::setParameter(int index, float value)
 	[SEE_ALSO]
 ]
 */
-// VERIFY: e332c590 auto
+// Native correction (#202): reject invalid indices before callback dispatch.
 // OFFSET: 0x008DBAD0
 FMOD_RESULT DSPI::getParameter(int index, float *value, char *valuestr, int valuestrlen)
 {
@@ -2467,7 +2467,7 @@ FMOD_RESULT DSPI::getParameter(int index, float *value, char *valuestr, int valu
         return FMOD_ERR_UNSUPPORTED;
     }
 
-    if (index < 0 || index > mDescription.numparameters)
+    if (index < 0 || index >= mDescription.numparameters)
     {
         return FMOD_ERR_INVALID_PARAM;
     }

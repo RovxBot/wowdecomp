@@ -437,6 +437,13 @@ def prepare(destination, archive):
                            '            releaseInternal();\n            return result;')
         return text[:start] + creation + text[end:]
     edit('Engine/Source/SoundEngine/fmodex/src/fmod_dsp_echo.cpp', echo_creation)
+    # #202: share the product's half-open parameter bounds in the pinned graph.
+    def parameter_bounds(text):
+        before = 'index < 0 || index > mDescription.numparameters'
+        if text.count(before) != 2:
+            raise ValueError('Expected the shared setter/getter parameter guards')
+        return text.replace(before, 'index < 0 || index >= mDescription.numparameters')
+    edit('Engine/Source/SoundEngine/fmodex/src/fmod_dspi.cpp', parameter_bounds)
     edit('Engine/Source/SoundEngine/fmodex/linux/src/fmod_output_alsa.h', lambda t: replace(t,
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();',
          '        static FMOD_OUTPUT_DESCRIPTION_EX *getDescriptionEx();\n\n        FMOD_RESULT              release() override;'))
@@ -671,6 +678,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'pitchshift_check.cpp', root / 'RovNativePitchShiftCheck.cpp')
     shutil.copy2(HERE / 'chorus_check.cpp', root / 'RovNativeChorusCheck.cpp')
     shutil.copy2(HERE / 'echo_check.cpp', root / 'RovNativeEchoCheck.cpp')
+    shutil.copy2(HERE / 'parameter_check.cpp', root / 'RovNativeParameterCheck.cpp')
     shutil.copy2(HERE / 'inline_filters_check.cpp', root / 'RovNativeInlineFiltersCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
     shutil.copy2(HERE / 'vulkan_framebuffer_check.cpp', root / 'RovNativeVulkanFramebufferCheck.cpp')
@@ -735,6 +743,10 @@ add_executable(RovNativeEchoCheck RovNativeEchoCheck.cpp)
 target_link_libraries(RovNativeEchoCheck PRIVATE fmodex)
 add_test(NAME rov_native_echo COMMAND RovNativeEchoCheck)
 set_tests_properties(rov_native_echo PROPERTIES TIMEOUT 45)
+add_executable(RovNativeParameterCheck RovNativeParameterCheck.cpp)
+target_link_libraries(RovNativeParameterCheck PRIVATE fmodex)
+add_test(NAME rov_native_parameters COMMAND RovNativeParameterCheck)
+set_tests_properties(rov_native_parameters PROPERTIES TIMEOUT 45)
 add_executable(RovNativeInlineFiltersCheck RovNativeInlineFiltersCheck.cpp)
 target_link_libraries(RovNativeInlineFiltersCheck PRIVATE fmodex)
 foreach(filter lowpass_full itlowpass highpass parameq)
@@ -762,7 +774,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeParameterCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 
