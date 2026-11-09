@@ -617,6 +617,28 @@ static bool resourceFile(const char* path) {
     if (!loaded) std::fprintf(stderr, "native-resource-load-failed: %s: %s\n", path,
                               status.GetErrorStr(errors, sizeof(errors), STATUS_WARNING, "\n"));
     else std::printf("native-resource-loaded: %s\n", path);
+    // Inspect the real registry after production traversal, including a partial
+    // file failure. Reuse the engine XML tree solely to enumerate supplied
+    // names; this does not construct resources or continue later scripts.
+    std::ifstream input(path, std::ios::binary);
+    std::string xml((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    XMLTree* tree = xml.size() < 1024 * 1024 ? XMLTree_Load(xml.data(), static_cast<uint32_t>(xml.size())) : nullptr;
+    if (tree) {
+        for (XMLNode* node = XMLTree_GetRoot(tree)->m_child; node; node = node->m_next) {
+            if (std::strcmp(node->m_name.m_str, "FontFamily")) continue;
+            const char* name = node->GetAttributeByName("name");
+            CSimpleFont* font = name ? CSimpleFont::GetFont(name, 0) : nullptr;
+            if (!font) continue;
+            lua_State* L = FrameScript_GetContext();
+            lua_rawgeti(L, LUA_REGISTRYINDEX, font->GetLuaObjectRef());
+            lua_rawgeti(L, -1, 0);
+            require(lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == font);
+            lua_pop(L, 2);
+            std::printf("native-font-observed: %s type=%s file=%s height=%g\n", name, font->GetObjectTypeName(),
+                        font->m_attributes.m_font.m_str, font->m_attributes.m_fontHeight);
+        }
+        XMLTree_Free(tree);
+    }
     return loaded;
 }
 
