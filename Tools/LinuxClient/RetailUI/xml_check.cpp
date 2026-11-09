@@ -138,13 +138,21 @@ static void fixture(lua_State* L) {
     lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
-static void reference(lua_State* L, const char* path) {
+static bool loadReference(lua_State* L, const char* path) {
     std::ifstream input(path, std::ios::binary);
     require(input.good());
     std::string source((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
     require(source.size() < 1024 * 1024);
-    require(luaL_loadbuffer(L, source.data(), source.size(), "@local-Forever-reference") == 0);
-    require(lua_pcall(L, 0, 0, 0) == 0);
+    if (luaL_loadbuffer(L, source.data(), source.size(), "@local-Forever-reference") || lua_pcall(L, 0, 0, 0)) {
+        std::fprintf(stderr, "reference-load-failed: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return false;
+    }
+    return true;
+}
+
+static void reference(lua_State* L, const char* path) {
+    require(loadReference(L, path));
     // These are table-only markers, not reconstructed gameplay frames. Verify
     // the genuine Camelot mixin's ordering through the production XML binder.
     run(L, "MainActionBar = {}; MicroMenu = {}; BagsBar = {}; OverrideActionBar = {}; MultiBarBottomLeft = {}; MicroMenuContainer = {}; target = {[0] = 'native-identity'}");
@@ -172,17 +180,20 @@ static void reference(lua_State* L, const char* path) {
 }
 
 int main(int argc, char** argv) {
-    require(argc == 1 || (argc == 3 && !std::strcmp(argv[1], "--reference")));
+    require(argc == 1 || (argc == 3 && (!std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--load"))));
     StormRtlInitialize();
     OsTimeManagerCreate(OsTimeManager::BestAvailable);
     for (int profile : {0, 1}) {
         require(FrameScript_Initialize(profile));
         lua_State* L = FrameScript_GetContext();
         fixture(L);
-        if (argc == 3) reference(L, argv[2]);
+        const bool loadOnly = argc == 3 && !std::strcmp(argv[1], "--load");
+        const bool loaded = !loadOnly || loadReference(L, argv[2]);
+        if (argc == 3 && !loadOnly) reference(L, argv[2]);
         require(lua_gettop(L) == 0);
         FrameScript_Destroy();
         XMLTree_Cleanup();
+        if (!loaded) { CStringManager::DestroyManager(); return 1; }
     }
     CStringManager::DestroyManager();
     std::puts("retail-xml-v1=passed: opt-in, atomic mixins, methods, inheritance, errors, owner/taint, GC; both VM profiles");
