@@ -27,7 +27,18 @@
 #include <cmath>
 #include <filesystem>
 
-static void run(lua_State* L, const char* code);
+static void check(bool ok, int line) {
+    if (!ok) { std::fprintf(stderr, "retail XML check failed at %d\n", line); std::abort(); }
+}
+#define require(x) check(bool(x), __LINE__)
+
+static void run(lua_State* L, const char* code) {
+    if (luaL_loadstring(L, code) || lua_pcall(L, 0, 0, 0)) {
+        std::fprintf(stderr, "Lua: %s\n", lua_tostring(L, -1));
+        std::abort();
+    }
+}
+
 static void constantsFixture(lua_State* L) {
     lua_pushcfunction(L, RovRetailUI::RegisterConstants);
     lua_setglobal(L, "checkNativeConstants");
@@ -50,19 +61,23 @@ static void constantsFixture(lua_State* L) {
         assert(not pcall(checkNativeConstants)); Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE = -1;
         checkNativeConstants(); checkNativeConstants = nil;
     )lua");
-}
-
-static void check(bool ok, int line) {
-    if (!ok) { std::fprintf(stderr, "retail XML check failed at %d\n", line); std::abort(); }
-}
-#define require(x) check(bool(x), __LINE__)
-
-static void run(lua_State* L, const char* code) {
-    if (luaL_loadstring(L, code) || lua_pcall(L, 0, 0, 0)) {
-        std::fprintf(stderr, "Lua: %s\n", lua_tostring(L, -1));
-        std::abort();
+    // Fresh VMs must reject pre-existing namespaces before publishing either
+    // root, including when a conflicting table has the exact expected fields.
+    for (const char* root : {"Enum", "Constants"}) {
+        lua_State* fresh = luaL_newstate();
+        require(fresh);
+        lua_newtable(fresh); lua_setglobal(fresh, root);
+        lua_pushcfunction(fresh, RovRetailUI::RegisterConstants);
+        require(lua_pcall(fresh, 0, 0, 0) != 0); lua_pop(fresh, 1);
+        lua_getglobal(fresh, !std::strcmp(root, "Enum") ? "Constants" : "Enum");
+        require(lua_isnil(fresh, -1)); lua_pop(fresh, 1);
+        lua_pushnil(fresh); lua_setglobal(fresh, root);
+        lua_pushcfunction(fresh, RovRetailUI::RegisterConstants);
+        require(lua_pcall(fresh, 0, 0, 0) == 0);
+        lua_close(fresh);
     }
 }
+
 
 static bool bind(lua_State* L, int object, FrameScript_Object::ScriptIx& handler,
                  const char* method, const char* inherit = nullptr,
@@ -623,6 +638,12 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     run(L, "assert(ResourceBase == retainedFont)");
     process("<FontFamily name='ResourceChild'><Member alphabet='roman'><Font inherits='ResourceBase'/></Member></FontFamily>", true);
     require(CSimpleFont::GetFont("ResourceChild", 0)->m_fontObject == base);
+    std::string replacement = family;
+    replacement.replace(replacement.find("height='12'"), std::strlen("height='12'"), "height='18'");
+    process(replacement, true);
+    require(std::fabs(base->m_attributes.m_fontHeight - NDCToDDCWidth(18.0f / 1024)) < 0.000001f);
+    require(CSimpleFont::GetFont("ResourceChild", 0)->m_attributes.m_fontHeight == base->m_attributes.m_fontHeight);
+    run(L, "assert(ResourceBase == retainedFont)");
     // Invalid selected resources cannot publish names or replace valid fonts.
     const auto before = base->m_attributes.m_fontHeight;
     for (const std::string& bad : {
@@ -665,7 +686,7 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
 int main(int argc, char** argv) {
     const bool resourceSequence = argc >= 5 && !std::strcmp(argv[1], "--resource-sequence");
     require(resourceSequence || argc == 1 || (argc >= 3 && (!std::strcmp(argv[1], "--sequence") ||
-        (argc == 3 && (!std::strcmp(argv[1], "--resources") || !std::strcmp(argv[1], "--constants") || !std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--script-errors") || !std::strcmp(argv[1], "--load"))))));
+        (argc == 3 && (!std::strcmp(argv[1], "--texture") || !std::strcmp(argv[1], "--resources") || !std::strcmp(argv[1], "--constants") || !std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--script-errors") || !std::strcmp(argv[1], "--load"))))));
     StormRtlInitialize();
     OsTimeManagerCreate(OsTimeManager::BestAvailable);
     for (int profile : {0, 1}) {
@@ -711,6 +732,19 @@ int main(int argc, char** argv) {
                         end
                     end
                     APIDocumentation = nil;
+                )lua");
+            }
+            else if (!std::strcmp(argv[1], "--texture")) {
+                const std::string path = std::string(argv[2]) + "/Interface/AddOns/Blizzard_SharedXMLBase/TextureUtil.lua";
+                loaded = loadReference(L, path.c_str());
+                if (loaded) run(L, R"lua(
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Tank) == GetIconForRole('TANK'));
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Healer) == GetIconForRole('HEALER'));
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Damage, true) == GetIconForRole('DAMAGER', true));
+                    assert(GetIconForRoleEnum(Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE) == GetIconForRole('GUIDE'));
+                    assert(TextureUtil.GetSmallIconForRoleEnum(Enum.LFGRole.Tank) == TextureUtil.GetSmallIconForRole('TANK'));
+                    local ok, err = pcall(GetIconForRole, 'invalid');
+                    assert(not ok and string.find(err, 'Unknown role: invalid', 1, true));
                 )lua");
             }
             else if (!std::strcmp(argv[1], "--load")) loaded = loadReference(L, argv[2]);

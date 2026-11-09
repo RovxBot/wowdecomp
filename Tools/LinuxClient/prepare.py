@@ -708,6 +708,14 @@ void VkContext::ChooseHeaps() {''')
                 if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) break;
             } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
     edit('Engine/Source/FrameXML/FrameXML.cpp', retail_resources)
+    # Resource staging compares optional shadow fields before deciding whether
+    # to update them. Initialize the original attribute owner's scalar storage.
+    edit('Engine/Source/Frame/CSimpleFontStringAttributes.cpp', lambda text:
+         replace(text, '    this->m_flags = 0;', '''    this->m_flags = 0;
+    this->m_shadowColor.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    this->m_shadowOffset.x = 0.0f;
+    this->m_shadowOffset.y = 0.0f;'''))
+
     lua_dir = root / 'Engine/Source/FrameScript/RetailUI'
     lua_dir.mkdir()
     for name in ['LuaCompat.h', 'LuaCompat.cpp']:

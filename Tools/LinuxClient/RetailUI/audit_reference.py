@@ -172,7 +172,7 @@ def main():
     parser.add_argument('--report', type=Path, help='write metadata-only graph outside the repository')
     parser.add_argument('--binary', type=Path, help='hash-verified hosted RovRetailXMLCheck')
     parser.add_argument('--binary-sha256', help='expected hosted executable hash')
-    parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap', 'constants', 'resources', 'resource-bootstrap'], default='reference',
+    parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap', 'constants', 'texture', 'resources', 'resource-bootstrap'], default='reference',
                         help='reference fixture, independent genuine helpers, or ordered declared prerequisite loads')
     parser.add_argument('--assets', type=Path, help='separate external font root for resource execution')
     parser.add_argument('--locale', default='enUS', help='resource harness locale; no implicit fallback')
@@ -200,8 +200,8 @@ def main():
             command += ['--reference', str(script.resolve())]
         elif args.mode == 'helpers':
             command += ['--helpers', str(args.source.resolve())]
-        elif args.mode == 'constants':
-            command += ['--constants', str(args.source.resolve())]
+        elif args.mode in ['constants', 'texture']:
+            command += ['--' + args.mode, str(args.source.resolve())]
         elif args.mode in ['resources', 'resource-bootstrap']:
             if not args.assets or not args.assets.is_dir():
                 parser.error('resource execution requires a separate --assets directory')
