@@ -651,7 +651,9 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
         "<Member alphabet='roman'><Font inherits='MissingFont'/></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild'/></Member>",
         "<Member alphabet='roman'><Font font='missing.ttf' height='nan'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild' height='12'/></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild' slug='true'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild'><Shadow x='1' y='-1'/></Font></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild'><Unknown/></Font></Member>",
         "<Member alphabet='unknown'><Font inherits='ResourceChild'/></Member>"}) {
         process("<FontFamily name='ResourceBase'>" + bad + "</FontFamily>", false);
@@ -667,6 +669,9 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     SFile::s_locale = 0x656e5553;
     run(L, "ForeignResource = {};");
     process("<FontFamily name='ForeignResource'>" + member + "</FontFamily>", false);
+    run(L, "retainedIdentity = ResourceBase[0]; ResourceBase[0] = nil");
+    process(family, false);
+    run(L, "ResourceBase[0] = retainedIdentity; retainedIdentity = nil");
     process("<FontFamily", false);
     unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
     XMLNode disabled(nullptr, "FontFamily"); CStatus disabledStatus;

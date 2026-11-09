@@ -741,6 +741,8 @@ void VkContext::ChooseHeaps() {''')
     retail_added.append('RovRetailXMLCheck.cpp')
     shutil.copy2(HERE.parent / 'NativeGx/fonts/moves.ttf', root / 'RovResourceFixture.ttf')
     retail_added.append('RovResourceFixture.ttf')
+    shutil.copy2(HERE.parent / 'NativeGx/fonts/LICENSE.txt', root / 'RovResourceFixture.LICENSE.txt')
+    retail_added.append('RovResourceFixture.LICENSE.txt')
 
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')

@@ -92,6 +92,9 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
     const char* inherits = selected->GetAttributeByName("inherits");
     if ((!file || !*file) && (!inherits || !*inherits)) return fail("font file or inheritance required");
     if (file && (!*file || std::strlen(file) > 255 || !number(height, 0.01, 256))) return fail("invalid font path or height");
+    if (!file && (height || selected->GetAttributeByName("outline") || selected->GetAttributeByName("monochrome")))
+        return fail("inherited height/outline overrides require a selected font file");
+    if (file && CSimpleFont::GetFont(file, 0)) return fail("font path conflicts with a named font; explicit inheritance required");
     if (const char* outline = selected->GetAttributeByName("outline"))
         if (std::strcmp(outline, "NONE") && std::strcmp(outline, "NORMAL") && std::strcmp(outline, "THICK")) return fail("unsupported outline");
     if (const char* mono = selected->GetAttributeByName("monochrome"))
@@ -104,7 +107,10 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
     bool owned = lua_isnil(L, -1) && !existing;
     if (existing) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, existing->GetLuaObjectRef());
-        owned = lua_rawequal(L, -1, -2); lua_pop(L, 1);
+        owned = lua_rawequal(L, -1, -2);
+        lua_rawgeti(L, -1, 0);
+        owned = owned && lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == existing;
+        lua_pop(L, 2);
     }
     lua_pop(L, 1);
     if (!owned) return fail("global resource name belongs to another object");
@@ -132,6 +138,7 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
                          number(item->GetAttributeByName("x"), -256, 256) && number(item->GetAttributeByName("y"), -256, 256)) offset = true;
                 else return fail("unsupported Shadow child");
             }
+            if (!tint) return fail("Shadow requires an explicit Color in this subset");
         } else return fail("unsupported selected Font child");
     }
     // Normalize documented scalar syntax into the real 12340 loader, preserving
