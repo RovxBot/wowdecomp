@@ -190,7 +190,7 @@ XML files remain construction barriers; the probe never skips their controls,
 resources, Include/Script order or implicit template providers to run later Lua.
 The full declared sequence reaches Fonts_Shared/Mainline/Fonts.xml after genuine
 ProjectConstants, Camelot/ProjectConstants and LoadLocale. It then requires an
-initialized client/resource loader, including modern FontFamily support. This
+initialized client/resource loader, including selected modern resource support. This
 probe limitation is separate from a demonstrated integrated-engine runtime stop.
 The ordered SharedXMLBase prerequisite begins with ScriptErrors, whose actual
 CreateFromMixins/Init previously reached missing native CreateSecureDelegate.
@@ -202,6 +202,97 @@ require backed secure calls, forbidden
 frames and secure containers. Independent file diagnostics must not be reported
 as successful full Edit Mode bootstrap.
 The focused native security follow-up is [#217](https://github.com/RovxBot/wowdecomp/issues/217).
+
+## Selected enum and native font resources
+
+The versioned full Linux FrameScript registration supplies only the reached
+70862 `Enum.LFGRole` (Tank=0, Healer=1, Damage=2), its documented metadata
+(NumValues=3, MinValue=0, MaxValue=2), and
+`Constants.LFG_ROLEConstants` (LFG_ROLE_NO_ROLE=-1, LFG_ROLE_ANY=3).
+The exact [LFGConstantsDocumentation](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_APIDocumentationGenerated/LFGConstantsDocumentation.lua)
+and font XML hashes are in the reference lock. Registration owns ordinary Lua
+tables through each VM's registry; it rejects foreign roots/tables, metatables,
+changed membership, numeric strings and conflicting values on re-registration.
+Normal absent-key lookup still returns nil. No metatable invents values. VM close
+retires the ownership roots. Disabled/wrong-version VMs keep original globals.
+
+These role numbers select presentation names in genuine TextureUtil. Original
+12340 GetLFGRoles/SetLFGRoles use leader/tank/healer/damage bits 1/2/4/8;
+those APIs, packets and server functionality are unchanged. No modern LFG service
+is inferred from the presence of constants.
+
+The production `FrameXML_ProcessFile` now admits a bounded `FontFamily` subset
+under the same opt-in. It selects exactly one `Member alphabet` from the existing
+SFile locale: roman for enUS/enGB/frFR/deDE/esES/esMX, korean for koKR,
+simplifiedchinese for zhCN, traditionalchinese for zhTW, russian for ruRU.
+Missing/unknown/duplicate alphabets and unsupported locales fail without an
+inferred fallback. Only the selected member's font file is required. The pinned FontDocumentation declares a family result as `SimpleFont`; UI.xsd
+defines Member/Font structure, and SimpleFontAPI separately declares
+GetFontObjectForAlphabet. This subset constructs only the selected alphabet;
+that newer accessor and multialphabet behavior remain unsupported. A family
+registers an actual named `CSimpleFont` through the original font factory,
+including when marked virtual, consistent with original named font resources.
+
+Selected Font supports file plus numeric `height`, inherited named fonts,
+outline NONE/NORMAL/THICK, monochrome, spacing, Color, and Shadow with an
+explicit Color and either x/y attributes or an Offset child. Inheritance-only
+height/outline/monochrome overrides are rejected; these need an explicit font file. The helper validates the schema, inheritance,
+finite scalar bounds and global ownership before using the existing XML font
+loader, Services/TextBlock, Gxu and FreeType file construction. Height and shadow
+syntax are explicitly translated to the original scalar nodes; other tags and
+flags are not aliases. Staging validates required files before publication or
+replacement. Existing font identities and original inheritance/consumer updates
+remain authoritative; destroying the font registry invalidates Lua slot zero and
+removes globals before its metatable and VM close. Optional shadow storage is
+initialized before comparisons.
+
+Unsupported selected attributes, notably `slug`, fail explicitly. The pinned
+Fonts_Shared/Mainline/Fonts.xml requests slug rendering after its initial six
+families. A new rendering mode is outside this resource subset; route required
+GPU work to #133/#134. Multialphabet shaping/fallback, new glyph/rendering formats,
+FileDataID/atlas resolution, intrinsic definitions and complete modern widget
+construction remain unqualified. Original signed MPQ/Glue traversal and addon
+loading keep their existing path; compatibility does not mount external sources.
+
+`RovRetailXMLCheck --resources /absolute/authored-font.ttf` initializes the real
+font metatable, CPU resource dimensions, SFile direct reads and FreeType, then
+exercises the production FrameXML file traversal, font identities, inheritance,
+replacement, invalid inputs and repeated resource/VM lifetimes. This headless
+harness does not initialize a gameplay root, GPU, input, transport or server. Its
+native font objects replace earlier table markers only for font resources; the
+independent Camelot utility fixture still uses table-only frame markers.
+`--resource-sequence ASSET_ROOT LOCALE FILE...` follows supplied Lua/XML files
+in order and stops on the first failure. The harness alone sets direct file
+access/current directory; the application retains its original data policy.
+
+For unchanged genuine inputs, use the hash-verifying audit wrapper:
+
+```sh
+python3 -B Tools/LinuxClient/RetailUI/audit_reference.py "$SOURCE" \
+  --binary "$PROBE" --binary-sha256 "$PROBE_SHA256" --mode constants
+# Also --mode texture, helpers, script-errors, base-bootstrap and bootstrap.
+python3 -B Tools/LinuxClient/RetailUI/audit_reference.py "$SOURCE" \
+  --binary "$PROBE" --binary-sha256 "$PROBE_SHA256" \
+  --mode resource-bootstrap --assets "$EXTERNAL_FONT_ROOT" --locale enUS
+```
+
+Use `--mode resources` for the standalone genuine Fonts.xml sequence. Keep both
+source and font roots external; no exported source/font enters Git or artifacts.
+[#215](https://github.com/RovxBot/wowdecomp/issues/215) / [PR #219](https://github.com/RovxBot/wowdecomp/pull/219)
+track qualification, actual ordered stops and unresolved resource admission.
+
+The first gameplay adapter remains **12340 MultiBarBottomLeft**, the existing
+HorizontalMultiBar1 instance in original MultiActionBars.xml. Preserve its twelve
+original action buttons, ActionButton_OnLoad, bindings, tooltips, cooldowns and
+MultiActionBar_Update visibility. It avoids starting with the broader
+MainMenuBar/vehicle/possession hierarchy. Before attaching the genuine
+EditModeActionBarSystemTemplate, qualify its inherited EditModeSystemTemplate,
+real Selection children/providers and atlases/fonts, then manager registration,
+managed-frame anchoring/scaling and snapped-frame behavior. Supply backed local,
+versioned layout storage and events before exposing C_EditMode save APIs. Capture
+the original anchors as the Classic restore point, preserve protected-frame
+admission, and qualify save/restart/restore/cancel/reset and combat restrictions
+with the operator. No actual bar movement follows from font construction alone.
 
 ## Bounded secure delegate prerequisite
 

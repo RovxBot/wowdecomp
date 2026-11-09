@@ -15,7 +15,10 @@
     "provider_files": 69,
     "resource_evidence": {
       "Interface/AddOns/Blizzard_APIDocumentationGenerated/LFGConstantsDocumentation.lua": "aa13ba0facf9b354b8478c4db891134c106e91ec458f99d9ecad7a869c066d87",
-      "Interface/AddOns/Blizzard_Fonts_Shared/Mainline/Fonts.xml": "e71545cc3614ac34d82717df2d2d5eed4b5413a8c9e9475a1cf63a630ba89a60"
+      "Interface/AddOns/Blizzard_Fonts_Shared/Mainline/Fonts.xml": "e71545cc3614ac34d82717df2d2d5eed4b5413a8c9e9475a1cf63a630ba89a60",
+      "Interface/AddOns/Blizzard_SharedXML/UI.xsd": "0ebd19fb5ba3c53029afa5158ca0d88446b68f2c0a72c755cba7356e1522ae5b",
+      "Interface/AddOns/Blizzard_APIDocumentationGenerated/FontDocumentation.lua": "346d98e9a536daf10dc9d16440db58ede4d84afe314c13572ea99ea4c71fda4b",
+      "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontAPIDocumentation.lua": "8d1fa0dfe1fe7f114eacfeca960f922300312a09b2d559c04e1af41ea181deed"
     }
   },
   "retail": {
