@@ -159,6 +159,16 @@ def prepare(destination, archive):
                             '// Truthful Linux identity; never claim Windows executable integrity.')
     edit('Engine/Source/Os/Linux/System.cpp', platform)
 
+    # #206: WORKER is a runtime owner, not a wire structure. POSIX events,
+    # pthread locks and native pointers require their natural member alignment.
+    # Keep the original packed Windows comparison layout and every other struct.
+    def worker_alignment(text):
+        text = replace(text, '#pragma pack(push, 1)',
+                       '#if defined(_WIN32)\n#pragma pack(push, 1)\n#endif')
+        return replace(text, '#pragma pack(pop)',
+                       '#if defined(_WIN32)\n#pragma pack(pop)\n#endif')
+    edit('WoW/Source/WowServices/WowConnectionNet.h', worker_alignment)
+
     def warden(text):
         return function(text, 'static int32_t ReceiveWardenData(', '''    std::fprintf(stderr, "Native Warden request is unsupported; disconnecting\\n");
     ClientServices::Connection()->Disconnect();
@@ -678,6 +688,7 @@ void VkContext::ChooseHeaps() {''')
     shutil.copy2(HERE / 'pitchshift_check.cpp', root / 'RovNativePitchShiftCheck.cpp')
     shutil.copy2(HERE / 'chorus_check.cpp', root / 'RovNativeChorusCheck.cpp')
     shutil.copy2(HERE / 'echo_check.cpp', root / 'RovNativeEchoCheck.cpp')
+    shutil.copy2(HERE / 'worker_check.cpp', root / 'RovNativeWorkerCheck.cpp')
     shutil.copy2(HERE / 'parameter_check.cpp', root / 'RovNativeParameterCheck.cpp')
     shutil.copy2(HERE / 'inline_filters_check.cpp', root / 'RovNativeInlineFiltersCheck.cpp')
     shutil.copy2(HERE / 'vulkan_memory_check.cpp', root / 'RovNativeVulkanMemoryCheck.cpp')
@@ -743,6 +754,20 @@ add_executable(RovNativeEchoCheck RovNativeEchoCheck.cpp)
 target_link_libraries(RovNativeEchoCheck PRIVATE fmodex)
 add_test(NAME rov_native_echo COMMAND RovNativeEchoCheck)
 set_tests_properties(rov_native_echo PROPERTIES TIMEOUT 45)
+# Reuse actual full-client libraries and common sources; the fixture supplies
+# main without running Client startup. No replacement transport or Storm owner.
+file(GLOB worker_client_sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/WoW/Source/*.cpp")
+add_executable(RovNativeWorkerCheck RovNativeWorkerCheck.cpp ${worker_client_sources}
+    WoW/Source/Linux/BotCheck.cpp Engine/Source/Perf/PerfLog.cpp)
+get_target_property(worker_client_libraries WowClient LINK_LIBRARIES)
+target_link_libraries(RovNativeWorkerCheck PRIVATE ${worker_client_libraries})
+target_include_directories(RovNativeWorkerCheck PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_options(RovNativeWorkerCheck PRIVATE
+    -Wl,--wrap=_Z11SSyncCreate9SSYNCTYPEiii -Wl,--wrap=pthread_create
+    -Wl,--wrap=pthread_mutex_init -Wl,--wrap=pthread_mutex_destroy
+    -Wl,--wrap=pipe2 -Wl,--wrap=poll)
+add_test(NAME rov_native_network_worker COMMAND RovNativeWorkerCheck)
+set_tests_properties(rov_native_network_worker PROPERTIES TIMEOUT 45)
 add_executable(RovNativeParameterCheck RovNativeParameterCheck.cpp)
 target_link_libraries(RovNativeParameterCheck PRIVATE fmodex)
 add_test(NAME rov_native_parameters COMMAND RovNativeParameterCheck)
@@ -774,7 +799,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
 '''
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
-                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeParameterCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+                 added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeParameterCheck.cpp', 'RovNativeWorkerCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 

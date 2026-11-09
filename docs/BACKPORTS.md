@@ -87,6 +87,10 @@ and source inspection are different evidence levels.
   Shared DSPI setter/getter indices must be below the registered parameter count,
   matching getParameterInfo; valid clamping, callbacks and nullable output copying
   remain unchanged. Product and pinned full-Linux acceptance: [#202](https://github.com/RovxBot/wowdecomp/issues/202).
+  The full-Linux network WORKER uses natural member/array alignment for its
+  pointer, thread, event and pthread lock owners; only its Windows comparison
+  branch retains legacy packing. Construction, network dispatch and teardown
+  bodies remain unchanged. Layout/lifetime acceptance: [#206](https://github.com/RovxBot/wowdecomp/issues/206).
   Do not suppress vptr, shift, alignment or allocation-family detectors.
 - Direct Vulkan memory selection excludes AMD device-coherent types because
   that device feature is not enabled; preferred and image/generic fallbacks
