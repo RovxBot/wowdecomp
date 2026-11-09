@@ -674,6 +674,34 @@ void VkContext::ChooseHeaps() {''')
     if len(seed_statements) != 1:
         raise ValueError('Expected exactly one M2 cache seed initialization')
     (root / 'RovNativeM2CacheSeed.inc').write_text(seed_statements[0])
+    # Opt-in modern XML composition, selected only by this full-client graph.
+    # Keep the legacy script path byte-for-byte when no modern attributes occur.
+    def retail_xml(text):
+        text = '#include "Engine/Source/Frame/RetailUI/XMLCompat.h"\n' + text
+        text = replace(text, '    CScriptRegion::LoadXML(node, status);', '''    if (const char* mixins = node->GetAttributeByName("mixin")) {
+        if (!RovRetailUI::ApplyMixins(FrameScript_GetContext(), this->GetLuaObjectRef(), mixins, status)) return;
+    }
+
+    CScriptRegion::LoadXML(node, status);''')
+        start = text.index('        if (script->m_luaRef) {', text.index('void CSimpleFrame::LoadXML_Scripts('))
+        end = text.index('        script->m_tainted = nullptr;', start) + len('        script->m_tainted = nullptr;')
+        legacy = text[start:end]
+        modern = '''        if (RovRetailUI::HasScriptAttributes(child)) {
+            if (!RovRetailUI::LoadScript(L, this->GetLuaObjectRef(), child, *script, data, status)) continue;
+        } else {
+'''
+        return text[:start] + modern + '\n'.join('    ' + line if line else '' for line in legacy.splitlines()) + '\n        }' + text[end:]
+    edit('Engine/Source/Frame/CSimpleFrame.cpp', retail_xml)
+    retail_dir = root / 'Engine/Source/Frame/RetailUI'
+    retail_dir.mkdir()
+    retail_added = []
+    for name in ['XMLCompat.h', 'XMLCompat.cpp']:
+        target = retail_dir / name
+        shutil.copy2(HERE / 'RetailUI' / name, target)
+        retail_added.append(str(target.relative_to(root)))
+    shutil.copy2(HERE / 'RetailUI' / 'xml_check.cpp', root / 'RovRetailXMLCheck.cpp')
+    retail_added.append('RovRetailXMLCheck.cpp')
+
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
     shutil.copy2(HERE / 'near_check.cpp', root / 'RovNativeNearCheck.cpp')
@@ -791,6 +819,13 @@ set_tests_properties(rov_native_vulkan_framebuffer PROPERTIES TIMEOUT 45)
 add_executable(RovNativeM2BatchCheck RovNativeM2BatchCheck.cpp)
 add_test(NAME rov_native_m2_batch COMMAND RovNativeM2BatchCheck)
 set_tests_properties(rov_native_m2_batch PROPERTIES TIMEOUT 45)
+add_executable(RovRetailXMLCheck RovRetailXMLCheck.cpp ${worker_client_sources}
+    WoW/Source/Linux/BotCheck.cpp Engine/Source/Perf/PerfLog.cpp)
+get_target_property(retail_client_libraries WowClient LINK_LIBRARIES)
+target_link_libraries(RovRetailXMLCheck PRIVATE ${retail_client_libraries})
+target_include_directories(RovRetailXMLCheck PRIVATE ${CMAKE_SOURCE_DIR})
+add_test(NAME rov_retail_xml COMMAND RovRetailXMLCheck)
+set_tests_properties(rov_retail_xml PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
 # Must precede add_subdirectory: child directories snapshot these definitions.
@@ -800,6 +835,7 @@ add_compile_definitions(WOWDECOMP_ISOLATED_SERVER_BUILD=$<BOOL:${WOWDECOMP_ISOLA
     edit('CMakeLists.txt', lambda t: replace(t, 'project(wowdecomp CXX C)', 'project(wowdecomp CXX C)\n' + early_profile) + cmake)
     audit = dict(upstream=LOCK, adaptations=changes,
                  added={name: digest(root / name) for name in ['RovNativePolicy.h', 'RovNativePolicyCheck.cpp', 'RovNativeNearCheck.cpp', 'RovNativeAngleCheck.cpp', 'RovPackedAttributes.h', 'RovNativeAttributesCheck.cpp', 'RovNativeFreeTypeStreamCheck.cpp', 'RovNativeM2CacheSeedCheck.cpp', 'RovNativeM2CacheSeed.inc', 'RovNativeLuaUpvalueCheck.cpp', 'RovNativeALSAOutputCheck.cpp', 'RovNativeLowPassCheck.cpp', 'RovNativePitchShiftCheck.cpp', 'RovNativeChorusCheck.cpp', 'RovNativeEchoCheck.cpp', 'RovNativeInlineFiltersCheck.cpp', 'RovNativeParameterCheck.cpp', 'RovNativeWorkerCheck.cpp', 'RovNativeVulkanMemoryCheck.cpp', 'RovNativeVulkanMemorySelect.inc', 'RovNativeVulkanFramebufferCheck.cpp', 'RovNativeVulkanFramebuffer.inc', 'RovNativeM2BatchCheck.cpp', 'RovNativeM2Batch.inc', 'RovNativeM2BatchBefore.inc']})
+    audit['added'].update({name: digest(root / name) for name in retail_added})
     (root / 'source-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     return root
 

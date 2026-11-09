@@ -80,6 +80,7 @@ jobs:
             artifacts/full-linux/**/manifest.json
             artifacts/full-linux/**/source-audit.json
             artifacts/full-linux/**/adapted-source.tar.gz
+            artifacts/full-linux/**/RovRetailXMLCheck*
             artifacts/full-linux/**/CMakeCache.txt
             artifacts/full-linux/**/build.log
           if-no-files-found: error
