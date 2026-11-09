@@ -81,6 +81,12 @@ release has operator-observed character selection and gameplay. Broader physical
 input, audio, strict hardware shutdown and macOS acceptance remain separate.
 Use #170 and the existing acceptance issues for actual observed results.
 
+Alpha 0.2.0 later-client interface work is tracked in
+[#211](https://github.com/RovxBot/wowdecomp/issues/211). The first prerequisite
+adds explicitly versioned, opt-in modern XML composition to this full-client
+target. It does not yet load complete Forever Edit Mode controls or move/save
+gameplay frames. See the [compatibility contract and external-reference checks](../../docs/retail/COMPATIBILITY.md).
+
 ## Source preparation and checks
 
 `prepare.py` verifies the upstream archive and applies explicit adaptations to a
