@@ -708,6 +708,17 @@ void VkContext::ChooseHeaps() {''')
                 if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) break;
             } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
     edit('Engine/Source/FrameXML/FrameXML.cpp', retail_resources)
+    def font_dispatch(text):
+        original = source_function(text, 'CScriptObject* FrameScript_GetObjectThis(')
+        corrected = replace(original,
+            'CScriptObject* object = static_cast<CScriptObject*>(lua_touserdata(L, -1));',
+            'FrameScript_Object* object = static_cast<FrameScript_Object*>(lua_touserdata(L, -1));')
+        corrected = replace(corrected, '    return object;', '''    // Fonts derive directly from FrameScript_Object. Dispatch through that
+    // true base; the legacy return is opaque and concrete callers recover it.
+    return reinterpret_cast<CScriptObject*>(object);''')
+        return replace(text, original, corrected)
+    edit('Engine/Source/Frame/CScriptObject_Scripts.cpp', font_dispatch)
+
     # Resource staging compares optional shadow fields before deciding whether
     # to update them. Initialize the original attribute owner's scalar storage.
     edit('Engine/Source/Frame/CSimpleFontStringAttributes.cpp', lambda text:
