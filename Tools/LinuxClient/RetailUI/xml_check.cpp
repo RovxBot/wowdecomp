@@ -9,6 +9,7 @@
 #include "Engine/Source/Storm/H/storm.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
+#include "Engine/Source/lua-5.1/src/lstate.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -177,6 +178,147 @@ static void compositionFixture(lua_State* L) {
     setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
 }
 
+static void delegateFixture(lua_State* L) {
+    run(L, R"lua(
+        local echo = function(...) return ... end;
+        local delegate = CreateSecureDelegate(echo);
+        local object, callback = {}, function() return 19 end;
+        local a, b, c, d, e = delegate(nil, object, callback, false, nil);
+        assert(a == nil and b == object and c == callback and d == false and e == nil);
+        assert(select('#', delegate()) == 0 and select('#', delegate(nil, nil)) == 2);
+        assert(select('#', delegate(1, nil, 3, nil)) == 4);
+        assert(CreateSecureDelegate(echo, nil)(7) == 7);
+        assert(CreateSecureDelegate(echo, {})(8) == 8);
+        assert(CreateSecureDelegate(echo, {wrapUntrustedFunctions = true})(9) == 9);
+        local args = {}; for i = 1, 500 do args[i] = i end;
+        assert(select('#', delegate(unpack(args))) == 500);
+        assert(not pcall(CreateSecureDelegate) and not pcall(CreateSecureDelegate, nil));
+        for _, invalid in ipairs({false, 3, 'function', {}, print}) do
+            assert(not pcall(CreateSecureDelegate, invalid));
+        end
+        for _, options in ipairs({false, 3, 'options', echo,
+            {wrapUntrustedFunctions = false}, {wrapUntrustedFunctions = 1},
+            {unknown = true}, {secret = true}, {securityContext = 'secure'},
+            {['wrapUntrustedFunctions\000extra'] = true}, {[1] = true},
+            setmetatable({}, {__index = function() error('must not inspect') end})}) do
+            assert(not pcall(CreateSecureDelegate, echo, options));
+        end
+        assert(not pcall(CreateSecureDelegate, echo, nil, true));
+        local failure = {};
+        local throwing = CreateSecureDelegate(function() error(failure) end);
+        local ok, err = pcall(throwing); assert(not ok and err == failure);
+        -- A failing user error handler cannot bypass delegate cleanup.
+        assert(not xpcall(throwing, function() error('handler failed') end));
+        assert(delegate(17) == 17);
+        local depth, recursive = 0;
+        recursive = CreateSecureDelegate(function(n)
+            depth = depth + 1;
+            if n == 0 then return nil, depth, nil end;
+            return recursive(n - 1);
+        end);
+        local x, y, z = recursive(10); assert(x == nil and y == 11 and z == nil);
+        local nested = CreateSecureDelegate(function()
+            local ok, err = pcall(throwing); assert(not ok and err == failure);
+            return delegate(nil, 21, nil);
+        end);
+        assert(select('#', nested()) == 3 and select(2, nested()) == 21);
+        local closed;
+        local unwind = CreateSecureDelegate(function()
+            local value = 25; closed = function() return value end;
+            error(failure);
+        end);
+        assert(not pcall(unwind)); collectgarbage('collect'); assert(closed() == 25);
+        local factory = CreateSecureDelegate;
+        assert(not pcall(hooksecurefunc, 'CreateSecureDelegate', function() end));
+        assert(not pcall(hooksecurefunc, {Alias = factory}, 'Alias', function() end));
+        assert(not pcall(hooksecurefunc, {Alias = delegate}, 'Alias', function() end));
+        assert(CreateSecureDelegate == factory and delegate(26) == 26);
+        local weak = setmetatable({}, {__mode = 'v'});
+        do
+            local payload = {};
+            local function retained() return payload end;
+            local owner = CreateSecureDelegate(retained);
+            weak[1], weak[2], weak[3] = retained, owner, payload;
+            retained = nil; collectgarbage('collect');
+            assert(weak[1] ~= nil and weak[2] == owner and weak[3] == owner());
+        end
+        collectgarbage('collect');
+        assert(weak[1] == nil and weak[2] == nil and weak[3] == nil);
+        delegateCalls = 0;
+        delegateCallee = function(...) delegateCalls = delegateCalls + 1; return ... end;
+        retainedDelegate = CreateSecureDelegate(delegateCallee);
+        function insecureDuringDelegate()
+            forceinsecure(); assert(not issecure());
+        end
+        insecureDelegate = CreateSecureDelegate(insecureDuringDelegate);
+        function insecureErrorDuringDelegate()
+            forceinsecure(); error('insecure delegate failure');
+        end
+        insecureErrorDelegate = CreateSecureDelegate(insecureErrorDuringDelegate);
+    )lua");
+    static const char owner[] = "DelegateOwner";
+    const int expected = lua_taintexpected;
+    const char* gc = lua_gctag;
+    run(L, "insecureDelegate()");
+    require(!lua_tainted && lua_taintexpected == expected && !lua_taintedclosure);
+    require(lua_gctag == gc && !lua_closuretaint);
+    lua_taintexpected = 7;
+    lua_gctag = owner;
+    run(L, "insecureDelegate()");
+    require(!lua_tainted && lua_taintexpected == 7 && lua_gctag == owner && !lua_taintedclosure);
+    lua_taintexpected = expected;
+    lua_gctag = gc;
+    run(L, "assert(not pcall(insecureErrorDelegate)); assert(retainedDelegate(27) == 27)");
+    require(!lua_tainted && lua_taintexpected == expected && !lua_taintedclosure);
+
+    // Admission examines real VM value/closure taint, including a callee whose
+    // environment was changed after its delegate had already been constructed.
+    lua_getglobal(L, "delegateCallee");
+    lua_pushvalue(L, LUA_GLOBALSINDEX);
+    lua_tainted = owner;
+    require(lua_setfenv(L, -2));
+    lua_tainted = nullptr;
+    lua_pop(L, 1);
+    run(L, "assert(not pcall(retainedDelegate)); assert(not pcall(CreateSecureDelegate, delegateCallee))");
+    run(L, "delegateCallee = function(...) delegateCalls = delegateCalls + 1; return ... end; retainedDelegate = CreateSecureDelegate(delegateCallee)");
+    // Even with propagation disabled outside the boundary, option fields have
+    // their own value taint and must not be silently accepted as trusted.
+    lua_getglobal(L, "CreateSecureDelegate");
+    lua_getglobal(L, "delegateCallee");
+    lua_newtable(L);
+    lua_pushboolean(L, 1);
+    lua_settaint(L, -1, owner);
+    lua_setfield(L, -2, "wrapUntrustedFunctions");
+    require(lua_pcall(L, 2, 0, 0) != 0);
+    lua_pop(L, 1);
+    lua_getglobal(L, "retainedDelegate");
+    lua_pushstring(L, "tainted-input");
+    lua_settaint(L, -1, owner);
+    require(lua_pcall(L, 1, 0, 0) != 0);
+    lua_pop(L, 1);
+    lua_getglobal(L, "retainedDelegate");
+    lua_getglobal(L, "print");
+    lua_settaint(L, -1, owner);
+    require(lua_pcall(L, 1, 0, 0) != 0);
+    lua_pop(L, 1);
+    lua_tainted = owner;
+    run(L, "local ok = pcall(CreateSecureDelegate, function() end); assert(not ok); assert(not pcall(retainedDelegate))");
+    require(lua_tainted == owner && lua_taintexpected == expected);
+    lua_tainted = nullptr;
+    lua_closuretaint = owner;
+    run(L, "assert(not pcall(CreateSecureDelegate, function() end)); taintedDelegateCreator = function() return CreateSecureDelegate(delegateCallee) end; taintedDelegateCaller = function() return retainedDelegate() end");
+    require(lua_closuretaint == owner);
+    lua_closuretaint = nullptr;
+    run(L, "assert(not pcall(taintedDelegateCreator)); assert(not pcall(taintedDelegateCaller)); taintedDelegateCreator = nil; taintedDelegateCaller = nil");
+    run(L, "assert(delegateCalls == 1); assert(retainedDelegate(28) == 28); assert(delegateCalls == 2)");
+    run(L, "local f = CreateSecureDelegate(function() forceinsecure(); return {} end); delegateTaintedResult = f(); local secure, owner = issecurevariable('delegateTaintedResult'); assert(not secure and owner); delegateTaintedResult = nil");
+    unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
+    run(L, "assert(not pcall(CreateSecureDelegate, function() end)); assert(not pcall(retainedDelegate))");
+    setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
+    run(L, "retainedDelegate = nil; delegateCallee = nil; insecureDelegate = nil; insecureErrorDelegate = nil; insecureDuringDelegate = nil; insecureErrorDuringDelegate = nil; teardownDelegate = CreateSecureDelegate(function() return {} end); collectgarbage('collect')");
+    require(lua_taintexpected == expected && !lua_tainted && !lua_taintedclosure);
+}
+
 static void fixture(lua_State* L) {
     run(L, R"lua(
         result = '';
@@ -334,6 +476,40 @@ static bool helpers(lua_State* L, const char* root) {
     return true;
 }
 
+// Inspect the genuine handler's lexical references without replacing any
+// function or supplying missing debug/log/timer APIs. Keep this diagnostic in
+// the probe; it is not a new addon API or a full error-handler execution claim.
+static bool pushNamedUpvalue(lua_State* L, int function, const char* wanted) {
+    for (int i = 1;; ++i) {
+        const char* name = lua_getupvalue(L, function, i);
+        if (!name) return false;
+        if (!std::strcmp(name, wanted)) return true;
+        lua_pop(L, 1);
+    }
+}
+
+static bool scriptErrors(lua_State* L, const char* root) {
+    const std::string path = std::string(root) + "/Interface/AddOns/Blizzard_ScriptErrors/Blizzard_ScriptErrors.lua";
+    if (!loadReference(L, path.c_str())) return false;
+    run(L, "assert(type(ScriptErrors) == 'table' and type(ScriptErrors.unhandledErrors) == 'table' and not ScriptErrors.isErrorHandlingDeferred)");
+    lua_getglobal(L, "geterrorhandler");
+    require(lua_pcall(L, 0, 1, 0) == 0);
+    require(pushNamedUpvalue(L, 1, "GetErrorData"));
+    require(pushNamedUpvalue(L, 2, "RemoveKStringsDelegate"));
+    lua_setglobal(L, "referenceRemoveKStringsDelegate");
+    lua_pop(L, 2);
+    run(L, R"lua(
+        assert(referenceRemoveKStringsDelegate('a|kb|Kc') == 'akbKc');
+        assert(select('#', referenceRemoveKStringsDelegate('text')) == 1);
+        local ok, err = pcall(referenceRemoveKStringsDelegate, {});
+        assert(not ok and type(err) == 'string');
+        assert(referenceRemoveKStringsDelegate('|Kafter error') == 'Kafter error');
+        referenceRemoveKStringsDelegate = nil;
+    )lua");
+    std::puts("genuine-ScriptErrors=passed: construction/Init and actual captured RemoveKStringsDelegate success/error/recovery (trusted ordinary strings; no full error-handler/game claim)");
+    return true;
+}
+
 static void reference(lua_State* L, const char* path) {
     require(loadReference(L, path));
     // These are table-only markers, not reconstructed gameplay frames. Verify
@@ -364,25 +540,27 @@ static void reference(lua_State* L, const char* path) {
 
 int main(int argc, char** argv) {
     require(argc == 1 || (argc >= 3 && (!std::strcmp(argv[1], "--sequence") ||
-        (argc == 3 && (!std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--load"))))));
+        (argc == 3 && (!std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--script-errors") || !std::strcmp(argv[1], "--load"))))));
     StormRtlInitialize();
     OsTimeManagerCreate(OsTimeManager::BestAvailable);
     for (int profile : {0, 1}) {
         for (const char* mode : {"", "wrong-version"}) {
             setenv("WOWDECOMP_RETAIL_UI_COMPAT", mode, 1);
             require(FrameScript_Initialize(profile));
-            run(FrameScript_GetContext(), "assert(Mixin == nil and CreateFromMixins == nil and table.contains == nil); local t = {value = 1}; assert(t.value == 1)");
+            run(FrameScript_GetContext(), "assert(Mixin == nil and CreateFromMixins == nil and CreateSecureDelegate == nil and table.contains == nil); local t = {value = 1}; assert(t.value == 1); assert(securecall(function() return 31 end) == 31)");
             FrameScript_Destroy();
         }
         setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
         require(FrameScript_Initialize(profile));
         lua_State* L = FrameScript_GetContext();
         compositionFixture(L);
+        delegateFixture(L);
         fixture(L);
         bool loaded = true;
         if (argc >= 3) {
             if (!std::strcmp(argv[1], "--load")) loaded = loadReference(L, argv[2]);
             else if (!std::strcmp(argv[1], "--helpers")) loaded = helpers(L, argv[2]);
+            else if (!std::strcmp(argv[1], "--script-errors")) loaded = scriptErrors(L, argv[2]);
             else if (!std::strcmp(argv[1], "--reference")) reference(L, argv[2]);
             else {
                 for (int i = 2; i < argc && loaded; ++i) {
@@ -400,5 +578,5 @@ int main(int argc, char** argv) {
         if (!loaded) { CStringManager::DestroyManager(); return 1; }
     }
     CStringManager::DestroyManager();
-    std::puts("retail-compat-v1=passed: native Lua composition, XML mixins/methods, errors, identity/taint/GC, disabled legacy VMs; both VM profiles");
+    std::puts("retail-compat-v1=passed: native composition, trusted-entry secure delegates, XML mixins/methods, errors, identity/taint/GC, disabled legacy VMs; both VM profiles");
 }

@@ -172,7 +172,7 @@ def main():
     parser.add_argument('--report', type=Path, help='write metadata-only graph outside the repository')
     parser.add_argument('--binary', type=Path, help='hash-verified hosted RovRetailXMLCheck')
     parser.add_argument('--binary-sha256', help='expected hosted executable hash')
-    parser.add_argument('--mode', choices=['reference', 'helpers', 'bootstrap', 'base-bootstrap'], default='reference',
+    parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap'], default='reference',
                         help='reference fixture, independent genuine helpers, or ordered declared prerequisite loads')
     args = parser.parse_args()
     report = audit(args.source)
@@ -195,6 +195,8 @@ def main():
             command += ['--reference', str(script.resolve())]
         elif args.mode == 'helpers':
             command += ['--helpers', str(args.source.resolve())]
+        elif args.mode == 'script-errors':
+            command += ['--script-errors', str(args.source.resolve())]
         else:
             plan = report['base_ordered_loads' if args.mode == 'base-bootstrap' else 'ordered_loads']
             command += ['--sequence'] + [str((args.source / name).resolve()) for name in plan]
