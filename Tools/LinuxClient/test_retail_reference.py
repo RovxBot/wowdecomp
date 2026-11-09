@@ -43,6 +43,13 @@ class ReferenceGraphTests(unittest.TestCase):
             old = report['fingerprint']
             (edit / 'Child.xml').write_text('<Ui> </Ui>')
             self.assertNotEqual(AUDIT.audit(root)['fingerprint'], old)
+            (edit / 'Child.xml').write_text('<Ui/>')
+            # A changed implicit provider must invalidate identity even when it
+            # is not a required TOC/file edge.
+            implicit = addons / 'Implicit'
+            implicit.mkdir()
+            (implicit / 'Provider.xml').write_text('<Ui><Frame name="Base" virtual="true"/></Ui>')
+            self.assertNotEqual(AUDIT.audit(root)['fingerprint'], old)
 
     def test_missing_is_reported_and_escape_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:

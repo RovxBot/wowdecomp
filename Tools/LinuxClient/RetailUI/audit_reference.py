@@ -120,12 +120,16 @@ def audit(root):
                 apis.setdefault(token, []).append(name)
             for token in set(re.findall(r':(\w+)\s*\(', text)):
                 methods.setdefault(token, []).append(name)
-    fingerprint = hashlib.sha256(''.join(name + '\0' + files[name]['sha256'] + '\n' for name in sorted(files)).encode()).hexdigest()
+    provider_inputs = {name: sha(root / name) for entry in templates.values() for name in entry['providers']}
+    identities = ''.join('file\0' + name + '\0' + files[name]['sha256'] + '\n' for name in sorted(files))
+    identities += ''.join('provider\0' + name + '\0' + provider_inputs[name] + '\n' for name in sorted(provider_inputs))
+    identities += ''.join('template\0' + name + '\0' + '\0'.join(templates[name]['providers']) + '\n' for name in sorted(templates))
+    fingerprint = hashlib.sha256(identities.encode()).hexdigest()
     return {'schema': 1, 'commit': PIN, 'game': 'Camelot', 'family': 'Mainline',
             'scope': 'required TOCs and XML file edges; optional edges listed; Lua inventories are lexical, runtime dependencies unresolved',
             'fingerprint': fingerprint, 'files': files, 'edges': edges,
             'optional_addons': optional, 'missing_files': sorted(missing), 'cycles': cycles,
-            'templates': templates, 'mixins': mixins, 'namespaced_calls': apis,
+            'templates': templates, 'provider_inputs': provider_inputs, 'mixins': mixins, 'namespaced_calls': apis,
             'method_calls': methods, 'resource_references': resources}
 
 

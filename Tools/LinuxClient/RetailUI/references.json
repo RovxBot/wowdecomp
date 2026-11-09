@@ -7,11 +7,12 @@
     "version": "1.60.1 (70862)",
     "game": "Camelot",
     "family": "Mainline",
-    "declared_graph_sha256": "b9a987d4e5ae0ecdcca0f674c47b1af200fc3fbf9bdcf46b6d00a3942cad565c",
+    "declared_graph_sha256": "207a69936fcc6186deceaf63be07066c45b278339b2a4e266b1f1a1985cbeb74",
     "declared_files": 381,
     "license": "No repository licence; reference only, no UI import",
     "reference_script": "Interface/AddOns/Blizzard_EditMode/Camelot/EditModeUtil.lua",
-    "reference_script_sha256": "e828f9bb729cbb9b11162264af274343a5df7bff5ff1cafc64a77da91c0ba760"
+    "reference_script_sha256": "e828f9bb729cbb9b11162264af274343a5df7bff5ff1cafc64a77da91c0ba760",
+    "provider_files": 69
   },
   "retail": {
     "repository": "Gethe/wow-ui-source",
@@ -51,5 +52,12 @@
     "ref": "main",
     "commit": "e393e1be00e57b30ea919b047ae292d41f59da0a",
     "license": "Reference only; no import"
+  },
+  "warcraftxl_core_other_inspected_refs": {
+    "repository": "WarcraftXL/core",
+    "main": "f222923d59f078f5733f4b797a501d956b9d781e",
+    "v1.2": "2a9132b0306380b632e51b594b8c066a9af0af24",
+    "exp_1.2": "38436f0dc1d35c5d7d36806eb55ccd2908700d77",
+    "purpose": "Tree inspection for modern reader implementation availability, not imports"
   }
 }

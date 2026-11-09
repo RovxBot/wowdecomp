@@ -32,6 +32,10 @@ Status reviewed **3 November 2026**. Issues hold the current acceptance criteria
 and detailed evidence; successful builds and component tests cover only their
 stated scope.
 
+Alpha 0.2.0 work now targets [genuine Forever/retail feature backports](https://github.com/RovxBot/wowdecomp/issues/211).
+The first [native XML compatibility prerequisite](docs/retail/COMPATIBILITY.md)
+does not yet provide complete Edit Mode controls or gameplay-frame layouts.
+
 | Platform | Demonstrated progress | Available testing |
 | --- | --- | --- |
 | **Linux x86-64** | Full direct-Vulkan client: operator-observed original UI, character selection and gameplay on the isolated server. Existing D3D9/DXVK target: signed login rendering and component diagnostics. | [Full-client AppImage](Tools/LinuxClient/README.md): the labelled TEST-SERVER application enables interactive sign-in by default. Older DXVK packages are below. Broader play/input/audio/strict acceptance remains open. |

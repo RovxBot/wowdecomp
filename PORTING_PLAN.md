@@ -147,6 +147,7 @@ the next step; pending branch results do not establish main behavior.
 | Thunderstorms, wetness and shelter | [#138](https://github.com/RovxBot/wowdecomp/issues/138) |
 | Graphics presets and applied options | [#139](https://github.com/RovxBot/wowdecomp/issues/139) |
 | Optional HD-asset pipeline | [#140](https://github.com/RovxBot/wowdecomp/issues/140) |
+| Genuine Forever/retail interface backports (Alpha 0.2.0) | [#211](https://github.com/RovxBot/wowdecomp/issues/211); [bounded compatibility contract](docs/retail/COMPATIBILITY.md) |
 
 Progress must name the integrated target, actual execution reached and next
 concrete blocker. Preserve original signatures, 12340 behavior, read-only data,

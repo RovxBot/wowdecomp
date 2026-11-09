@@ -4,6 +4,26 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-031 — Forever interface compatibility prerequisite
+
+- Reference: [pinned Forever/retail and WarcraftXL sources](../Tools/LinuxClient/RetailUI/references.json),
+  primarily Gethe Forever 1.60.1 (70862) `9dc84f0d3bbae1768ac3405b3716000bd93eda06`,
+  `Blizzard_EditMode/Shared` XML and `Camelot/EditModeUtil.lua`. Public Lua/XML
+  exports are interface references, not retail native engine source.
+- Implementation: product-authored, opt-in XML mixin/method/inherited-handler
+  support in the separate full Linux client's original Frame/FrameScript path.
+  No exported UI, WarcraftXL code or proprietary assets imported. No donor
+  address/VERIFY claim is assigned to the new helper; source preparation removes
+  stale VERIFY claims from the adapted CSimpleFrame translation unit.
+- Boundary/default: disabled unless the exact compatibility version is selected;
+  original 12340 data/UI, signatures, protocol and server policy remain the
+  baseline. Windows/macOS do not select this helper. Actual Edit Mode controls,
+  resources, native layout services and real-frame adapters remain open.
+- Durable [support/dependency contract](retail/COMPATIBILITY.md), separate
+  [modern asset inventory](retail/MODERN_ASSETS.md), and current validation in
+  [#212](https://github.com/RovxBot/wowdecomp/issues/212) / parent
+  [#211](https://github.com/RovxBot/wowdecomp/issues/211).
+
 ## NP-030 — Separate complete Linux client integration
 
 - Source: RosemyneH/wowdecomp at
