@@ -675,11 +675,14 @@ void VkContext::ChooseHeaps() {''')
         raise ValueError('Expected exactly one M2 cache seed initialization')
     (root / 'RovNativeM2CacheSeed.inc').write_text(seed_statements[0])
     # Opt-in modern XML composition, selected only by this full-client graph.
-    # Keep the legacy script path byte-for-byte when no modern attributes occur.
+    # Preserve legacy interpretation unless the exact compatibility version is
+    # enabled, including addons with attributes the original engine ignored.
     def retail_xml(text):
         text = '#include "Engine/Source/Frame/RetailUI/XMLCompat.h"\n' + text
-        text = replace(text, '    CScriptRegion::LoadXML(node, status);', '''    if (const char* mixins = node->GetAttributeByName("mixin")) {
-        if (!RovRetailUI::ApplyMixins(FrameScript_GetContext(), this->GetLuaObjectRef(), mixins, status)) return;
+        text = replace(text, '    CScriptRegion::LoadXML(node, status);', '''    if (RovRetailUI::Enabled()) {
+        if (const char* mixins = node->GetAttributeByName("mixin")) {
+            if (!RovRetailUI::ApplyMixins(FrameScript_GetContext(), this->GetLuaObjectRef(), mixins, status)) return;
+        }
     }
 
     CScriptRegion::LoadXML(node, status);''')

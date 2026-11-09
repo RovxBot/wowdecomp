@@ -88,7 +88,7 @@ bool ApplyMixins(lua_State* L, int objectRef, const char* names, CStatus* status
 }
 
 bool HasScriptAttributes(XMLNode* node) {
-    return node->GetAttributeByName("method") || node->GetAttributeByName("inherit");
+    return Enabled() && (node->GetAttributeByName("method") || node->GetAttributeByName("inherit"));
 }
 
 static int chain(lua_State* L) {

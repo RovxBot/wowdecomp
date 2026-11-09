@@ -81,9 +81,17 @@ static void fixture(lua_State* L) {
     };
     unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
     require(!mix("A"));
+    XMLNode ignored(nullptr, "OnEvent");
+    ignored.SetAttribute("method", "First");
+    ignored.SetAttribute("inherit", "append");
+    require(!RovRetailUI::HasScriptAttributes(&ignored));
     setenv("WOWDECOMP_RETAIL_UI_COMPAT", "wrong-version", 1);
     require(!mix("A"));
+    require(!RovRetailUI::HasScriptAttributes(&ignored));
     setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
+    require(RovRetailUI::HasScriptAttributes(&ignored));
+    XMLNode ordinary(nullptr, "OnLoad");
+    require(!RovRetailUI::HasScriptAttributes(&ordinary));
     for (const char* names : {"A, Missing", "A, Invalid", "A,", "A,,B", "A.B", "", "A; error('injection')"}) {
         require(!mix(names));
         run(L, "assert(target.value == nil and target[0] == 'native-identity')");

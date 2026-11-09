@@ -105,8 +105,10 @@ export WOWDECOMP_RETAIL_UI_COMPAT=forever-1.60.1-70862-v1
 No source directory is mounted by that variable. It enables only the following
 parser operations for separately supplied XML. Original data and its signatures,
 Glue ordering/digest, addon taint, login and server policy are unchanged. Original
-XML lacking modern attributes takes its existing script path. A modern attribute
-without the exact opt-in version reports an error.
+XML takes its existing path whenever compatibility is disabled, including addon
+attributes the original engine ignored. Within the enabled compatibility path,
+missing/unsupported inputs report errors; direct helper calls also reject a
+missing or incorrect version.
 
 - Frame `mixin="FirstMixin, SecondMixin"`: resolve existing global tables in
   order, stage their string fields, then copy into the existing script object.
