@@ -718,6 +718,12 @@ void VkContext::ChooseHeaps() {''')
     return reinterpret_cast<CScriptObject*>(object);''')
         return replace(text, original, corrected)
     edit('Engine/Source/Frame/CScriptObject_Scripts.cpp', font_dispatch)
+    # Real resource filesystem lookup initializes the original logger. Prefs
+    # 1/2 borrow pref 0's directory; release that one owner after log consumers
+    # and the log thread have closed, before freeing the preference array.
+    edit('Engine/Source/BlizzardCore/Source/System/Log/Log.cpp', lambda text:
+         replace(text, '    free(s_Prefs);', '    free(s_Prefs[0].m_directory);\n    free(s_Prefs);'))
+
 
     # Resource staging compares optional shadow fields before deciding whether
     # to update them. Initialize the original attribute owner's scalar storage.
