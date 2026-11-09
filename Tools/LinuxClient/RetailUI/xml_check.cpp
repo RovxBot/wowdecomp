@@ -274,12 +274,13 @@ static void delegateFixture(lua_State* L) {
     // Admission examines real VM value/closure taint, including a callee whose
     // environment was changed after its delegate had already been constructed.
     lua_getglobal(L, "delegateCallee");
-    clvalue(L->top - 1)->l.taint = owner;
+    lua_pushvalue(L, LUA_GLOBALSINDEX);
+    lua_tainted = owner;
+    require(lua_setfenv(L, -2));
+    lua_tainted = nullptr;
     lua_pop(L, 1);
     run(L, "assert(not pcall(retainedDelegate)); assert(not pcall(CreateSecureDelegate, delegateCallee))");
-    lua_getglobal(L, "delegateCallee");
-    clvalue(L->top - 1)->l.taint = nullptr;
-    lua_pop(L, 1);
+    run(L, "delegateCallee = function(...) delegateCalls = delegateCalls + 1; return ... end; retainedDelegate = CreateSecureDelegate(delegateCallee)");
     // Even with propagation disabled outside the boundary, option fields have
     // their own value taint and must not be silently accepted as trusted.
     lua_getglobal(L, "CreateSecureDelegate");
@@ -305,9 +306,10 @@ static void delegateFixture(lua_State* L) {
     require(lua_tainted == owner && lua_taintexpected == expected);
     lua_tainted = nullptr;
     lua_closuretaint = owner;
-    run(L, "assert(not pcall(CreateSecureDelegate, function() end))");
+    run(L, "assert(not pcall(CreateSecureDelegate, function() end)); taintedDelegateCreator = function() return CreateSecureDelegate(delegateCallee) end; taintedDelegateCaller = function() return retainedDelegate() end");
     require(lua_closuretaint == owner);
     lua_closuretaint = nullptr;
+    run(L, "assert(not pcall(taintedDelegateCreator)); assert(not pcall(taintedDelegateCaller)); taintedDelegateCreator = nil; taintedDelegateCaller = nil");
     run(L, "assert(delegateCalls == 1); assert(retainedDelegate(28) == 28); assert(delegateCalls == 2)");
     run(L, "local f = CreateSecureDelegate(function() forceinsecure(); return {} end); delegateTaintedResult = f(); local secure, owner = issecurevariable('delegateTaintedResult'); assert(not secure and owner); delegateTaintedResult = nil");
     unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");

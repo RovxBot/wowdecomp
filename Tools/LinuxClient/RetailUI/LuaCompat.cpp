@@ -83,6 +83,13 @@ static bool tainted(const TValue* value) {
 static void trustedContext(lua_State* L) {
     if (lua_tainted || lua_taintedclosure || lua_closuretaint)
         luaL_error(L, "CreateSecureDelegate: tainted security contexts are unsupported by the 12340 VM");
+    // The interpreter resets lua_taintedclosure before entering C functions.
+    // Inspect live callers as well, including direct host calls with taint
+    // propagation disabled. This does not reconstruct erased tail-call history.
+    for (const CallInfo* caller = L->ci; caller > L->base_ci; --caller) {
+        if (ttisfunction(caller->func) && tainted(caller->func))
+            luaL_error(L, "CreateSecureDelegate: tainted caller closures are unsupported");
+    }
 }
 
 struct TaintState {
