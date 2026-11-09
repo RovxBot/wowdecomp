@@ -29,6 +29,9 @@ class PinnedDownloadTests(unittest.TestCase):
         download(self.url, self.path, self.sha)
         self.assertEqual(self.path.read_bytes(), self.payload)
         self.assertEqual(open_url.call_count, 3)
+        for call in open_url.call_args_list:
+            self.assertEqual(call.args[0].full_url, self.url)
+            self.assertEqual(call.args[0].get_header('Cache-control'), 'no-cache')
         self.assertEqual([call.args[0] for call in sleep.call_args_list], [1, 2])
 
     @patch('prepare.time.sleep')

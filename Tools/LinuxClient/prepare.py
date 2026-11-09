@@ -27,7 +27,8 @@ def download(url, path, expected):
     if not path.exists() or digest(path) != expected:
         for attempt in range(4):
             try:
-                with urllib.request.urlopen(url, timeout=120) as response, path.open('wb') as output:
+                request = urllib.request.Request(url, headers={'Cache-Control': 'no-cache'})
+                with urllib.request.urlopen(request, timeout=120) as response, path.open('wb') as output:
                     shutil.copyfileobj(response, output)
                 break
             except (urllib.error.URLError, TimeoutError) as error:
