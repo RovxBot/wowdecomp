@@ -24,6 +24,23 @@ and source inspection are different evidence levels.
   [#212](https://github.com/RovxBot/wowdecomp/issues/212) / parent
   [#211](https://github.com/RovxBot/wowdecomp/issues/211).
 
+### Native Lua composition
+
+The product-authored FrameScript compatibility module also supplies ordinary
+`Mixin`, `CreateFromMixins` and the reached `table.contains` dependency, based on the same pinned Forever
+FrameScriptDocumentation declarations, SharedXMLBase/Mixin.lua capture sites
+and its SecureMixin ordinary-table loop, plus LuaTableExtensionsDocumentation.
+No native retail source/binary or UI
+implementation is imported. Preserve shallow Lua identity, ordered assignment,
+errors, VM taint/GC and engine object ownership; enforce the declared secure-hook
+restriction. Secret values, secure delegates, forbidden frames, modern native
+enum/localization inputs and full callback/pool/bootstrap closure remain explicit
+limits. The external helper/ordered-load contract and subsequent real-bar
+requirements are in [the compatibility document](retail/COMPATIBILITY.md);
+current execution evidence and remaining work belong to
+[#215](https://github.com/RovxBot/wowdecomp/issues/215),
+[PR #216](https://github.com/RovxBot/wowdecomp/pull/216).
+
 ## NP-030 — Separate complete Linux client integration
 
 - Source: RosemyneH/wowdecomp at

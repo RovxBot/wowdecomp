@@ -702,6 +702,27 @@ void VkContext::ChooseHeaps() {''')
         target = retail_dir / name
         shutil.copy2(HERE / 'RetailUI' / name, target)
         retail_added.append(str(target.relative_to(root)))
+    lua_dir = root / 'Engine/Source/FrameScript/RetailUI'
+    lua_dir.mkdir()
+    for name in ['LuaCompat.h', 'LuaCompat.cpp']:
+        target = lua_dir / name
+        shutil.copy2(HERE / 'RetailUI' / name, target)
+        retail_added.append(str(target.relative_to(root)))
+    edit('Engine/Source/FrameScript/FrameScript.cpp', lambda text:
+         '#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + replace(text,
+         '    FrameScript_Execute(s_compatLua, "compat.lua", nullptr);',
+         '    FrameScript_Execute(s_compatLua, "compat.lua", nullptr);\n    RovRetailUI::RegisterLuaFunctions(s_context);'))
+    def retail_hooks(text):
+        start = text.index('static int32_t Script_hooksecurefunc(')
+        end = text.index('\n// VERIFY:', start)
+        hook = text[start:end]
+        hook = replace(hook, '    bool hooked;', '    bool hooked;\n    bool blocked;')
+        hook = replace(hook, '    if (lua_type(L, -1) == LUA_TFUNCTION) {',
+                       '    blocked = RovRetailUI::IsCompositionFunction(L, -1);\n    if (lua_type(L, -1) == LUA_TFUNCTION && !blocked) {')
+        hook = replace(hook, '        luaL_error(L, "hooksecurefunc(): %s is not a function", name);',
+                       '        luaL_error(L, blocked ? "hooksecurefunc(): %s does not allow secure hooks" : "hooksecurefunc(): %s is not a function", name);')
+        return '#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text[:start] + hook + text[end:]
+    edit('Engine/Source/FrameScript/FrameScript_Scripts.cpp', retail_hooks)
     shutil.copy2(HERE / 'RetailUI' / 'xml_check.cpp', root / 'RovRetailXMLCheck.cpp')
     retail_added.append('RovRetailXMLCheck.cpp')
 

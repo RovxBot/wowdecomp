@@ -83,7 +83,7 @@ Use #170 and the existing acceptance issues for actual observed results.
 
 Alpha 0.2.0 later-client interface work is tracked in
 [#211](https://github.com/RovxBot/wowdecomp/issues/211). The first prerequisite
-adds explicitly versioned, opt-in modern XML composition to this full-client
+adds explicitly versioned, opt-in modern XML and native Lua composition to this full-client
 target. It does not yet load complete Forever Edit Mode controls or move/save
 gameplay frames. See the [compatibility contract and external-reference checks](../../docs/retail/COMPATIBILITY.md).
 
