@@ -11,6 +11,8 @@ from pathlib import Path
 import re
 import shutil
 import tarfile
+import time
+import urllib.error
 import urllib.request
 
 HERE = Path(__file__).resolve().parent
@@ -23,8 +25,19 @@ def digest(path):
 
 def download(url, path, expected):
     if not path.exists() or digest(path) != expected:
-        with urllib.request.urlopen(url, timeout=120) as response, path.open('wb') as output:
-            shutil.copyfileobj(response, output)
+        for attempt in range(4):
+            try:
+                with urllib.request.urlopen(url, timeout=120) as response, path.open('wb') as output:
+                    shutil.copyfileobj(response, output)
+                break
+            except (urllib.error.URLError, TimeoutError) as error:
+                path.unlink(missing_ok=True)
+                transient = (isinstance(error, urllib.error.HTTPError) and error.code in {408, 429, 500, 502, 503, 504}) or (
+                    isinstance(error, TimeoutError) or isinstance(getattr(error, 'reason', None), (TimeoutError, ConnectionError)))
+                if not transient or attempt == 3:
+                    raise
+                print(f'pinned-download: transient transport failure, retry {attempt + 1}/3: {error}', flush=True)
+                time.sleep(2 ** attempt)
     if digest(path) != expected:
         raise ValueError('SHA256 mismatch: ' + str(path))
 
