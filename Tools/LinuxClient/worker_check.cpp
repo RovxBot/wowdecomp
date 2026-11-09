@@ -3,6 +3,7 @@
 #include "WoW/Source/WowServices/WowConnectionNet.h"
 #include "Engine/Source/Storm/Source/Linux/SSync.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Os/TimeManager.h"
 #include <atomic>
 #include <cerrno>
 #include <chrono>
@@ -123,6 +124,8 @@ static uint32_t STORMAPI eventThread(void* pointer) {
 }
 static void initialized() { ++callbacks; }
 int main() {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+    OsTimeManagerCreate(OsTimeManager::BestAvailable);
     std::printf("worker layout: size=%zu align=%zu container=%zu array=%zu thread=%zu connection=%zu event=%zu lock=%zu last=%zu\n",
         sizeof(Worker), alignof(Worker), sizeof(WowConnectionNet), offsetof(WowConnectionNet, m_workers),
         offsetof(Worker, m_thread), offsetof(Worker, m_connection), offsetof(Worker, m_event),
@@ -204,5 +207,6 @@ int main() {
         }
         require(mutexes == before && liveThreads == 0 && descriptors() == fds);
     }
+    OsTimeManagerDestroy();
     std::puts("native-network-worker=passed: actual aligned members/arrays/SMem container, event/lock/thread lifetimes, construction unwind, thread/pipe failure and original network start/wake/stop/destruction");
 }
