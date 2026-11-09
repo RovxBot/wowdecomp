@@ -34,6 +34,8 @@ def download(url, path, expected):
                 path.unlink(missing_ok=True)
                 transient = (isinstance(error, urllib.error.HTTPError) and error.code in {408, 429, 500, 502, 503, 504}) or (
                     isinstance(error, TimeoutError) or isinstance(getattr(error, 'reason', None), (TimeoutError, ConnectionError)))
+                if isinstance(error, urllib.error.HTTPError):
+                    error.close()
                 if not transient or attempt == 3:
                     raise
                 print(f'pinned-download: transient transport failure, retry {attempt + 1}/3: {error}', flush=True)
