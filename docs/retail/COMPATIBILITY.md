@@ -255,8 +255,10 @@ Fonts_Shared/Mainline/Fonts.xml requests slug rendering after its initial six
 families. A new rendering mode is outside this resource subset; route required
 GPU work to #133/#134. Multialphabet shaping/fallback, new glyph/rendering formats,
 FileDataID/atlas resolution, intrinsic definitions and complete modern widget
-construction remain unqualified. Original signed MPQ/Glue traversal and addon
-loading keep their existing path; compatibility does not mount external sources.
+construction remain unqualified. A rejected versioned font resource returns failure through nested Includes
+and TOCs and stops later scripts, while freeing the original XML/file owners.
+Ordinary legacy error handling is unchanged. Original signed MPQ/Glue traversal
+and addon loading keep their existing path; compatibility does not mount external sources.
 
 `RovRetailXMLCheck --resources /absolute/authored-font.ttf` initializes the real
 font metatable, CPU resource dimensions, SFile direct reads and FreeType, then
