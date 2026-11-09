@@ -8,11 +8,6 @@
 #include <cstring>
 
 namespace RovRetailUI {
-bool Enabled() {
-    const char* value = std::getenv("WOWDECOMP_RETAIL_UI_COMPAT");
-    return value && !std::strcmp(value, Version);
-}
-
 static bool identifier(const char* name) {
     if (!name || !*name) return false;
     for (size_t i = 0; name[i]; ++i) {

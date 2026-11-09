@@ -133,18 +133,55 @@ def audit(root):
             'method_calls': methods, 'resource_references': resources}
 
 
+def load_plan(report, addon='Blizzard_EditMode'):
+    """Dependency-first TOC order. Keep XML opaque: never skip construction to
+    execute its later Lua files, or claim provider-index order is load order.
+    Implicit provider candidates remain unresolved until actual XML admission.
+    """
+    edges = {}
+    for edge in report['edges']:
+        edges.setdefault(edge['from'], []).append(edge)
+    loaded, active, plan = set(), set(), []
+
+    def visit(name):
+        if name in active:
+            raise ValueError('Ordered bootstrap has a dependency cycle: ' + name)
+        if name in loaded:
+            return
+        if name not in report['files']:
+            raise ValueError('Ordered bootstrap input is missing: ' + name)
+        loaded.add(name)
+        if not name.endswith('.toc'):
+            plan.append(name)
+            return
+        active.add(name)
+        outgoing = edges.get(name, [])
+        for kind in ['required-addon', 'toc-entry']:
+            for edge in outgoing:
+                if edge['kind'] == kind:
+                    visit(edge['to'])
+        active.remove(name)
+
+    visit('Interface/AddOns/' + addon + '/' + addon + '.toc')
+    return plan
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source', type=Path, help='external source root containing Interface/AddOns')
     parser.add_argument('--report', type=Path, help='write metadata-only graph outside the repository')
     parser.add_argument('--binary', type=Path, help='hash-verified hosted RovRetailXMLCheck')
     parser.add_argument('--binary-sha256', help='expected hosted executable hash')
+    parser.add_argument('--mode', choices=['reference', 'helpers', 'bootstrap', 'base-bootstrap'], default='reference',
+                        help='reference fixture, independent genuine helpers, or ordered declared prerequisite loads')
     args = parser.parse_args()
     report = audit(args.source)
     lock = json.loads((HERE / 'references.json').read_text())
     expected = lock['forever']['declared_graph_sha256']
     if report['fingerprint'] != expected:
         raise SystemExit('Supplied source differs from the pinned declared graph; no reference execution performed')
+    report['ordered_loads'] = load_plan(report)
+    report['base_ordered_loads'] = load_plan(report, 'Blizzard_SharedXMLBase')
     print(json.dumps({k: report[k] for k in ['commit', 'game', 'family', 'fingerprint', 'missing_files', 'cycles']}, indent=2))
     print('declared-files=' + str(len(report['files'])) + ' namespace-calls=' + str(len(report['namespaced_calls'])))
     if args.report:
@@ -152,8 +189,18 @@ def main():
     if args.binary:
         if not args.binary_sha256 or sha(args.binary) != args.binary_sha256:
             raise SystemExit('Pass the matching hosted binary SHA256 before reference execution')
-        script = args.source / 'Interface/AddOns/Blizzard_EditMode/Camelot/EditModeUtil.lua'
-        subprocess.run([str(args.binary.resolve()), '--reference', str(script.resolve())], check=True)
+        command = [str(args.binary.resolve())]
+        if args.mode == 'reference':
+            script = args.source / 'Interface/AddOns/Blizzard_EditMode/Camelot/EditModeUtil.lua'
+            command += ['--reference', str(script.resolve())]
+        elif args.mode == 'helpers':
+            command += ['--helpers', str(args.source.resolve())]
+        else:
+            plan = report['base_ordered_loads' if args.mode == 'base-bootstrap' else 'ordered_loads']
+            command += ['--sequence'] + [str((args.source / name).resolve()) for name in plan]
+        # A failed real dependency is an ordinary nonzero result, never replaced
+        # by mock globals or continued in a partially initialized VM.
+        raise SystemExit(subprocess.run(command).returncode)
     elif args.binary_sha256:
         parser.error('--binary-sha256 requires --binary')
 

@@ -10,6 +10,26 @@ SPEC.loader.exec_module(AUDIT)
 
 
 class ReferenceGraphTests(unittest.TestCase):
+    def test_ordered_bootstrap_dependencies_before_entries_and_xml_barrier(self):
+        report = {
+            'files': {name: {} for name in ['Interface/AddOns/Blizzard_EditMode/Blizzard_EditMode.toc',
+                'D.toc', 'First.lua', 'Templates.xml', 'Nested.lua', 'Last.lua']},
+            'edges': [
+                {'from': 'Interface/AddOns/Blizzard_EditMode/Blizzard_EditMode.toc', 'to': 'Last.lua', 'kind': 'toc-entry'},
+                {'from': 'Interface/AddOns/Blizzard_EditMode/Blizzard_EditMode.toc', 'to': 'D.toc', 'kind': 'required-addon'},
+                {'from': 'D.toc', 'to': 'First.lua', 'kind': 'toc-entry'},
+                {'from': 'D.toc', 'to': 'Templates.xml', 'kind': 'toc-entry'},
+                {'from': 'Templates.xml', 'to': 'Nested.lua', 'kind': 'xml-script'},
+            ]}
+        self.assertEqual(AUDIT.load_plan(report), ['First.lua', 'Templates.xml', 'Last.lua'])
+        report['edges'].append({'from': 'D.toc', 'to': 'D.toc', 'kind': 'required-addon'})
+        with self.assertRaisesRegex(ValueError, 'cycle'):
+            AUDIT.load_plan(report)
+        report['edges'].pop()
+        del report['files']['First.lua']
+        with self.assertRaisesRegex(ValueError, 'missing'):
+            AUDIT.load_plan(report)
+
     def test_camelot_family_and_game_conditions(self):
         self.assertTrue(AUDIT.selected('[Family]\\Templates.xml [AllowLoadGameType mainline]'))
         self.assertTrue(AUDIT.selected('[Game]\\Templates.xml [AllowLoadGameType standard, camelot]'))
