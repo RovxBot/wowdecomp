@@ -632,8 +632,13 @@ static bool resourceFile(const char* path) {
             lua_State* L = FrameScript_GetContext();
             lua_rawgeti(L, LUA_REGISTRYINDEX, font->GetLuaObjectRef());
             lua_rawgeti(L, -1, 0);
-            require(lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == font);
+            const bool canonical = lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == font;
             lua_pop(L, 2);
+            if (!canonical) {
+                require(!loaded);
+                std::printf("native-font-invalid-identity: %s\n", name);
+                continue;
+            }
             std::printf("native-font-observed: %s type=%s file=%s height=%g\n", name, font->GetObjectTypeName(),
                         font->m_attributes.m_font.m_str, font->m_attributes.m_fontHeight);
         }
