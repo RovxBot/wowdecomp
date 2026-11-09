@@ -704,9 +704,34 @@ void VkContext::ChooseHeaps() {''')
         retail_added.append(str(target.relative_to(root)))
     def retail_resources(text):
         text = '#include "Engine/Source/Frame/RetailUI/FontResources.h"\n#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text
-        return replace(text, '            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {', '''            } else if (RovRetailUI::Enabled() && !SStrCmpI(child->m_name.m_str, "FontFamily", STORM_MAX_STR)) {
-                if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) break;
+        original = source_function(text, 'int32_t FrameXML_ProcessFile(')
+        modern = replace(original,
+            'int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status)',
+            'static int32_t ProcessFileResources(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status, bool& resourceFailed)')
+        modern = replace(modern, '                    FrameXML_ProcessFile(includePath, wrapper, md5, &fileStatus);', '''                    ProcessFileResources(includePath, wrapper, md5, &fileStatus, resourceFailed);
+                    if (resourceFailed) break;''')
+        modern = replace(modern, '            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {', '''            } else if (RovRetailUI::Enabled() && !SStrCmpI(child->m_name.m_str, "FontFamily", STORM_MAX_STR)) {
+                if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) {
+                    resourceFailed = true;
+                    break;
+                }
             } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
+        modern = replace(modern, '    return 1;\n}', '    return resourceFailed ? 0 : 1;\n}')
+        modern += '''
+
+// Keep the original public signature and per-call failure ownership. Only
+// rejected versioned resources propagate this flag through Includes and TOCs.
+int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status) {
+    bool resourceFailed = false;
+    return ProcessFileResources(filename, wrapper, md5, status, resourceFailed);
+}'''
+        text = replace(text, original, modern)
+        original = source_function(text, 'int32_t FrameXML_CreateFrames(')
+        modern = replace(original, '    CStatus tocStatus;', '    bool resourceFailed = false;\n    CStatus tocStatus;')
+        modern = replace(modern, '            FrameXML_ProcessFile(path, wrapper, md5, &tocStatus);', '''            ProcessFileResources(path, wrapper, md5, &tocStatus, resourceFailed);
+            if (resourceFailed) break;''')
+        modern = replace(modern, '    return 1;\n}', '    return resourceFailed ? 0 : 1;\n}')
+        return replace(text, original, modern)
     edit('Engine/Source/FrameXML/FrameXML.cpp', retail_resources)
     def font_dispatch(text):
         original = source_function(text, 'CScriptObject* FrameScript_GetObjectThis(')

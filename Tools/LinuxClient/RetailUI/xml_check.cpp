@@ -16,6 +16,7 @@
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Storm/Source/MD5.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
 #include "Engine/Source/lua-5.1/src/lstate.h"
@@ -706,6 +707,21 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     process(family, false);
     run(L, "ResourceBase[0] = retainedIdentity; retainedIdentity = nil");
     process("<FontFamily", false);
+    // A rejected real resource must stop nested Include/Script traversal and
+    // later TOC entries, not merely report an error after later Lua executes.
+    const auto bad = directory / "bad.xml";
+    const auto outer = directory / "outer.xml";
+    const auto later = directory / "later.lua";
+    const auto toc = directory / "fixture.toc";
+    { std::ofstream out(bad); out << "<Ui><FontFamily name='Rejected'><Member alphabet='roman'><Font inherits='ResourceBase' slug='true'/></Member></FontFamily></Ui>"; }
+    { std::ofstream out(later); out << "resourceFailureWasSkipped = true"; }
+    { std::ofstream out(outer); out << "<Ui><Include file='" << bad.string() << "'/><Script file='" << later.string() << "'/></Ui>"; }
+    { std::ofstream out(toc); out << outer.string() << '\n' << later.string() << '\n'; }
+    CStatus tocStatus;
+    MD5_CTX digest; MD5Init(&digest);
+    require(!FrameXML_CreateFrames(toc.c_str(), nullptr, &digest, &tocStatus));
+    require(tocStatus.m_highestSeverity >= STATUS_ERROR);
+    run(L, "assert(resourceFailureWasSkipped == nil)");
     unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
     XMLNode disabled(nullptr, "FontFamily"); CStatus disabledStatus;
     require(!RovRetailUI::LoadFontFamily(&disabled, SFile::s_locale, &disabledStatus));
