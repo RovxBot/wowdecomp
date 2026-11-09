@@ -55,6 +55,8 @@ reuses native font registration, inheritance, Services/Gxu/FreeType validation
 and cleanup; initialized optional shadow fields avoid reading undefined storage. Full-client
 font method dispatch now uses the true FrameScript_Object base before returning
 the original opaque result, following the existing qualified native design.
+The resource filesystem path also exposes the logger's shared directory owner;
+its existing shutdown now frees that allocation once after consumers join.
 No new dependency, exported font/source asset, donor address or VERIFY claim is
 introduced. It remains opt-in and Linux-only. Selected slug rendering and broader
 modern resources remain explicit failures. The authored redistributable movement

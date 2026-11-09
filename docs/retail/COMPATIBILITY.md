@@ -246,7 +246,9 @@ remain authoritative; destroying the font registry invalidates Lua slot zero and
 removes globals before its metatable and VM close. Optional shadow storage is
 initialized before comparisons. Native method dispatch checks through the true
 FrameScript_Object base, since fonts are not CScriptObject subclasses; the
-existing opaque dispatcher signature is preserved.
+existing opaque dispatcher signature is preserved. Filesystem lookup may start
+the original logger; its shared default-directory allocation is released once
+after the log thread and consumers close, before the preferences array.
 
 Unsupported selected attributes, notably `slug`, fail explicitly. The pinned
 Fonts_Shared/Mainline/Fonts.xml requests slug rendering after its initial six
