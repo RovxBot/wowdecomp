@@ -91,7 +91,9 @@ gameplay frames. See the [compatibility contract and external-reference checks](
 
 `prepare.py` verifies the upstream archive and applies explicit adaptations to a
 separate source directory. `source-audit.json` records before/after file hashes;
-the exact adapted source is retained with the application. Source preparation,
+the exact adapted source is retained with the application. Pinned downloads retry
+transient transport failures up to three times without changing the URL or
+checksum. Invalid bytes and permanent HTTP errors still fail immediately. Source preparation,
 Python launcher tests and source audits may run locally. `build.py` refuses local
 compilation. The Actions build uses upstream's full `WowClient` CMake target,
 focused job-lifecycle, allocation, near-memory and audio-angle checks. Package
