@@ -5,6 +5,7 @@ existing 12340 engine. Current acceptance and evidence: [#211](https://github.co
 The first native prerequisite is [#212](https://github.com/RovxBot/wowdecomp/issues/212),
 [PR #213](https://github.com/RovxBot/wowdecomp/pull/213). Complete Edit Mode controls,
 action-bar movement and layout persistence are still acceptance requirements.
+The next Lua/bootstrap prerequisite is [#215](https://github.com/RovxBot/wowdecomp/issues/215).
 
 ## Reference boundary and versions
 
@@ -182,15 +183,18 @@ integrated startup #210/#172 remains independent and unqualified by this fixture
 1. Finish the Edit Mode slice: modern composition helpers/callback/layout
    dependencies, resource resolver, local layout API store, then one real bar
    adapter and operator tests. Add further registered frames individually.
-2. Blizzard one-bag UI: reuse 12340 container slots and item actions behind
+2. Blizzard [one-bag UI](https://github.com/reckhou/WoWBlzCode/blob/7245053a9f2cab5ea5e1ac5221489329d28b320c/Retail/BlizzardInterfaceCode/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua): reuse 12340 container slots and item actions behind
    reviewed container/item bindings, then the genuine bag implementation and
    templates. Do not invent account/warband/reagent storage unavailable in 12340.
-3. Enhanced unit frames: reuse qualified layouts/atlases and original unit events;
+3. Enhanced [unit frames](https://github.com/reckhou/WoWBlzCode/tree/7245053a9f2cab5ea5e1ac5221489329d28b320c/Retail/BlizzardInterfaceCode/Interface/AddOns/Blizzard_UnitFrame): reuse qualified layouts/atlases and original unit events;
    adapt genuine frame implementations without exposing unsupported aura data.
-4. Cooldown manager: audit actual Forever/retail sources and APIs first. A narrow
+4. [Cooldown manager](https://github.com/reckhou/WoWBlzCode/tree/7245053a9f2cab5ea5e1ac5221489329d28b320c/Retail/BlizzardInterfaceCode/Interface/AddOns/Blizzard_CooldownViewer): its TOC requires EditMode, ChatFrameBase,
+   VisualAlerts and ManagedFrameSystem and selects the standard game type. Audit
+   the APIs/flavor boundary before enabling it in Forever. A narrow
    player cooldown display can use backed 12340 spells; modern cooldown-set,
    charge/override/spec and secret-data APIs require explicit capability limits.
-5. Character customisation UI: follow the [modern model workstream](MODERN_ASSETS.md)
+5. [Character customisation UI](https://github.com/reckhou/WoWBlzCode/tree/7245053a9f2cab5ea5e1ac5221489329d28b320c/Retail/BlizzardInterfaceCode/Interface/AddOns/Blizzard_CharacterCustomize): its TOC depends on CustomizationUI.
+   Follow the [modern model workstream](MODERN_ASSETS.md)
    and an explicit mapping to supported 12340 choices. New races/options or
    server-persisted appearance fields need separately approved extensions.
 
