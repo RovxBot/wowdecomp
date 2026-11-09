@@ -2,10 +2,12 @@
 
 The Alpha 0.2.0 workstream runs genuine Blizzard interface implementations on the
 existing 12340 engine. Current acceptance and evidence: [#211](https://github.com/RovxBot/wowdecomp/issues/211).
-The first native prerequisite is [#212](https://github.com/RovxBot/wowdecomp/issues/212),
+The first native prerequisite landed in [#212](https://github.com/RovxBot/wowdecomp/issues/212),
 [PR #213](https://github.com/RovxBot/wowdecomp/pull/213). Complete Edit Mode controls,
 action-bar movement and layout persistence are still acceptance requirements.
-The next Lua/bootstrap prerequisite is [#215](https://github.com/RovxBot/wowdecomp/issues/215).
+Lua/bootstrap implementation and remaining acceptance are tracked in
+[#215](https://github.com/RovxBot/wowdecomp/issues/215),
+[PR #216](https://github.com/RovxBot/wowdecomp/pull/216).
 
 ## Reference boundary and versions
 
@@ -84,7 +86,7 @@ FrameXML inheritance alone does not supply any of these Lua implementations.
 | Edit Mode contract | 12340 support / remaining work |
 | --- | --- |
 | [Composition/templates](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_EditMode/Shared/EditModeTemplates.xml) | New native opt-in frame `mixin`, script `method`, `inherit=append/prepend` prerequisite below. `Line`, DropdownButton, intrinsic definitions and modern loading tags are not implemented by it. |
-| [System registration/anchors/scaling](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_EditMode/Shared/EditModeSystemTemplates.lua) | Original SetPoint/GetPoint/scale/movement exist. Actual mixins override them, maintain snapped-frame graphs and compensate scale offsets. Need reviewed callbacks, `Mixin`/`CreateFromMixins`, managed layouts, Selection children and real-frame adapters. |
+| [System registration/anchors/scaling](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_EditMode/Shared/EditModeSystemTemplates.lua) | Original SetPoint/GetPoint/scale/movement exist. Actual mixins override them, maintain snapped-frame graphs and compensate scale offsets. Ordinary native `Mixin`/`CreateFromMixins` are available below. Reviewed callbacks, managed layouts, Selection children and real-frame adapters remain required. |
 | [Layout manager/persistence](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_EditMode/Shared/EditModeManager.lua) | No `C_EditMode` namespace, layout enumeration, account-setting store, active-layout selection or synchronous `EDIT_MODE_LAYOUTS_UPDATED` event. No successful save is simulated. Define a local, versioned external-state store before binding these APIs; retail server storage is unavailable. |
 | [Layout schema/API](https://github.com/reckhou/WoWBlzCode/blob/7245053a9f2cab5ea5e1ac5221489329d28b320c/Forever/BlizzardInterfaceCode/Interface/AddOns/Blizzard_APIDocumentationGenerated/EditModeManagerDocumentation.lua) | Layouts carry active index, layout name/type/interfaceStyle, systems, settings and named anchor targets. The secondary export documents 12 `C_EditMode` APIs. Primary source additionally calls `ConvertLayoutInfoToHyperlink`; its absence from that older index is a version gap, not evidence of support. |
 | Cancel/reset/Classic | Manager snapshots/dirty settings, RevertAllChanges, per-system default anchors and preset tables must operate on the existing frame. A Forever Classic preset is not automatically the untouched 12340 layout; retain a separately captured original-layout restore point. |
@@ -132,15 +134,101 @@ the helper yet. Their compatibility implementation and hardware acceptance need
 separate qualification. Windows regression compilation still checks the original
 product graph.
 
+## Native Lua composition and bootstrap boundary
+
+The same version opt-in registers `Mixin(object, ...)` and
+`CreateFromMixins(...)` during the actual full Linux FrameScript VM initialization,
+plus `table.contains` required by genuine TableUtil/EnumUtil.
+Disabled or differently versioned VMs retain their original globals. The
+implementation lives in FrameScript; XML composition continues in Frame.
+
+The selected [native API declarations](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua)
+declare both APIs and disallow secure hooks. The selected
+[Mixin.lua](https://github.com/Gethe/wow-ui-source/blob/9dc84f0d3bbae1768ac3405b3716000bd93eda06/Interface/AddOns/Blizzard_SharedXMLBase/Mixin.lua)
+captures the native functions for CreateAndInitFromMixin/CreateSecureMixinCopy;
+its SecureMixin loop supplies the source-level ordinary-table comparison.
+The mirror contains no native implementation or retail binary to establish
+undocumented native edge-case parity. No source implementation is imported.
+
+- Copy present table fields shallowly, in argument order; later fields win.
+  Functions, nested tables and arbitrary Lua keys retain their identities.
+  No source metatable or inherited `__index` fields are copied. Existing target
+  method lookup remains available; normal assignment honors `__newindex`.
+- Return the same target, or a fresh ordinary table for CreateFromMixins.
+  Sources must be tables, including every variadic argument. Bad arguments and
+  assignment errors propagate through the normal VM. Earlier assignments can
+  remain when a later source fails; this is distinct from XML's preflighted list.
+- Preserve the engine object's lightuserdata slot zero. Refuse copying a native
+  object as a mixin or replacing its identity. Ordinary Lua-table numeric keys,
+  including zero, are supported. These refusals bound our native ownership
+  contract rather than asserting undocumented retail behavior.
+- Retain normal VM taint, function ownership and GC barriers. Keep no native
+  registry roots. The existing hooksecurefunc rejects either native API, also
+  through aliases, and otherwise retains its existing behavior. Composition
+  grants no protected-frame/combat admission. Modern secret values, secure
+  delegates and forbidden-frame semantics remain unqualified.
+
+`table.contains` follows the selected LuaTableExtensionsDocumentation contract:
+search all present values, including associative/sparse entries, using Lua
+equality and its ordinary `__eq` errors. Return one boolean; accept a nil search
+value and reject a non-table source. It does not traverse inherited fields.
+
+Independent external-source qualification loads genuine Mixin, TableUtil,
+EnumUtil, FunctionUtil, MathUtil and AnchorUtil in their relative TOC order.
+It exercises actual construction/initialization, captured native functions,
+SecureMixin's ordinary-table result, enum inversion/membership, anchor values and
+grid-layout parameters. EnumUtil.MakeEnum is a Lua helper; it does **not** supply
+the native `Enum` namespace. No callback/pool or rendered-frame result follows
+from this subset.
+
+The ordered diagnostic follows required addon dependencies before TOC entries,
+preserves selected Camelot/Mainline file order, and stops at the first failure.
+XML files remain construction barriers; the probe never skips their controls,
+resources, Include/Script order or implicit template providers to run later Lua.
+The full declared sequence reaches Fonts_Shared/Mainline/Fonts.xml after genuine
+ProjectConstants, Camelot/ProjectConstants and LoadLocale. It then requires an
+initialized client/resource loader, including modern FontFamily support. This
+probe limitation is separate from a demonstrated integrated-engine runtime stop.
+The ordered SharedXMLBase prerequisite begins with ScriptErrors, whose actual
+CreateFromMixins/Init proceeds to the next missing native CreateSecureDelegate.
+CreateCounter's returned closure requires securecallfunction; loading MathUtil
+does not qualify its secure execution. CallbackRegistry and Pools additionally
+require backed secure calls, forbidden
+frames and secure containers. Independent file diagnostics must not be reported
+as successful full Edit Mode bootstrap.
+The focused native security follow-up is [#217](https://github.com/RovxBot/wowdecomp/issues/217).
+
+Generated selected-build enum values are described in
+Blizzard_APIDocumentationGenerated/EditModeManagerConstantsDocumentation.lua;
+this export has no global-string value for HUD_EDIT_MODE_ERROR_COPY_MAX_LAYOUTS.
+Require permitted, versioned actual native enum/constants and locale inputs.
+Neither EnumUtil nor the enUS locale selector substitutes those resources.
+
+For a real bar, EditModeSystemTemplate must construct its actual Selection
+children and call OnSystemLoad on the existing bar. That method preserves base
+SetPoint/SetScale/ClearAllPoints methods, registers with EditModeManagerFrame,
+loads setting display information and connects Selection. The managed-container
+path also depends on EventRegistry and actual layout containers. A narrow
+MultiBarBottomLeft adapter can retain the original twelve protected buttons,
+bindings, page/state drivers and ownership; it must capture the original anchors
+before any manager mutation. Reuse existing parentKey binding; qualify modern
+global-valued KeyValue, resource and widget support. Actual manager construction
+and backed local C_EditMode storage/events must precede move/save/operator
+qualification. Do not reparent or
+move a protected bar in combat, or equate a native script object with that bar.
+
 ## Reproduce source and hosted checks
 
 All compilation runs in Actions. The four existing full Linux profiles retain
 release and strict ASan/UBSan/vptr/leak coverage plus the signature-enabled
 Windows baseline. `rov_retail_xml` executes the production helper with actual
 full-client Lua and XML nodes in both VM profiling modes. Authored Lua tables
-exercise ordering, arguments, errors, opt-in, malformed inputs, native identity,
-registry lifetime and ownership/taint. They do not establish actual frame
-creation, rendering, secure-action parity, login or gameplay.
+and an actual registered FrameScript_Object exercise ordering, arguments,
+errors, opt-in, malformed inputs, native identity, method inheritance,
+secure-hook admission, weak-reference GC, registry retirement and ownership/taint.
+Disabled VMs are recreated before each enabled VM, in both profiling modes.
+These checks do not establish actual frame creation, rendering, secure-action
+parity, login or gameplay.
 
 Supply a permitted export or a checkout of the exact reference outside both this
 repository and game installations. For an existing external checkout:
@@ -168,6 +256,16 @@ and bottom-bar ordering through the native binder with table-only frame markers.
 It does not construct gameplay frames. `RovRetailXMLCheck --load <external.lua>`
 separately reports the first unsupported dependency of an unmodified file and
 exits 1 on a Lua error; it does not supply mock services to force a load.
+
+Use `--mode helpers` with the same audit command and a matching probe from
+#215 to qualify the genuine helper subset. Use `--mode base-bootstrap` for the
+ordered ScriptErrors/SharedXMLBase prerequisite, or `--mode bootstrap` for the
+whole selected declared dependency sequence. Both modes retain the first
+failure; neither skips an XML/resource barrier. Reports include both ordered
+plans and all existing template-provider identities, with implicit provider
+admission still unresolved. The probe's `--sequence <files...>` mode can also
+load an explicitly identified Lua-only subset in one VM. Always distinguish
+that subset from full ordered bootstrap. Keep reports/logs outside the repository.
 
 For later operator acceptance, use a hash-verified TEST-SERVER release with
 unchanged clean data and external state; the operator signs in interactively.

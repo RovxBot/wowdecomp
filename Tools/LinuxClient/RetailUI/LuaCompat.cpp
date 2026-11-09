@@ -53,6 +53,24 @@ static int compose(lua_State* L, bool create) {
 static int mixin(lua_State* L) { return compose(L, false); }
 static int createFromMixins(lua_State* L) { return compose(L, true); }
 
+// LuaTableExtensionsDocumentation: search all values with Lua equality, not
+// just the consecutive array prefix (that is the distinct table.indexof API).
+static int contains(lua_State* L) {
+    if (!Enabled()) return luaL_error(L, "Forever Lua compatibility version is not enabled");
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_settop(L, 2);
+    lua_pushnil(L);
+    while (lua_next(L, 1)) {
+        if (lua_equal(L, -1, 2)) {
+            lua_pushboolean(L, true);
+            return 1;
+        }
+        lua_pop(L, 1);
+    }
+    lua_pushboolean(L, false);
+    return 1;
+}
+
 bool IsCompositionFunction(lua_State* L, int index) {
     const lua_CFunction function = lua_tocfunction(L, index);
     return function == mixin || function == createFromMixins;
@@ -64,5 +82,9 @@ void RegisterLuaFunctions(lua_State* L) {
     lua_setglobal(L, "Mixin");
     lua_pushcfunction(L, createFromMixins);
     lua_setglobal(L, "CreateFromMixins");
+    lua_getglobal(L, "table");
+    lua_pushcfunction(L, contains);
+    lua_setfield(L, -2, "contains");
+    lua_pop(L, 1);
 }
 }

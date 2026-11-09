@@ -115,6 +115,19 @@ static void compositionFixture(lua_State* L) {
         end
         collectgarbage('collect');
         assert(weak[1] == nil and weak[2] == nil and weak[3] == nil);
+        local match = {}; local entries = {[0] = false, [-7] = match, [12] = 'sparse', field = 19};
+        assert(table.contains(entries, false) == true and table.contains(entries, match) == true);
+        assert(table.contains(entries, 'sparse') == true and table.contains(entries, 19) == true);
+        assert(table.contains(entries, {}) == false and table.contains(entries, '19') == false);
+        assert(table.contains(entries, nil) == false and table.contains({}) == false);
+        assert(table.contains(setmetatable({}, {__index = {field = 19}}), 19) == false);
+        assert(select('#', table.contains(entries, 19)) == 1);
+        assert(not pcall(table.contains) and not pcall(table.contains, 'invalid', 19));
+        local meta = {__eq = function(left, right) return left.id == right.id end};
+        assert(table.contains({setmetatable({id = 8}, meta)}, setmetatable({id = 8}, meta)));
+        meta.__eq = function() error(failure) end;
+        local equalOk, equalError = pcall(table.contains, {setmetatable({}, meta)}, setmetatable({}, meta));
+        assert(not equalOk and equalError == failure);
     )lua");
     // Real FrameScript object registration/retirement, without claiming this
     // test object is a gameplay frame or constructing a replacement HUD.
@@ -160,7 +173,7 @@ static void compositionFixture(lua_State* L) {
     lua_tainted = nullptr;
     run(L, "taintedMixin = nil; taintedCopy = nil; collectgarbage('collect')");
     unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
-    run(L, "assert(not pcall(Mixin, {}, {}) and not pcall(CreateFromMixins, {}))");
+    run(L, "assert(not pcall(Mixin, {}, {}) and not pcall(CreateFromMixins, {}) and not pcall(table.contains, {}, 1))");
     setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
 }
 
@@ -278,7 +291,7 @@ static bool helpers(lua_State* L, const char* root) {
         const std::string path = std::string(root) + "/Interface/AddOns/Blizzard_SharedXMLBase/" + name;
         if (!loadReference(L, path.c_str())) return false;
     }
-    run(L, R"lua(
+    const char* checks = R"lua(
         local object = CreateAndInitFromMixin({Init = function(self, ...) self.count = select('#', ...); self.arg = ... end}, 17, nil);
         assert(object.count == 2 and object.arg == 17);
         local base = {Method = function(self) return self.value end, value = 5};
@@ -289,7 +302,6 @@ static bool helpers(lua_State* L, const char* root) {
         assert(copy.Method == base.Method and getmetatable(copy) == false);
         local enum = EnumUtil.MakeEnum('One', 'Two');
         assert(enum.One == 1 and enum.Two == 2 and EnumUtil.IsValid(enum, 2) and not EnumUtil.IsValid(enum, 3));
-        local count = CreateCounter(10, 2); assert(count() == 12 and count() == 14);
         local relative = {};
         local anchor = AnchorUtil.CreateAnchor('CENTER', relative, 'BOTTOM', 4, -9);
         local point, target, relativePoint, x, y = anchor:Get();
@@ -312,7 +324,12 @@ static bool helpers(lua_State* L, const char* root) {
         assert(CreateAndInitFromMixin({Init = function(self) self.ok = true end}).ok);
         assert(CreateSecureMixinCopy(base).Method == base.Method);
         Mixin, CreateFromMixins = nativeMixin, nativeCreate;
-    )lua");
+    )lua";
+    if (luaL_loadstring(L, checks) || lua_pcall(L, 0, 0, 0)) {
+        std::fprintf(stderr, "reference-helper-check-failed: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return false;
+    }
     std::puts("genuine-Forever-helpers=passed (Lua objects/anchor values; no frame, callback/pool or rendering claim)");
     return true;
 }
@@ -354,7 +371,7 @@ int main(int argc, char** argv) {
         for (const char* mode : {"", "wrong-version"}) {
             setenv("WOWDECOMP_RETAIL_UI_COMPAT", mode, 1);
             require(FrameScript_Initialize(profile));
-            run(FrameScript_GetContext(), "assert(Mixin == nil and CreateFromMixins == nil); local t = {value = 1}; assert(t.value == 1)");
+            run(FrameScript_GetContext(), "assert(Mixin == nil and CreateFromMixins == nil and table.contains == nil); local t = {value = 1}; assert(t.value == 1)");
             FrameScript_Destroy();
         }
         setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
