@@ -172,14 +172,19 @@ def main():
     parser.add_argument('--report', type=Path, help='write metadata-only graph outside the repository')
     parser.add_argument('--binary', type=Path, help='hash-verified hosted RovRetailXMLCheck')
     parser.add_argument('--binary-sha256', help='expected hosted executable hash')
-    parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap'], default='reference',
+    parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap', 'constants', 'resources', 'resource-bootstrap'], default='reference',
                         help='reference fixture, independent genuine helpers, or ordered declared prerequisite loads')
+    parser.add_argument('--assets', type=Path, help='separate external font root for resource execution')
+    parser.add_argument('--locale', default='enUS', help='resource harness locale; no implicit fallback')
     args = parser.parse_args()
     report = audit(args.source)
     lock = json.loads((HERE / 'references.json').read_text())
     expected = lock['forever']['declared_graph_sha256']
     if report['fingerprint'] != expected:
         raise SystemExit('Supplied source differs from the pinned declared graph; no reference execution performed')
+    for name, expected_hash in lock['forever']['resource_evidence'].items():
+        if sha(args.source / name) != expected_hash:
+            raise SystemExit('Supplied enum/resource evidence differs from the pinned reference: ' + name)
     report['ordered_loads'] = load_plan(report)
     report['base_ordered_loads'] = load_plan(report, 'Blizzard_SharedXMLBase')
     print(json.dumps({k: report[k] for k in ['commit', 'game', 'family', 'fingerprint', 'missing_files', 'cycles']}, indent=2))
@@ -195,6 +200,13 @@ def main():
             command += ['--reference', str(script.resolve())]
         elif args.mode == 'helpers':
             command += ['--helpers', str(args.source.resolve())]
+        elif args.mode == 'constants':
+            command += ['--constants', str(args.source.resolve())]
+        elif args.mode in ['resources', 'resource-bootstrap']:
+            if not args.assets or not args.assets.is_dir():
+                parser.error('resource execution requires a separate --assets directory')
+            plan = ['Interface/AddOns/Blizzard_Fonts_Shared/Mainline/Fonts.xml'] if args.mode == 'resources' else report['ordered_loads']
+            command += ['--resource-sequence', str(args.assets.resolve()), args.locale] + [str((args.source / name).resolve()) for name in plan]
         elif args.mode == 'script-errors':
             command += ['--script-errors', str(args.source.resolve())]
         else:

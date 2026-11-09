@@ -12,7 +12,11 @@
     "license": "No repository licence; reference only, no UI import",
     "reference_script": "Interface/AddOns/Blizzard_EditMode/Camelot/EditModeUtil.lua",
     "reference_script_sha256": "e828f9bb729cbb9b11162264af274343a5df7bff5ff1cafc64a77da91c0ba760",
-    "provider_files": 69
+    "provider_files": 69,
+    "resource_evidence": {
+      "Interface/AddOns/Blizzard_APIDocumentationGenerated/LFGConstantsDocumentation.lua": "aa13ba0facf9b354b8478c4db891134c106e91ec458f99d9ecad7a869c066d87",
+      "Interface/AddOns/Blizzard_Fonts_Shared/Mainline/Fonts.xml": "e71545cc3614ac34d82717df2d2d5eed4b5413a8c9e9475a1cf63a630ba89a60"
+    }
   },
   "retail": {
     "repository": "Gethe/wow-ui-source",

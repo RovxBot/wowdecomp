@@ -698,10 +698,16 @@ void VkContext::ChooseHeaps() {''')
     retail_dir = root / 'Engine/Source/Frame/RetailUI'
     retail_dir.mkdir()
     retail_added = []
-    for name in ['XMLCompat.h', 'XMLCompat.cpp']:
+    for name in ['XMLCompat.h', 'XMLCompat.cpp', 'FontResources.h', 'FontResources.cpp']:
         target = retail_dir / name
         shutil.copy2(HERE / 'RetailUI' / name, target)
         retail_added.append(str(target.relative_to(root)))
+    def retail_resources(text):
+        text = '#include "Engine/Source/Frame/RetailUI/FontResources.h"\n#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text
+        return replace(text, '            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {', '''            } else if (RovRetailUI::Enabled() && !SStrCmpI(child->m_name.m_str, "FontFamily", STORM_MAX_STR)) {
+                if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) break;
+            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
+    edit('Engine/Source/FrameXML/FrameXML.cpp', retail_resources)
     lua_dir = root / 'Engine/Source/FrameScript/RetailUI'
     lua_dir.mkdir()
     for name in ['LuaCompat.h', 'LuaCompat.cpp']:
@@ -725,6 +731,8 @@ void VkContext::ChooseHeaps() {''')
     edit('Engine/Source/FrameScript/FrameScript_Scripts.cpp', retail_hooks)
     shutil.copy2(HERE / 'RetailUI' / 'xml_check.cpp', root / 'RovRetailXMLCheck.cpp')
     retail_added.append('RovRetailXMLCheck.cpp')
+    shutil.copy2(HERE.parent / 'NativeGx/fonts/moves.ttf', root / 'RovResourceFixture.ttf')
+    retail_added.append('RovResourceFixture.ttf')
 
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
@@ -849,6 +857,8 @@ get_target_property(retail_client_libraries WowClient LINK_LIBRARIES)
 target_link_libraries(RovRetailXMLCheck PRIVATE ${retail_client_libraries})
 target_include_directories(RovRetailXMLCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_retail_xml COMMAND RovRetailXMLCheck)
+add_test(NAME rov_retail_resources COMMAND RovRetailXMLCheck --resources ${CMAKE_SOURCE_DIR}/RovResourceFixture.ttf)
+set_tests_properties(rov_retail_resources PROPERTIES TIMEOUT 45)
 set_tests_properties(rov_retail_xml PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''
