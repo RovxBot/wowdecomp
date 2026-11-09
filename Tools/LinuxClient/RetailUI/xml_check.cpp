@@ -11,6 +11,8 @@
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
 #include "Engine/Source/Gxu/GxuFont.h"
 #include "Engine/Source/Gxu/GxuFontFace.h"
+#include "Engine/Source/Gxu/GxuFontUtil.h"
+#include <freetype/ftmodule.h>
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
@@ -592,7 +594,11 @@ static void startResources() {
     SFile::EnableDirectAccess(1); // Harness-only external files; no game archives mounted.
     CoordinateSetAspectRatio(4.0f / 3.0f);
     g_widthPixels = 1024; g_heightPixels = 768;
-    require(!g_FTLibrary && FT_Init_FreeType(&g_FTLibrary) == 0);
+    // Match the production Gxu allocator/library ownership exactly: its
+    // shutdown uses FT_Done_Library, not FT_Done_FreeType's allocator teardown.
+    static FT_MemoryRec_ memory = {nullptr, FreeTypeAlloc, FreeTypeFree, FreeTypeRealloc};
+    require(!g_FTLibrary && FT_New_Library(&memory, &g_FTLibrary) == 0);
+    FT_Add_Default_Modules(g_FTLibrary);
     CSimpleFont::GetObjectType();
     CSimpleFont::CreateScriptMetaTable();
 }
