@@ -718,7 +718,7 @@ void VkContext::ChooseHeaps() {''')
         hook = text[start:end]
         hook = replace(hook, '    bool hooked;', '    bool hooked;\n    bool blocked;')
         hook = replace(hook, '    if (lua_type(L, -1) == LUA_TFUNCTION) {',
-                       '    blocked = RovRetailUI::IsCompositionFunction(L, -1);\n    if (lua_type(L, -1) == LUA_TFUNCTION && !blocked) {')
+                       '    blocked = RovRetailUI::IsHookRestrictedFunction(L, -1);\n    if (lua_type(L, -1) == LUA_TFUNCTION && !blocked) {')
         hook = replace(hook, '        luaL_error(L, "hooksecurefunc(): %s is not a function", name);',
                        '        luaL_error(L, blocked ? "hooksecurefunc(): %s does not allow secure hooks" : "hooksecurefunc(): %s is not a function", name);')
         return '#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text[:start] + hook + text[end:]

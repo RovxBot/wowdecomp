@@ -166,7 +166,7 @@ undocumented native edge-case parity. No source implementation is imported.
   registry roots. The existing hooksecurefunc rejects either native API, also
   through aliases, and otherwise retains its existing behavior. Composition
   grants no protected-frame/combat admission. Modern secret values, secure
-  delegates and forbidden-frame semantics remain unqualified.
+  cross-taint delegates and forbidden-frame semantics remain unqualified.
 
 `table.contains` follows the selected LuaTableExtensionsDocumentation contract:
 search all present values, including associative/sparse entries, using Lua
@@ -197,6 +197,87 @@ require backed secure calls, forbidden
 frames and secure containers. Independent file diagnostics must not be reported
 as successful full Edit Mode bootstrap.
 The focused native security follow-up is [#217](https://github.com/RovxBot/wowdecomp/issues/217).
+
+## Bounded secure delegate prerequisite
+
+The same versioned Linux opt-in supplies `CreateSecureDelegate` for **trusted
+entry only**. This is a smaller prerequisite than the modern API's complete
+security boundary. It admits the pinned ScriptErrors construction and ordinary
+string invocation; it does not qualify error handling from tainted addon code.
+Current qualification, failures and bootstrap stops belong to
+[#217](https://github.com/RovxBot/wowdecomp/issues/217).
+
+The selected FrameScriptDocumentation describes protected invocation with secure
+execution taint, direct arguments/results and default
+`wrapUntrustedFunctions=true`. It declares restrictions and forbids secure hooks
+on the factory, but does not enumerate all native restrictions or establish hook
+behavior for generated closures. The selected ScriptErrors creates its delegate
+from the local Lua function RemoveKStrings, then supplies debug-local text.
+These exports contain no native implementation. This implementation is authored
+against the declared contract; no Blizzard implementation is imported.
+
+The audited original `Script_securecall` increments `lua_taintexpected`, calls
+`lua_pcall` with the original error handler, swallows failures and retags results
+with caller taint. It does not establish the modern delegate contract. The VM
+tracks TValue and GC/closure taint, propagates it on reads and executes tainted
+Lua closures with their owner. Both interpreter profiling modes use those paths.
+`luaD_pcall` closes pending upvalues and restores VM frames on errors; it resets
+the active-closure flag, rather than restoring the entire taint context.
+`hooksecurefunc` owns its original/hook closures through traced upvalues.
+
+Crucially, 12340's `CScriptRegion::ProtectedFunctionsAllowed` also uses
+`lua_tainted` for protected-action authority. The VM has no independent modern
+delegate security context, secret-value representation or automatic untrusted
+function-argument wrapper. Clearing addon taint to obtain secure execution could
+therefore admit protected actions. Ordinary `pcall` error protection does not
+solve that missing authority boundary.
+
+The bounded implementation consequently:
+
+- Requires an untainted creation and invocation context, a real untainted Lua
+  function, and untainted direct argument values. Rechecks the retained callee
+  on every invocation, including ownership changed after construction. Tainted
+  creators, callees, argument values and untrusted function arguments fail
+  explicitly before invoking the callee. It never clears entry taint.
+- Accepts omitted/nil/empty options or `wrapUntrustedFunctions=true`. Rejects
+  false/nonboolean settings, unknown fields, tainted options/fields, metatables
+  and extra arguments. Secret/security-context options are unsupported. No
+  secret APIs, forbidden containers, callback services or timers are fabricated.
+- Retains the original function in one Lua-owned C-closure upvalue; ordinary
+  argument identities, trailing nils and all results pass directly. Trusted
+  function arguments keep their identity. Retains normal VM taint propagation
+  inside the call and on returned values; this is not arbitrary untainting.
+- Uses the actual VM's protected call, closes open captures on errors and
+  restores execution/closure/allocation taint and propagation/reentry flags on
+  success or failure. Propagates the original error object after restoration;
+  the global error handler is not implicitly invoked. Reentrant calls obey the
+  same admission, and can fail when the outer call has become tainted.
+- Rejects secure hooks on the factory through aliases. Generated delegate hooks
+  are also refused as an explicit local qualification limit, not as an inferred
+  modern API guarantee. Unrelated legacy hooks retain their original handling.
+  Uses no native registry owners and leaves collection/VM teardown to the VM.
+
+An already untainted caller gains no new protected-action or combat permission.
+Existing checks remain in effect when the callee reads tainted data or calls
+`forceinsecure`. Supporting tainted entry and untrusted function wrapping needs
+a separately audited VM authority boundary; it must not be added by setting
+`lua_tainted` to null. Disabled/wrong-version VMs register none of these helpers.
+Windows/macOS do not select this Linux compatibility module.
+
+The hosted production fixture covers malformed/default options, large argument
+lists, nil/multiple returns and identity, nested calls, exact Lua error objects,
+failed user error handlers, open-upvalue unwinding, retained-callee ownership,
+tainted admission/refusal and returned taint, hooks, weak GC and teardown with a
+live delegate. It runs both VM profiling modes alongside disabled legacy VMs.
+These are component checks, not initialized frame/combat/gameplay observations.
+
+`audit_reference.py --mode script-errors` verifies the existing pinned graph,
+loads unchanged ScriptErrors and invokes its actual captured
+RemoveKStringsDelegate through probe-only lexical inspection. It exercises
+success, a genuine bad-input Lua error and recovery, without substituting
+debug/log/timer services. Use `--mode base-bootstrap` separately for the actual
+ordered SharedXMLBase continuation and `--mode bootstrap` for the full order.
+The Fonts.xml resource boundary still requires an initialized client loader.
 
 Generated selected-build enum values are described in
 Blizzard_APIDocumentationGenerated/EditModeManagerConstantsDocumentation.lua;
