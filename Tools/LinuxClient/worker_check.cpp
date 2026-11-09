@@ -186,7 +186,8 @@ int main() {
             network->PlatformInit(false);
             require(!failPipe && descriptors() == fds + (pipeFailure ? 0 : 2));
             network->Start();
-            require(callbacks == oldCallbacks+workers && network->m_thread.Valid());
+            await([&] { return callbacks == oldCallbacks+workers; });
+            require(network->m_thread.Valid());
             for (int i = 0; i < workers; ++i) require(network->m_workers[i].m_thread.Valid());
             const int polls = pollReturns;
             network->PlatformWorkerReady();

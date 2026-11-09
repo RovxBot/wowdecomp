@@ -758,7 +758,7 @@ set_tests_properties(rov_native_echo PROPERTIES TIMEOUT 45)
 # main without running Client startup. No replacement transport or Storm owner.
 file(GLOB worker_client_sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/WoW/Source/*.cpp")
 add_executable(RovNativeWorkerCheck RovNativeWorkerCheck.cpp ${worker_client_sources}
-    Engine/Source/Perf/PerfLog.cpp)
+    WoW/Source/Linux/BotCheck.cpp Engine/Source/Perf/PerfLog.cpp)
 get_target_property(worker_client_libraries WowClient LINK_LIBRARIES)
 target_link_libraries(RovNativeWorkerCheck PRIVATE ${worker_client_libraries})
 target_include_directories(RovNativeWorkerCheck PRIVATE ${CMAKE_SOURCE_DIR})
