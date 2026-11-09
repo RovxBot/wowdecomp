@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import urllib.error
+import urllib.parse
 
 from prepare import download
 
@@ -29,8 +30,15 @@ class PinnedDownloadTests(unittest.TestCase):
         download(self.url, self.path, self.sha)
         self.assertEqual(self.path.read_bytes(), self.payload)
         self.assertEqual(open_url.call_count, 3)
-        for call in open_url.call_args_list:
-            self.assertEqual(call.args[0].full_url, self.url)
+        for attempt, call in enumerate(open_url.call_args_list):
+            parts = urllib.parse.urlsplit(call.args[0].full_url)
+            self.assertEqual(urllib.parse.urlunsplit(parts._replace(query='')), self.url)
+            if attempt:
+                fields = urllib.parse.parse_qs(parts.query)
+                self.assertEqual(fields['wowdecomp_sha256'], [self.sha])
+                self.assertEqual(fields['wowdecomp_retry'], [str(attempt)])
+            else:
+                self.assertEqual(call.args[0].full_url, self.url)
             self.assertEqual(call.args[0].get_header('Cache-control'), 'no-cache')
         self.assertEqual([call.args[0] for call in sleep.call_args_list], [1, 2])
 
@@ -61,6 +69,14 @@ class PinnedDownloadTests(unittest.TestCase):
             download(self.url, self.path, self.sha)
         open_url.assert_called_once()
         sleep.assert_not_called()
+
+    @patch('prepare.time.sleep')
+    @patch('prepare.urllib.request.urlopen')
+    def test_retry_cannot_admit_changed_asset_bytes(self, open_url, sleep):
+        open_url.side_effect = [self.gateway(), io.BytesIO(b'changed asset')]
+        with self.assertRaisesRegex(ValueError, 'SHA256 mismatch'):
+            download(self.url, self.path, self.sha)
+        self.assertEqual(open_url.call_count, 2)
 
     @patch('prepare.urllib.request.urlopen')
     def test_verified_cache_requires_no_network(self, open_url):

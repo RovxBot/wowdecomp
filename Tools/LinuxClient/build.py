@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import tarfile
 
-from prepare import HERE, LOCK, digest, prepare
+from prepare import HERE, LOCK, digest, download, prepare
 from package import package
 from distribute import distribution
 
@@ -31,6 +31,7 @@ def main():
     work.mkdir()
     output = root / 'artifacts/full-linux' / suffix
     output.mkdir(parents=True)
+    download(LOCK['appimage_runtime']['url'], output / 'runtime-x86_64', LOCK['appimage_runtime']['sha256'])
     source = prepare(work / 'source', work / 'upstream.tar.gz')
     shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     build = work / 'build'

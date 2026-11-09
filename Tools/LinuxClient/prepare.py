@@ -13,6 +13,7 @@ import shutil
 import tarfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 HERE = Path(__file__).resolve().parent
@@ -27,7 +28,16 @@ def download(url, path, expected):
     if not path.exists() or digest(path) != expected:
         for attempt in range(4):
             try:
-                request = urllib.request.Request(url, headers={'Cache-Control': 'no-cache'})
+                fetch_url = url
+                if attempt:
+                    # Revalidate the same asset through a checksum-addressed
+                    # cache key after a negative gateway response. The locked
+                    # path/version and mandatory byte digest remain unchanged.
+                    parts = urllib.parse.urlsplit(url)
+                    query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+                    query += [('wowdecomp_sha256', expected), ('wowdecomp_retry', str(attempt))]
+                    fetch_url = urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(query)))
+                request = urllib.request.Request(fetch_url, headers={'Cache-Control': 'no-cache'})
                 with urllib.request.urlopen(request, timeout=120) as response, path.open('wb') as output:
                     shutil.copyfileobj(response, output)
                 break
