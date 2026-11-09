@@ -722,7 +722,7 @@ void VkContext::ChooseHeaps() {''')
     # 1/2 borrow pref 0's directory; release that one owner after log consumers
     # and the log thread have closed, before freeing the preference array.
     edit('Engine/Source/BlizzardCore/Source/System/Log/Log.cpp', lambda text:
-         replace(text, '    free(s_Prefs);', '    free(s_Prefs[0].m_directory);\n    free(s_Prefs);'))
+         replace(text, '    free(s_Prefs);', '    if (s_Prefs && s_prefCount) free(s_Prefs[0].m_directory);\n    free(s_Prefs);'))
 
 
     # Resource staging compares optional shadow fields before deciding whether
