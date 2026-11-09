@@ -244,7 +244,9 @@ flags are not aliases. Staging validates required files before publication or
 replacement. Existing font identities and original inheritance/consumer updates
 remain authoritative; destroying the font registry invalidates Lua slot zero and
 removes globals before its metatable and VM close. Optional shadow storage is
-initialized before comparisons.
+initialized before comparisons. Native method dispatch checks through the true
+FrameScript_Object base, since fonts are not CScriptObject subclasses; the
+existing opaque dispatcher signature is preserved.
 
 Unsupported selected attributes, notably `slug`, fail explicitly. The pinned
 Fonts_Shared/Mainline/Fonts.xml requests slug rendering after its initial six
@@ -279,7 +281,8 @@ python3 -B Tools/LinuxClient/RetailUI/audit_reference.py "$SOURCE" \
 Use `--mode resources` for the standalone genuine Fonts.xml sequence. Keep both
 source and font roots external; no exported source/font enters Git or artifacts.
 [#215](https://github.com/RovxBot/wowdecomp/issues/215) / [PR #219](https://github.com/RovxBot/wowdecomp/pull/219)
-track qualification, actual ordered stops and unresolved resource admission.
+track qualification and actual ordered stops; selected slug resource admission
+continues in [#220](https://github.com/RovxBot/wowdecomp/issues/220).
 
 The first gameplay adapter remains **12340 MultiBarBottomLeft**, the existing
 HorizontalMultiBar1 instance in original MultiActionBars.xml. Preserve its twelve

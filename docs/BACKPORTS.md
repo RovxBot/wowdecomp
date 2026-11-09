@@ -52,7 +52,9 @@ imported. Reference hashes and build/version are in the existing lock.
 Product-authored FontFamily admission selects a locale member and explicitly
 adapts height/shadow syntax into the original FrameXML/CSimpleFont loader. It
 reuses native font registration, inheritance, Services/Gxu/FreeType validation
-and cleanup; initialized optional shadow fields avoid reading undefined storage.
+and cleanup; initialized optional shadow fields avoid reading undefined storage. Full-client
+font method dispatch now uses the true FrameScript_Object base before returning
+the original opaque result, following the existing qualified native design.
 No new dependency, exported font/source asset, donor address or VERIFY claim is
 introduced. It remains opt-in and Linux-only. Selected slug rendering and broader
 modern resources remain explicit failures. The authored redistributable movement
