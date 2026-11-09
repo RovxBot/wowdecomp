@@ -8,6 +8,9 @@ action-bar movement and layout persistence are still acceptance requirements.
 Lua/bootstrap implementation and remaining acceptance are tracked in
 [#215](https://github.com/RovxBot/wowdecomp/issues/215),
 [PR #216](https://github.com/RovxBot/wowdecomp/pull/216).
+The bounded secure-delegate prerequisite is
+[#217](https://github.com/RovxBot/wowdecomp/issues/217),
+[PR #218](https://github.com/RovxBot/wowdecomp/pull/218).
 
 ## Reference boundary and versions
 
@@ -190,7 +193,9 @@ ProjectConstants, Camelot/ProjectConstants and LoadLocale. It then requires an
 initialized client/resource loader, including modern FontFamily support. This
 probe limitation is separate from a demonstrated integrated-engine runtime stop.
 The ordered SharedXMLBase prerequisite begins with ScriptErrors, whose actual
-CreateFromMixins/Init proceeds to the next missing native CreateSecureDelegate.
+CreateFromMixins/Init previously reached missing native CreateSecureDelegate.
+The bounded implementation below advances that trusted-entry path; its current
+continuation and remaining security limits are tracked in #217.
 CreateCounter's returned closure requires securecallfunction; loading MathUtil
 does not qualify its secure execution. CallbackRegistry and Pools additionally
 require backed secure calls, forbidden
@@ -321,7 +326,8 @@ python3 -B Tools/LinuxClient/RetailUI/audit_reference.py /external/wow-ui-source
 ```
 
 The audit refuses a different declared-graph fingerprint. Download the exact
-`full-linux-evidence-*` artifact identified in #212, extract `RovRetailXMLCheck`
+`full-linux-evidence-*` artifact identified by the relevant #212/#215/#217 evidence
+record, extract `RovRetailXMLCheck`
 and its checksum externally, and verify the retained executable hash before use.
 It needs the same Linux runtime libraries as the full application. To execute
 the genuine Camelot utility through the native mixin/method binder:
