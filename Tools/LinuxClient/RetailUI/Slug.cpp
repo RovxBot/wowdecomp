@@ -26,30 +26,42 @@ struct Builder {
         if (active && (last.x != first.x || last.y != first.y)) return add(first, first);
         return true;
     }
-    static int move(const FT_Vector* to, void* user) {
+    static int move(FT_Vector* to, void* user) {
         auto& b = *static_cast<Builder*>(user);
         if (!b.close()) return 1;
         b.first = b.last = point(to); b.active = true;
         return 0;
     }
-    static int line(const FT_Vector* to, void* user) {
+    static int line(FT_Vector* to, void* user) {
         auto& b = *static_cast<Builder*>(user);
         const auto p = point(to);
         return b.add(p, p) ? 0 : 1;
     }
-    static int conic(const FT_Vector* control, const FT_Vector* to, void* user) {
+    static int conic(FT_Vector* control, FT_Vector* to, void* user) {
         return static_cast<Builder*>(user)->add(point(control), point(to)) ? 0 : 1;
     }
     // Selected 70862 fonts are TrueType quadratic outlines. Never approximate
     // a cubic or silently fall back to a different renderer.
-    static int cubic(const FT_Vector*, const FT_Vector*, const FT_Vector*, void*) { return 1; }
+    static int cubic(FT_Vector*, FT_Vector*, FT_Vector*, void*) { return 1; }
 };
 bool BuildGlyph(FT_Face face, uint32_t size, uint32_t code, uint32_t baseline, GLYPHBITMAPDATA* data) {
     if (!face || !size || !data) return false;
     const auto index = FT_Get_Char_Index(face, code);
     if (!index || FT_Set_Pixel_Sizes(face, size, 0) ||
         FT_Load_Glyph(face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP) ||
-        face->glyph->format != FT_GLYPH_FORMAT_OUTLINE || FT_Outline_Check(&face->glyph->outline)) return false;
+        face->glyph->format != ft_glyph_format_outline) return false;
+    // The bundled FreeType predates FT_Outline_Check. Bound the contours before
+    // its decomposer indexes their points; malformed owners never reach it.
+    const auto& outline = face->glyph->outline;
+    if (outline.n_points < 0 || outline.n_contours < 0 || outline.n_contours > outline.n_points ||
+        (outline.n_points && (!outline.points || !outline.tags || !outline.contours || !outline.n_contours))) return false;
+    int previous = -1;
+    for (int i = 0; i < outline.n_contours; ++i) {
+        const int end = outline.contours[i];
+        if (end <= previous || end >= outline.n_points) return false;
+        previous = end;
+    }
+    if (previous + 1 != outline.n_points) return false;
     Builder b;
     FT_Outline_Funcs callbacks{Builder::move, Builder::line, Builder::conic, Builder::cubic, 0, 0};
     if (FT_Outline_Decompose(&face->glyph->outline, &callbacks, &b) || !b.close()) return false;
