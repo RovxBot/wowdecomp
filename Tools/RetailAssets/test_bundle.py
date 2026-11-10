@@ -102,6 +102,13 @@ class BundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'outside Git'):
             bundle.external(bundle.REPO / 'assets')
 
+    def test_release_output_in_game_install_rejected(self):
+        install = Path(self.temp.name) / 'installation'
+        (install / 'Data').mkdir(parents=True)
+        (install / 'Data/base.MPQ').write_bytes(b'authored archive marker')
+        with self.assertRaisesRegex(ValueError, 'outside game installations'):
+            bundle.external(install / 'private-release')
+
     def test_ci_rejects_private_staging_and_assembly(self):
         with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true'}):
             with self.assertRaisesRegex(ValueError, 'outside ordinary CI'):

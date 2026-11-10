@@ -27,6 +27,11 @@ def external(path, install=None):
     if path.is_relative_to(REPO) or (install and (
             path.is_relative_to(install) or install.is_relative_to(path))):
         raise ValueError('Output must be outside Git and the source installation')
+    for ancestor in (path, *path.parents):
+        data = ancestor / 'Data'
+        if (ancestor / '.build.info').is_file() or (data.is_dir() and
+                any(p.suffix.lower() == '.mpq' for p in data.iterdir())):
+            raise ValueError('Output must be outside game installations')
     return path
 
 
