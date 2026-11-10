@@ -51,6 +51,9 @@ def main():
     out.mkdir(parents=True)
     shutil.copyfile(build / lock['library'], out / lock['library'])
     shutil.copyfile(root / 'LICENSE', out / 'LICENSE.CascLib')
+    shutil.copyfile(archive, out / 'CascLib-source.tar.gz')
+    for notice in Path(__file__).with_name('notices').iterdir():
+        shutil.copyfile(notice, out / notice.name)
     manifest = {'schema': 1, 'source': lock,
                 'adaptation': 'CascFiles.cpp CheckCascBuildFileExact/FileAlreadyExists: read-only existence probes',
                 'adapted_CascFiles_sha256': sha256(path),

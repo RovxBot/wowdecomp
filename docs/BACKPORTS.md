@@ -4,6 +4,23 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-032 — Optional offline Forever asset preparation
+
+- Dependency: [CascLib](https://github.com/ladislav-zezula/CascLib) at
+  `6b889ec8f421cbc9baccec296c582362ab917887`, source archive SHA256 pinned in
+  [reader.json](../Tools/RetailAssets/reader.json). MIT project licence plus
+  bundled hash/AES notices; the tool artifact retains source and notices.
+- Adaptation: only `CheckCascBuildFileExact` and `FileAlreadyExists` existence
+  probes request read-only access. The artifact records the adapted source hash.
+  Product-authored Python bridge uses offline storage, no downloads, strict data
+  checks and explicit failures for unavailable/encrypted files.
+- Boundary: optional Actions-built Linux x86-64 preparation tool, never linked
+  into the client. No game assets or UI exports imported into Git or CI.
+  The [external bundle/private release gate](../Tools/RetailAssets/README.md)
+  stages selected 70862 enUS bootstrap inputs; no model/renderer/protocol change,
+  retail engine address or VERIFY claim. Runtime format admission remains
+  separate. Current acceptance/evidence: [#221](https://github.com/RovxBot/wowdecomp/issues/221).
+
 ## NP-031 — Forever interface compatibility prerequisite
 
 - Reference: [pinned Forever/retail and WarcraftXL sources](../Tools/LinuxClient/RetailUI/references.json),
