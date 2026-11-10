@@ -7,11 +7,15 @@
 #include "Engine/Source/FrameXML/XMLTree.h"
 #include "Engine/Source/FrameXML/FrameXML.h"
 #include "Engine/Source/Frame/RetailUI/FontResources.h"
+#include "Engine/Source/Frame/RetailUI/Runtime.h"
 #include "Engine/Source/Frame/CSimpleFont.h"
 #include "Engine/Source/BlizzardCore/SFile2-Core.h"
 #include "Engine/Source/Gxu/GxuFont.h"
 #include "Engine/Source/Gxu/GxuFontFace.h"
 #include "Engine/Source/Gxu/GxuFontUtil.h"
+#include "Engine/Source/Gxu/Slug.h"
+#include "Engine/Source/Gxu/GxuFontFont.h"
+#include "Engine/Source/Services/TextBlock.h"
 #include <freetype/ftmodule.h>
 #include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Os/TimeManager.h"
@@ -670,6 +674,34 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     process(family, true);
     require(CSimpleFont::GetFont("ResourceBase", 0) == base);
     run(L, "assert(ResourceBase == retainedFont)");
+    std::string slugMember = member;
+    slugMember.insert(slugMember.find(" height="), " slug='true'");
+    process("<FontFamily name='ResourceSlug'>" + slugMember + "</FontFamily>", true);
+    auto* slug = CSimpleFont::GetFont("ResourceSlug", 0);
+    require(slug && (slug->m_attributes.m_fontFlags & RovSlug::TextFlag));
+    HTEXTFONT handle = TextBlockGenerateFont(fontPath, slug->m_attributes.m_fontFlags, slug->m_attributes.m_fontHeight);
+    require(handle);
+    CGxFont* gx = TextBlockGetFontPtr(handle);
+    require(gx && gx->UsesSlug() && !gx->UsesMsdf());
+    unsigned glyphs = 0;
+    for (unsigned code = 32; code < 127; ++code) {
+        if (!FT_Get_Char_Index(FontFaceGetFace(gx->m_fontFaceHandle), code)) continue;
+        GLYPHBITMAPDATA data;
+        require(gx->GetGlyphData(&data, code));
+        require(data.m_dataSize == RovSlug::Cell * RovSlug::Cell * sizeof(uint32_t));
+        const auto* words = static_cast<const uint32_t*>(data.m_data);
+        require(words[0] <= RovSlug::MaxCurves);
+        if (code != 32) require(words[0] > 0);
+        for (unsigned i = 1; i <= words[0] * 6; ++i) {
+            float value; std::memcpy(&value, words + i, sizeof(value));
+            require(std::isfinite(value) && value >= 0 && value <= 1);
+        }
+        require(data.m_glyphAdvance > 0 && data.m_glyphWidth > 0 && data.m_glyphHeight > 0);
+        ++glyphs;
+    }
+    require(glyphs > 0);
+    HandleClose(reinterpret_cast<HOBJECT>(handle));
+    std::printf("native-slug-curves=passed: %u available ASCII glyphs; no GPU claim\n", glyphs);
     process("<FontFamily name='ResourceChild'><Member alphabet='roman'><Font inherits='ResourceBase'/></Member></FontFamily>", true);
     require(CSimpleFont::GetFont("ResourceChild", 0)->m_fontObject == base);
     std::string replacement = family;
@@ -687,6 +719,7 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
         "<Member alphabet='roman'><Font font='missing.ttf' height='nan'/></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild' height='12'/></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild' slug='true'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild' slug='invalid'/></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild'><Shadow x='1' y='-1'/></Font></Member>",
         "<Member alphabet='roman'><Font inherits='ResourceChild'><Unknown/></Font></Member>",
         "<Member alphabet='unknown'><Font inherits='ResourceChild'/></Member>"}) {
@@ -726,6 +759,24 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     XMLNode disabled(nullptr, "FontFamily"); CStatus disabledStatus;
     require(!RovRetailUI::LoadFontFamily(&disabled, SFile::s_locale, &disabledStatus));
     setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
+    // The same namespace and loader as the real application, with authored
+    // inputs and ordinary direct filesystem access disabled.
+    const auto bundle = directory / "bundle";
+    const auto ui = bundle / "local-ui/Interface/AddOns/Fixture";
+    std::filesystem::create_directories(ui);
+    std::filesystem::create_directories(bundle / "assets/Fonts");
+    std::filesystem::copy_file(fontPath, bundle / "assets/Fonts/Fixture.ttf");
+    { std::ofstream out(ui / "font.xml"); out << "<Ui><FontFamily name='RuntimeFont'><Member alphabet='roman'><Font font='Fonts\\Fixture.ttf' height='18' slug='true'/></Member></FontFamily></Ui>"; }
+    { std::ofstream out(bundle / "runtime-plan.txt"); out << "# forever-70862 207a69936fcc6186deceaf63be07066c45b278339b2a4e266b1f1a1985cbeb74\nInterface/AddOns/Fixture/font.xml\n"; }
+    setenv("WOWDECOMP_FOREVER_ASSETS", bundle.c_str(), 1);
+    unsetenv("WOWDECOMP_FOREVER_STAGE");
+    unsetenv("WOWDECOMP_FOREVER_PREVIEW");
+    SFile::EnableDirectAccess(0);
+    SFile::DisableSFileCheckDisk();
+    RovRetailUI::BootstrapRuntime(true);
+    run(L, "assert(RuntimeFont and RuntimeFont:GetObjectType() == 'Font')");
+    require(CSimpleFont::GetFont("RuntimeFont", 0)->m_attributes.m_fontFlags & RovSlug::TextFlag);
+    unsetenv("WOWDECOMP_FOREVER_ASSETS");
     stopResources();
     run(L, "assert(ResourceBase == nil and ResourceChild == nil and ResourceKorean == nil and retainedFont[0] == nil); retainedFont = nil; ForeignResource = nil; collectgarbage('collect')");
     require(!CSimpleFont::GetFont("ResourceBase", 0));

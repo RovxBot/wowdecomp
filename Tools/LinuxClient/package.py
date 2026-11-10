@@ -64,9 +64,11 @@ def package(source, binary, output, metadata):
         '3.3.5a client reconstruction: SatyPardus/wowdecomp and upstream contributors.\n'
         'Full Linux platform, Vulkan and gameplay integration: RosemyneH/wowdecomp, pinned in upstream.json.\n'
         'RovxBot adaptations: source-audit.json and Tools/LinuxClient in RovxBot/wowdecomp.\n'
+        'Slug root/coverage shader: Copyright 2017 Eric Lengyel, MIT; see Slug-LICENSE.\n'
         'FMOD Sound System, copyright Firelight Technologies Pty, Ltd., 1994-2009.\n'
         'FMOD non-commercial licence and codec notices are retained below upstream/.\n'
         'AppImage runtime: AppImage/type2-runtime, MIT; see type2-runtime-LICENSE.\n')
+    shutil.copy2(HERE / 'RetailUI/Slug.LICENSE', app / 'notices/Slug-LICENSE')
     # The exact runtime licence is pinned by its immutable source commit.
     licence = app / 'notices/type2-runtime-LICENSE'
     with __import__('urllib.request', fromlist=['urlopen']).urlopen(

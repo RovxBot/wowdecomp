@@ -36,6 +36,11 @@ def main():
     shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     build = work / 'build'
     run(['python3', HERE / 'test_source.py', source])
+    # Compile the adapted Vulkan font shader on the hosted builder. Never use
+    # the donor's precompiled shader after changing its source.
+    shaders = source / 'Engine/Source/Gx/CGxDeviceVulkan/Shaders'
+    run(['glslc', '-O', '--target-env=vulkan1.1', '-mfmt=c', '-I', shaders,
+         '-o', shaders / 'Generated/Ffp.frag.inc', shaders / 'Ffp.frag'])
     flags = '-O1 -g1 -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all' if args.strict else '-O3 -DNDEBUG'
     run(['cmake', '-S', source, '-B', build, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release',
          '-DCMAKE_C_FLAGS_RELEASE=' + flags, '-DCMAKE_CXX_FLAGS_RELEASE=' + flags,

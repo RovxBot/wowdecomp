@@ -105,7 +105,7 @@ def prepare(destination, archive):
         text = text[:start] + text[end:]
         text = replace(text, '    MaybeAutoLogin();\n', '')
         text = replace(text, '    DeleteInterfaceFiles();', '    // Original installation is read-only; no interface cleanup.')
-        text = replace(text, '            CGVideoOptions::InstallExtendedViewUiPatch();', '            RovNative::GlueEnd();')
+        text = replace(text, '            CGVideoOptions::InstallExtendedViewUiPatch();', '            RovNative::GlueEnd();\n            RovRetailUI::BootstrapRuntime(false);')
         text = replace(text, '            FrameXML_FreeHashNodes();', '            RovNative::GlueBegin();\n            RovNative::GlueVisit("Interface\\\\GlueXML\\\\GlueXML.toc");\n            FrameXML_FreeHashNodes();')
         text = replace(text, '            FrameXML_CreateFrames("Interface\\\\GlueXML\\\\GlueXML.toc", nullptr, &md5, &status);',
                        '            if (!FrameXML_CreateFrames("Interface\\\\GlueXML\\\\GlueXML.toc", nullptr, &md5, &status) || status.m_highestSeverity >= STATUS_ERROR) std::abort();')
@@ -115,7 +115,7 @@ def prepare(destination, archive):
         text = replace(text, signature, signature + '\n    if (!RovNative::TestServerEnabled()) {\n        FrameScript_SignalEvent(GLUE_EVENT_OPEN_STATUS_DIALOG, "%s%s", "OKAY", RovNative::IntegrityUnavailable);\n        return;\n    }')
         text = replace(text, '!CGlueMgr::m_scandllOkayToLogIn || !CGlueMgr::m_acceptedTOS',
                        '(!CGlueMgr::m_scandllOkayToLogIn && !RovNative::TestServerEnabled()) || !CGlueMgr::m_acceptedTOS')
-        return header + text + '\nextern "C" int RovNativeGlueProfile(int runtime) { return runtime ? RovNative::TestServerEnabled() : bool(WOWDECOMP_ISOLATED_SERVER_BUILD); }\n'
+        return '#include "Engine/Source/Frame/RetailUI/Runtime.h"\n' + header + text + '\nextern "C" int RovNativeGlueProfile(int runtime) { return runtime ? RovNative::TestServerEnabled() : bool(WOWDECOMP_ISOLATED_SERVER_BUILD); }\n'
     edit('WoW/Source/Glue/CGlueMgr.cpp', glue)
 
     def client(text):
@@ -724,10 +724,25 @@ void VkContext::ChooseHeaps() {''')
     retail_dir = root / 'Engine/Source/Frame/RetailUI'
     retail_dir.mkdir()
     retail_added = []
-    for name in ['XMLCompat.h', 'XMLCompat.cpp', 'FontResources.h', 'FontResources.cpp']:
+    from RetailUI.slug_adapt import adapt as adapt_slug
+    adapt_slug(root, edit, replace, HERE, retail_added)
+    for name in ['XMLCompat.h', 'XMLCompat.cpp', 'FontResources.h', 'FontResources.cpp', 'Runtime.h', 'Runtime.cpp', 'ExternalFiles.h']:
         target = retail_dir / name
         shutil.copy2(HERE / 'RetailUI' / name, target)
         retail_added.append(str(target.relative_to(root)))
+    edit('WoW/Source/Ui/GameUI.cpp', lambda t:
+         '#include "Engine/Source/Frame/RetailUI/Runtime.h"\n' + replace(t,
+         '    CGGameUI::m_currentlyReloadingUI = 0;',
+         '    CGGameUI::m_currentlyReloadingUI = 0;\n    RovRetailUI::BootstrapRuntime(true);'))
+    def external_files(t):
+        return '#include "Engine/Source/Frame/RetailUI/ExternalFiles.h"\n' + replace(t,
+            '    flags |= s_directAccess;', '''    if (RovRetailUI::ExternalFile(name, path, size)) {
+        if (archive) *archive = nullptr;
+        *type = SFILE_PLAIN;
+        return true;
+    }
+    flags |= s_directAccess;''')
+    edit('Engine/Source/BlizzardCore/SFile2-Core.cpp', external_files)
     def retail_resources(text):
         text = '#include "Engine/Source/Frame/RetailUI/FontResources.h"\n#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text
         original = source_function(text, 'int32_t FrameXML_ProcessFile(')
@@ -743,6 +758,11 @@ void VkContext::ChooseHeaps() {''')
                 }
             } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
         modern = replace(modern, '    return 1;\n}', '    return resourceFailed ? 0 : 1;\n}')
+        modern = replace(modern, '            child = next;', '''            if (!SStrCmp(filename, "RovForeverUI", 12) && fileStatus.m_highestSeverity >= STATUS_WARNING) {
+                resourceFailed = true;
+                break;
+            }
+            child = next;''')
         modern += '''
 
 // Keep the original public signature and per-call failure ownership. Only
