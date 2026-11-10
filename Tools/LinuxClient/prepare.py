@@ -736,7 +736,8 @@ void VkContext::ChooseHeaps() {''')
          '    CGGameUI::m_currentlyReloadingUI = 0;\n    RovRetailUI::BootstrapRuntime(true);'))
     def external_files(t):
         return '#include "Engine/Source/Frame/RetailUI/ExternalFiles.h"\n' + replace(t,
-            '    flags |= s_directAccess;', '''    if (RovRetailUI::ExternalFile(name, path, size)) {
+            '    flags |= s_directAccess;', '''    if (RovRetailUI::ExternalName(name)) {
+        if (!RovRetailUI::ExternalFile(name, path, size)) return false;
         if (archive) *archive = nullptr;
         *type = SFILE_PLAIN;
         return true;

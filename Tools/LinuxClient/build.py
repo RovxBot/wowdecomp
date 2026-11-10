@@ -57,6 +57,8 @@ def main():
                     workflow_run='https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID'],
                     workflow_attempt=os.environ['GITHUB_RUN_ATTEMPT'], renderer='direct-vulkan', signatures=True,
                     compiler=subprocess.check_output(['g++', '--version'], text=True).splitlines()[0],
+                    shader_compiler=subprocess.check_output(['glslc', '--version'], text=True).strip(),
+                    font_shader_sha256=digest(shaders / 'Generated/Ffp.frag.inc'),
                     build_os=subprocess.check_output(['lsb_release', '-ds'], text=True).strip())
     shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     shutil.copy2(build / 'CMakeCache.txt', output / 'CMakeCache.txt')

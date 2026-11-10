@@ -771,12 +771,18 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     setenv("WOWDECOMP_FOREVER_ASSETS", bundle.c_str(), 1);
     unsetenv("WOWDECOMP_FOREVER_STAGE");
     unsetenv("WOWDECOMP_FOREVER_PREVIEW");
+    const bool diskCheck = System_SFile2::s_checkDisk;
     SFile::EnableDirectAccess(0);
     SFile::DisableSFileCheckDisk();
+    require(!SFile::FileExistsEx("RovForeverFonts\\..\\local-ui\\Interface\\AddOns\\Fixture\\font.xml", 0));
+    require(!SFile::FileExistsEx("RovForeverUI\\Interface\\AddOns\\Fixture\\missing.xml", 0));
     RovRetailUI::BootstrapRuntime(true);
     run(L, "assert(RuntimeFont and RuntimeFont:GetObjectType() == 'Font')");
     require(CSimpleFont::GetFont("RuntimeFont", 0)->m_attributes.m_fontFlags & RovSlug::TextFlag);
     unsetenv("WOWDECOMP_FOREVER_ASSETS");
+    require(!SFile::FileExistsEx("RovForeverUI\\Interface\\AddOns\\Fixture\\font.xml", 0));
+    System_SFile2::s_checkDisk = diskCheck;
+    SFile::EnableDirectAccess(1);
     stopResources();
     run(L, "assert(ResourceBase == nil and ResourceChild == nil and ResourceKorean == nil and retainedFont[0] == nil); retainedFont = nil; ForeignResource = nil; collectgarbage('collect')");
     require(!CSimpleFont::GetFont("ResourceBase", 0));

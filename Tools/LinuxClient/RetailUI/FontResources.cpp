@@ -11,6 +11,7 @@
 #include <cstring>
 #include <initializer_list>
 #include <string>
+#include <cstdio>
 
 namespace RovRetailUI {
 static bool named(XMLNode* node, const char* name) { return !std::strcmp(node->m_name.m_str, name); }
@@ -177,6 +178,8 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
     // Assignment alone does not notify fontables; use the original XML path for
     // replacement too. Preflight has already validated every required resource.
     font->LoadXML(&normalized, status);
+    if (std::getenv("WOWDECOMP_FOREVER_ASSETS"))
+        std::fprintf(stderr, "forever-native-font: %s file=%s flags=0x%x\n", name, font->m_attributes.m_font.m_str, font->m_attributes.m_fontFlags);
     return true;
 }
 }
