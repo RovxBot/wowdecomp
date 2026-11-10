@@ -1,0 +1,7 @@
+{
+  "repository": "ladislav-zezula/CascLib",
+  "commit": "6b889ec8f421cbc9baccec296c582362ab917887",
+  "archive_sha256": "f43b24829d177ee9a765ea894c89ccbd2e5e52ca00e801710932b46832ee7170",
+  "license": "MIT",
+  "library": "libcasc.so.1.0.0"
+}
