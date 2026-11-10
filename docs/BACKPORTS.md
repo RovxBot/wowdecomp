@@ -4,6 +4,30 @@ Product compatibility target: 3.3.5a (12340). This ledger records evaluated
 candidates, including ones that have not been implemented. Runtime verification
 and source inspection are different evidence levels.
 
+## NP-033 — Vulkan Slug font coverage
+
+- Reference/import: [EricLengyel/Slug](https://github.com/EricLengyel/Slug/tree/be3c13eb7d63f9e8aa5c583e42d92c374cb91d98)
+  at `be3c13eb7d63f9e8aa5c583e42d92c374cb91d98`,
+  `SlugPixelShader.hlsl`: root eligibility, quadratic solving and weighted
+  horizontal/vertical coverage. Copyright 2017 Eric Lengyel, MIT; complete
+  [notice](../Tools/LinuxClient/RetailUI/Slug.LICENSE) accompanies private builds.
+  This is public algorithm source, not Blizzard native engine code.
+- Adaptation: GLSL for the existing full Linux Vulkan shader, a bounded single
+  band of quadratic curves, lossless RGBA8 float-bit transport and a UI outline
+  from repeated curve-coverage samples. Product-authored FreeType outline
+  decomposition and native resource/Services/Gxu integration. No bitmap/MSDF
+  alias, retail binary source, 12340 address or VERIFY claim.
+- Scope/default: exact Forever compatibility opt-in and selected `slug=true`;
+  original 12340 text remains on its existing path. TrueType quadratic outlines
+  only, at most 170 segments per glyph; unsupported outlines fail. GPU path is
+  Vulkan only; no OpenGL or Windows/macOS renderer change. Does not import the
+  commercial Slug library, its file format, shaping, band optimizations or
+  perspective vertex shader. Selected external fonts remain private assets.
+- Current qualification and limits: [#220](https://github.com/RovxBot/wowdecomp/issues/220)
+  / [PR #223](https://github.com/RovxBot/wowdecomp/pull/223), renderer routing
+  [#134](https://github.com/RovxBot/wowdecomp/issues/134). Actual rendered client
+  evidence is separate from CPU resource construction and hosted compilation.
+
 ## NP-032 — Optional offline Forever asset preparation
 
 - Dependency: [CascLib](https://github.com/ladislav-zezula/CascLib) at

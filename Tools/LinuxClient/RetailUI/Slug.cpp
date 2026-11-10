@@ -2,8 +2,7 @@
 #include "Engine/Source/Gxu/Slug.h"
 #include "Engine/Source/Gxu/GxuFontMiscClasses.h"
 #include "Engine/Source/Storm/H/storm.h"
-#include <ft2build.h>
-#include FT_OUTLINE_H
+#include <freetype/ftoutln.h>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
