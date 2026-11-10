@@ -34,10 +34,13 @@ def main():
     # Narrow read-only adaptation; the library must work on a read-only mount.
     path = root / 'src/CascFiles.cpp'
     original = path.read_bytes()
-    old = b'FileStream_OpenFile(szLocalPath, 0)'
-    if original.count(old) != 1:
-        raise SystemExit('Read-only probe adaptation no longer matches pinned source')
-    path.write_bytes(original.replace(old, b'FileStream_OpenFile(szLocalPath, STREAM_FLAG_READ_ONLY)'))
+    adapted = original
+    for argument in (b'szLocalPath', b'szFileName'):
+        old = b'FileStream_OpenFile(' + argument + b', 0)'
+        if adapted.count(old) != 1:
+            raise SystemExit('Read-only probe adaptation no longer matches pinned source')
+        adapted = adapted.replace(old, b'FileStream_OpenFile(' + argument + b', STREAM_FLAG_READ_ONLY)')
+    path.write_bytes(adapted)
     build = work / 'build'
     subprocess.run(['cmake', '-S', str(root), '-B', str(build), '-G', 'Ninja',
                     '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_POLICY_VERSION_MINIMUM=3.5',
@@ -49,7 +52,7 @@ def main():
     shutil.copyfile(build / lock['library'], out / lock['library'])
     shutil.copyfile(root / 'LICENSE', out / 'LICENSE.CascLib')
     manifest = {'schema': 1, 'source': lock,
-                'adaptation': 'CascFiles.cpp CheckCascBuildFileExact: read-only existence probe',
+                'adaptation': 'CascFiles.cpp CheckCascBuildFileExact/FileAlreadyExists: read-only existence probes',
                 'adapted_CascFiles_sha256': sha256(path),
                 'product_commit': os.environ['GITHUB_SHA'],
                 'run_id': os.environ['GITHUB_RUN_ID'],
