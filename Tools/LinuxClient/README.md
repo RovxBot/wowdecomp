@@ -87,6 +87,35 @@ adds explicitly versioned, opt-in modern XML and native Lua composition to this 
 target. It does not yet load complete Forever Edit Mode controls or move/save
 gameplay frames. See the [compatibility contract and external-reference checks](../../docs/retail/COMPATIBILITY.md).
 
+For the runtime font/bootstrap development path, use the existing verified
+70862 bundle in a convenient directory. Generate its small declared load plan:
+
+```sh
+python3 -B Tools/LinuxClient/RetailUI/audit_reference.py "$BUNDLE/reference" \
+  --runtime-plan "$BUNDLE/../forever-runtime-plan.txt"
+```
+
+Launch a matching hash-verified application with an external experimental profile:
+
+```sh
+XDG_CONFIG_HOME="$PROFILE/config" XDG_CACHE_HOME="$PROFILE/cache" \
+XDG_STATE_HOME="$PROFILE/state" \
+WOWDECOMP_RETAIL_UI_COMPAT=forever-1.60.1-70862-v1 \
+WOWDECOMP_FOREVER_ASSETS="$BUNDLE" \
+./WoW-Linux-x86_64-TEST-SERVER.AppImage --data /mnt/games/3.3.5aClean/Data
+```
+
+The actual client loads the installed UI/fonts after original signed gameplay UI
+initialization, recording the first unsupported dependency in its session log.
+For login-screen font rendering without signing in, additionally set
+`WOWDECOMP_FOREVER_STAGE=glue WOWDECOMP_FOREVER_PREVIEW=1`. The preview is a
+developer specimen using the genuine Slug resource; it is not an Edit Mode
+control. Complete templates, native APIs and MultiBarBottomLeft movement/save
+acceptance remain in [#215](https://github.com/RovxBot/wowdecomp/issues/215) /
+[#211](https://github.com/RovxBot/wowdecomp/issues/211). The default launch keeps
+Alpha 0.1.0 behavior. No runtime CASC integration or asset-management service is
+required.
+
 ## Source preparation and checks
 
 `prepare.py` verifies the upstream archive and applies explicit adaptations to a

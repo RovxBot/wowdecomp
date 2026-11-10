@@ -250,15 +250,25 @@ existing opaque dispatcher signature is preserved. Filesystem lookup may start
 the original logger; its shared default-directory allocation is released once
 after the log thread and consumers close, before the preferences array.
 
-Unsupported selected attributes, notably `slug`, fail explicitly. The pinned
-Fonts_Shared/Mainline/Fonts.xml requests slug rendering after its initial six
-families. A new rendering mode is outside this resource subset; route required
-GPU work to #133/#134. Multialphabet shaping/fallback, new glyph/rendering formats,
+Selected `slug=true` uses a distinct native quadratic-outline path in the full
+Linux Vulkan client. Services preserves a private flag to Gxu; FreeType supplies
+unhinted quadratic curves, and the Vulkan fragment shader evaluates Slug coverage
+directly from those curves, with separate screen geometry and data storage.
+No glyph bitmap or distance field supplies this coverage. `slug=false` retains
+the ordinary font path; invalid values and unqualified combinations fail.
+The bounded UI implementation supports at most 170 quadratic segments per glyph,
+rejects cubic outlines and has no non-Vulkan renderer fallback. The current
+outline uses eight offset coverage samples; small-scale padding, broad Unicode,
+perspective text and exact later-client optical/layout parity require additional
+qualification. This does not implement the commercial Slug library or `.slug`
+file format. [Source and notice](../BACKPORTS.md#np-033--vulkan-slug-font-coverage).
+Unsupported selected attributes still fail explicitly. Multialphabet shaping/fallback,
 FileDataID/atlas resolution, intrinsic definitions and complete modern widget
 construction remain unqualified. A rejected versioned font resource returns failure through nested Includes
 and TOCs and stops later scripts, while freeing the original XML/file owners.
 Ordinary legacy error handling is unchanged. Original signed MPQ/Glue traversal
-and addon loading keep their existing path; compatibility does not mount external sources.
+and addon loading keep their existing path. The optional runtime loader described
+below uses explicit private file namespaces.
 
 `RovRetailXMLCheck --resources /absolute/authored-font.ttf` initializes the real
 font metatable, CPU resource dimensions, SFile direct reads and FreeType, then
@@ -287,6 +297,32 @@ source and font roots external; no exported source/font enters Git or artifacts.
 [#215](https://github.com/RovxBot/wowdecomp/issues/215) / [PR #219](https://github.com/RovxBot/wowdecomp/pull/219)
 track qualification and actual ordered stops; selected slug resource admission
 continues in [#220](https://github.com/RovxBot/wowdecomp/issues/220).
+
+### Actual client bootstrap
+
+`WOWDECOMP_FOREVER_ASSETS` selects the existing verified development bundle;
+`WOWDECOMP_RETAIL_UI_COMPAT=forever-1.60.1-70862-v1` remains required. Generate
+`forever-runtime-plan.txt` beside that bundle with the pinned audit's
+`--runtime-plan` option, keeping its verified contents unchanged.
+It contains only dependency-first declared paths; TOC selection stays Camelot /
+Mainline. No game assets are added to the application or repository by this step.
+
+After original signed gameplay UI construction, the actual client runs these
+files through its production FrameXML/FrameScript loaders. `RovForeverUI` resolves
+only to the bundle's installed `local-ui` files, and `RovForeverFonts` only to its
+`assets` files. Signed original paths retain their original lookup and checks;
+no global direct-access toggle is enabled. A load failure is logged and stops
+the plan. The working client's error handler is retained while the modern
+handler awaits #217 qualification. Partial bootstrap remains a development mode,
+not completed modern UI or gameplay acceptance.
+
+For a visual font milestone without signing in, `WOWDECOMP_FOREVER_STAGE=glue`
+uses the initialized login UI instead. `WOWDECOMP_FOREVER_PREVIEW=1` draws a
+developer font specimen using the genuine selected Slug font on the existing
+root. That specimen is diagnostic text, not a replacement Edit Mode control.
+The default launch does not activate this path. Use a separate writable profile
+for experiments; keep original installations read-only. Exact observed stops,
+rendering/input and remaining dependencies belong to #220/#215/#211.
 
 The first gameplay adapter remains **12340 MultiBarBottomLeft**, the existing
 HorizontalMultiBar1 instance in original MultiActionBars.xml. Preserve its twelve

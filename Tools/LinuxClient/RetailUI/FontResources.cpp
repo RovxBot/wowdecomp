@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <initializer_list>
+#include <string>
+#include <cstdio>
 
 namespace RovRetailUI {
 static bool named(XMLNode* node, const char* name) { return !std::strcmp(node->m_name.m_str, name); }
@@ -84,21 +86,24 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
         if (!std::strcmp(value, alphabet)) selected = member->m_child;
     }
     if (!selected) return fail("locale has no member; no fallback is inferred");
-    // Do not silently erase modern flags (notably slug). Admit only the actual
-    // member used by this locale; other alphabet assets are not required.
-    if (!attributes(selected, {"font", "height", "outline", "monochrome", "spacing", "inherits"})) return fail("unsupported selected Font attributes (including slug)");
+    if (!attributes(selected, {"font", "height", "outline", "monochrome", "spacing", "inherits", "slug"})) return fail("unsupported selected Font attributes");
     const char* file = selected->GetAttributeByName("font");
     const char* height = selected->GetAttributeByName("height");
     const char* inherits = selected->GetAttributeByName("inherits");
     if ((!file || !*file) && (!inherits || !*inherits)) return fail("font file or inheritance required");
     if (file && (!*file || std::strlen(file) > 255 || !number(height, 0.01, 256))) return fail("invalid font path or height");
-    if (!file && (height || selected->GetAttributeByName("outline") || selected->GetAttributeByName("monochrome")))
+    if (!file && (height || selected->GetAttributeByName("outline") || selected->GetAttributeByName("monochrome") || selected->GetAttributeByName("slug")))
         return fail("inherited height/outline overrides require a selected font file");
     if (file && CSimpleFont::GetFont(file, 0)) return fail("font path conflicts with a named font; explicit inheritance required");
     if (const char* outline = selected->GetAttributeByName("outline"))
         if (std::strcmp(outline, "NONE") && std::strcmp(outline, "NORMAL") && std::strcmp(outline, "THICK")) return fail("unsupported outline");
     if (const char* mono = selected->GetAttributeByName("monochrome"))
         if (std::strcmp(mono, "true") && std::strcmp(mono, "false")) return fail("invalid monochrome");
+    if (const char* slug = selected->GetAttributeByName("slug")) {
+        if (std::strcmp(slug, "true") && std::strcmp(slug, "false")) return fail("invalid slug value");
+        const char* mono = selected->GetAttributeByName("monochrome");
+        if (!std::strcmp(slug, "true") && mono && !std::strcmp(mono, "true")) return fail("slug monochrome combination is unqualified");
+    }
     if (const char* spacing = selected->GetAttributeByName("spacing"))
         if (!number(spacing, -256, 256)) return fail("invalid spacing");
     CSimpleFont* existing = CSimpleFont::GetFont(name, 0);
@@ -148,6 +153,12 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
         const char* key = selected->m_attributes[i].m_name.m_str;
         if (std::strcmp(key, "height")) normalized.SetAttribute(key, selected->m_attributes[i].m_value.m_str);
     }
+    // Explicit private namespace resolves the supplied installed font bytes.
+    // It cannot override a signed original font/archive lookup.
+    if (file && std::getenv("WOWDECOMP_FOREVER_ASSETS")) {
+        if (std::strncmp(file, "Fonts\\", 6) && std::strncmp(file, "Fonts/", 6)) return fail("external resource requires a Fonts path");
+        normalized.SetAttribute("font", (std::string("RovForeverFonts\\") + file).c_str());
+    }
     if (height) { auto* h = append(&normalized, "FontHeight"); h->SetAttribute("val", height); }
     for (XMLNode* child = selected->m_child; child; child = child->m_next) {
         auto* copy = clone(child, &normalized);
@@ -167,6 +178,8 @@ bool LoadFontFamily(XMLNode* node, uint32_t locale, CStatus* status) {
     // Assignment alone does not notify fontables; use the original XML path for
     // replacement too. Preflight has already validated every required resource.
     font->LoadXML(&normalized, status);
+    if (std::getenv("WOWDECOMP_FOREVER_ASSETS"))
+        std::fprintf(stderr, "forever-native-font: %s file=%s flags=0x%x\n", name, font->m_attributes.m_font.m_str, font->m_attributes.m_fontFlags);
     return true;
 }
 }

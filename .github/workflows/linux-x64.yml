@@ -35,7 +35,7 @@ jobs:
       - name: Install full Linux client and packaging dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++ libsdl3-dev libwayland-dev libcurl4-openssl-dev libasound2-dev libvulkan-dev libxvidcore-dev squashfs-tools
+          sudo apt-get install -y ninja-build g++ glslc libsdl3-dev libwayland-dev libcurl4-openssl-dev libasound2-dev libvulkan-dev libxvidcore-dev squashfs-tools
       - name: Source and launcher regression checks
         run: python3 -B -m unittest discover -s Tools/LinuxClient -p 'test_*.py'
       - name: Build complete client, execute contracts and package application
