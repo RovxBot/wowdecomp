@@ -170,7 +170,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source', type=Path, help='external source root containing Interface/AddOns')
     parser.add_argument('--report', type=Path, help='write metadata-only graph outside the repository')
-    parser.add_argument('--runtime-plan', type=Path, help='write declared ordered paths to an external bundle runtime-plan.txt')
+    parser.add_argument('--runtime-plan', type=Path, help='write declared ordered paths to forever-runtime-plan.txt beside an external bundle')
     parser.add_argument('--binary', type=Path, help='hash-verified hosted RovRetailXMLCheck')
     parser.add_argument('--binary-sha256', help='expected hosted executable hash')
     parser.add_argument('--mode', choices=['reference', 'helpers', 'script-errors', 'bootstrap', 'base-bootstrap', 'constants', 'texture', 'resources', 'resource-bootstrap'], default='reference',

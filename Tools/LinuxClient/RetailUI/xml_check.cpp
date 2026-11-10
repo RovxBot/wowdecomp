@@ -767,7 +767,7 @@ static void resourceFixture(lua_State* L, const char* fontPath) {
     std::filesystem::create_directories(bundle / "assets/Fonts");
     std::filesystem::copy_file(fontPath, bundle / "assets/Fonts/Fixture.ttf");
     { std::ofstream out(ui / "font.xml"); out << "<Ui><FontFamily name='RuntimeFont'><Member alphabet='roman'><Font font='Fonts\\Fixture.ttf' height='18' slug='true'/></Member></FontFamily></Ui>"; }
-    { std::ofstream out(bundle / "runtime-plan.txt"); out << "# forever-70862 207a69936fcc6186deceaf63be07066c45b278339b2a4e266b1f1a1985cbeb74\nInterface/AddOns/Fixture/font.xml\n"; }
+    { std::ofstream out(bundle.parent_path() / "forever-runtime-plan.txt"); out << "# forever-70862 207a69936fcc6186deceaf63be07066c45b278339b2a4e266b1f1a1985cbeb74\nInterface/AddOns/Fixture/font.xml\n"; }
     setenv("WOWDECOMP_FOREVER_ASSETS", bundle.c_str(), 1);
     unsetenv("WOWDECOMP_FOREVER_STAGE");
     unsetenv("WOWDECOMP_FOREVER_PREVIEW");

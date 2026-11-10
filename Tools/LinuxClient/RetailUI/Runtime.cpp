@@ -18,10 +18,10 @@ void BootstrapRuntime(bool gameplay) {
     if (!Enabled() || !root || !*root) return;
     const char* stage = std::getenv("WOWDECOMP_FOREVER_STAGE");
     if ((stage && !std::strcmp(stage, "glue")) == gameplay) return;
-    std::ifstream plan(std::string(root) + "/runtime-plan.txt");
+    std::ifstream plan(std::string(root) + "/../forever-runtime-plan.txt");
     std::string line;
     if (!std::getline(plan, line) || line != "# forever-70862 207a69936fcc6186deceaf63be07066c45b278339b2a4e266b1f1a1985cbeb74") {
-        std::fprintf(stderr, "forever-runtime: missing verified runtime-plan.txt; run audit_reference.py --runtime-plan in the external bundle\n");
+        std::fprintf(stderr, "forever-runtime: missing verified ../forever-runtime-plan.txt; run audit_reference.py --runtime-plan beside the external bundle\n");
         return;
     }
     lua_State* L = FrameScript_GetContext();

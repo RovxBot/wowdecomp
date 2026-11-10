@@ -302,7 +302,8 @@ continues in [#220](https://github.com/RovxBot/wowdecomp/issues/220).
 
 `WOWDECOMP_FOREVER_ASSETS` selects the existing verified development bundle;
 `WOWDECOMP_RETAIL_UI_COMPAT=forever-1.60.1-70862-v1` remains required. Generate
-`runtime-plan.txt` in that bundle with the pinned audit's `--runtime-plan` option.
+`forever-runtime-plan.txt` beside that bundle with the pinned audit's
+`--runtime-plan` option, keeping its verified contents unchanged.
 It contains only dependency-first declared paths; TOC selection stays Camelot /
 Mainline. No game assets are added to the application or repository by this step.
 

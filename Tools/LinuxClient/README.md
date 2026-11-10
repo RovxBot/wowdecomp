@@ -92,12 +92,14 @@ For the runtime font/bootstrap development path, use the existing verified
 
 ```sh
 python3 -B Tools/LinuxClient/RetailUI/audit_reference.py "$BUNDLE/reference" \
-  --runtime-plan "$BUNDLE/runtime-plan.txt"
+  --runtime-plan "$BUNDLE/../forever-runtime-plan.txt"
 ```
 
 Launch a matching hash-verified application with an external experimental profile:
 
 ```sh
+XDG_CONFIG_HOME="$PROFILE/config" XDG_CACHE_HOME="$PROFILE/cache" \
+XDG_STATE_HOME="$PROFILE/state" \
 WOWDECOMP_RETAIL_UI_COMPAT=forever-1.60.1-70862-v1 \
 WOWDECOMP_FOREVER_ASSETS="$BUNDLE" \
 ./WoW-Linux-x86_64-TEST-SERVER.AppImage --data /mnt/games/3.3.5aClean/Data
