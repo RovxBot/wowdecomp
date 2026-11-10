@@ -5,8 +5,18 @@
 #include "Engine/Source/Base/RCString.h"
 #include "Engine/Source/FrameScript/FrameScript.h"
 #include "Engine/Source/FrameXML/XMLTree.h"
+#include "Engine/Source/FrameXML/FrameXML.h"
+#include "Engine/Source/Frame/RetailUI/FontResources.h"
+#include "Engine/Source/Frame/CSimpleFont.h"
+#include "Engine/Source/BlizzardCore/SFile2-Core.h"
+#include "Engine/Source/Gxu/GxuFont.h"
+#include "Engine/Source/Gxu/GxuFontFace.h"
+#include "Engine/Source/Gxu/GxuFontUtil.h"
+#include <freetype/ftmodule.h>
+#include "Engine/Source/Base/Coordinate.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Storm/H/storm.h"
+#include "Engine/Source/Storm/Source/MD5.h"
 #include "Engine/Source/lua-5.1/src/lauxlib.h"
 #include "Engine/Source/lua-5.1/src/lua.h"
 #include "Engine/Source/lua-5.1/src/lstate.h"
@@ -17,6 +27,8 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <filesystem>
 
 static void check(bool ok, int line) {
     if (!ok) { std::fprintf(stderr, "retail XML check failed at %d\n", line); std::abort(); }
@@ -29,6 +41,46 @@ static void run(lua_State* L, const char* code) {
         std::abort();
     }
 }
+
+static void constantsFixture(lua_State* L) {
+    lua_pushcfunction(L, RovRetailUI::RegisterConstants);
+    lua_setglobal(L, "checkNativeConstants");
+    run(L, R"lua(
+        assert(Enum.LFGRole.Tank == 0 and Enum.LFGRole.Healer == 1 and Enum.LFGRole.Damage == 2);
+        assert(Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE == -1 and Constants.LFG_ROLEConstants.LFG_ROLE_ANY == 3);
+        assert(Enum.LFGRole.Unknown == nil and Enum.Unknown == nil and Constants.Unknown == nil);
+        assert(not pcall(function() return Enum.Unknown.Value end));
+        local roles, enums, constants = Enum.LFGRole, Enum, Constants;
+        checkNativeConstants(); assert(Enum == enums and Enum.LFGRole == roles);
+        Enum.LFGRole.Tank = '0'; assert(not pcall(checkNativeConstants)); Enum.LFGRole.Tank = 0;
+        Enum.LFGRole.Tank = nil; assert(not pcall(checkNativeConstants)); Enum.LFGRole.Tank = 0;
+        Enum.LFGRole.Extra = 3; assert(not pcall(checkNativeConstants)); Enum.LFGRole.Extra = nil;
+        Enum.LFGRole = {Tank = 0, Healer = 1, Damage = 2}; assert(not pcall(checkNativeConstants)); Enum.LFGRole = roles;
+        setmetatable(roles, {__index = function() error('foreign lookup') end});
+        assert(not pcall(checkNativeConstants)); setmetatable(roles, nil);
+        Enum = {}; assert(not pcall(checkNativeConstants)); Enum = enums;
+        Constants = false; assert(not pcall(checkNativeConstants)); Constants = constants;
+        Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE = 4;
+        assert(not pcall(checkNativeConstants)); Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE = -1;
+        checkNativeConstants(); checkNativeConstants = nil;
+    )lua");
+    // Fresh VMs must reject pre-existing namespaces before publishing either
+    // root, including when a conflicting table has the exact expected fields.
+    for (const char* root : {"Enum", "Constants"}) {
+        lua_State* fresh = luaL_newstate();
+        require(fresh);
+        lua_newtable(fresh); lua_setglobal(fresh, root);
+        lua_pushcfunction(fresh, RovRetailUI::RegisterConstants);
+        require(lua_pcall(fresh, 0, 0, 0) != 0); lua_pop(fresh, 1);
+        lua_getglobal(fresh, !std::strcmp(root, "Enum") ? "Constants" : "Enum");
+        require(lua_isnil(fresh, -1)); lua_pop(fresh, 1);
+        lua_pushnil(fresh); lua_setglobal(fresh, root);
+        lua_pushcfunction(fresh, RovRetailUI::RegisterConstants);
+        require(lua_pcall(fresh, 0, 0, 0) == 0);
+        lua_close(fresh);
+    }
+}
+
 
 static bool bind(lua_State* L, int object, FrameScript_Object::ScriptIx& handler,
                  const char* method, const char* inherit = nullptr,
@@ -538,27 +590,218 @@ static void reference(lua_State* L, const char* path) {
     std::puts("genuine-Camelot-EditModeUtil=passed (Lua table fixture; no gameplay/UI rendering claim)");
 }
 
+static void startResources() {
+    require(SFile::Initialize());
+    SFile::EnableDirectAccess(1); // Harness-only external files; no game archives mounted.
+    CoordinateSetAspectRatio(4.0f / 3.0f);
+    g_widthPixels = 1024; g_heightPixels = 768;
+    // Match the production Gxu allocator/library ownership exactly: its
+    // shutdown uses FT_Done_Library, not FT_Done_FreeType's allocator teardown.
+    static FT_MemoryRec_ memory = {nullptr, FreeTypeAlloc, FreeTypeFree, FreeTypeRealloc};
+    require(!g_FTLibrary && FT_New_Library(&memory, &g_FTLibrary) == 0);
+    FT_Add_Default_Modules(g_FTLibrary);
+    CSimpleFont::GetObjectType();
+    CSimpleFont::CreateScriptMetaTable();
+}
+
+static void stopResources() {
+    CSimpleFont::Destroy();
+    CSimpleFont::DestroyScriptMetaTable();
+    GxuFontShutdown();
+    SFile::Destroy();
+}
+
+static bool resourceFile(const char* path) {
+    CStatus status;
+    const bool loaded = FrameXML_ProcessFileNoHash(path, nullptr, &status) && status.m_highestSeverity < STATUS_WARNING;
+    char errors[4096];
+    if (!loaded) std::fprintf(stderr, "native-resource-load-failed: %s: %s\n", path,
+                              status.GetErrorStr(errors, sizeof(errors), STATUS_WARNING, "\n"));
+    else std::printf("native-resource-loaded: %s\n", path);
+    // Inspect the real registry after production traversal, including a partial
+    // file failure. Reuse the engine XML tree solely to enumerate supplied
+    // names; this does not construct resources or continue later scripts.
+    std::ifstream input(path, std::ios::binary);
+    std::string xml((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    XMLTree* tree = xml.size() < 1024 * 1024 ? XMLTree_Load(xml.data(), static_cast<uint32_t>(xml.size())) : nullptr;
+    if (tree) {
+        for (XMLNode* node = XMLTree_GetRoot(tree)->m_child; node; node = node->m_next) {
+            if (std::strcmp(node->m_name.m_str, "FontFamily")) continue;
+            const char* name = node->GetAttributeByName("name");
+            CSimpleFont* font = name ? CSimpleFont::GetFont(name, 0) : nullptr;
+            if (!font) continue;
+            lua_State* L = FrameScript_GetContext();
+            lua_rawgeti(L, LUA_REGISTRYINDEX, font->GetLuaObjectRef());
+            lua_rawgeti(L, -1, 0);
+            const bool canonical = lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == font;
+            lua_pop(L, 2);
+            if (!canonical) {
+                require(!loaded);
+                std::printf("native-font-invalid-identity: %s\n", name);
+                continue;
+            }
+            std::printf("native-font-observed: %s type=%s file=%s height=%g\n", name, font->GetObjectTypeName(),
+                        font->m_attributes.m_font.m_str, font->m_attributes.m_fontHeight);
+        }
+        XMLTree_Free(tree);
+    }
+    return loaded;
+}
+
+static void resourceFixture(lua_State* L, const char* fontPath) {
+    startResources();
+    SFile::s_locale = 0x656e5553;
+    char temp[] = "/tmp/rov-font-resources-XXXXXX";
+    require(mkdtemp(temp));
+    const std::filesystem::path directory = temp;
+    const auto xml = directory / "fixture.xml";
+    auto process = [&](const std::string& body, bool expected) {
+        { std::ofstream out(xml); out << "<Ui>" << body << "</Ui>"; }
+        require(resourceFile(xml.c_str()) == expected);
+        require(lua_gettop(L) == 0);
+    };
+    const std::string member = std::string("<Member alphabet='roman'><Font font='") + fontPath + "' height='12'><Shadow x='1' y='-1'><Color r='0' g='0' b='0'/></Shadow></Font></Member>";
+    const std::string family = "<FontFamily name='ResourceBase' virtual='true'>" + member + "</FontFamily>";
+    process(family, true);
+    CSimpleFont* base = CSimpleFont::GetFont("ResourceBase", 0);
+    require(base && base->m_attributes.m_font.m_str);
+    require(std::fabs(base->m_attributes.m_fontHeight - NDCToDDCWidth(12.0f / 1024)) < 0.000001f);
+    run(L, "assert(ResourceBase:GetObjectType() == 'Font' and type(ResourceBase[0]) == 'userdata'); retainedFont = ResourceBase; assert(ResourceBase:GetFont())");
+    process(family, true);
+    require(CSimpleFont::GetFont("ResourceBase", 0) == base);
+    run(L, "assert(ResourceBase == retainedFont)");
+    process("<FontFamily name='ResourceChild'><Member alphabet='roman'><Font inherits='ResourceBase'/></Member></FontFamily>", true);
+    require(CSimpleFont::GetFont("ResourceChild", 0)->m_fontObject == base);
+    std::string replacement = family;
+    replacement.replace(replacement.find("height='12'"), std::strlen("height='12'"), "height='18'");
+    process(replacement, true);
+    require(std::fabs(base->m_attributes.m_fontHeight - NDCToDDCWidth(18.0f / 1024)) < 0.000001f);
+    require(CSimpleFont::GetFont("ResourceChild", 0)->m_attributes.m_fontHeight == base->m_attributes.m_fontHeight);
+    run(L, "assert(ResourceBase == retainedFont)");
+    // Invalid selected resources cannot publish names or replace valid fonts.
+    const auto before = base->m_attributes.m_fontHeight;
+    for (const std::string& bad : {
+        "<Member alphabet='roman'><Font font='missing-font.ttf' height='12'/></Member>",
+        "<Member alphabet='roman'><Font inherits='MissingFont'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild'/></Member>",
+        "<Member alphabet='roman'><Font font='missing.ttf' height='nan'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild' height='12'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild' slug='true'/></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild'><Shadow x='1' y='-1'/></Font></Member>",
+        "<Member alphabet='roman'><Font inherits='ResourceChild'><Unknown/></Font></Member>",
+        "<Member alphabet='unknown'><Font inherits='ResourceChild'/></Member>"}) {
+        process("<FontFamily name='ResourceBase'>" + bad + "</FontFamily>", false);
+        require(base->m_attributes.m_fontHeight == before);
+    }
+    process("<FontFamily name='Rejected'>" + member + member + "</FontFamily>", false);
+    require(!CSimpleFont::GetFont("Rejected", 0));
+    process("<FontFamily name='Rejected'><Member alphabet='korean'><Font inherits='ResourceBase'/></Member></FontFamily>", false);
+    SFile::s_locale = 0;
+    process("<FontFamily name='Rejected'>" + member + "</FontFamily>", false);
+    SFile::s_locale = 0x6b6f4b52;
+    process("<FontFamily name='ResourceKorean'><Member alphabet='korean'><Font inherits='ResourceBase'/></Member></FontFamily>", true);
+    SFile::s_locale = 0x656e5553;
+    run(L, "ForeignResource = {};");
+    process("<FontFamily name='ForeignResource'>" + member + "</FontFamily>", false);
+    run(L, "retainedIdentity = ResourceBase[0]; ResourceBase[0] = nil");
+    process(family, false);
+    run(L, "ResourceBase[0] = retainedIdentity; retainedIdentity = nil");
+    process("<FontFamily", false);
+    // A rejected real resource must stop nested Include/Script traversal and
+    // later TOC entries, not merely report an error after later Lua executes.
+    const auto bad = directory / "bad.xml";
+    const auto outer = directory / "outer.xml";
+    const auto later = directory / "later.lua";
+    const auto toc = directory / "fixture.toc";
+    { std::ofstream out(bad); out << "<Ui><FontFamily name='Rejected'><Member alphabet='roman'><Font inherits='ResourceBase' slug='true'/></Member></FontFamily></Ui>"; }
+    { std::ofstream out(later); out << "resourceFailureWasSkipped = true"; }
+    { std::ofstream out(outer); out << "<Ui><Include file='" << bad.string() << "'/><Script file='" << later.string() << "'/></Ui>"; }
+    { std::ofstream out(toc); out << outer.string() << '\n' << later.string() << '\n'; }
+    CStatus tocStatus;
+    MD5_CTX digest; MD5Init(&digest);
+    require(!FrameXML_CreateFrames(toc.c_str(), nullptr, &digest, &tocStatus));
+    require(tocStatus.m_highestSeverity >= STATUS_ERROR);
+    run(L, "assert(resourceFailureWasSkipped == nil)");
+    unsetenv("WOWDECOMP_RETAIL_UI_COMPAT");
+    XMLNode disabled(nullptr, "FontFamily"); CStatus disabledStatus;
+    require(!RovRetailUI::LoadFontFamily(&disabled, SFile::s_locale, &disabledStatus));
+    setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
+    stopResources();
+    run(L, "assert(ResourceBase == nil and ResourceChild == nil and ResourceKorean == nil and retainedFont[0] == nil); retainedFont = nil; ForeignResource = nil; collectgarbage('collect')");
+    require(!CSimpleFont::GetFont("ResourceBase", 0));
+    // A second complete resource-owner lifetime on the same live VM.
+    startResources();
+    process(family, true);
+    stopResources();
+    std::filesystem::remove_all(directory);
+    std::puts("native-font-resources=passed: real CSimpleFont identities, FreeType files, inheritance, replacement, invalidation and repeated resource lifetimes (no GPU/gameplay claim)");
+}
+
 int main(int argc, char** argv) {
-    require(argc == 1 || (argc >= 3 && (!std::strcmp(argv[1], "--sequence") ||
-        (argc == 3 && (!std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--script-errors") || !std::strcmp(argv[1], "--load"))))));
+    const bool resourceSequence = argc >= 5 && !std::strcmp(argv[1], "--resource-sequence");
+    require(resourceSequence || argc == 1 || (argc >= 3 && (!std::strcmp(argv[1], "--sequence") ||
+        (argc == 3 && (!std::strcmp(argv[1], "--texture") || !std::strcmp(argv[1], "--resources") || !std::strcmp(argv[1], "--constants") || !std::strcmp(argv[1], "--reference") || !std::strcmp(argv[1], "--helpers") || !std::strcmp(argv[1], "--script-errors") || !std::strcmp(argv[1], "--load"))))));
     StormRtlInitialize();
     OsTimeManagerCreate(OsTimeManager::BestAvailable);
     for (int profile : {0, 1}) {
         for (const char* mode : {"", "wrong-version"}) {
             setenv("WOWDECOMP_RETAIL_UI_COMPAT", mode, 1);
             require(FrameScript_Initialize(profile));
-            run(FrameScript_GetContext(), "assert(Mixin == nil and CreateFromMixins == nil and CreateSecureDelegate == nil and table.contains == nil); local t = {value = 1}; assert(t.value == 1); assert(securecall(function() return 31 end) == 31)");
+            run(FrameScript_GetContext(), "assert(Enum == nil and Constants == nil and Mixin == nil and CreateFromMixins == nil and CreateSecureDelegate == nil and table.contains == nil); local t = {value = 1}; assert(t.value == 1); assert(securecall(function() return 31 end) == 31)");
             FrameScript_Destroy();
         }
         setenv("WOWDECOMP_RETAIL_UI_COMPAT", RovRetailUI::Version, 1);
         require(FrameScript_Initialize(profile));
         lua_State* L = FrameScript_GetContext();
+        constantsFixture(L);
         compositionFixture(L);
         delegateFixture(L);
         fixture(L);
         bool loaded = true;
         if (argc >= 3) {
-            if (!std::strcmp(argv[1], "--load")) loaded = loadReference(L, argv[2]);
+            if (resourceSequence) {
+                startResources();
+                std::filesystem::current_path(argv[2]); // Separate, supplied resource root.
+                require(std::strlen(argv[3]) == 4);
+                SFile::s_locale = 0;
+                for (int i = 0; i < 4; ++i) SFile::s_locale = (SFile::s_locale << 8) | static_cast<unsigned char>(argv[3][i]);
+                for (int i = 4; i < argc && loaded; ++i) {
+                    const std::string path = argv[i];
+                    loaded = path.size() >= 4 && path.substr(path.size() - 4) == ".lua" ? loadReference(L, argv[i]) : resourceFile(argv[i]);
+                }
+                stopResources();
+            }
+            else if (!std::strcmp(argv[1], "--resources")) resourceFixture(L, argv[2]);
+            else if (!std::strcmp(argv[1], "--constants")) {
+                run(L, "APIDocumentation = {AddDocumentationTable = function(self, value) self.value = value end}");
+                const std::string path = std::string(argv[2]) + "/Interface/AddOns/Blizzard_APIDocumentationGenerated/LFGConstantsDocumentation.lua";
+                loaded = loadReference(L, path.c_str());
+                if (loaded) run(L, R"lua(
+                    for _, t in ipairs(APIDocumentation.value.Tables) do
+                        if t.Name == 'LFGRole' then
+                            assert(t.NumValues == Enum.LFGRoleMeta.NumValues and t.MinValue == Enum.LFGRoleMeta.MinValue and t.MaxValue == Enum.LFGRoleMeta.MaxValue);
+                            for _, field in ipairs(t.Fields) do assert(Enum.LFGRole[field.Name] == field.EnumValue) end
+                        elseif t.Name == 'LFG_ROLEConstants' then
+                            for _, field in ipairs(t.Values) do assert(Constants.LFG_ROLEConstants[field.Name] == field.Value) end
+                        end
+                    end
+                    APIDocumentation = nil;
+                )lua");
+            }
+            else if (!std::strcmp(argv[1], "--texture")) {
+                const std::string path = std::string(argv[2]) + "/Interface/AddOns/Blizzard_SharedXMLBase/TextureUtil.lua";
+                loaded = loadReference(L, path.c_str());
+                if (loaded) run(L, R"lua(
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Tank) == GetIconForRole('TANK'));
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Healer) == GetIconForRole('HEALER'));
+                    assert(GetIconForRoleEnum(Enum.LFGRole.Damage, true) == GetIconForRole('DAMAGER', true));
+                    assert(GetIconForRoleEnum(Constants.LFG_ROLEConstants.LFG_ROLE_NO_ROLE) == GetIconForRole('GUIDE'));
+                    assert(TextureUtil.GetSmallIconForRoleEnum(Enum.LFGRole.Tank) == TextureUtil.GetSmallIconForRole('TANK'));
+                    local ok, err = pcall(GetIconForRole, 'invalid');
+                    assert(not ok and string.find(err, 'Unknown role: invalid', 1, true));
+                )lua");
+            }
+            else if (!std::strcmp(argv[1], "--load")) loaded = loadReference(L, argv[2]);
             else if (!std::strcmp(argv[1], "--helpers")) loaded = helpers(L, argv[2]);
             else if (!std::strcmp(argv[1], "--script-errors")) loaded = scriptErrors(L, argv[2]);
             else if (!std::strcmp(argv[1], "--reference")) reference(L, argv[2]);

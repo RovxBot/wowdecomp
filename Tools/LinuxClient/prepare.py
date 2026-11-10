@@ -11,6 +11,9 @@ from pathlib import Path
 import re
 import shutil
 import tarfile
+import time
+import urllib.error
+import urllib.parse
 import urllib.request
 
 HERE = Path(__file__).resolve().parent
@@ -23,8 +26,31 @@ def digest(path):
 
 def download(url, path, expected):
     if not path.exists() or digest(path) != expected:
-        with urllib.request.urlopen(url, timeout=120) as response, path.open('wb') as output:
-            shutil.copyfileobj(response, output)
+        for attempt in range(4):
+            try:
+                fetch_url = url
+                if attempt:
+                    # Revalidate the same asset through a checksum-addressed
+                    # cache key after a negative gateway response. The locked
+                    # path/version and mandatory byte digest remain unchanged.
+                    parts = urllib.parse.urlsplit(url)
+                    query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+                    query += [('wowdecomp_sha256', expected), ('wowdecomp_retry', str(attempt))]
+                    fetch_url = urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(query)))
+                request = urllib.request.Request(fetch_url, headers={'Cache-Control': 'no-cache'})
+                with urllib.request.urlopen(request, timeout=120) as response, path.open('wb') as output:
+                    shutil.copyfileobj(response, output)
+                break
+            except (urllib.error.URLError, TimeoutError) as error:
+                path.unlink(missing_ok=True)
+                transient = (isinstance(error, urllib.error.HTTPError) and error.code in {408, 429, 500, 502, 503, 504}) or (
+                    isinstance(error, TimeoutError) or isinstance(getattr(error, 'reason', None), (TimeoutError, ConnectionError)))
+                if isinstance(error, urllib.error.HTTPError):
+                    error.close()
+                if not transient or attempt == 3:
+                    raise
+                print(f'pinned-download: transient transport failure, retry {attempt + 1}/3: {error}', flush=True)
+                time.sleep(2 ** attempt)
     if digest(path) != expected:
         raise ValueError('SHA256 mismatch: ' + str(path))
 
@@ -698,10 +724,66 @@ void VkContext::ChooseHeaps() {''')
     retail_dir = root / 'Engine/Source/Frame/RetailUI'
     retail_dir.mkdir()
     retail_added = []
-    for name in ['XMLCompat.h', 'XMLCompat.cpp']:
+    for name in ['XMLCompat.h', 'XMLCompat.cpp', 'FontResources.h', 'FontResources.cpp']:
         target = retail_dir / name
         shutil.copy2(HERE / 'RetailUI' / name, target)
         retail_added.append(str(target.relative_to(root)))
+    def retail_resources(text):
+        text = '#include "Engine/Source/Frame/RetailUI/FontResources.h"\n#include "Engine/Source/FrameScript/RetailUI/LuaCompat.h"\n' + text
+        original = source_function(text, 'int32_t FrameXML_ProcessFile(')
+        modern = replace(original,
+            'int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status)',
+            'static int32_t ProcessFileResources(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status, bool& resourceFailed)')
+        modern = replace(modern, '                    FrameXML_ProcessFile(includePath, wrapper, md5, &fileStatus);', '''                    ProcessFileResources(includePath, wrapper, md5, &fileStatus, resourceFailed);
+                    if (resourceFailed) break;''')
+        modern = replace(modern, '            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {', '''            } else if (RovRetailUI::Enabled() && !SStrCmpI(child->m_name.m_str, "FontFamily", STORM_MAX_STR)) {
+                if (!RovRetailUI::LoadFontFamily(child, SFile::s_locale, &fileStatus)) {
+                    resourceFailed = true;
+                    break;
+                }
+            } else if (!SStrCmpI(child->m_name.m_str, "Font", STORM_MAX_STR)) {''')
+        modern = replace(modern, '    return 1;\n}', '    return resourceFailed ? 0 : 1;\n}')
+        modern += '''
+
+// Keep the original public signature and per-call failure ownership. Only
+// rejected versioned resources propagate this flag through Includes and TOCs.
+int32_t FrameXML_ProcessFile(const char* filename, const char* wrapper, MD5_CTX* md5, CStatus* status) {
+    bool resourceFailed = false;
+    return ProcessFileResources(filename, wrapper, md5, status, resourceFailed);
+}'''
+        text = replace(text, original, modern)
+        original = source_function(text, 'int32_t FrameXML_CreateFrames(')
+        modern = replace(original, '    CStatus tocStatus;', '    bool resourceFailed = false;\n    CStatus tocStatus;')
+        modern = replace(modern, '            FrameXML_ProcessFile(path, wrapper, md5, &tocStatus);', '''            ProcessFileResources(path, wrapper, md5, &tocStatus, resourceFailed);
+            if (resourceFailed) break;''')
+        modern = replace(modern, '    return 1;\n}', '    return resourceFailed ? 0 : 1;\n}')
+        return replace(text, original, modern)
+    edit('Engine/Source/FrameXML/FrameXML.cpp', retail_resources)
+    def font_dispatch(text):
+        original = source_function(text, 'CScriptObject* FrameScript_GetObjectThis(')
+        corrected = replace(original,
+            'CScriptObject* object = static_cast<CScriptObject*>(lua_touserdata(L, -1));',
+            'FrameScript_Object* object = static_cast<FrameScript_Object*>(lua_touserdata(L, -1));')
+        corrected = replace(corrected, '    return object;', '''    // Fonts derive directly from FrameScript_Object. Dispatch through that
+    // true base; the legacy return is opaque and concrete callers recover it.
+    return reinterpret_cast<CScriptObject*>(object);''')
+        return replace(text, original, corrected)
+    edit('Engine/Source/Frame/CScriptObject_Scripts.cpp', font_dispatch)
+    # Real resource filesystem lookup initializes the original logger. Prefs
+    # 1/2 borrow pref 0's directory; release that one owner after log consumers
+    # and the log thread have closed, before freeing the preference array.
+    edit('Engine/Source/BlizzardCore/Source/System/Log/Log.cpp', lambda text:
+         replace(text, '    free(s_Prefs);', '    if (s_Prefs && s_prefCount) free(s_Prefs[0].m_directory);\n    free(s_Prefs);'))
+
+
+    # Resource staging compares optional shadow fields before deciding whether
+    # to update them. Initialize the original attribute owner's scalar storage.
+    edit('Engine/Source/Frame/CSimpleFontStringAttributes.cpp', lambda text:
+         replace(text, '    this->m_flags = 0;', '''    this->m_flags = 0;
+    this->m_shadowColor.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    this->m_shadowOffset.x = 0.0f;
+    this->m_shadowOffset.y = 0.0f;'''))
+
     lua_dir = root / 'Engine/Source/FrameScript/RetailUI'
     lua_dir.mkdir()
     for name in ['LuaCompat.h', 'LuaCompat.cpp']:
@@ -725,6 +807,10 @@ void VkContext::ChooseHeaps() {''')
     edit('Engine/Source/FrameScript/FrameScript_Scripts.cpp', retail_hooks)
     shutil.copy2(HERE / 'RetailUI' / 'xml_check.cpp', root / 'RovRetailXMLCheck.cpp')
     retail_added.append('RovRetailXMLCheck.cpp')
+    shutil.copy2(HERE.parent / 'NativeGx/fonts/moves.ttf', root / 'RovResourceFixture.ttf')
+    retail_added.append('RovResourceFixture.ttf')
+    shutil.copy2(HERE.parent / 'NativeGx/fonts/LICENSE.txt', root / 'RovResourceFixture.LICENSE.txt')
+    retail_added.append('RovResourceFixture.LICENSE.txt')
 
     shutil.copy2(HERE / 'NativePolicy.h', root / 'RovNativePolicy.h')
     shutil.copy2(HERE / 'policy_check.cpp', root / 'RovNativePolicyCheck.cpp')
@@ -849,6 +935,8 @@ get_target_property(retail_client_libraries WowClient LINK_LIBRARIES)
 target_link_libraries(RovRetailXMLCheck PRIVATE ${retail_client_libraries})
 target_include_directories(RovRetailXMLCheck PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(NAME rov_retail_xml COMMAND RovRetailXMLCheck)
+add_test(NAME rov_retail_resources COMMAND RovRetailXMLCheck --resources ${CMAKE_SOURCE_DIR}/RovResourceFixture.ttf)
+set_tests_properties(rov_retail_resources PROPERTIES TIMEOUT 45)
 set_tests_properties(rov_retail_xml PROPERTIES TIMEOUT 45)
 '''
     early_profile = '''

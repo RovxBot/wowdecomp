@@ -4,6 +4,7 @@
 #include "Engine/Source/lua-5.1/src/lstate.h"
 #include <cstdlib>
 #include <cstring>
+#include <initializer_list>
 
 namespace RovRetailUI {
 bool Enabled() {
@@ -175,8 +176,87 @@ bool IsHookRestrictedFunction(lua_State* L, int index) {
            function == createSecureDelegate || function == invokeDelegate;
 }
 
+// Selected 70862 LFGConstantsDocumentation.lua (reference lock). These are
+// presentation identifiers, NOT the 12340 leader/tank/healer/damage bitmask.
+// Keep ordinary Lua tables/lookup/errors; no metatable manufactures values.
+static char constantsOwner;
+struct Constant { const char* name; int value; };
+static const Constant roles[] = {{"Tank", 0}, {"Healer", 1}, {"Damage", 2}};
+static const Constant roleMeta[] = {{"NumValues", 3}, {"MinValue", 0}, {"MaxValue", 2}};
+static const Constant roleConstants[] = {{"LFG_ROLE_NO_ROLE", -1}, {"LFG_ROLE_ANY", 3}};
+struct ConstantTable { const char* root; const char* name; const Constant* fields; int count; };
+static const ConstantTable constantTables[] = {
+    {"Enum", "LFGRole", roles, 3}, {"Enum", "LFGRoleMeta", roleMeta, 3},
+    {"Constants", "LFG_ROLEConstants", roleConstants, 2},
+};
+
+int RegisterConstants(lua_State* L) {
+    if (!Enabled()) return luaL_error(L, "Forever constants version is not enabled");
+    const int top = lua_gettop(L);
+    lua_pushlightuserdata(L, &constantsOwner);
+    lua_rawget(L, LUA_REGISTRYINDEX);
+    const bool existing = !lua_isnil(L, -1);
+    const int owner = top + 1;
+    if (!existing) {
+        lua_pop(L, 1);
+        lua_newtable(L);
+    }
+    // Preflight both namespaces before publishing either one. Never adopt an
+    // addon-owned table, run its metamethods, or overwrite a conflicting root.
+    for (const char* root : {"Enum", "Constants"}) {
+        lua_pushstring(L, root); lua_rawget(L, LUA_GLOBALSINDEX);
+        if (existing) {
+            lua_getfield(L, owner, root);
+            if (!lua_rawequal(L, -1, -2)) return luaL_error(L, "Forever constants: foreign %s namespace", root);
+            lua_pop(L, 1);
+        } else if (!lua_isnil(L, -1)) return luaL_error(L, "Forever constants: conflicting %s namespace", root);
+        lua_pop(L, 1);
+    }
+    for (const auto& table : constantTables) {
+        if (existing) {
+            lua_getfield(L, owner, table.root);
+            if (lua_getmetatable(L, -1)) return luaL_error(L, "Forever constants: namespace metatable");
+            lua_pushstring(L, table.name); lua_rawget(L, -2);
+            lua_getfield(L, owner, table.name);
+            if (!lua_rawequal(L, -1, -2)) return luaL_error(L, "Forever constants: foreign %s table", table.name);
+            lua_pop(L, 1);
+            if (lua_getmetatable(L, -1)) return luaL_error(L, "Forever constants: enum metatable");
+            int count = 0;
+            lua_pushnil(L);
+            while (lua_next(L, -2)) { ++count; lua_pop(L, 1); }
+            if (count != table.count) return luaL_error(L, "Forever constants: invalid %s membership", table.name);
+            for (int i = 0; i < table.count; ++i) {
+                lua_pushstring(L, table.fields[i].name); lua_rawget(L, -2);
+                if (lua_type(L, -1) != LUA_TNUMBER || lua_tonumber(L, -1) != table.fields[i].value)
+                    return luaL_error(L, "Forever constants: invalid %s.%s", table.name, table.fields[i].name);
+                lua_pop(L, 1);
+            }
+            lua_pop(L, 2);
+        } else {
+            lua_getfield(L, owner, table.root);
+            if (lua_isnil(L, -1)) { lua_pop(L, 1); lua_newtable(L); lua_pushvalue(L, -1); lua_setfield(L, owner, table.root); }
+            lua_newtable(L);
+            for (int i = 0; i < table.count; ++i) {
+                lua_pushinteger(L, table.fields[i].value); lua_setfield(L, -2, table.fields[i].name);
+            }
+            lua_pushvalue(L, -1); lua_setfield(L, owner, table.name);
+            lua_setfield(L, -2, table.name);
+            lua_pop(L, 1);
+        }
+    }
+    if (!existing) {
+        for (const char* root : {"Enum", "Constants"}) {
+            lua_pushstring(L, root); lua_getfield(L, owner, root); lua_rawset(L, LUA_GLOBALSINDEX);
+        }
+        lua_pushlightuserdata(L, &constantsOwner); lua_pushvalue(L, owner); lua_rawset(L, LUA_REGISTRYINDEX);
+    }
+    lua_settop(L, top);
+    return 0;
+}
+
 void RegisterLuaFunctions(lua_State* L) {
     if (!Enabled()) return;
+    RegisterConstants(L);
     lua_pushcfunction(L, mixin);
     lua_setglobal(L, "Mixin");
     lua_pushcfunction(L, createFromMixins);

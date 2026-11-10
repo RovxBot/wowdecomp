@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import tarfile
 
-from prepare import HERE, LOCK, digest, prepare
+from prepare import HERE, LOCK, digest, download, prepare
 from package import package
 from distribute import distribution
 
@@ -31,6 +31,7 @@ def main():
     work.mkdir()
     output = root / 'artifacts/full-linux' / suffix
     output.mkdir(parents=True)
+    download(LOCK['appimage_runtime']['url'], output / 'runtime-x86_64', LOCK['appimage_runtime']['sha256'])
     source = prepare(work / 'source', work / 'upstream.tar.gz')
     shutil.copy2(source / 'source-audit.json', output / 'source-audit.json')
     build = work / 'build'
@@ -43,7 +44,7 @@ def main():
     if args.strict:
         os.environ.update(ASAN_OPTIONS='detect_leaks=1:halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
     run(['cmake', '--build', build, '--target', 'WowClient', 'RovNativePolicyCheck', 'RovNativeNearCheck', 'RovNativeAngleCheck', 'RovNativeAttributesCheck', 'RovNativeFreeTypeStreamCheck', 'RovNativeM2CacheSeedCheck', 'RovNativeLuaUpvalueCheck', 'RovNativeALSAOutputCheck', 'RovNativeLowPassCheck', 'RovNativePitchShiftCheck', 'RovNativeChorusCheck', 'RovNativeEchoCheck', 'RovNativeInlineFiltersCheck', 'RovNativeParameterCheck', 'RovNativeWorkerCheck', 'RovNativeVulkanMemoryCheck', 'RovNativeVulkanFramebufferCheck', 'RovNativeM2BatchCheck', 'RovRetailXMLCheck', 'job_exit_repro', 'job_lifecycle_test', '-j', '3'])
-    run(['ctest', '--test-dir', build, '--output-on-failure', '-R', '^(rov_native_policy|rov_native_near_memory|rov_native_audio_angle|rov_native_packed_attributes|rov_native_freetype_stream|rov_native_m2_cache_seed|rov_native_lua_upvalue|rov_native_alsa_output|rov_native_lowpass|rov_native_pitchshift|rov_native_chorus|rov_native_echo|rov_native_lowpass_full|rov_native_itlowpass|rov_native_highpass|rov_native_parameq|rov_native_parameters|rov_native_network_worker|rov_native_vulkan_memory|rov_native_vulkan_framebuffer|rov_native_m2_batch|rov_retail_xml|job_lifecycle_test|job_exit_shutdown)$'])
+    run(['ctest', '--test-dir', build, '--output-on-failure', '-R', '^(rov_native_policy|rov_native_near_memory|rov_native_audio_angle|rov_native_packed_attributes|rov_native_freetype_stream|rov_native_m2_cache_seed|rov_native_lua_upvalue|rov_native_alsa_output|rov_native_lowpass|rov_native_pitchshift|rov_native_chorus|rov_native_echo|rov_native_lowpass_full|rov_native_itlowpass|rov_native_highpass|rov_native_parameq|rov_native_parameters|rov_native_network_worker|rov_native_vulkan_memory|rov_native_vulkan_framebuffer|rov_native_m2_batch|rov_retail_xml|rov_retail_resources|job_lifecycle_test|job_exit_shutdown)$'])
     shutil.copy2(build / 'bin/RovRetailXMLCheck', output / 'RovRetailXMLCheck')
     (output / 'RovRetailXMLCheck.sha256').write_text(digest(output / 'RovRetailXMLCheck') + '  RovRetailXMLCheck\n')
     metadata = dict(source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),

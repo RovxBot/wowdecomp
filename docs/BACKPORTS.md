@@ -41,6 +41,30 @@ current execution evidence and remaining work belong to
 [#215](https://github.com/RovxBot/wowdecomp/issues/215),
 [PR #216](https://github.com/RovxBot/wowdecomp/pull/216).
 
+### Selected constants and font resource admission
+
+Product-authored native registration uses the pinned 70862
+LFGConstantsDocumentation values for LFGRole, its metadata and LFG_ROLEConstants;
+TextureUtil uses these as presentation identifiers. Original 12340 role bitmasks
+and native APIs remain unchanged. No documentation/UI source implementation was
+imported. Reference hashes and build/version are in the existing lock.
+
+Product-authored FontFamily admission selects a locale member and explicitly
+adapts height/shadow syntax into the original FrameXML/CSimpleFont loader. It
+reuses native font registration, inheritance, Services/Gxu/FreeType validation
+and cleanup; initialized optional shadow fields avoid reading undefined storage. Full-client
+font method dispatch now uses the true FrameScript_Object base before returning
+the original opaque result, following the existing qualified native design.
+The resource filesystem path also exposes the logger's shared directory owner;
+its existing shutdown now frees that allocation once after consumers join.
+No new dependency, exported font/source asset, donor address or VERIFY claim is
+introduced. It remains opt-in and Linux-only. Selected slug rendering and broader
+modern resources remain explicit failures. The authored redistributable movement
+font is reused solely by hosted resource fixtures. The [durable contract](retail/COMPATIBILITY.md#selected-enum-and-native-font-resources)
+identifies supported schemas and the genuine action-bar path; current evidence
+and remaining acceptance are [#215](https://github.com/RovxBot/wowdecomp/issues/215)
+/ [PR #219](https://github.com/RovxBot/wowdecomp/pull/219).
+
 ## NP-030 — Separate complete Linux client integration
 
 - Source: RosemyneH/wowdecomp at
