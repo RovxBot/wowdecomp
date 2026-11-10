@@ -35,6 +35,9 @@ stated scope.
 Alpha 0.2.0 work now targets [genuine Forever/retail feature backports](https://github.com/RovxBot/wowdecomp/issues/211).
 The first [native XML compatibility prerequisite](docs/retail/COMPATIBILITY.md)
 does not yet provide complete Edit Mode controls or gameplay-frame layouts.
+The [external Forever asset tooling](Tools/RetailAssets/README.md) stages verified
+UI/font bootstrap inputs for private Alpha 0.2.0 release preparation after hosted
+compilation; game assets remain outside Git and ordinary CI.
 
 | Platform | Demonstrated progress | Available testing |
 | --- | --- | --- |

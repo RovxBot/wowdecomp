@@ -59,9 +59,11 @@ Implement **one read-only, versioned modern character bundle reader and existing
 Model2 viewer adapter**, with a narrow explicitly declared format/material subset.
 First inventory one locally supplied real character bundle, pin product/build,
 locale, all resource IDs and hashes, and choose an asset whose required effects
-the maintained renderer can represent. No newer installation or extracted modern
-character bundle is presently an input to this work; source review alone cannot
-select a qualified specimen or establish its external-skeleton requirements.
+the maintained renderer can represent. A user-supplied Forever installation is
+available read-only; [#221](https://github.com/RovxBot/wowdecomp/issues/221) covers
+its separate bounded UI/font extraction and release-input tooling. A character
+specimen and its dependency closure still require inventory under #214; source
+review alone cannot select one or establish external-skeleton requirements.
 
 The task must include enough native infrastructure to display **and animate**
 that specimen: bounded MD21/MD20 and one SKIN reader, explicit texture mapping,
